@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+     xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+    <Description about="urn:mozilla:install-manifest">
+        <em:id>dav4tbsync@jobisoft.de</em:id>
+        <em:type>2</em:type> <!-- type=extension --> 
+        <em:bootstrap>true</em:bootstrap>
+        <em:unpack>false</em:unpack>
+        <em:multiprocessCompatible>true</em:multiprocessCompatible>
+        <em:name>sabre/dav provider for TbSync</em:name>
+        <em:version>0.1</em:version>
+        <em:description>Add sync support for sabre/dav accounts to TbSync</em:description>
+        <em:creator>John Bieling</em:creator>
+        <em:homepageURL>https://github.com/jobisoft/DAV-4-TbSync</em:homepageURL>
+        <em:iconURL>chrome://dav4tbsync/skin/sabredav32.png</em:iconURL>
+
+        <em:targetApplication>
+          <!-- Thunderbird -->
+          <Description>
+            <em:id>{3550f703-e582-4d05-9a08-453d09bdfdc6}</em:id>
+            <em:minVersion>50.0</em:minVersion>
+            <em:maxVersion>61.*</em:maxVersion>
+          </Description>
+        </em:targetApplication>
+
+    </Description>
+</RDF>

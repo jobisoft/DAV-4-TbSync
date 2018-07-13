@@ -1,0 +1,39 @@
+<!ENTITY add.title "Adding an sabre/dav (CalDAV/CardDAV) account to TbSync">
+<!ENTITY add.ok "Add account">
+<!ENTITY add.name "Account name:">
+<!ENTITY add.user "User name:">
+<!ENTITY add.password "Password:">
+<!ENTITY add.server "Server URL:">
+<!ENTITY add.description "Please enter a name for the new TbSync account and the user name and password of the sabre/dav (CalDAV/CardDAV) account you want to add. ">
+
+<!ENTITY pref.EnableAccount "Enable account &amp; try to connect to server">
+<!ENTITY pref.SynchronizeAccount "Synchronize account">
+
+<!ENTITY pref.AccountName "Account name">
+<!ENTITY pref.UserName "User name">
+<!ENTITY pref.ServerName "Server address">
+<!ENTITY pref.ServerNameDescription "e.g. mail.yourserver.com">
+<!ENTITY pref.usehttps "Use secure connection (connect via https)">
+<!ENTITY pref.DeviceId "Device Id">
+<!ENTITY pref.contactoptions "Contact options">
+<!ENTITY pref.downloadonly "Revert local changes (one-way sync)">
+<!ENTITY pref.generaloptions "General options">
+<!ENTITY pref.syncdefaultfolders "Subscribe and sync all default folders after the initial connection has been established.">
+
+<!ENTITY pref.autotime "Sync interval (minutes)">
+<!ENTITY pref.never "A setting of 0 disables periodic sync. Push sync is no yet supported.">
+
+<!ENTITY pref.syncstate "Sync status">
+<!ENTITY pref.seperator.comma "Comma">
+<!ENTITY pref.seperator.linebreak "Line break">
+<!ENTITY pref.seperator.description "Seperator for multiline address field.">
+<!ENTITY pref.displayoverride "Overide Display Name with 'First Name' + 'Second Name'">
+
+<!ENTITY pref.foldername "Folder">
+<!ENTITY pref.targetname "SyncTarget">
+<!ENTITY pref.status "Status">
+
+<!ENTITY pref.switchFoldersAndConfig "Double click to switch between folder view and settings view.">
+
+<!ENTITY servertype.custom "Custom configuration">
+<!ENTITY servertype.unlock "Double click to unlock all predefined server settings.">
