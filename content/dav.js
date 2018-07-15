@@ -88,12 +88,10 @@ var dav = {
      */
     getThunderbirdFolderType: function(type) {
         switch (type) {
-            case "addressbook": 
+            case "carddav": 
                 return "tb-contact";
-            case "calendar":
+            case "caldav":
                 return "tb-event";
-            case "task":
-                return "tb-todo";
             default:
                 return "unknown ("+type + ")";
         };
@@ -235,88 +233,97 @@ var dav = {
      * @param job           [in] identifier about what is to be done, the standard job is "sync", you are free to add
      *                           custom jobs like "deletefolder" via your own accountSettings.xul
      */
-    start: Task.async (function* (syncdata, job)  {                
-        
-        switch (job) {
-            case "sync":
-                //update folders avail on server and handle added, removed, renamed folders
-                yield dav.sync.updateFolders(syncdata);
+    start: Task.async (function* (syncdata, job)  {                        
+        try {
+            switch (job) {
+                case "sync":
+                    //update folders avail on server and handle added, removed, renamed folders
+                    yield dav.sync.updateFolders(syncdata);
 
-                //set all selected folders to "pending", so they are marked for syncing
-                tbSync.setSelectedFoldersToPending(syncdata.account);
+                    //set all selected folders to "pending", so they are marked for syncing
+                    tbSync.setSelectedFoldersToPending(syncdata.account);
 
-                //update folder list in GUI
-                Services.obs.notifyObservers(null, "tbsync.updateFolderList", syncdata.account);
+                    //update folder list in GUI
+                    Services.obs.notifyObservers(null, "tbsync.updateFolderList", syncdata.account);
 
-                //process all pending folders
-                do {
-                    //any pending folders left?
-                    let folders = tbSync.db.findFoldersWithSetting("status", "pending", syncdata.account);
-                    if (folders.length == 0) {
-                        //all folders of this account have been synced
-                        break;
-                    }
-                    //what folder are we syncing?
-                    syncdata.folderID = folders[0].folderID;
-                    syncdata.type = folders[0].type;
-                                            
-                    switch ( syncdata.type) {
-                        case "addressbook": 
-                            // check SyncTarget
-                            if (!tbSync.checkAddressbook(syncdata.account, syncdata.folderID)) {
-                                //could not create target
-                                tbSync.finishFolderSync(syncdata, "notargets");         
-                                continue; //with next folder
-                            }
-
-                            //get sync target of this addressbook
-                            syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
-                            syncdata.addressbookObj = tbSync.getAddressBookObject(syncdata.targetId);
-
-                            //promisify addressbook, so it can be used together with yield (using same interface as promisified calender)
-                            syncdata.targetObj = tbSync.promisifyAddressbook(syncdata.addressbookObj);
-                            
-                            yield dav.sync.start(syncdata);
+                    //process all pending folders
+                    do {
+                        //any pending folders left?
+                        let folders = tbSync.db.findFoldersWithSetting("status", "pending", syncdata.account);
+                        if (folders.length == 0) {
+                            //all folders of this account have been synced
                             break;
+                        }
+                        //what folder are we syncing?
+                        syncdata.folderID = folders[0].folderID;
+                        syncdata.type = folders[0].type;
+                                                
+                        try {
+                            switch ( syncdata.type) {
+                                case "carddav": 
+                                    // check SyncTarget
+                                    if (!tbSync.checkAddressbook(syncdata.account, syncdata.folderID)) {
+                                        //could not create target
+                                        throw dav.sync.failed("notargets");         
+                                    }
 
-                        case "calendar":
-                        case "task": 
-                            // skip if lightning is not installed
-                            if (tbSync.lightningIsAvailable() == false) {
-                                tbSync.finishFolderSync(syncdata, "nolightning");         
-                                continue;
+                                    //get sync target of this addressbook
+                                    syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
+                                    syncdata.addressbookObj = tbSync.getAddressBookObject(syncdata.targetId);
+
+                                    //promisify addressbook, so it can be used together with yield (using same interface as promisified calender)
+                                    syncdata.targetObj = tbSync.promisifyAddressbook(syncdata.addressbookObj);
+                                    
+                                    yield dav.sync.start(syncdata);
+                                    break;
+
+                                case "caldav":
+                                    // skip if lightning is not installed
+                                    if (tbSync.lightningIsAvailable() == false) {
+                                        throw dav.sync.failed("nolightning");         
+                                    }
+                                    
+                                    // check SyncTarget
+                                    if (!tbSync.checkCalender(syncdata.account, syncdata.folderID)) {
+                                        //could not create target
+                                        throw dav.sync.failed("notargets");         
+                                    }
+
+                                    syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
+                                    syncdata.calendarObj = cal.getCalendarManager().getCalendarById(syncdata.targetId);
+                                    
+                                    //promisify calender, so it can be used together with yield
+                                    syncdata.targetObj = cal.async.promisifyCalendar(syncdata.calendarObj.wrappedJSObject);
+
+                                    syncdata.calendarObj.startBatch();
+                                    yield dav.sync.start(syncdata);
+                                    syncdata.calendarObj.endBatch();
+                                    break;
+
+                                default:
+                                    throw dav.sync.failed("notsupported");
+                                    break;
+
                             }
-                            
-                            // check SyncTarget
-                            if (!tbSync.checkCalender(syncdata.account, syncdata.folderID)) {
-                                //could not create target
-                                tbSync.finishFolderSync(syncdata, "notargets");         
-                                continue; //with next folder
-                            }
-
-                            syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
-                            syncdata.calendarObj = cal.getCalendarManager().getCalendarById(syncdata.targetId);
-                            
-                            //promisify calender, so it can be used together with yield
-                            syncdata.targetObj = cal.async.promisifyCalendar(syncdata.calendarObj.wrappedJSObject);
-
-                            syncdata.calendarObj.startBatch();
-                            yield dav.sync.start(syncdata);
-                            syncdata.calendarObj.endBatch();
-                            break;
-                    }                        
-                } while (true);
-                
-                //Mandatory: set account state at end, either 
-                //- OK (green tick)
-                //- nolightning (blue info, which should be used, if everything is OK, just all calendar/task folders have been skipped, beause lighning is not installed)
-                //- any other error (red error)  
-                tbSync.finishAccountSync(syncdata, "OK"); //if any of the folders has an error, that error is mapped onto the account status              
-                break;
-                                
-            default:
-                tbSync.finishAccountSync(syncdata, "UnsupportedJob::"+job);               
-        }        
+                        } catch (e) {
+                            tbSync.finishFolderSync(syncdata, e.message);
+                            throw e;
+                        }                            
+                    } while (true);
+                    throw dav.sync.failed("OK");
+                    break;
+                                    
+                default:
+                    throw dav.sync.failed("unknown::"+job);
+                    break;
+            }
+        } catch (e) {
+            //Mandatory: set account state at end, either 
+            //- OK (green tick)
+            //- nolightning (blue info, which should be used, if everything is OK, just all calendar/task folders have been skipped, beause lighning is not installed)
+            //- any other error (red error)  
+            tbSync.finishAccountSync(syncdata, e.message); //if any of the folders has an error, that error is mapped onto the account status              
+        }            
     }),
     
 
@@ -503,14 +510,11 @@ var dav = {
         getTypeImage: function (type) {
             let src = ""; 
             switch (type) {
-                case "addressbook": 
+                case "carddav": 
                     src = "contacts16.png";
                     break;
-                case "calendar":
+                case "caldav":
                     src = "calendar16.png";
-                    break;
-                case "task":
-                    src = "todo16.png";
                     break;
             }
             return "chrome://tbsync/skin/" + src;
