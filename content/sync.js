@@ -205,7 +205,7 @@ dav.sync = {
             let folders = tbSync.db.findFoldersWithSetting("status", "pending", syncdata.account);
             if (folders.length == 0) {
                 //all folders of this account have been synced
-                break;
+                throw dav.sync.succeeded();
             }
             //what folder are we syncing?
             syncdata.folderID = folders[0].folderID;
@@ -267,7 +267,6 @@ dav.sync = {
                 }
             }                            
         } while (true);
-        throw dav.sync.succeeded();
     }),
     
     
