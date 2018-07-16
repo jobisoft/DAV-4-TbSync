@@ -19,95 +19,6 @@ dav.sync = {
 
 
 
-
-
-
-
-
-
-
-    sendRequest: Task.async (function* (request, _url, method, syncdata, headers = {}, allowSoftFail = false) {
-        let account = tbSync.db.getAccount(syncdata.account);
-        let password = tbSync.getPassword(account);
-
-        let url = "http" + (account.https ? "s" : "") + "://" + account.host + _url;
-        tbSync.dump("URL", url);
-
-        let options = {};
-        options.method = method;
-        options.body = request;
-        options.cache = "no-cache";
-        //do not include credentials, so we do not end up in a session, see https://github.com/owncloud/core/issues/27093
-        options.credentials = "omit"; 
-        options.redirect = "follow";// manual, *follow, error
-        options.headers = {};
-        options.headers["Authorization"] = 'Basic ' + btoa(account.user + ':' + password);
-        options.headers["Content-Length"] = request.length;
-        options.headers["Content-Type"] = "application/xml; charset=utf-8";            
-        
-            
-        //TODO: timeout: https://github.com/matthew-andrews/isomorphic-fetch/issues/48
-        //syncdata.req.timeout = tbSync.prefSettings.getIntPref("timeout");
-        //else reject(dav.sync.failed("timeout"));
-
-        //try to fetch
-        let response = null;
-        try {
-            response = yield tbSync.window.fetch(url, options);
-        } catch (e) {
-            //fetch throws on network errors
-            throw dav.sync.failed("networkerror");
-        }
-
-        //try to convert response body to xml
-        let text = yield response.text();
-        let xml = null;
-        let oParser = (Services.vc.compare(Services.appinfo.platformVersion, "61.*") >= 0) ? new DOMParser() : Components.classes["@mozilla.org/xmlextras/domparser;1"].createInstance(Components.interfaces.nsIDOMParser);
-        try {
-            xml = oParser.parseFromString(text, "application/xml");
-        } catch (e) {
-            //however, domparser does not throw an error, it returns an error document
-            //https://developer.mozilla.org/de/docs/Web/API/DOMParser
-            //just in case
-            throw dav.sync.failed("mailformed-xml");
-        }
-        //check if xml is error document
-        if (xml.documentElement.nodeName == "parsererror") {
-            throw dav.sync.failed("mailformed-xml");
-        }
-
-        //TODO: Handle cert errors ??? formaly done by
-        //let error = tbSync.createTCPErrorFromFailedXHR(syncdata.req);
-        
-        tbSync.dump("RESPONSE", response.status + " : " + text);
-        switch(response.status) {
-            case 401: // AuthError
-            case 403: // Forbiddden (some servers send forbidden on AuthError, like Freenet)
-                throw dav.sync.failed("401");
-                break;
-
-            case 451: // Redirect - update host and login manager 
-                break;
-                
-            default:
-                return xml;
-        }
-    }),
-    
-    
-    
-    
-    
-    //eventually this will be replaced by a full multistatus parser...
-    getFirstChildTag: function (elementsByTagName, childTag) {
-        for (let p=0; p < elementsByTagName.length; p++) {
-            let childs = elementsByTagName[p].getElementsByTagName(childTag);
-            if (childs.length > 0 && childs[0].textContent) {
-                return childs[0].textContent;
-            }
-        }
-        return "";
-    },
     
     folderList: Task.async (function* (syncdata) {
         //This is a very simple implementation of the discovery method of sabre/dav.
@@ -132,10 +43,10 @@ dav.sync = {
             //if you send a request to a server and thus have to wait for answer, use a "send." syncstate, which will give visual feedback to the user,
             //that we are waiting for an answer with timeout countdown
             tbSync.setSyncState("send.getfolders", syncdata.account);
-            let response = yield dav.sync.sendRequest('<d:propfind xmlns:d="DAV:"><d:prop><d:current-user-principal /></d:prop></d:propfind>', "/.well-known/"+job+"/", "PROPFIND", syncdata, {Depth: "0", Prefer: "return-minimal"});
+            let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:"><d:prop><d:current-user-principal /></d:prop></d:propfind>', "/.well-known/"+job+"/", "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
             tbSync.setSyncState("eval.folders", syncdata.account); 
-            let principal = dav.sync.getFirstChildTag(response.documentElement.getElementsByTagName("d:current-user-principal"), "d:href");
+            let principal = dav.tools.getFirstChildTag(response.documentElement.getElementsByTagName("d:current-user-principal"), "d:href");
             let home = "";
             
             //OBACHT: We expect the server to return NS card and cal as defined in our davjobs. However, that is not guarenteed, we might need to extract the actual used NS from repsonse
@@ -144,17 +55,17 @@ dav.sync = {
             // -> get home/root of storage
             if (principal) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
-                response = yield dav.sync.sendRequest('<d:propfind xmlns:d="DAV:" xmlns:'+davjobs[job].ns+'="urn:ietf:params:xml:ns:'+job+'"><d:prop><'+davjobs[job].tag+' /></d:prop></d:propfind>', principal, "PROPFIND", syncdata, {Depth: "0", Prefer: "return-minimal"});
+                response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:" xmlns:'+davjobs[job].ns+'="urn:ietf:params:xml:ns:'+job+'"><d:prop><'+davjobs[job].tag+' /></d:prop></d:propfind>', principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
                 tbSync.setSyncState("eval.folders", syncdata.account); 
-                home = dav.sync.getFirstChildTag(response.documentElement.getElementsByTagName(davjobs[job].tag), "d:href");
+                home = dav.tools.getFirstChildTag(response.documentElement.getElementsByTagName(davjobs[job].tag), "d:href");
             }
             
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
             // -> get all calendars and addressbooks
             if (home) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
-                response = yield dav.sync.sendRequest('<d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>', home, "PROPFIND", syncdata, {Depth: "1", Prefer: "return-minimal"});
+                response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>', home, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
                 
                 tbSync.setSyncState("eval.folders", syncdata.account); 
                 let nsResolver = response.createNSResolver( response.documentElement );
@@ -199,6 +110,10 @@ dav.sync = {
 
     }),
 
+
+
+
+
     allPendingFolders: Task.async (function* (syncdata) {
         do {
             //any pending folders left?
@@ -242,15 +157,9 @@ dav.sync = {
                             throw dav.sync.failed("notargets");         
                         }
 
-                        syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
-                        syncdata.calendarObj = cal.getCalendarManager().getCalendarById(syncdata.targetId);
-                        
-                        //promisify calender, so it can be used together with yield
-                        syncdata.targetObj = cal.async.promisifyCalendar(syncdata.calendarObj.wrappedJSObject);
-
-                        syncdata.calendarObj.startBatch();
-                        yield dav.sync.singleFolder(syncdata);
-                        syncdata.calendarObj.endBatch();
+                        //we do not do anything here, because that calendar is managed by lightning directly
+                        tbSync.db.clearChangeLog(tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target"));
+                        throw dav.sync.succeeded();         
                         break;
 
                     default:
@@ -270,6 +179,9 @@ dav.sync = {
     }),
     
     
+
+
+
     singleFolder: Task.async (function* (syncdata)  {
         //The syncdata.targetObj has a comon interface, regardless if this is a contact or calendar sync, 
         //so you could use the same main sync process for both to reduce redundancy.
@@ -319,11 +231,4 @@ dav.sync = {
         //always finish sync by throwing failed or succeeded
         throw dav.sync.succeeded();
     }),
-    
-    
-    
-
-
-    
-
 }
