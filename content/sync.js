@@ -119,6 +119,15 @@ dav.sync = {
             caldav : {ns: 'cal', tag: 'cal:calendar-home-set', type: 'cal:calendar'},
         };
                 
+        //get all folders currently known
+        let folders = tbSync.db.getFolders(syncdata.account);
+        let deletedFolders = [];
+        for (let f in folders) {
+            deletedFolders.push(f);
+        }
+        tbSync.dump("KNOWN", deletedFolders.join(", "));
+
+        
         for (let job in davjobs) {
 
             //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncdata)
@@ -174,12 +183,24 @@ dav.sync = {
                         } else {
                             //Update name
                             tbSync.db.setFolderSetting(syncdata.account,href, "name", name);
-                        }                            
+                            deletedFolders = deletedFolders.filter(item => item !== href);
+                        }
+                        
                     }
                 }
+                                
+            } else {
+                //home was not found - connection error? - do not delete anything
+                let deletedFolders = [];
             }
-        }        
-    
+        }
+        
+        //remove deleted folders (no longer there)
+        tbSync.dump("DELETED", deletedFolders.join(", "));
+        for (let i = 0; i < deletedFolders.length; i++) {
+            tbSync.takeTargetOffline("dav", folders[deletedFolders[i]], " [deleted on server]");
+        }                        
+
     }),
 
     allPendingFolders: Task.async (function* (syncdata) {
