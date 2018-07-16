@@ -125,11 +125,8 @@ dav.sync = {
         for (let f in folders) {
             deletedFolders.push(f);
         }
-        tbSync.dump("KNOWN", deletedFolders.join(", "));
-
         
         for (let job in davjobs) {
-
             //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncdata)
             //example state "getfolders" to get folder information from server
             //if you send a request to a server and thus have to wait for answer, use a "send." syncstate, which will give visual feedback to the user,
@@ -196,7 +193,6 @@ dav.sync = {
         }
         
         //remove deleted folders (no longer there)
-        tbSync.dump("DELETED", deletedFolders.join(", "));
         for (let i = 0; i < deletedFolders.length; i++) {
             tbSync.takeTargetOffline("dav", folders[deletedFolders[i]], " [deleted on server]");
         }                        
