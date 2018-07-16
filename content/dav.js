@@ -238,7 +238,7 @@ var dav = {
             switch (job) {
                 case "sync":
                     //update folders avail on server and handle added, removed, renamed folders
-                    yield dav.sync.updateFolders(syncdata);
+                    yield dav.sync.folderList(syncdata);
 
                     //set all selected folders to "pending", so they are marked for syncing
                     tbSync.setSelectedFoldersToPending(syncdata.account);
@@ -247,70 +247,7 @@ var dav = {
                     Services.obs.notifyObservers(null, "tbsync.updateFolderList", syncdata.account);
 
                     //process all pending folders
-                    do {
-                        //any pending folders left?
-                        let folders = tbSync.db.findFoldersWithSetting("status", "pending", syncdata.account);
-                        if (folders.length == 0) {
-                            //all folders of this account have been synced
-                            break;
-                        }
-                        //what folder are we syncing?
-                        syncdata.folderID = folders[0].folderID;
-                        syncdata.type = folders[0].type;
-                                                
-                        try {
-                            switch ( syncdata.type) {
-                                case "carddav": 
-                                    // check SyncTarget
-                                    if (!tbSync.checkAddressbook(syncdata.account, syncdata.folderID)) {
-                                        //could not create target
-                                        throw dav.sync.failed("notargets");         
-                                    }
-
-                                    //get sync target of this addressbook
-                                    syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
-                                    syncdata.addressbookObj = tbSync.getAddressBookObject(syncdata.targetId);
-
-                                    //promisify addressbook, so it can be used together with yield (using same interface as promisified calender)
-                                    syncdata.targetObj = tbSync.promisifyAddressbook(syncdata.addressbookObj);
-                                    
-                                    yield dav.sync.start(syncdata);
-                                    break;
-
-                                case "caldav":
-                                    // skip if lightning is not installed
-                                    if (tbSync.lightningIsAvailable() == false) {
-                                        throw dav.sync.failed("nolightning");         
-                                    }
-                                    
-                                    // check SyncTarget
-                                    if (!tbSync.checkCalender(syncdata.account, syncdata.folderID)) {
-                                        //could not create target
-                                        throw dav.sync.failed("notargets");         
-                                    }
-
-                                    syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
-                                    syncdata.calendarObj = cal.getCalendarManager().getCalendarById(syncdata.targetId);
-                                    
-                                    //promisify calender, so it can be used together with yield
-                                    syncdata.targetObj = cal.async.promisifyCalendar(syncdata.calendarObj.wrappedJSObject);
-
-                                    syncdata.calendarObj.startBatch();
-                                    yield dav.sync.start(syncdata);
-                                    syncdata.calendarObj.endBatch();
-                                    break;
-
-                                default:
-                                    throw dav.sync.failed("notsupported");
-                                    break;
-
-                            }
-                        } catch (e) {
-                            tbSync.finishFolderSync(syncdata, e.message);
-                            throw e;
-                        }                            
-                    } while (true);
-                    throw dav.sync.failed("OK");
+                    yield dav.sync.allPendingFolders(syncdata);
                     break;
                                     
                 default:
@@ -318,11 +255,11 @@ var dav = {
                     break;
             }
         } catch (e) {
-            //Mandatory: set account state at end, either 
-            //- OK (green tick)
-            //- nolightning (blue info, which should be used, if everything is OK, just all calendar/task folders have been skipped, beause lighning is not installed)
-            //- any other error (red error)  
-            tbSync.finishAccountSync(syncdata, e.message); //if any of the folders has an error, that error is mapped onto the account status              
+            if (e.type == "dav4tbsync") tbSync.finishAccountSync(syncdata, e.message);
+            else {
+                tbSync.finishAccountSync(syncdata, "Javascript Error");
+                Components.utils.reportError(e);
+            }
         }            
     }),
     

@@ -5,77 +5,94 @@ dav.sync = {
     failed: function (msg = "") {
         let e = new Error(); 
         e.message = msg;
+        e.type = "dav4tbsync";
+        return e; 
+    },
+
+    succeeded: function () {
+        let e = new Error(); 
+        e.message = "OK";
+        e.type = "dav4tbsync";
         return e; 
     },
     
-    sendRequest: function (request, _url, method, syncdata, headers = {}, allowSoftFail = false) {
-        //let msg = "Sending data <" + syncdata.syncstate.split("||")[0] + "> for " + tbSync.db.getAccountSetting(syncdata.account, "accountname");
-        //if (syncdata.folderID !== "") msg += " (" + tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "name") + ")";
 
+
+
+
+
+
+
+
+
+
+    sendRequest: Task.async (function* (request, _url, method, syncdata, headers = {}, allowSoftFail = false) {
         let account = tbSync.db.getAccount(syncdata.account);
         let password = tbSync.getPassword(account);
+
+        let url = "http" + (account.https ? "s" : "") + "://" + account.host + _url;
+        tbSync.dump("URL", url);
+
+        let options = {};
+        options.method = method;
+        options.body = request;
+        options.cache = "no-cache";
+        //do not include credentials, so we do not end up in a session, see https://github.com/owncloud/core/issues/27093
+        options.credentials = "omit"; 
+        options.redirect = "follow";// manual, *follow, error
+        options.headers = {};
+        options.headers["Authorization"] = 'Basic ' + btoa(account.user + ':' + password);
+        options.headers["Content-Length"] = request.length;
+        options.headers["Content-Type"] = "application/xml; charset=utf-8";            
         
-        return new Promise(function(resolve,reject) {
-            let url = "http" + (account.https ? "s" : "") + "://" + account.host + _url;
-            tbSync.dump("URL", url);
             
-            // Create request handler - API changed with TB60 to new XMLHttpRequest()
-            syncdata.req = new XMLHttpRequest();
-            syncdata.req.mozBackgroundRequest = true;
-            syncdata.req.open(method, url, true);
-            syncdata.req.overrideMimeType("application/xml; charset=utf-8");
-            syncdata.req.setRequestHeader("Authorization", 'Basic ' + btoa(account.user + ':' + password));
-            syncdata.req.setRequestHeader("Content-Length", request.length);
+        //TODO: timeout: https://github.com/matthew-andrews/isomorphic-fetch/issues/48
+        //syncdata.req.timeout = tbSync.prefSettings.getIntPref("timeout");
+        //else reject(dav.sync.failed("timeout"));
 
-            for (let header in headers) {
-                syncdata.req.setRequestHeader(header, headers[header]);
-            }
-            
-            syncdata.req.timeout = tbSync.prefSettings.getIntPref("timeout");
+        //try to fetch
+        let response = null;
+        try {
+            response = yield tbSync.window.fetch(url, options);
+        } catch (e) {
+            //fetch throws on network errors
+            throw dav.sync.failed("networkerror");
+        }
 
-            syncdata.req.ontimeout = function () {
-                if (allowSoftFail) resolve("");
-                else reject(dav.sync.failed("timeout"));
-            };
+        //try to convert response body to xml
+        let text = yield response.text();
+        let xml = null;
+        let oParser = (Services.vc.compare(Services.appinfo.platformVersion, "61.*") >= 0) ? new DOMParser() : Components.classes["@mozilla.org/xmlextras/domparser;1"].createInstance(Components.interfaces.nsIDOMParser);
+        try {
+            xml = oParser.parseFromString(text, "application/xml");
+        } catch (e) {
+            //however, domparser does not throw an error, it returns an error document
+            //https://developer.mozilla.org/de/docs/Web/API/DOMParser
+            //just in case
+            throw dav.sync.failed("mailformed-xml");
+        }
+        //check if xml is error document
+        if (xml.documentElement.nodeName == "parsererror") {
+            throw dav.sync.failed("mailformed-xml");
+        }
 
-            syncdata.req.onerror = function () {
-                if (allowSoftFail) resolve("");
-                else {
-                    let error = tbSync.createTCPErrorFromFailedXHR(syncdata.req);
-                    if (!error) {
-                        reject(dav.sync.failed("networkerror"));
-                    } else {
-                        reject(dav.sync.failed(error));
-                    }
-                }
-            };
+        //TODO: Handle cert errors ??? formaly done by
+        //let error = tbSync.createTCPErrorFromFailedXHR(syncdata.req);
+        
+        tbSync.dump("RESPONSE", response.status + " : " + text);
+        switch(response.status) {
+            case 401: // AuthError
+            case 403: // Forbiddden (some servers send forbidden on AuthError, like Freenet)
+                throw dav.sync.failed("401");
+                break;
 
-            syncdata.req.onload = function() {
-                //tbSync.dump("RESPONSE", syncdata.req.status + " : " +  syncdata.req.responseText);
-                switch(syncdata.req.status) {
-                    case 401: // AuthError
-                    case 403: // Forbiddden (some servers send forbidden on AuthError, like Freenet)
-                        reject(dav.sync.failed("401"));
-                        break;
-
-                    case 451: // Redirect - update host and login manager 
-                        break;
-                        
-                    default:
-                        resolve(syncdata.req.responseXML);
-                }
-            };
-
-            syncdata.req.send(request);
-            
-        });
-    },
-    
-    
-    
-    
-    
-    
+            case 451: // Redirect - update host and login manager 
+                break;
+                
+            default:
+                return xml;
+        }
+    }),
     
     
     
@@ -92,7 +109,7 @@ dav.sync = {
         return "";
     },
     
-    updateFolders: Task.async (function* (syncdata) {
+    folderList: Task.async (function* (syncdata) {
         //This is a very simple implementation of the discovery method of sabre/dav.
         //I am not even checking if there are changes, I jut pull the current list from the server and replace the local list
         //Method description: http://sabre.io/dav/building-a-caldav-client/
@@ -165,9 +182,79 @@ dav.sync = {
     
     }),
 
+    allPendingFolders: Task.async (function* (syncdata) {
+        do {
+            //any pending folders left?
+            let folders = tbSync.db.findFoldersWithSetting("status", "pending", syncdata.account);
+            if (folders.length == 0) {
+                //all folders of this account have been synced
+                break;
+            }
+            //what folder are we syncing?
+            syncdata.folderID = folders[0].folderID;
+            syncdata.type = folders[0].type;
+                                    
+            try {
+                switch ( syncdata.type) {
+                    case "carddav": 
+                        // check SyncTarget
+                        if (!tbSync.checkAddressbook(syncdata.account, syncdata.folderID)) {
+                            //could not create target
+                            throw dav.sync.failed("notargets");         
+                        }
 
+                        //get sync target of this addressbook
+                        syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
+                        syncdata.addressbookObj = tbSync.getAddressBookObject(syncdata.targetId);
+
+                        //promisify addressbook, so it can be used together with yield (using same interface as promisified calender)
+                        syncdata.targetObj = tbSync.promisifyAddressbook(syncdata.addressbookObj);
+                        
+                        yield dav.sync.singleFolder(syncdata);
+                        break;
+
+                    case "caldav":
+                        // skip if lightning is not installed
+                        if (tbSync.lightningIsAvailable() == false) {
+                            throw dav.sync.failed("nolightning");         
+                        }
+                        
+                        // check SyncTarget
+                        if (!tbSync.checkCalender(syncdata.account, syncdata.folderID)) {
+                            //could not create target
+                            throw dav.sync.failed("notargets");         
+                        }
+
+                        syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
+                        syncdata.calendarObj = cal.getCalendarManager().getCalendarById(syncdata.targetId);
+                        
+                        //promisify calender, so it can be used together with yield
+                        syncdata.targetObj = cal.async.promisifyCalendar(syncdata.calendarObj.wrappedJSObject);
+
+                        syncdata.calendarObj.startBatch();
+                        yield dav.sync.singleFolder(syncdata);
+                        syncdata.calendarObj.endBatch();
+                        break;
+
+                    default:
+                        throw dav.sync.failed("notsupported");
+                        break;
+
+                }
+            } catch (e) {
+                if (e.type == "dav4tbsync") tbSync.finishFolderSync(syncdata, e.message);
+                else {
+                    //abort sync of other folders on javascript error
+                    tbSync.finishFolderSync(syncdata, "Javascript Error");
+                    throw e;
+                }
+            }                            
+        } while (true);
+        throw dav.sync.succeeded();
+    }),
     
-    start: Task.async (function* (syncdata)  {
+    
+    singleFolder: Task.async (function* (syncdata)  {
         //The syncdata.targetObj has a comon interface, regardless if this is a contact or calendar sync, 
         //so you could use the same main sync process for both to reduce redundancy.
         //The actual type can be stored in syncdata.type, so you can call type-based functions to read 
@@ -175,42 +262,52 @@ dav.sync = {
 
 
         //Pretend to receive remote changes
-        tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-        yield tbSync.sleep(1500);
-
+        {
+            tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
+            yield tbSync.sleep(1500);
+        }
 
         //Pretend to send local changes
-        //define how many entries can be send in one request
-        let maxnumbertosend = 10;
+        {
+            //define how many entries can be send in one request
+            let maxnumbertosend = 10;
+            
+            //access changelog to get local modifications (done and todo are used for UI to display progress)
+            syncdata.done = 0;
+            syncdata.todo = db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
+
+            do {
+                tbSync.setSyncState("prepare.request.localchanges", syncdata.account, syncdata.folderID);
+                yield tbSync.sleep(1500);
+
+                //get changed items from ChangeLog
+                let changes = db.getItemsFromChangeLog(syncdata.targetId, maxnumbertosend, "_by_user");
+                if (changes == 0)
+                    break;
+                
+                for (let i=0; i<changes.length; i++) {
+                    //DAV API SIMULATION: do something with the Thunderbird object here
+
+                    //eval based on changes[i].status (added_by_user, modified_by_user, deleted_by_user)
+                    db.removeItemFromChangeLog(syncdata.targetId, changes[i].id);
+                    syncdata.done++; //UI feedback
+                }
+                tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
+                yield tbSync.sleep(1500);
+
+                tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
+                
+            } while (true);
+        }
         
-        //access changelog to get local modifications (done and todo are used for UI to display progress)
-        syncdata.done = 0;
-        syncdata.todo = db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
-
-        do {
-            tbSync.setSyncState("prepare.request.localchanges", syncdata.account, syncdata.folderID);
-            yield tbSync.sleep(1500);
-
-            //get changed items from ChangeLog
-            let changes = db.getItemsFromChangeLog(syncdata.targetId, maxnumbertosend, "_by_user");
-            if (changes == 0)
-                break;
-            
-            for (let i=0; i<changes.length; i++) {
-                //DAV API SIMULATION: do something with the Thunderbird object here
-
-                //eval based on changes[i].status (added_by_user, modified_by_user, deleted_by_user)
-                db.removeItemFromChangeLog(syncdata.targetId, changes[i].id);
-                syncdata.done++; //UI feedback
-            }
-            tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
-            yield tbSync.sleep(1500);
-
-            tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
-            
-        } while (true);
-
-        tbSync.finishFolderSync(syncdata, "OK");         
+        //always finish sync by throwing failed or succeeded
+        throw dav.sync.succeeded();
     }),
+    
+    
+    
+
+
+    
 
 }
