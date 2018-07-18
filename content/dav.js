@@ -74,6 +74,7 @@ var dav = {
             "lastsynctime" : "",
             "status" : "",
             "parentID" : "",
+            "monitored" : "0", //do not log changes into changelog		
             "downloadonly" : tbSync.db.getAccountSetting(account, "downloadonly"), //each folder has its own settings, the main setting is just the default,
             "cached" : "0"};
         return folder;
