@@ -9,9 +9,10 @@ dav.sync = {
         return e; 
     },
 
-    succeeded: function () {
+    succeeded: function (msg = "") {
         let e = new Error(); 
         e.message = "OK";
+        if (msg) e.message = e.message + "." + msg; 
         e.type = "dav4tbsync";
         return e; 
     },
@@ -142,6 +143,7 @@ dav.sync = {
                         //promisify addressbook, so it can be used together with yield (using same interface as promisified calender)
                         syncdata.targetObj = tbSync.promisifyAddressbook(syncdata.addressbookObj);
                         
+                        throw dav.sync.failed("info.carddavnotimplemented");         
                         yield dav.sync.singleFolder(syncdata);
                         break;
 
@@ -159,7 +161,7 @@ dav.sync = {
 
                         //we do not do anything here, because that calendar is managed by lightning directly
                         tbSync.db.clearChangeLog(tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target"));
-                        throw dav.sync.succeeded();         
+                        throw dav.sync.succeeded("managedbylightning");         
                         break;
 
                     default:

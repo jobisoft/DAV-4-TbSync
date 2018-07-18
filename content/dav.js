@@ -199,7 +199,8 @@ var dav = {
      * @param account       [in] id of the account which should be searched
      * @param currentQuery  [in] search query
      */
-    abServerSearch: Task.async (function* (account, currentQuery)  {
+    /* Not supported by CardDAV
+        abServerSearch: Task.async (function* (account, currentQuery)  {
         //generating example data
         let galdata = [];
     
@@ -218,7 +219,7 @@ var dav = {
                 galdata.push(resultset);
         
         return galdata;
-    }),
+    }),*/
 
 
 

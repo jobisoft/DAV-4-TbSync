@@ -9,9 +9,8 @@ syncstate.preparing=Preparing next item for synchronization
 syncstate.done=Preparing next item for synchronization
 syncstate.accountdone=Finished account
 
-syncstate.prepare.request.autodiscover=Requesting updated server settings
-syncstate.send.request.autodiscover=Waiting for updated server settings
-syncstate.eval.response.autodiscover=Processing updated server settings
+syncstate.send.getfolders=Requesting folder list
+syncstate.eval.getfolders=Updating folder list
 
 syncstate.prepare.request.localchanges=Sending local changes
 syncstate.send.request.localchanges=Waiting for acknowledgement of local changes
@@ -34,6 +33,9 @@ status.httperror=Communication error (HTTP status ##replace.1##).
 status.OK=Ok
 status.nolightning=Lightning Add-On not installed, calendars are not supported.
 status.javascriptError=Javascript error! Check debug log for details.
+
+status.info.carddavnotimplemented=CardDAV sync not yet implemented.
+status.OK.managedbylightning=CalDAV calendar managed by lightning.
 
 status.security=Could not establish a secure connection. Are you using a self-signed or otherwise untrusted certificate without importing it into Thunderbird? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[help]
 status.network=Could not connect to server (##replace.1##).
