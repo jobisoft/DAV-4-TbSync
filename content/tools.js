@@ -29,6 +29,8 @@ dav.tools = {
         let url = "http" + (account.https ? "s" : "") + "://" + account.host + _url;
         tbSync.dump("URL", url);
 
+        let useAbortSignal = (Services.vc.compare(Services.appinfo.platformVersion, "57.*") >= 0);
+
         let options = {};
         options.method = method;
         options.body = request;
@@ -40,19 +42,27 @@ dav.tools = {
         options.headers["Authorization"] = 'Basic ' + btoa(account.user + ':' + password);
         options.headers["Content-Length"] = request.length;
         options.headers["Content-Type"] = "application/xml; charset=utf-8";            
-        
-            
-        //TODO: timeout: https://github.com/matthew-andrews/isomorphic-fetch/issues/48
-        //syncdata.req.timeout = tbSync.prefSettings.getIntPref("timeout");
-        //else reject(dav.sync.failed("timeout"));
 
+        let controler = null;
+        if (useAbortSignal) {
+            controller = new  tbSync.window.AbortController();
+            options.signal = controller.signal;
+        }
+        
         //try to fetch
         let response = null;
+        let timeoutId = null;
         try {
+            if (useAbortSignal) timeoutId = tbSync.window.setTimeout(() => controller.abort(), 20);//tbSync.prefSettings.getIntPref("timeout"));
             response = yield tbSync.window.fetch(url, options);
+            if (useAbortSignal) tbSync.window.clearTimeout(timeoutId);
         } catch (e) {
-            //fetch throws on network errors
-            throw dav.sync.failed("networkerror");
+            //fetch throws on network errors or timeout errors
+            if (useAbortSignal && e instanceof AbortError) {
+                dav.sync.failed("timeout")
+            } else {
+                throw dav.sync.failed("networkerror");
+            }        
         }
 
         //try to convert response body to xml
