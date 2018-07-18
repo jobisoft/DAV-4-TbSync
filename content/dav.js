@@ -40,6 +40,8 @@ var dav = {
             "lastsynctime" : "0", 
             "status" : "disabled", //global status: disabled, OK, syncing, notsyncronized, nolightning, ...
             "servertype": "custom",
+            "authMethod" :"",
+            "authOptions" :"",
             "host" : "",
             "user" : "",
             "https" : "1",
@@ -163,10 +165,13 @@ var dav = {
     createCalendar: function(newname, account, folderID, color) {
         //This example implementation is using the standard storage calendar, but you may use another one
         let calManager = cal.getCalendarManager();
+        let accountdata = tbSync.db.getAccount(account);
+        let password = tbSync.getPassword(accountdata);
+        let user = accountdata.user;
         
         //Create the new standard calendar with a unique name
-        let url = "http" + ( tbSync.db.getAccountSetting(account, "https") ? "s" : "") + "://" + tbSync.db.getAccountSetting(account, "host") + folderID;
-        url = dav.tools.parseUri(url);
+        let hostport = "http" + (accountdata.https ? "s" : "") + "://" + accountdata.host;
+        let url = dav.tools.parseUri(hostport + folderID);
     
         let newCalendar = calManager.createCalendar("caldav", url);
         newCalendar.id = cal.getUUID();
@@ -175,8 +180,10 @@ var dav = {
         newCalendar.setProperty("color", color); //any chance to get the color from the provider? pass via folderSetting
         newCalendar.setProperty("calendar-main-in-composite", true);
 
-        calManager.registerCalendar(newCalendar);
-
+        let authOptions = dav.tools.getAuthOptions(accountdata.authOptions);
+        tbSync.setLoginInfo(hostport, authOptions.realm, user, password);
+        
+        calManager.registerCalendar(newCalendar);            
         return newCalendar;
     },
 
