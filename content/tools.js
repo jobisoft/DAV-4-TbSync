@@ -169,7 +169,7 @@ dav.tools = {
             
             switch(tbSync.db.getAccountSetting(syncdata.account, "authMethod")) {
                 case "":
-            //Not set yet, send unauthenticated request
+                    //not set yet, send unauthenticated request
                     break;
                 
                 case "Basic":
@@ -177,20 +177,19 @@ dav.tools = {
                     break;
 
                 case "Digest":
-            //for digest we need to run multiple times
-            switch (numberOfAuthLoops) {
-                case 1:
-                //first time, do not send an authentication header to get the nonce
-                break;
-                case 2:
-                //second time, calculate digest and send header
-                options.headers["Authorization"] = dav.tools.getDigestAuthHeader(method, _url, account.user, password, account.authOptions, syncdata.account);
-                break;
-
-                default:
-                throw dav.sync.failed("to-many-loops-in-digest-auth");
-            }
-            break;
+                    //for digest we need to run multiple times
+                    switch (numberOfAuthLoops) {
+                        case 1:
+                            //first time, do not send an authentication header to get the nonce
+                            break;
+                        case 2:
+                            //second time, calculate digest and send header
+                            options.headers["Authorization"] = dav.tools.getDigestAuthHeader(method, _url, account.user, password, account.authOptions, syncdata.account);
+                            break;
+                        default:
+                            throw dav.sync.failed("to-many-loops-in-digest-auth");
+                    }
+                    break;
             
                 default:
                     throw dav.sync.failed("unsupported_auth_method:" + account.authMethod);
