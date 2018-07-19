@@ -126,6 +126,12 @@ dav.sync = {
             tbSync.takeTargetOffline("dav", folders[deletedFolders[i]], " [deleted on server]");
         }                        
 
+        //check if any folder was found
+        let numberOfFoundFolders = tbSync.db.findFoldersWithSetting("cached", "0", syncdata.account).length;
+        if (numberOfFoundFolders == 0) {	
+            throw dav.sync.failed("no-folders-found-on-server");
+        }
+    
     }),
 
 
