@@ -4,7 +4,6 @@ The CalDAV/CardDAV provider has always been a hidden part of TbSync. Since I fin
 This provider is able to retrieve all available resources (calendars, address books) from the server and adds the found CalDAV calendars to lightning. It does not implement CalDAV sync by its own, the calendars are managed by lightning.
 
 The following is still missing:
- - support for digest auth
  - CardDAV sync
  - push sync
 
