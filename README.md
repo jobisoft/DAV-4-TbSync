@@ -10,6 +10,6 @@ The following is still missing:
 
 The [DAV-4-TbSync extension](https://github.com/jobisoft/DAV-4-TbSync/releases) needs the latest [beta of TbSync](https://github.com/jobisoft/TbSync/releases).
 
-### Images of the sabre/dav provider hooked into TbSync:
+### Image of the sabre/dav provider hooked into TbSync:
 
 ![image](https://raw.githubusercontent.com/jobisoft/DAV-4-TbSync/master/screenshots/AddAccount.png)
