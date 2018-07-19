@@ -59,6 +59,7 @@ var dav = {
             "servertype": "custom",
             "authMethod" :"",
             "authOptions" :"",
+            "authDigestNC" :"",		
             "host" : "",
             "user" : "",
             "https" : "1",

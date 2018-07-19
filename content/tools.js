@@ -37,16 +37,104 @@ dav.tools = {
         return uri;
     },
     
-    getAuthOptions: function (str) {
-        let rawOptions = str.split(",");
-        let authOptions = {};
-        for (let i=0; i < rawOptions.length; i++) {
-            let kv = rawOptions[i].split("=");
-            authOptions[kv[0].trim()] = kv[1].trim().replace(/"/g, '');
+    hashMD5: function (str) {
+        var converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+
+        // we use UTF-8 here, you can choose other encodings.
+        converter.charset = "UTF-8";
+        // result is an out parameter,
+        // result.value will contain the array length
+        var result = {};
+        // data is an array of bytes
+        var data = converter.convertToByteArray(str, result);
+        var ch = Components.classes["@mozilla.org/security/hash;1"].createInstance(Components.interfaces.nsICryptoHash);
+        ch.init(ch.MD5);
+        ch.update(data, data.length);
+        var hash = ch.finish(false);
+
+        // return the two-digit hexadecimal code for a byte
+        function toHexString(charCode)
+        {
+          return ("0" + charCode.toString(16)).slice(-2);
         }
-        return authOptions;
+
+        // convert the binary hash data to a hex string.
+        var s = Array.from(hash, (c, i) => toHexString(hash.charCodeAt(i))).join("");
+        // s now contains your hash in hex: should be
+        // 5eb63bbbe01eeed093cb22bb8f5acdc3    
+        return s;
+    },
+    
+    /*
+      * Part of digest-header - index.js : https://github.com/node-modules/digest-header
+      *
+      * Copyright(c) fengmk2 and other contributors.
+      * MIT Licensed
+      *
+      * Authors:
+      *   fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com)
+      */
+    getAuthOptions: function (str) {
+        let parts = str.split(',');
+        let opts = {};
+        let AUTH_KEY_VALUE_RE = /(\w+)=["']?([^'"]+)["']?/;
+        for (let i = 0; i < parts.length; i++) {
+            let m = parts[i].match(AUTH_KEY_VALUE_RE);
+            if (m) {
+                opts[m[1]] = m[2].replace(/["']/g, '');
+            }
+        }
+        return opts;
     },
 
+    /*
+      * Part of digest-header - index.js : https://github.com/node-modules/digest-header
+      *
+      * Copyright(c) fengmk2 and other contributors.
+      * MIT Licensed
+      *
+      * Authors:
+      *   fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com)
+      */
+    getDigestAuthHeader: function (method, uri, user, password, options, account) {
+        let opts = dav.tools.getAuthOptions(options);
+        if (!opts.realm || !opts.nonce) {
+            return "";
+        }
+        let qop = opts.qop || "";
+  
+        let userpass = [user,password];
+
+        let NC_PAD = '00000000';
+        let nc = parseInt(tbSync.db.getAccountSetting(account, "authDigestNC"));
+        tbSync.db.setAccountSetting(account, "authDigestNC", String(++nc))
+
+        nc = NC_PAD.substring(nc.length) + nc;
+  
+        let randomarray = new Uint8Array(8);
+        tbSync.window.crypto.getRandomValues(randomarray);
+        let cnonce = randomarray.toString('hex');
+
+        var ha1 = dav.tools.hashMD5(userpass[0] + ':' + opts.realm + ':' + userpass[1]);
+        var ha2 = dav.tools.hashMD5(method.toUpperCase() + ':' + uri);
+        var s = ha1 + ':' + opts.nonce;
+        if (qop) {
+            qop = qop.split(',')[0];
+            s += ':' + nc + ':' + cnonce + ':' + qop;
+        }
+        s += ':' + ha2;
+        
+        var response = dav.tools.hashMD5(s);
+        var authstring = 'Digest username="' + userpass[0] + '", realm="' + opts.realm + '", nonce="' + opts.nonce + '", uri="' + uri + '", response="' + response + '"';
+        if (opts.opaque) {
+            authstring += ', opaque="' + opts.opaque + '"';
+        }
+        if (qop) {
+            authstring +=', qop=' + qop + ', nc=' + nc + ', cnonce="' + cnonce + '"';
+        }
+        return authstring;        
+    },
+    
     sendRequest: Task.async (function* (request, _url, method, syncdata, headers) {
         let account = tbSync.db.getAccount(syncdata.account);
         let password = tbSync.getPassword(account);
@@ -81,12 +169,29 @@ dav.tools = {
             
             switch(tbSync.db.getAccountSetting(syncdata.account, "authMethod")) {
                 case "":
+            //Not set yet, send unauthenticated request
                     break;
                 
                 case "Basic":
                     options.headers["Authorization"] = "Basic " + btoa(account.user + ':' + password);
                     break;
-                
+
+                case "Digest":
+            //for digest we need to run multiple times
+            switch (numberOfAuthLoops) {
+                case 1:
+                //first time, do not send an authentication header to get the nonce
+                break;
+                case 2:
+                //second time, calculate digest and send header
+                options.headers["Authorization"] = dav.tools.getDigestAuthHeader(method, _url, account.user, password, account.authOptions, syncdata.account);
+                break;
+
+                default:
+                throw dav.sync.failed("to-many-loops-in-digest-auth");
+            }
+            break;
+            
                 default:
                     throw dav.sync.failed("unsupported_auth_method:" + account.authMethod);
             }
@@ -139,6 +244,14 @@ dav.tools = {
                         [m, o] = authHeader.split(/ (.*)/);
                         tbSync.dump("AUTH_HEADER_METHOD", m);
                         tbSync.dump("AUTH_HEADER_OPTIONS", o);
+
+                        //check if nonce changed, if so, reset nc
+                        let opt_old = dav.tools.getAuthOptions(tbSync.db.getAccountSetting(syncdata.account, "authOptions"));
+                        let opt_new = dav.tools.getAuthOptions(o);
+                        if (opt_old.nonce != opt_new.nonce) {
+                            tbSync.db.setAccountSetting(syncdata.account, "authDigestNC", "0");
+                        }
+                        
                         tbSync.db.setAccountSetting(syncdata.account, "authMethod", m);
                         tbSync.db.setAccountSetting(syncdata.account, "authOptions", o);
                         //is this the first fail? Retry with new settings.
