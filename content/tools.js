@@ -66,14 +66,14 @@ dav.tools = {
     },
     
     /*
-      * Part of digest-header - index.js : https://github.com/node-modules/digest-header
-      *
-      * Copyright(c) fengmk2 and other contributors.
-      * MIT Licensed
-      *
-      * Authors:
-      *   fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com)
-      */
+     * Part of digest-header - index.js : https://github.com/node-modules/digest-header
+     *
+     * Copyright(c) fengmk2 and other contributors.
+     * MIT Licensed
+     *
+     * Authors:
+     *   fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com)
+     */
     getAuthOptions: function (str) {
         let parts = str.split(',');
         let opts = {};
@@ -88,14 +88,14 @@ dav.tools = {
     },
 
     /*
-      * Part of digest-header - index.js : https://github.com/node-modules/digest-header
-      *
-      * Copyright(c) fengmk2 and other contributors.
-      * MIT Licensed
-      *
-      * Authors:
-      *   fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com)
-      */
+     * Part of digest-header - index.js : https://github.com/node-modules/digest-header
+     *
+     * Copyright(c) fengmk2 and other contributors.
+     * MIT Licensed
+     *
+     * Authors:
+     *   fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com)
+     */
     getDigestAuthHeader: function (method, uri, user, password, options, account) {
         let opts = dav.tools.getAuthOptions(options);
         if (!opts.realm || !opts.nonce) {
