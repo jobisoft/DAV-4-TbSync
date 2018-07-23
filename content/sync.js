@@ -205,10 +205,10 @@ dav.sync = {
     
     
 
-    singleFolderByTOKEN: Task.async (function* (syncdata) {
+    remoteChangesByTOKEN: Task.async (function* (syncdata) {
     }),
     
-    singleFolderByCTAG: Task.async (function* (syncdata) {
+    remoteChangesByCTAG: Task.async (function* (syncdata) {
         //Request ctag and token
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
         let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>', syncdata.folderID, "PROPFIND", syncdata, {"Depth": "0"});
@@ -228,24 +228,80 @@ dav.sync = {
 
         let token = (responses[0].getElementsByTagNameNS("*", "sync-token").length == 1) ? responses[0].getElementsByTagNameNS("*", "sync-token")[0].textContent : "";      
         if (ctag != tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "ctag")) {
+            //CTAG changed, need to sync everything and compare
+            let vCardsOnServer = {};
+            let vCardsModifiedOnServer = [];
+            let vCardsDeletedOnServer = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+
+            //GET CARDS on server
             tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-            let cardsdata = yield dav.tools.sendRequest('<card:addressbook-query xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav"><d:prop><d:getetag /></d:prop></card:addressbook-query>', syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
-            
-            tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
+            let cardsdata = yield dav.tools.sendRequest('<card:addressbook-query xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav"><d:prop><d:getetag /></d:prop></card:addressbook-query>', syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});           
             let cards = cardsdata.documentElement.getElementsByTagName("d:response");
-            
-	    let eTags = [];
+            syncdata.todo = cards.length;
+            syncdata.done = 0;
+            tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);            
+
             for (let c=0; c < cards.length; c++) {
                 let status =  cards[c].getElementsByTagNameNS("*", "status")[0].textContent.split(" ")[1];
                 let id =  cards[c].getElementsByTagNameNS("*", "href")[0].textContent;
                 let etag =  cards[c].getElementsByTagNameNS("*", "getetag")[0].textContent;
                 if (status == "200" && etag && id) {
-                    //add etag to list, later remove any entry whose etag did not popup
-                    eTags.push(etag);
-                    tbSync.dump("eTag",id + " -> " + etag);
+                    vCardsOnServer[id] = etag;
                 }
             }
 
+            //FIND CHANGES: loop over current addressbook and check each local card to find changes
+            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+            let addressBook = abManager.getDirectory(syncdata.targetId); //addressBooks contains URIs, but we need the directory itself
+            cards = addressBook.childCards;
+            while (true) {
+                let more = false;
+                try { more = cards.hasMoreElements() } catch (ex) {} 
+                if (!more) break;
+
+                let card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+                let id = card.getProperty("TBSYNCID","");
+                if (id) {
+                    if (!vCardsOnServer.hasOwnProperty(id)) {
+                        //card does not exists on the server ...
+                        if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "added_by_user") {
+                            //delete request from server
+                            vCardsDeletedOnServer.appendElement(card, "");
+                        }
+                    } else {
+                        //card exists on the server ...
+                        let etag = card.getProperty("X-DAV-ETAG","");
+                        if (etag != vCardsOnServer[id]) {
+                            //update request from server
+                            vCardsModifiedOnServer.push(id);
+                            delete vCardsOnServer[id];
+                        }
+                    }
+                } else {
+                    //skip cards without id for now - should not happen
+                    throw dav.sync.succeeded("found-card-without-id");
+                }
+            }
+            
+            
+            //ADD: vCardsOnServer now contains all cards, which do not exist localy -> add them localy (fetch them from server!)
+            for (let id in vCardsOnServer) {
+                if (vCardsOnServer.hasOwnProperty(id)) {
+                    let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
+                    card.setProperty("TBSYNCID", id);
+                    card.setProperty("DisplayName", vCardsOnServer[id]);
+                    addressBook.addCard(card);
+                }
+            }
+
+            //MOD: vCardsModifiedOnServer contains all cards which exists localy and have been modified on the server -> merge them localy (fetch them from server!)
+            
+            //DEL: vCardsDeletedOnServer contains all cards deleted on the server -> delete them localy
+            addressBook.deleteCards(vCardsDeletedOnServer);           
+            
+            
+            
+            
             //update ctag and token (if there is one)
             tbSync.db.setFolderSetting(syncdata.account, syncdata.folderID, "ctag", ctag);                        
             if (token) tbSync.db.setFolderSetting(syncdata.account, syncdata.folderID, "token", token);
@@ -272,7 +328,7 @@ dav.sync = {
             let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
             if (token) {
                 //update
-                yield dav.sync.singleFolderByTOKEN(syncdata);
+                yield dav.sync.remoteChangesByTOKEN(syncdata);
                 throw dav.sync.succeeded("token-update");
             } 
             
@@ -283,7 +339,7 @@ dav.sync = {
                     if (i == maxloops) 
                         throw dav.sync.failed("could-not-get-stable-ctag");
                 
-                    let ctagChanged = yield dav.sync.singleFolderByCTAG(syncdata);
+                    let ctagChanged = yield dav.sync.remoteChangesByCTAG(syncdata);
                     if (!ctagChanged) break;
             }
             throw dav.sync.succeeded("full-sync");
