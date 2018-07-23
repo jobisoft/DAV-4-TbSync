@@ -166,7 +166,7 @@ dav.sync = {
                         //promisify addressbook, so it can be used together with yield (using same interface as promisified calender)
                         syncdata.targetObj = tbSync.promisifyAddressbook(syncdata.addressbookObj);
                         
-                        throw dav.sync.failed("info.carddavnotimplemented");         
+                        //throw dav.sync.failed("info.carddavnotimplemented");         
                         yield dav.sync.singleFolder(syncdata);
                         break;
 
@@ -205,7 +205,60 @@ dav.sync = {
     
     
 
+    singleFolderByTOKEN: Task.async (function* (syncdata) {
+    }),
+    
+    singleFolderByCTAG: Task.async (function* (syncdata) {
+        //Request ctag and token
+        tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
+        let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>', syncdata.folderID, "PROPFIND", syncdata, {"Depth": "0"});
 
+        tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
+        let responses = response.documentElement.getElementsByTagName("d:response");
+        if (responses.length != 1) 
+            throw dav.sync.failed("invalid-response");
+        
+        let status = responses[0].getElementsByTagNameNS("*", "status")[0].textContent.split(" ")[1];
+        if (status != "200") 
+            throw dav.sync.failed(status);
+
+        let ctag = (responses[0].getElementsByTagNameNS("*", "getctag").length == 1) ? responses[0].getElementsByTagNameNS("*", "getctag")[0].textContent : "";
+        if (!ctag) 
+            throw dav.sync.failed("ctag-missing");
+
+        let token = (responses[0].getElementsByTagNameNS("*", "sync-token").length == 1) ? responses[0].getElementsByTagNameNS("*", "sync-token")[0].textContent : "";      
+        if (ctag != tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "ctag")) {
+            tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
+            let cardsdata = yield dav.tools.sendRequest('<card:addressbook-query xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav"><d:prop><d:getetag /></d:prop></card:addressbook-query>', syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
+            
+            tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
+            let cards = cardsdata.documentElement.getElementsByTagName("d:response");
+            
+	    let eTags = [];
+            for (let c=0; c < cards.length; c++) {
+                let status =  cards[c].getElementsByTagNameNS("*", "status")[0].textContent.split(" ")[1];
+                let id =  cards[c].getElementsByTagNameNS("*", "href")[0].textContent;
+                let etag =  cards[c].getElementsByTagNameNS("*", "getetag")[0].textContent;
+                if (status == "200" && etag && id) {
+                    //add etag to list, later remove any entry whose etag did not popup
+                    eTags.push(etag);
+                    tbSync.dump("eTag",id + " -> " + etag);
+                }
+            }
+
+            //update ctag and token (if there is one)
+            tbSync.db.setFolderSetting(syncdata.account, syncdata.folderID, "ctag", ctag);                        
+            if (token) tbSync.db.setFolderSetting(syncdata.account, syncdata.folderID, "token", token);
+
+            //ctag did change
+            return true;
+        } else {        
+
+            //ctag did not change
+            return false;
+        }
+        
+    }),
 
     singleFolder: Task.async (function* (syncdata)  {
         //The syncdata.targetObj has a comon interface, regardless if this is a contact or calendar sync, 
@@ -213,13 +266,30 @@ dav.sync = {
         //The actual type can be stored in syncdata.type, so you can call type-based functions to read 
         //or to create new Thunderbird items (contacts or events)
 
-
-        //Pretend to receive remote changes
+        //Request remote changes
         {
-            tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-            yield tbSync.sleep(1500);
-        }
-
+            //Do we have a sync token? No? -> Initial Sync (or WebDAV sync not supported) / Yes? -> Get updates only (token only present if WebDAV sync is suported)
+            let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
+            if (token) {
+                //update
+                yield dav.sync.singleFolderByTOKEN(syncdata);
+                throw dav.sync.succeeded("token-update");
+            } 
+            
+            //Either token update did not work or there is no token (initial sync)
+            //loop until ctag is the same before and after polling data (sane start condition)
+            let maxloops = 20;
+            for (let i=0; i <= maxloops; i++) {
+                    if (i == maxloops) 
+                        throw dav.sync.failed("could-not-get-stable-ctag");
+                
+                    let ctagChanged = yield dav.sync.singleFolderByCTAG(syncdata);
+                    if (!ctagChanged) break;
+            }
+            throw dav.sync.succeeded("full-sync");
+        }       
+        
+        
         //Pretend to send local changes
         {
             //define how many entries can be send in one request
