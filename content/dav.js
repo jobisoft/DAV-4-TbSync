@@ -92,13 +92,20 @@ var dav = {
             "lastsynctime" : "",
             "status" : "",
             "parentID" : "",
-            "monitored" : "0", //do not log changes into changelog		
+            "monitored" : "1", //not log changes into changelog	
+            "ctag" : "",
+            "token" : "",
             "downloadonly" : tbSync.db.getAccountSetting(account, "downloadonly"), //each folder has its own settings, the main setting is just the default,
             "cached" : "0"};
         return folder;
     },
 
-
+    /**
+     * Returns an array of folder settings, that should survive unsubscribe/subscribe and disable/re-enable (caching)
+     */
+    getPersistentFolderSettings: function () {
+        return ["name", "type", "targetName", "targetColor", "selected"];
+    },
 
     /**
      * Return the thunderbird type (tb-contact, tb-event, tb-todo) for a given folder type of this provider. A provider could have multiple 
@@ -201,7 +208,10 @@ var dav = {
 
         let authOptions = dav.tools.getAuthOptions(accountdata.authOptions);
         tbSync.setLoginInfo(hostport, authOptions.realm, user, password);
-        
+
+        //do not monitor CalDAV calendars (managed by lightning)
+        tbSync.db.setFolderSetting(account, folderID, "monitored", "0"); 
+
         calManager.registerCalendar(newCalendar);            
         return newCalendar;
     },

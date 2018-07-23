@@ -187,7 +187,7 @@ dav.tools = {
                             options.headers["Authorization"] = dav.tools.getDigestAuthHeader(method, _url, account.user, password, account.authOptions, syncdata.account);
                             break;
                         default:
-                            throw dav.sync.failed("to-many-loops-in-digest-auth");
+                            throw dav.sync.failed("401");
                     }
                     break;
             
