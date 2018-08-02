@@ -44,8 +44,8 @@ dav.sync = {
         //Method description: http://sabre.io/dav/building-a-caldav-client/
         
         let davjobs = {
-            carddav : {ns: 'card', tag: 'card:addressbook-home-set', type: 'card:addressbook'},
-            caldav : {ns: 'cal', tag: 'cal:calendar-home-set', type: 'cal:calendar'},
+            carddav : {ns: 'card', tag: 'addressbook-home-set', type: 'addressbook'},
+            caldav : {ns: 'cal', tag: 'calendar-home-set', type: 'calendar'},
         };
                 
         //get all folders currently known
@@ -64,19 +64,22 @@ dav.sync = {
             let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:"><d:prop><d:current-user-principal /></d:prop></d:propfind>', "/.well-known/"+job+"/", "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
             tbSync.setSyncState("eval.folders", syncdata.account); 
-            let principal = dav.tools.getFirstChildTag(response.documentElement.getElementsByTagName("d:current-user-principal"), "d:href");
-            let home = "";
+            let nsResolver = response.createNSResolver( response.documentElement );
+            let ns_d = nsResolver.lookupPrefix("DAV:");
+            let principal = dav.tools.getFirstChildTag(response.documentElement.getElementsByTagName(ns_d+":current-user-principal"), ns_d+":href");
             
-            //OBACHT: We expect the server to return NS card and cal as defined in our davjobs. However, that is not guarenteed, we might need to extract the actual used NS from repsonse
-
+            let home = "";            
             //principal now contains something like "/remote.php/carddav/principals/john.bieling/"
             // -> get home/root of storage
             if (principal) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
-                response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:" xmlns:'+davjobs[job].ns+'="urn:ietf:params:xml:ns:'+job+'"><d:prop><'+davjobs[job].tag+' /></d:prop></d:propfind>', principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:" xmlns:'+davjobs[job].ns+'="urn:ietf:params:xml:ns:'+job+'"><d:prop><'+davjobs[job].ns+':'+davjobs[job].tag+' /></d:prop></d:propfind>', principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
-                tbSync.setSyncState("eval.folders", syncdata.account); 
-                home = dav.tools.getFirstChildTag(response.documentElement.getElementsByTagName(davjobs[job].tag), "d:href");
+                tbSync.setSyncState("eval.folders", syncdata.account);
+                nsResolver = response.createNSResolver( response.documentElement );
+                ns_d = nsResolver.lookupPrefix("DAV:");
+                let ns_c = nsResolver.lookupPrefix("urn:ietf:params:xml:ns:" + job);                
+                home = dav.tools.getFirstChildTag(response.documentElement.getElementsByTagName(ns_c+":"+davjobs[job].tag), ns_d+":href");
             }
             
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
@@ -87,15 +90,18 @@ dav.sync = {
                 
                 tbSync.setSyncState("eval.folders", syncdata.account); 
                 let nsResolver = response.createNSResolver( response.documentElement );
-                let responses = response.documentElement.getElementsByTagName("d:response");
+                let ns_d = nsResolver.lookupPrefix("DAV:");
+                let ns_c = nsResolver.lookupPrefix("urn:ietf:params:xml:ns:" + job);
+		
+                let responses = response.documentElement.getElementsByTagName(ns_d+":response");
                 for (let r=0; r < responses.length; r++) {
-                    let valid = response.evaluate("./d:propstat/d:prop/d:resourcetype/"+davjobs[job].type, responses[r], nsResolver, 0, null); //XPathResult.ANY_TYPE = 0
+                    let valid = response.evaluate("./"+ns_d+":propstat/"+ns_d+":prop/"+ns_d+":resourcetype/"+ns_c+":"+davjobs[job].type, responses[r], nsResolver, 0, null); //XPathResult.ANY_TYPE = 0
                     if (valid.iterateNext()) {
                         //let results = response.evaluate("./d:href", responses[r], nsResolver, 0, null); //XPathResult.ANY_TYPE = 0
                         //let thisResult = results.iterateNext(); 
                         //if (thisResult) tbSync.dump("RESPONSE #"+r, thisResult.textContent);
-                        let href =  responses[r].getElementsByTagName("d:href")[0].textContent;
-                        let name = responses[r].getElementsByTagName("d:displayname")[0].textContent;
+                        let href =  responses[r].getElementsByTagName(ns_d+":href")[0].textContent;
+                        let name = responses[r].getElementsByTagName(ns_d+":displayname")[0].textContent;
 
                         let folder = tbSync.db.getFolder(syncdata.account, href);
                         if (folder === null || folder.cached === "1") {
