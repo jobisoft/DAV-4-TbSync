@@ -98,17 +98,19 @@ dav.sync = {
                         let name = responses[r].getElementsByTagName("d:displayname")[0].textContent;
 
                         let folder = tbSync.db.getFolder(syncdata.account, href);
-                        if (folder === null) {
-                            let newFolder = tbSync.dav.getNewFolderEntry(syncdata.account);
+                        if (folder === null || folder.cached === "1") {
+                            let newFolder = {}
                             newFolder.folderID = href;
                             newFolder.name = name;
                             newFolder.type = job;
                             newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
                             newFolder.selected = (r == 1) ? "1" : "0"; //only select the first one
-                            tbSync.db.addFolder(newFolder);
+
+                            //if there is a cached version of this folderID, addFolder will merge all persistent settings - all other settings not defined here will be set to their defaults
+                            tbSync.db.addFolder(syncdata.account, newFolder);
                         } else {
                             //Update name
-                            tbSync.db.setFolderSetting(syncdata.account,href, "name", name);
+                            tbSync.db.setFolderSetting(syncdata.account, href, "name", name);
                             deletedFolders = deletedFolders.filter(item => item !== href);
                         }
                         
@@ -125,12 +127,6 @@ dav.sync = {
         for (let i = 0; i < deletedFolders.length; i++) {
             tbSync.takeTargetOffline("dav", folders[deletedFolders[i]], " [deleted on server]");
         }                        
-
-        //check if any folder was found
-        let numberOfFoundFolders = tbSync.db.findFoldersWithSetting("cached", "0", syncdata.account).length;
-        if (numberOfFoundFolders == 0) {	
-            throw dav.sync.failed("no-folders-found-on-server");
-        }
     
     }),
 

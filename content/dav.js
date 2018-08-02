@@ -49,7 +49,7 @@ var dav = {
     /**
      * Return object which contains all possible fields of a row in the accounts database with the default value if not yet stored in the database.
      */
-    getNewAccountEntry: function () {
+    getDefaultAccountEntries: function () {
         let row = {
             "account" : "",
             "accountname": "",
@@ -75,11 +75,10 @@ var dav = {
 
 
 
-
     /**
      * Return object which contains all possible fields of a row in the folder database with the default value if not yet stored in the database.
      */
-    getNewFolderEntry: function (account) {
+    getDefaultFolderEntries: function (account) {
         let folder = {
             "account" : account,
             "folderID" : "",
@@ -92,20 +91,24 @@ var dav = {
             "lastsynctime" : "",
             "status" : "",
             "parentID" : "",
-            "monitored" : "1", //not log changes into changelog	
+            "useChangeLog" : "1", //log changes into changelog	
             "ctag" : "",
             "token" : "",
             "downloadonly" : tbSync.db.getAccountSetting(account, "downloadonly"), //each folder has its own settings, the main setting is just the default,
-            "cached" : "0"};
+            };
         return folder;
     },
+
+
 
     /**
      * Returns an array of folder settings, that should survive unsubscribe/subscribe and disable/re-enable (caching)
      */
     getPersistentFolderSettings: function () {
-        return ["name", "type", "targetName", "targetColor", "selected"];
+        return ["targetName", "targetColor", "selected"];
     },
+
+
 
     /**
      * Return the thunderbird type (tb-contact, tb-event, tb-todo) for a given folder type of this provider. A provider could have multiple 
@@ -132,13 +135,12 @@ var dav = {
      *
      * @param account       [in] account which is being enabled
      */
-    enableAccount: function (account) {
-        db.setAccountSetting(account, "status", "notsyncronized");
-        db.setAccountSetting(account, "lastsynctime", "0");
+    onEnableAccount: function (account) {
+        db.resetAccountSetting(account, "lastsynctime");
 
         // reset custom values
-        //db.setAccountSetting(account, "policykey", 0);
-        //db.setAccountSetting(account, "foldersynckey", "");
+        //db.resetAccountSetting(account, "policykey");
+        //db.resetAccountSetting(account, "foldersynckey");
     },
 
 
@@ -149,15 +151,18 @@ var dav = {
      *
      * @param account       [in] account which is being disabled
      */
-    disableAccount: function (account) {
-        db.setAccountSetting(account, "status", "disabled");
+    onDisableAccount: function (account) {
+    },
 
-        // reset custom values
-        //db.setAccountSetting(account, "policykey", 0);
-        //db.setAccountSetting(account, "foldersynckey", "");
 
-        //remove all folders from DB and remove associated targets (caches all folder settings to be used on next re-enable) 
-        tbSync.removeAllFolders(account);
+
+    /**
+     * Is called everytime an new target is created, intended to set a clean sync status.
+     *
+     * @param account       [in] account the new target belongs to
+     * @param folderID       [in] folder the new target belongs to
+     */
+    onResetTarget: function (account, folderID) {
     },
 
 
@@ -168,6 +173,8 @@ var dav = {
      * @param newname       [in] name of the new address book
      * @param account       [in] id of the account this address book belongs to
      * @param folderID      [in] id of the folder this address book belongs to (sync target)
+     *
+     * return the id of the newAddressBook 
      */
     createAddressBook: function (newname, account, folderID) {
         //This example implementation is using the standard address book, but you may use another one
@@ -184,11 +191,8 @@ var dav = {
      * @param newname       [in] name of the new calendar
      * @param account       [in] id of the account this calendar belongs to
      * @param folderID      [in] id of the folder this calendar belongs to (sync target)
-     * @param color         [in] color for this calendar, picked by TbSync - if the provider provides a
-     *                           color information himself, store it in the folder DB and access it here
-     *                           directly via account and folderID
      */
-    createCalendar: function(newname, account, folderID, color) {
+    createCalendar: function(newname, account, folderID) {
         //This example implementation is using the standard storage calendar, but you may use another one
         let calManager = cal.getCalendarManager();
         let accountdata = tbSync.db.getAccount(account);
@@ -203,14 +207,14 @@ var dav = {
         newCalendar.id = cal.getUUID();
         newCalendar.name = newname;
 
-        newCalendar.setProperty("color", color); //any chance to get the color from the provider? pass via folderSetting
+        newCalendar.setProperty("color", tbSync.db.getFolderSetting(account, folderID, "targetColor"));
         newCalendar.setProperty("calendar-main-in-composite", true);
 
         let authOptions = dav.tools.getAuthOptions(accountdata.authOptions);
         tbSync.setLoginInfo(hostport, authOptions.realm, user, password);
 
         //do not monitor CalDAV calendars (managed by lightning)
-        tbSync.db.setFolderSetting(account, folderID, "monitored", "0"); 
+        tbSync.db.setFolderSetting(account, folderID, "useChangeLog", "0"); 
 
         calManager.registerCalendar(newCalendar);            
         return newCalendar;
@@ -225,30 +229,15 @@ var dav = {
      *
      * TbSync will execute this only for queries longer than 3 chars.
      *
+     * DO NOT IMPLEMENT AT ALL, IF NOT SUPPORTED
+     *
      * @param account       [in] id of the account which should be searched
      * @param currentQuery  [in] search query
      */
-    /* Not supported by CardDAV
-        abServerSearch: Task.async (function* (account, currentQuery)  {
-        //generating example data
-        let galdata = [];
-    
-                let resultset = {};
-                resultset.properties = {};                    
-                //any property defined here will be added to the found contacts card 
-                resultset.properties["FirstName"] = "DAV First";
-                resultset.properties["LastName"] = "LAST";
-                resultset.properties["DisplayName"] = "FIRST LAST";
-                resultset.properties["PrimaryEmail"] = "user@inter.net"
-
-                resultset.autocomplete = {};                    
-                resultset.autocomplete.value = "DAV First Last" + " <" + "user@inter.net" + ">";
-                resultset.autocomplete.account = account;
-                    
-                galdata.push(resultset);
-        
-        return galdata;
-    }),*/
+//        abServerSearch: Task.async (function* (account, currentQuery)  {
+//        let galdata = [];        
+//        return galdata;
+//    }),
 
 
 
@@ -267,9 +256,16 @@ var dav = {
                     //update folders avail on server and handle added, removed, renamed folders
                     yield dav.sync.folderList(syncdata);
 
-                    //set all selected folders to "pending", so they are marked for syncing
-                    tbSync.setSelectedFoldersToPending(syncdata.account);
+                    //set all selected folders to "pending", so they are marked for syncing 
+                    //this also removes all leftover cached folders and sets all other folders to a well defined cached = "0"
+                    //which will set this account as connected (if at least one folder with cached == "0" is present)
+                    tbSync.prepareFoldersForSync(syncdata.account);
 
+                    //check if any folder was found
+                    if (!tbSync.isConnected(syncdata.account)) {	
+                        throw dav.sync.failed("no-folders-found-on-server");
+                    }
+            
                     //update folder list in GUI
                     Services.obs.notifyObservers(null, "tbsync.updateFolderList", syncdata.account);
 
@@ -303,9 +299,8 @@ var dav = {
          * Returns array of all possible account options (field names of a row in the accounts database).
          */
         getAccountStorageFields: function () {
-            return Object.keys(tbSync.dav.getNewAccountEntry()).sort();
+            return Object.keys(tbSync.dav.getDefaultAccountEntries()).sort();
         },
-
 
 
 
@@ -315,7 +310,6 @@ var dav = {
         getAlwaysUnlockedSettings: function () {
             return ["autosync"];
         },
-
 
 
 
@@ -340,7 +334,6 @@ var dav = {
 
 
 
-
         /**
          * Is called before the context menu of the folderlist is shown, allows to 
          * show/hide custom menu options based on selected folder
@@ -350,7 +343,6 @@ var dav = {
          */
         onFolderListContextMenuShowing: function (document, folder) {
         },
-
 
 
 
@@ -371,7 +363,6 @@ var dav = {
             }
             return folderData;
         },
-
 
 
 
@@ -398,7 +389,6 @@ var dav = {
             return rowData;
         },
     
-
 
 
         /**
@@ -443,7 +433,6 @@ var dav = {
 
 
 
-
         /**
          * Is called to update a row of the folderlist.
          *
@@ -462,7 +451,6 @@ var dav = {
                 tbSync.updateListItemCell(listItem.childNodes[1], ["disabled"], "true");
             }
         },
-        
 
 
 

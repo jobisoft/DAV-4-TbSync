@@ -57,7 +57,7 @@ var tbSyncDavNewAccount = {
     },
 
     addAccount (user, password, server, accountname) {
-        let newAccountEntry = tbSync.dav.getNewAccountEntry();
+        let newAccountEntry = tbSync.dav.getDefaultAccountEntries();
         newAccountEntry.accountname = accountname;
         newAccountEntry.user = user;
         
