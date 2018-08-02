@@ -157,7 +157,7 @@ dav.tools = {
 
             
         //add abort/timeout signal
-        let controler = null;
+        let controller = null;
         if (useAbortSignal) {
             controller = new  tbSync.window.AbortController();
             options.signal = controller.signal;
