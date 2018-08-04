@@ -23,10 +23,18 @@
 var dav = {
     bundle: Services.strings.createBundle("chrome://dav4tbsync/locale/dav.strings"),
     prefSettings: Services.prefs.getBranch("extensions.dav4tbsync."),
+    
     flags: {
         FILTER_BY_EXPRESSION: true,
     },
 
+    ns: {
+        d: "DAV:",
+        caldav: "urn:ietf:params:xml:ns:caldav" ,
+        carddav: "urn:ietf:params:xml:ns:carddav" ,
+        cs: "http://calendarserver.org/ns/",
+    },
+    
 
     /**
      * Called during load of external provider extension to init provider.

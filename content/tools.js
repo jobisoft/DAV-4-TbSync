@@ -262,27 +262,17 @@ dav.tools = {
         
                     case 207: //preprocess multiresponse
                     {
-                        let nsResolver = xml.createNSResolver( xml.documentElement );
-
                         let response = {};
                         response.xml = xml;
-                        response.nsResolver = nsResolver;
 
-                        //TODO: Get rid of prefixes and resolver an xpath and only use getbytagnameNS, which uses URLS and works if the namespace is defined in a child node, and not in the root node.
-                        response.prefix = {};
-                        response.prefix.dav = nsResolver.lookupPrefix("DAV:");
-                        response.prefix.caldav = nsResolver.lookupPrefix("urn:ietf:params:xml:ns:caldav");                
-                        response.prefix.carddav = nsResolver.lookupPrefix("urn:ietf:params:xml:ns:carddav");                
-                        response.prefix.cs = nsResolver.lookupPrefix("http://calendarserver.org/ns/");                
-                            
-                        let multi = xml.documentElement.getElementsByTagName(response.prefix.dav+":response");
+                        let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
                         response.multi = [];
                         for (let i=0; i < multi.length; i++) {
-                            let statusNode = xml.evaluate("./"+response.prefix.dav+":propstat/"+response.prefix.dav+":status", multi[i], nsResolver, 0, null).iterateNext();
-                            tbSync.dump("statusNode", statusNode.textContent);
+                            let statusNode = null;//xml.evaluate("./"+response.prefix.dav+":propstat/"+response.prefix.dav+":status", multi[i], nsResolver, 0, null).iterateNext();
+                            //tbSync.dump("statusNode", statusNode.textContent);
                             let resp = {};
                             resp.node = multi[i];
-                            resp.status = statusNode ? statusNode.textContent.split(" ")[1] : "000";
+                            resp.status = statusNode ? statusNode.textContent.split(" ")[1] : "200";
                             response.multi.push(resp);
                         }
             
@@ -298,21 +288,27 @@ dav.tools = {
         while (true);
     }),
     
-    
+    //TODO: create evaluateSingleResponse and use that here and to get status (a true replacement for xpath)
     evaluateMultiResponse: function (response, xpathexpression, filter = false) {
-        let expression = ".";
-        for (let i=0; i < xpathexpression.length; i++) {
-            expression = expression + "/" + response.prefix[xpathexpression[i][0]] + ":" + xpathexpression[i][1];
-        }
-
         let results = [];
         for (let i=0; i < response.multi.length; i++) {
-            let xpath = response.xml.evaluate(expression, response.multi[i].node, response.nsResolver, 0, null);
-            let xpathResult = xpath.iterateNext();
-            while (xpathResult !== null) {
-                results.push (filter ? i : xpathResult);
-                xpathResult = xpath.iterateNext();
+
+            //traversing
+            let node = response.multi[i].node;
+            let valid = false;
+            for (let i=0; i < xpathexpression.length; i++) {
+                let children = node.children;
+                valid = false;
+                for (let c=0; c < children.length && !valid; c++) {
+                    if (children[c].localName == xpathexpression[i][1] && children[c].namespaceURI == dav.ns[xpathexpression[i][0]]) {
+                        node = children[c];
+                        valid = true;
+                    }
+                }
             }
+ 
+            if (!valid) continue;
+            results.push (filter ? i : node);
         }
         return results.length == 0 ? false : results;
     },
