@@ -135,6 +135,7 @@ dav.tools = {
         return authstring;        
     },
     
+
     sendRequest: Task.async (function* (request, _url, method, syncdata, headers) {
         let account = tbSync.db.getAccount(syncdata.account);
         let password = tbSync.getPassword(account);
@@ -258,24 +259,62 @@ dav.tools = {
                     }
                     throw dav.sync.failed("401");
                     break;
+        
+                    case 207: //preprocess multiresponse
+                    {
+                        let nsResolver = xml.createNSResolver( xml.documentElement );
+
+                        let response = {};
+                        response.xml = xml;
+                        response.nsResolver = nsResolver;
+
+                        //TODO: Get rid of prefixes and resolver an xpath and only use getbytagnameNS, which uses URLS and works if the namespace is defined in a child node, and not in the root node.
+                        response.prefix = {};
+                        response.prefix.dav = nsResolver.lookupPrefix("DAV:");
+                        response.prefix.caldav = nsResolver.lookupPrefix("urn:ietf:params:xml:ns:caldav");                
+                        response.prefix.carddav = nsResolver.lookupPrefix("urn:ietf:params:xml:ns:carddav");                
+                        response.prefix.cs = nsResolver.lookupPrefix("http://calendarserver.org/ns/");                
+                            
+                        let multi = xml.documentElement.getElementsByTagName(response.prefix.dav+":response");
+                        response.multi = [];
+                        for (let i=0; i < multi.length; i++) {
+                            let statusNode = xml.evaluate("./"+response.prefix.dav+":propstat/"+response.prefix.dav+":status", multi[i], nsResolver, 0, null).iterateNext();
+                            tbSync.dump("statusNode", statusNode.textContent);
+                            let resp = {};
+                            resp.node = multi[i];
+                            resp.status = statusNode ? statusNode.textContent.split(" ")[1] : "000";
+                            response.multi.push(resp);
+                        }
+            
+                        return response;
+                    }
+                    break;
+                    
+                    default:
+                        throw "what?";
                     
             }
-            return xml;
         }
         while (true);
     }),
     
     
+    evaluateMultiResponse: function (response, xpathexpression, filter = false) {
+        let expression = ".";
+        for (let i=0; i < xpathexpression.length; i++) {
+            expression = expression + "/" + response.prefix[xpathexpression[i][0]] + ":" + xpathexpression[i][1];
+        }
 
-    //eventually this will be replaced by a full multistatus parser...
-    getFirstChildTag: function (elementsByTagName, childTag) {
-        for (let p=0; p < elementsByTagName.length; p++) {
-            let childs = elementsByTagName[p].getElementsByTagName(childTag);
-            if (childs.length > 0 && childs[0].textContent) {
-                return childs[0].textContent;
+        let results = [];
+        for (let i=0; i < response.multi.length; i++) {
+            let xpath = response.xml.evaluate(expression, response.multi[i].node, response.nsResolver, 0, null);
+            let xpathResult = xpath.iterateNext();
+            while (xpathResult !== null) {
+                results.push (filter ? i : xpathResult);
+                xpathResult = xpath.iterateNext();
             }
         }
-        return "";
+        return results.length == 0 ? false : results;
     },
     
 }

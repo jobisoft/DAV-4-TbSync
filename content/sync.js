@@ -59,67 +59,55 @@ dav.sync = {
             //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncdata)
             //example state "getfolders" to get folder information from server
             //if you send a request to a server and thus have to wait for answer, use a "send." syncstate, which will give visual feedback to the user,
-            //that we are waiting for an answer with timeout countdown
-            tbSync.setSyncState("send.getfolders", syncdata.account);
-            let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:"><d:prop><d:current-user-principal /></d:prop></d:propfind>', "/.well-known/"+job+"/", "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
-
-            tbSync.setSyncState("eval.folders", syncdata.account); 
-            let nsResolver = response.createNSResolver( response.documentElement );
-            let ns_d = nsResolver.lookupPrefix("DAV:");
-            let principal = dav.tools.getFirstChildTag(response.documentElement.getElementsByTagName(ns_d+":current-user-principal"), ns_d+":href");
+            //that we are waiting for an answer with timeout countdown            
             
-            let home = "";            
-            //principal now contains something like "/remote.php/carddav/principals/john.bieling/"
-            // -> get home/root of storage
-            if (principal) {
+            let home = false;
+            let principal = false;
+
+            {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
-                response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:" xmlns:'+davjobs[job].ns+'="urn:ietf:params:xml:ns:'+job+'"><d:prop><'+davjobs[job].ns+':'+davjobs[job].tag+' /></d:prop></d:propfind>', principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:"><d:prop><d:current-user-principal /></d:prop></d:propfind>', "/.well-known/"+job+"/", "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+
+                tbSync.setSyncState("eval.folders", syncdata.account); 
+                principal = dav.tools.evaluateMultiResponse(response, [["dav","propstat"], ["dav","prop"], ["dav","current-user-principal"], ["dav","href"]]);                        
+            }
+            
+            //principal now contains something like "/remote.php/carddav/principals/john.bieling/"
+            // -> get home/root of storage            
+            if (principal !== false) {
+                tbSync.setSyncState("send.getfolders", syncdata.account);
+                let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:" xmlns:'+davjobs[job].ns+'="urn:ietf:params:xml:ns:'+job+'"><d:prop><'+davjobs[job].ns+':'+davjobs[job].tag+' /></d:prop></d:propfind>', principal[0].textContent, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
                 tbSync.setSyncState("eval.folders", syncdata.account);
-                nsResolver = response.createNSResolver( response.documentElement );
-                ns_d = nsResolver.lookupPrefix("DAV:");
-                let ns_c = nsResolver.lookupPrefix("urn:ietf:params:xml:ns:" + job);                
-                home = dav.tools.getFirstChildTag(response.documentElement.getElementsByTagName(ns_c+":"+davjobs[job].tag), ns_d+":href");
+                home = dav.tools.evaluateMultiResponse(response, [["dav","propstat"], ["dav","prop"], [job,davjobs[job].tag], ["dav","href"]]);                       
             }
             
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
             // -> get all calendars and addressbooks
-            if (home) {
+            if (home !== false) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
-                response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>', home, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
+                let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>', home[0].textContent, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
+                let valids = dav.tools.evaluateMultiResponse(response, [["dav","propstat"], ["dav","prop"], ["dav","resourcetype"], [job,davjobs[job].type]], dav.flags.FILTER_BY_EXPRESSION);                       
                 
-                tbSync.setSyncState("eval.folders", syncdata.account); 
-                let nsResolver = response.createNSResolver( response.documentElement );
-                let ns_d = nsResolver.lookupPrefix("DAV:");
-                let ns_c = nsResolver.lookupPrefix("urn:ietf:params:xml:ns:" + job);
-		
-                let responses = response.documentElement.getElementsByTagName(ns_d+":response");
-                for (let r=0; r < responses.length; r++) {
-                    let valid = response.evaluate("./"+ns_d+":propstat/"+ns_d+":prop/"+ns_d+":resourcetype/"+ns_c+":"+davjobs[job].type, responses[r], nsResolver, 0, null); //XPathResult.ANY_TYPE = 0
-                    if (valid.iterateNext()) {
-                        //let results = response.evaluate("./d:href", responses[r], nsResolver, 0, null); //XPathResult.ANY_TYPE = 0
-                        //let thisResult = results.iterateNext(); 
-                        //if (thisResult) tbSync.dump("RESPONSE #"+r, thisResult.textContent);
-                        let href =  responses[r].getElementsByTagName(ns_d+":href")[0].textContent;
-                        let name = responses[r].getElementsByTagName(ns_d+":displayname")[0].textContent;
+                for (let r=0; r < valids.length; r++) {
+                    let href = response.multi[valids[r]].node.getElementsByTagName(response.prefix.dav+":href")[0].textContent; 
+                    let name = response.multi[valids[r]].node.getElementsByTagName(response.prefix.dav+":displayname")[0].textContent;
 
-                        let folder = tbSync.db.getFolder(syncdata.account, href);
-                        if (folder === null || folder.cached === "1") {
-                            let newFolder = {}
-                            newFolder.folderID = href;
-                            newFolder.name = name;
-                            newFolder.type = job;
-                            newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
-                            newFolder.selected = (r == 1) ? "1" : "0"; //only select the first one
+                    let folder = tbSync.db.getFolder(syncdata.account, href);
+                    if (folder === null || folder.cached === "1") {
+                        let newFolder = {}
+                        newFolder.folderID = href;
+                        newFolder.name = name;
+                        newFolder.type = job;
+                        newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
+                        newFolder.selected = (r == 1) ? "1" : "0"; //only select the first one
 
-                            //if there is a cached version of this folderID, addFolder will merge all persistent settings - all other settings not defined here will be set to their defaults
-                            tbSync.db.addFolder(syncdata.account, newFolder);
-                        } else {
-                            //Update name
-                            tbSync.db.setFolderSetting(syncdata.account, href, "name", name);
-                            deletedFolders = deletedFolders.filter(item => item !== href);
-                        }
-                        
+                        //if there is a cached version of this folderID, addFolder will merge all persistent settings - all other settings not defined here will be set to their defaults
+                        tbSync.db.addFolder(syncdata.account, newFolder);
+                    } else {
+                        //Update name
+                        tbSync.db.setFolderSetting(syncdata.account, href, "name", name);
+                        deletedFolders = deletedFolders.filter(item => item !== href);
                     }
                 }
                                 
@@ -216,19 +204,17 @@ dav.sync = {
         let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>', syncdata.folderID, "PROPFIND", syncdata, {"Depth": "0"});
 
         tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
-        let responses = response.documentElement.getElementsByTagName("d:response");
-        if (responses.length != 1) 
+        if (response.multi.length != 1) 
             throw dav.sync.failed("invalid-response");
         
-        let status = responses[0].getElementsByTagNameNS("*", "status")[0].textContent.split(" ")[1];
-        if (status != "200") 
+        if (response.multi[0].status != "200") 
             throw dav.sync.failed(status);
 
-        let ctag = (responses[0].getElementsByTagNameNS("*", "getctag").length == 1) ? responses[0].getElementsByTagNameNS("*", "getctag")[0].textContent : "";
+        let ctag = (response.multi[0].node.getElementsByTagNameNS("http://calendarserver.org/ns/", "getctag").length == 1) ? response.multi[0].node.getElementsByTagNameNS("http://calendarserver.org/ns/", "getctag")[0].textContent : "";
         if (!ctag) 
             throw dav.sync.failed("ctag-missing");
 
-        let token = (responses[0].getElementsByTagNameNS("*", "sync-token").length == 1) ? responses[0].getElementsByTagNameNS("*", "sync-token")[0].textContent : "";      
+        let token = (response.multi[0].node.getElementsByTagNameNS("DAV:", "sync-token").length == 1) ? response.multi[0].node.getElementsByTagNameNS("DAV:", "sync-token")[0].textContent : "";      
         if (ctag != tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "ctag")) {
             //CTAG changed, need to sync everything and compare
             let vCardsOnServer = {};
@@ -237,17 +223,15 @@ dav.sync = {
 
             //GET CARDS on server
             tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-            let cardsdata = yield dav.tools.sendRequest('<card:addressbook-query xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav"><d:prop><d:getetag /></d:prop></card:addressbook-query>', syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});           
-            let cards = cardsdata.documentElement.getElementsByTagName("d:response");
-            syncdata.todo = cards.length;
+            let cards = yield dav.tools.sendRequest('<card:addressbook-query xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav"><d:prop><d:getetag /></d:prop></card:addressbook-query>', syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});           
+            syncdata.todo = cards.multi.length;
             syncdata.done = 0;
             tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);            
 
-            for (let c=0; c < cards.length; c++) {
-                let status =  cards[c].getElementsByTagNameNS("*", "status")[0].textContent.split(" ")[1];
-                let id =  cards[c].getElementsByTagNameNS("*", "href")[0].textContent;
-                let etag =  cards[c].getElementsByTagNameNS("*", "getetag")[0].textContent;
-                if (status == "200" && etag && id) {
+            for (let c=0; c < cards.multi.length; c++) {
+                let id =  cards.multi[c].node.getElementsByTagNameNS("DAV:", "href")[0].textContent;
+                let etag =  cards.multi[c].node.getElementsByTagNameNS("DAV:", "getetag")[0].textContent;
+                if (cards.multi[c].status == "200" && etag && id) {
                     vCardsOnServer[id] = etag;
                 }
             }
