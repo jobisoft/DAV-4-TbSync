@@ -268,11 +268,10 @@ dav.tools = {
                         let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
                         response.multi = [];
                         for (let i=0; i < multi.length; i++) {
-                            let statusNode = null;//xml.evaluate("./"+response.prefix.dav+":propstat/"+response.prefix.dav+":status", multi[i], nsResolver, 0, null).iterateNext();
-                            //tbSync.dump("statusNode", statusNode.textContent);
+                            let statusNode = dav.tools.evaluateNode(multi[i], [["d","propstat"], ["d", "status"]]);
                             let resp = {};
                             resp.node = multi[i];
-                            resp.status = statusNode ? statusNode.textContent.split(" ")[1] : "200";
+                            resp.status = statusNode ? statusNode.textContent.split(" ")[1] : "000";
                             response.multi.push(resp);
                         }
             
@@ -288,29 +287,42 @@ dav.tools = {
         while (true);
     }),
     
-    //TODO: create evaluateSingleResponse and use that here and to get status (a true replacement for xpath)
-    evaluateMultiResponse: function (response, xpathexpression, filter = false) {
-        let results = [];
-        for (let i=0; i < response.multi.length; i++) {
+    
+    evaluateNode: function (_node, path) {
+        let node = _node;
+        let valid = false;
+        
+        for (let i=0; i < path.length; i++) {
 
-            //traversing
-            let node = response.multi[i].node;
-            let valid = false;
-            for (let i=0; i < xpathexpression.length; i++) {
-                let children = node.children;
-                valid = false;
-                for (let c=0; c < children.length && !valid; c++) {
-                    if (children[c].localName == xpathexpression[i][1] && children[c].namespaceURI == dav.ns[xpathexpression[i][0]]) {
-                        node = children[c];
-                        valid = true;
-                    }
+            let children = node.children;
+            valid = false;
+            
+            for (let c=0; c < children.length; c++) {
+                if (children[c].localName == path[i][1] && children[c].namespaceURI == dav.ns[path[i][0]]) {
+                    node = children[c];
+                    valid = true;
+                    break;
                 }
             }
- 
-            if (!valid) continue;
-            results.push (filter ? i : node);
+
+            if (!valid) {
+                //none of the children matched the path abort
+                return false;
+            }
+        }
+
+        if (valid) return node;
+        return false;
+    },
+
+    evaluateMultiResponse: function (response, path) {
+        let results = [];
+        for (let i=0; i < response.multi.length; i++) {
+            let node = dav.tools.evaluateNode(response.multi[i].node, path);
+            if (node === false) continue;
+            results.push (node);
         }
         return results.length == 0 ? false : results;
     },
-    
+        
 }

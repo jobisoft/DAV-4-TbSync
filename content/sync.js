@@ -87,11 +87,14 @@ dav.sync = {
             if (home !== false) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
                 let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>', home[0].textContent, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
-                let valids = dav.tools.evaluateMultiResponse(response, [["d","propstat"], ["d","prop"], ["d","resourcetype"], [job,davjobs[job].type]], dav.flags.FILTER_BY_EXPRESSION);                       
                 
-                for (let r=0; r < valids.length; r++) {
-                    let href = response.multi[valids[r]].node.getElementsByTagNameNS(dav.ns.d, "href")[0].textContent; 
-                    let name = response.multi[valids[r]].node.getElementsByTagNameNS(dav.ns.d, "displayname")[0].textContent;
+                for (let r=0; r < response.multi.length; r++) {
+                    //is this a result with a valid recourcetype? (the node must be present)
+                    let valid = dav.tools.evaluateNode(response.multi[r].node, [["d","propstat"], ["d","prop"], ["d","resourcetype"], [job,davjobs[job].type]]);                       
+                    if (valid === false) continue;
+                    
+                    let href = response.multi[r].node.getElementsByTagNameNS(dav.ns.d, "href")[0].textContent; 
+                    let name = response.multi[r].node.getElementsByTagNameNS(dav.ns.d, "displayname")[0].textContent;
 
                     let folder = tbSync.db.getFolder(syncdata.account, href);
                     if (folder === null || folder.cached === "1") {
