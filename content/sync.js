@@ -207,20 +207,14 @@ dav.sync = {
         let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d", "cs"])+"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "0"});
 
         tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
-        if (response.multi.length != 1) 
+        let ctag = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","propstat"], ["d","prop"], ["cs", "getctag"]], syncdata.folderID);                       
+        let token = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","propstat"], ["d","prop"], ["d", "sync-token"]], syncdata.folderID);                       
+        if (ctag === false) 
             throw dav.sync.failed("invalid-response");
-        
-        if (response.multi[0].status != "200") 
-            throw dav.sync.failed(status);
 
-        let ctag = (response.multi[0].node.getElementsByTagNameNS(dav.ns.cs, "getctag").length == 1) ? response.multi[0].node.getElementsByTagNameNS(dav.ns.cs, "getctag")[0].textContent : "";
-        if (!ctag) 
-            throw dav.sync.failed("ctag-missing");
-
-        let token = (response.multi[0].node.getElementsByTagNameNS(dav.ns.d, "sync-token").length == 1) ? response.multi[0].node.getElementsByTagNameNS(dav.ns.d, "sync-token")[0].textContent : "";      
         if (ctag != tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "ctag")) {
             //CTAG changed, need to sync everything and compare
-            let vCardsOnServer = {};
+            let vCardsAddedOnServer = {};
             let vCardsModifiedOnServer = [];
             let vCardsDeletedOnServer = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
 
@@ -232,10 +226,10 @@ dav.sync = {
             tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);            
 
             for (let c=0; c < cards.multi.length; c++) {
-                let id =  cards.multi[c].node.getElementsByTagNameNS(dav.ns.d, "href")[0].textContent;
-                let etag =  cards.multi[c].node.getElementsByTagNameNS(dav.ns.d, "getetag")[0].textContent;
-                if (cards.multi[c].status == "200" && etag && id) {
-                    vCardsOnServer[id] = etag;
+                let id =  cards.multi[c].href;
+                let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["d","getetag"]]).textContent;                       
+                if (cards.multi[c].status == "200" && etag !== false && id !== null) {
+                    vCardsAddedOnServer[id] = etag;
                 }
             }
 
@@ -251,7 +245,7 @@ dav.sync = {
                 let card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
                 let id = card.getProperty("TBSYNCID","");
                 if (id) {
-                    if (!vCardsOnServer.hasOwnProperty(id)) {
+                    if (!vCardsAddedOnServer.hasOwnProperty(id)) {
                         //card does not exists on the server ...
                         if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "added_by_user") {
                             //delete request from server
@@ -260,10 +254,10 @@ dav.sync = {
                     } else {
                         //card exists on the server ...
                         let etag = card.getProperty("X-DAV-ETAG","");
-                        if (etag != vCardsOnServer[id]) {
+                        if (etag != vCardsAddedOnServer[id]) {
                             //update request from server
                             vCardsModifiedOnServer.push(id);
-                            delete vCardsOnServer[id];
+                            delete vCardsAddedOnServer[id];
                         }
                     }
                 } else {
@@ -273,12 +267,12 @@ dav.sync = {
             }
             
             
-            //ADD: vCardsOnServer now contains all cards, which do not exist localy -> add them localy (fetch them from server!)
-            for (let id in vCardsOnServer) {
-                if (vCardsOnServer.hasOwnProperty(id)) {
+            //ADD: vCardsAddedOnServer now contains all cards, which do not exist localy -> add them localy (fetch them from server!)
+            for (let id in vCardsAddedOnServer) {
+                if (vCardsAddedOnServer.hasOwnProperty(id)) {
                     let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
                     card.setProperty("TBSYNCID", id);
-                    card.setProperty("DisplayName", vCardsOnServer[id]);
+                    card.setProperty("DisplayName", vCardsAddedOnServer[id]);
                     addressBook.addCard(card);
                 }
             }
