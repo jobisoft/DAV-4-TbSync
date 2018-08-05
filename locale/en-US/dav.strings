@@ -10,11 +10,14 @@ syncstate.done=Preparing next item for synchronization
 syncstate.accountdone=Finished account
 
 syncstate.send.getfolders=Requesting folder list
-syncstate.eval.getfolders=Updating folder list
+syncstate.eval.folders=Updating folder list
 
 syncstate.prepare.request.localchanges=Sending local changes
 syncstate.send.request.localchanges=Waiting for acknowledgement of local changes
 syncstate.eval.response.localchanges=Processing acknowledgement of local changes
+
+syncstate.send.request.remotechanges=Waiting for remote changes
+syncstate.eval.response.remotechanges=Processing remote changes
 
 status.notsyncronized=Account needs to be syncronized, at least one item is out of sync.
 status.needtorevert=Account needs to be syncronized to revert local changes (one-way sync).
