@@ -26,8 +26,8 @@ var dav = {
     
     ns: {
         d: "DAV:",
-        caldav: "urn:ietf:params:xml:ns:caldav" ,
-        carddav: "urn:ietf:params:xml:ns:carddav" ,
+        cal: "urn:ietf:params:xml:ns:caldav" ,
+        card: "urn:ietf:params:xml:ns:carddav" ,
         cs: "http://calendarserver.org/ns/",
     },
     

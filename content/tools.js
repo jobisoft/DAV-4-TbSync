@@ -19,6 +19,14 @@
 
 dav.tools = {
 
+    xmlns: function (ns) {
+        let _xmlns = [];
+        for (let i=0; i < ns.length; i++) {
+            _xmlns.push('xmlns:'+ns[i]+'="'+dav.ns[ns[i]]+'"');
+        }
+        return _xmlns.join(" ");
+    },
+
     parseUri: function (aUri) {
         let uri;
         try {
@@ -269,9 +277,12 @@ dav.tools = {
                         response.multi = [];
                         for (let i=0; i < multi.length; i++) {
                             let statusNode = dav.tools.evaluateNode(multi[i], [["d","propstat"], ["d", "status"]]);
+                            let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
+
                             let resp = {};
                             resp.node = multi[i];
-                            resp.status = statusNode ? statusNode.textContent.split(" ")[1] : "000";
+                            resp.status = statusNode === false ? "000" : statusNode.textContent.split(" ")[1];
+                            resp.href = hrefNode === false ? null : hrefNode.textContent;
                             response.multi.push(resp);
                         }
             
@@ -315,14 +326,13 @@ dav.tools = {
         return false;
     },
 
-    evaluateMultiResponse: function (response, path) {
-        let results = [];
+    getNodeTextContentFromMultiResponse: function (response, path, href = null, status = "200") {
         for (let i=0; i < response.multi.length; i++) {
             let node = dav.tools.evaluateNode(response.multi[i].node, path);
-            if (node === false) continue;
-            results.push (node);
+            if (node !== false && (href === null || response.multi[i].href == href) && response.multi[i].status == status) 
+                return node.textContent;
         }
-        return results.length == 0 ? false : results;
+        return false;
     },
         
 }

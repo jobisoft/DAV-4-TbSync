@@ -44,8 +44,8 @@ dav.sync = {
         //Method description: http://sabre.io/dav/building-a-caldav-client/
         
         let davjobs = {
-            carddav : {ns: 'card', tag: 'addressbook-home-set', type: 'addressbook'},
-            caldav : {ns: 'cal', tag: 'calendar-home-set', type: 'calendar'},
+            card : {type: 'carddav', hometag: 'addressbook-home-set', typetag: 'addressbook'},
+            cal : {type: 'caldav', hometag: 'calendar-home-set', typetag: 'calendar'},
         };
                 
         //get all folders currently known
@@ -66,42 +66,42 @@ dav.sync = {
 
             {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
-                let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:"><d:prop><d:current-user-principal /></d:prop></d:propfind>', "/.well-known/"+job+"/", "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", "/.well-known/"+davjobs[job].type+"/", "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
                 tbSync.setSyncState("eval.folders", syncdata.account); 
-                principal = dav.tools.evaluateMultiResponse(response, [["d","propstat"], ["d","prop"], ["d","current-user-principal"], ["d","href"]]);
+                principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","propstat"], ["d","prop"], ["d","current-user-principal"], ["d","href"]]);
             }
             
             //principal now contains something like "/remote.php/carddav/principals/john.bieling/"
             // -> get home/root of storage            
             if (principal !== false) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
-                let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:" xmlns:'+davjobs[job].ns+'="urn:ietf:params:xml:ns:'+job+'"><d:prop><'+davjobs[job].ns+':'+davjobs[job].tag+' /></d:prop></d:propfind>', principal[0].textContent, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d", job])+"><d:prop><"+job+":"+davjobs[job].hometag+" /></d:prop></d:propfind>", principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
                 tbSync.setSyncState("eval.folders", syncdata.account);
-                home = dav.tools.evaluateMultiResponse(response, [["d","propstat"], ["d","prop"], [job,davjobs[job].tag], ["d","href"]]);                       
+                home = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","propstat"], ["d","prop"], [job, davjobs[job].hometag], ["d","href"]], principal);                       
             }
             
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
             // -> get all calendars and addressbooks
             if (home !== false) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
-                let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>', home[0].textContent, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
+                let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>", home, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
                 
                 for (let r=0; r < response.multi.length; r++) {
                     //is this a result with a valid recourcetype? (the node must be present)
-                    let valid = dav.tools.evaluateNode(response.multi[r].node, [["d","propstat"], ["d","prop"], ["d","resourcetype"], [job,davjobs[job].type]]);                       
-                    if (valid === false) continue;
-                    
-                    let href = response.multi[r].node.getElementsByTagNameNS(dav.ns.d, "href")[0].textContent; 
-                    let name = response.multi[r].node.getElementsByTagNameNS(dav.ns.d, "displayname")[0].textContent;
+                    let valid = dav.tools.evaluateNode(response.multi[r].node, [["d","propstat"], ["d","prop"], ["d","resourcetype"], [job, davjobs[job].typetag]]);                       
+                    if (valid === false || response.multi[r].status != "200") continue;
+
+                    let href = response.multi[r].href;
+                    let name = dav.tools.evaluateNode(response.multi[r].node, [["d","propstat"], ["d","prop"], ["d","displayname"]]).textContent;                       
 
                     let folder = tbSync.db.getFolder(syncdata.account, href);
                     if (folder === null || folder.cached === "1") {
                         let newFolder = {}
                         newFolder.folderID = href;
                         newFolder.name = name;
-                        newFolder.type = job;
+                        newFolder.type = davjobs[job].type;
                         newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
                         newFolder.selected = (r == 1) ? "1" : "0"; //only select the first one
 
@@ -204,7 +204,7 @@ dav.sync = {
     remoteChangesByCTAG: Task.async (function* (syncdata) {
         //Request ctag and token
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-        let response = yield dav.tools.sendRequest('<d:propfind xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>', syncdata.folderID, "PROPFIND", syncdata, {"Depth": "0"});
+        let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d", "cs"])+"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "0"});
 
         tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
         if (response.multi.length != 1) 
@@ -226,7 +226,7 @@ dav.sync = {
 
             //GET CARDS on server
             tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-            let cards = yield dav.tools.sendRequest('<card:addressbook-query xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav"><d:prop><d:getetag /></d:prop></card:addressbook-query>', syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});           
+            let cards = yield dav.tools.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});           
             syncdata.todo = cards.multi.length;
             syncdata.done = 0;
             tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);            
