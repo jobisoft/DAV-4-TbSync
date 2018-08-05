@@ -268,15 +268,35 @@ dav.sync = {
             
             
             //ADD: vCardsAddedOnServer now contains all cards, which do not exist localy -> add them localy (fetch them from server!)
-            for (let id in vCardsAddedOnServer) {
-                if (vCardsAddedOnServer.hasOwnProperty(id)) {
-                    let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
-                    card.setProperty("TBSYNCID", id);
-                    card.setProperty("DisplayName", vCardsAddedOnServer[id]);
-                    addressBook.addCard(card);
+            {
+                let request = "<card:addressbook-multiget "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /><card:address-data /></d:prop>";
+                let counts = 0;
+                for (let id in vCardsAddedOnServer) {
+                    if (vCardsAddedOnServer.hasOwnProperty(id)) {
+                        request += "<d:href>"+id+"</d:href>";
+                        counts+=1;
+                    }
+                }
+                request += "</card:addressbook-multiget>";
+                if (counts > 0) {
+                    let cards = yield dav.tools.sendRequest(request, syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Content-Type": "application/xml; charset=utf-8"});
+                    //TODO: Do something with card - adding textContent right away breaks false, is undefined if not found  - obey maxitems in UI - use better parser
+                    for (let c=0; c < cards.multi.length; c++) {
+                        let id =  cards.multi[c].href;
+                        let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["d","getetag"]]).textContent;                       
+                        let data = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["card","address-data"]]).textContent;                       
+                        if (cards.multi[c].status == "200" && etag && data && id !== null) {
+                            VCF.parse(data, function(vcard) {
+                                    let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
+                                    card.setProperty("TBSYNCID", id);
+                                    card.setProperty("DisplayName", vcard.fn);
+                                    addressBook.addCard(card);
+                                });
+                        }
+                    }
                 }
             }
-
+            
             //MOD: vCardsModifiedOnServer contains all cards which exists localy and have been modified on the server -> merge them localy (fetch them from server!)
             
             //DEL: vCardsDeletedOnServer contains all cards deleted on the server -> delete them localy

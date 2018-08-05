@@ -482,3 +482,5 @@ var dav = {
 
 tbSync.includeJS("chrome://dav4tbsync/content/sync.js");
 tbSync.includeJS("chrome://dav4tbsync/content/tools.js");
+tbSync.includeJS("chrome://dav4tbsync/content/vcf/vcard.js");
+tbSync.includeJS("chrome://dav4tbsync/content/vcf/vcf.js");
