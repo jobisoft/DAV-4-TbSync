@@ -243,7 +243,6 @@ dav.tools = {
             tbSync.dump("RESPONSE", response.status + " : " + text);
             switch(response.status) {
                 case 401: // AuthError
-                case 403: // Forbiddden (some servers send forbidden on AuthError)
                     let authHeader = response.headers.get("WWW-Authenticate")
                     //update authMethod and authOptions    
                     if (authHeader) {
@@ -290,8 +289,10 @@ dav.tools = {
                     }
                     break;
                     
+                    case 403: 
+                    case 404:
                     default:
-                        throw "what?";
+                        throw dav.sync.failed(response.status);
                     
             }
         }
@@ -333,6 +334,19 @@ dav.tools = {
                 return node.textContent;
         }
         return false;
+    },
+    
+    getMultiGetRequest: function(hrefs) {
+        let request = "<card:addressbook-multiget "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /><card:address-data /></d:prop>";
+        let counts = 0;
+        for (let i=0; i < hrefs.length; i++) {
+            request += "<d:href>"+hrefs[i]+"</d:href>";
+            counts++;
+        }
+        request += "</card:addressbook-multiget>";
+
+        if (counts > 0) return request;
+        else return false;
     },
         
 }

@@ -206,36 +206,90 @@ dav.sync = {
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
         let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d", "cs"])+"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "0"});
 
+        syncdata.todo = 0;
+        syncdata.done = 0;
         tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
         let ctag = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","propstat"], ["d","prop"], ["cs", "getctag"]], syncdata.folderID);                       
         let token = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","propstat"], ["d","prop"], ["d", "sync-token"]], syncdata.folderID);                       
         if (ctag === false) 
             throw dav.sync.failed("invalid-response");
 
+        //if CTAG changed, we need to sync everything and compare
         if (ctag != tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "ctag")) {
-            //CTAG changed, need to sync everything and compare
-            let vCardsAddedOnServer = {};
-            let vCardsModifiedOnServer = [];
-            let vCardsDeletedOnServer = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+            let vCardsFoundOnServer = [];
+            let vCardsChangedOnServer = {};
 
-            //GET CARDS on server
+            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+            let addressBook = abManager.getDirectory(syncdata.targetId);
+
+            //get etags of all cards on server
             tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
             let cards = yield dav.tools.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});           
-            syncdata.todo = cards.multi.length;
-            syncdata.done = 0;
             tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);            
 
             for (let c=0; c < cards.multi.length; c++) {
                 let id =  cards.multi[c].href;
-                let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["d","getetag"]]).textContent;                       
+                let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["d","getetag"]]);                       
                 if (cards.multi[c].status == "200" && etag !== false && id !== null) {
-                    vCardsAddedOnServer[id] = etag;
+                    vCardsFoundOnServer.push(id);
+                    let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
+                    if (!card) vCardsChangedOnServer[id] = "ADD";
+                    else if (etag.textContent != card.getProperty("X-DAV-ETAG","")) vCardsChangedOnServer[id] = "MOD";
                 }
             }
 
-            //FIND CHANGES: loop over current addressbook and check each local card to find changes
-            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-            let addressBook = abManager.getDirectory(syncdata.targetId); //addressBooks contains URIs, but we need the directory itself
+            //download all changed cards and process changes
+            let cards2catch = Object.keys(vCardsChangedOnServer);
+            syncdata.todo = cards2catch.length;
+            syncdata.done = 0;
+            let maxitems = 50;
+            
+            for (let i=0; i < cards2catch.length; i+=maxitems) {
+                let request = dav.tools.getMultiGetRequest(cards2catch.slice(i, i+maxitems));
+                if (request) {
+                    tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
+                    let cards = yield dav.tools.sendRequest(request, syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Content-Type": "application/xml; charset=utf-8"});
+
+                    //TODO: Do something with card - adding textContent right away breaks false, is undefined if not found  - obey maxitems in UI - use better parser
+                    syncdata.done = i;
+                    tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
+                    for (let c=0; c < cards.multi.length; c++) {
+                        let id =  cards.multi[c].href;
+                        let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["d","getetag"]]);                       
+                        let data = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["card","address-data"]]); 
+
+                        if (cards.multi[c].status == "200" && etag !== false && data && id !== null && vCardsChangedOnServer.hasOwnProperty(id)) {
+                            switch (vCardsChangedOnServer[id]) {
+                                case "ADD":
+                                    VCF.parse(data.textContent, function(vcard) {
+                                            let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
+                                            card.setProperty("TBSYNCID", id);
+                                            card.setProperty("X-DAV-ETAG", etag.textContent);
+                                            card.setProperty("X-DAV-VCARD", data.textContent);
+                                            card.setProperty("DisplayName", vcard.fn);
+                                            tbSync.db.addItemToChangeLog(syncdata.targetId, id, "added_by_server");
+                                            addressBook.addCard(card);
+                                        });
+                                    break;
+
+                                case "MOD":
+                                    VCF.parse(data.textContent, function(vcard) {
+                                        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
+                                        card.setProperty("X-DAV-ETAG", etag.textContent);
+                                        card.setProperty("X-DAV-VCARD", data.textContent);
+                                        card.setProperty("DisplayName", vcard.fn);
+                                        tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
+                                        addressBook.modifyCard(card);
+                                        });
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            //FIND DELETES: loop over current addressbook and check each local card if still exists on the server
+            let vCardsDeletedOnServer = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
             cards = addressBook.childCards;
             while (true) {
                 let more = false;
@@ -244,65 +298,17 @@ dav.sync = {
 
                 let card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
                 let id = card.getProperty("TBSYNCID","");
-                if (id) {
-                    if (!vCardsAddedOnServer.hasOwnProperty(id)) {
-                        //card does not exists on the server ...
-                        if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "added_by_user") {
-                            //delete request from server
-                            vCardsDeletedOnServer.appendElement(card, "");
-                        }
-                    } else {
-                        //card exists on the server ...
-                        let etag = card.getProperty("X-DAV-ETAG","");
-                        if (etag != vCardsAddedOnServer[id]) {
-                            //update request from server
-                            vCardsModifiedOnServer.push(id);
-                            delete vCardsAddedOnServer[id];
-                        }
-                    }
-                } else {
-                    //skip cards without id for now - should not happen
-                    throw dav.sync.succeeded("found-card-without-id");
+                if (id && !vCardsFoundOnServer.includes(id) && tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "added_by_user") {
+                    //delete request from server
+                    vCardsDeletedOnServer.appendElement(card, "");
                 }
             }
-            
-            
-            //ADD: vCardsAddedOnServer now contains all cards, which do not exist localy -> add them localy (fetch them from server!)
-            {
-                let request = "<card:addressbook-multiget "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /><card:address-data /></d:prop>";
-                let counts = 0;
-                for (let id in vCardsAddedOnServer) {
-                    if (vCardsAddedOnServer.hasOwnProperty(id)) {
-                        request += "<d:href>"+id+"</d:href>";
-                        counts+=1;
-                    }
-                }
-                request += "</card:addressbook-multiget>";
-                if (counts > 0) {
-                    let cards = yield dav.tools.sendRequest(request, syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Content-Type": "application/xml; charset=utf-8"});
-                    //TODO: Do something with card - adding textContent right away breaks false, is undefined if not found  - obey maxitems in UI - use better parser
-                    for (let c=0; c < cards.multi.length; c++) {
-                        let id =  cards.multi[c].href;
-                        let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["d","getetag"]]).textContent;                       
-                        let data = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["card","address-data"]]).textContent;                       
-                        if (cards.multi[c].status == "200" && etag && data && id !== null) {
-                            VCF.parse(data, function(vcard) {
-                                    let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
-                                    card.setProperty("TBSYNCID", id);
-                                    card.setProperty("DisplayName", vcard.fn);
-                                    addressBook.addCard(card);
-                                });
-                        }
-                    }
-                }
+            if (vCardsDeletedOnServer.length > 0) {
+                syncdata.todo = vCardsDeletedOnServer.length;
+                syncdata.done = 0;
+                tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
+                addressBook.deleteCards(vCardsDeletedOnServer);           
             }
-            
-            //MOD: vCardsModifiedOnServer contains all cards which exists localy and have been modified on the server -> merge them localy (fetch them from server!)
-            
-            //DEL: vCardsDeletedOnServer contains all cards deleted on the server -> delete them localy
-            addressBook.deleteCards(vCardsDeletedOnServer);           
-            
-            
             
             
             //update ctag and token (if there is one)
