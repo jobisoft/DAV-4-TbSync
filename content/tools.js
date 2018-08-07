@@ -270,7 +270,7 @@ dav.tools = {
                     case 207: //preprocess multiresponse
                     {
                         let response = {};
-                        response.xml = xml;
+                        response.node = xml.documentElement;
 
                         let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
                         response.multi = [];
@@ -280,7 +280,7 @@ dav.tools = {
 
                             let resp = {};
                             resp.node = multi[i];
-                            resp.status = statusNode === false ? "000" : statusNode.textContent.split(" ")[1];
+                            resp.status = statusNode === false ? null : statusNode.textContent.split(" ")[1];
                             resp.href = hrefNode === false ? null : hrefNode.textContent;
                             response.multi.push(resp);
                         }
@@ -289,7 +289,18 @@ dav.tools = {
                     }
                     break;
                     
-                    case 403: 
+                    case 403:
+                        //TODO: filter response for error response and decide to return null or throw
+                        /*
+                        <d:error xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns">
+                            <s:sabredav-version>3.2.2</s:sabredav-version>
+                            <s:exception>Sabre\DAV\Exception\InvalidSyncToken</s:exception>
+                            <s:message>Invalid or unknown sync token</s:message>
+                            <d:valid-sync-token/>
+                        </d:error>
+                        */
+                        return null;
+                    
                     case 404:
                     default:
                         throw dav.sync.failed(response.status);
@@ -347,6 +358,38 @@ dav.tools = {
 
         if (counts > 0) return request;
         else return false;
+    },
+    
+    deleteContacts: function(addressBook, vCardsDeletedOnServer, syncdata) {
+        if (vCardsDeletedOnServer.length > 0) {
+            syncdata.todo = vCardsDeletedOnServer.length;
+            syncdata.done = 0;
+            tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
+            addressBook.deleteCards(vCardsDeletedOnServer);           
+        }
+    },
+    
+    addContact: function(addressBook, id, data, etag, syncdata) {
+        VCF.parse(data.textContent, function(vcard) {
+                let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
+                card.setProperty("TBSYNCID", id);
+                card.setProperty("X-DAV-ETAG", etag.textContent);
+                card.setProperty("X-DAV-VCARD", data.textContent);
+                card.setProperty("DisplayName", vcard.fn);
+                tbSync.db.addItemToChangeLog(syncdata.targetId, id, "added_by_server");
+                addressBook.addCard(card);
+            });
+    },
+    
+    modifyContact: function(addressBook, id, data, etag, syncdata) {
+        VCF.parse(data.textContent, function(vcard) {
+            let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
+            card.setProperty("X-DAV-ETAG", etag.textContent);
+            card.setProperty("X-DAV-VCARD", data.textContent);
+            card.setProperty("DisplayName", vcard.fn);
+            tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
+            addressBook.modifyCard(card);
+            });
     },
         
 }
