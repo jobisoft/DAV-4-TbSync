@@ -243,6 +243,7 @@ dav.tools = {
             tbSync.dump("RESPONSE", response.status + " : " + text);
             switch(response.status) {
                 case 401: // AuthError
+                {
                     let authHeader = response.headers.get("WWW-Authenticate")
                     //update authMethod and authOptions    
                     if (authHeader) {
@@ -265,45 +266,45 @@ dav.tools = {
                         if (numberOfAuthLoops == 1) continue;
                     }
                     throw dav.sync.failed("401");
-                    break;
+                }
+                break;
         
-                    case 207: //preprocess multiresponse
-                    {
+                case 207: //preprocess multiresponse
+                {
+                    let response = {};
+                    response.node = xml.documentElement;
+
+                    let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
+                    response.multi = [];
+                    for (let i=0; i < multi.length; i++) {
+                        let statusNode = dav.tools.evaluateNode(multi[i], [["d","propstat"], ["d", "status"]]);
+                        let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
+
+                        let resp = {};
+                        resp.node = multi[i];
+                        resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
+                        resp.href = hrefNode === null ? null : hrefNode.textContent;
+                        response.multi.push(resp);
+                    }
+        
+                    return response;
+                }
+                break;
+                    
+                case 403:
+                {
+                    let exceptionNode = dav.tools.evaluateNode(xml.documentElement, [["s","exception"]]);
+                    if (exceptionNode !== null) {
                         let response = {};
-                        response.node = xml.documentElement;
-
-                        let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
-                        response.multi = [];
-                        for (let i=0; i < multi.length; i++) {
-                            let statusNode = dav.tools.evaluateNode(multi[i], [["d","propstat"], ["d", "status"]]);
-                            let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
-
-                            let resp = {};
-                            resp.node = multi[i];
-                            resp.status = statusNode === false ? null : statusNode.textContent.split(" ")[1];
-                            resp.href = hrefNode === false ? null : hrefNode.textContent;
-                            response.multi.push(resp);
-                        }
-            
+                        response.exception = exceptionNode.textContent;
+                        tbSync.dump("EXCEPTION 403", response.exception);
                         return response;
                     }
-                    break;
+                }
                     
-                    case 403:
-                        //TODO: filter response for error response and decide to return null or throw
-                        /*
-                        <d:error xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns">
-                            <s:sabredav-version>3.2.2</s:sabredav-version>
-                            <s:exception>Sabre\DAV\Exception\InvalidSyncToken</s:exception>
-                            <s:message>Invalid or unknown sync token</s:message>
-                            <d:valid-sync-token/>
-                        </d:error>
-                        */
-                        return null;
-                    
-                    case 404:
-                    default:
-                        throw dav.sync.failed(response.status);
+                case 404:
+                default:
+                    throw dav.sync.failed(response.status);
                     
             }
         }
@@ -330,21 +331,21 @@ dav.tools = {
 
             if (!valid) {
                 //none of the children matched the path abort
-                return false;
+                return null;
             }
         }
 
         if (valid) return node;
-        return false;
+        return null;
     },
 
     getNodeTextContentFromMultiResponse: function (response, path, href = null, status = "200") {
         for (let i=0; i < response.multi.length; i++) {
             let node = dav.tools.evaluateNode(response.multi[i].node, path);
-            if (node !== false && (href === null || response.multi[i].href == href) && response.multi[i].status == status) 
+            if (node !== null && (href === null || response.multi[i].href == href) && response.multi[i].status == status) 
                 return node.textContent;
         }
-        return false;
+        return null;
     },
     
     getMultiGetRequest: function(hrefs) {
@@ -357,7 +358,7 @@ dav.tools = {
         request += "</card:addressbook-multiget>";
 
         if (counts > 0) return request;
-        else return false;
+        else return null;
     },
     
     deleteContacts: function(addressBook, vCardsDeletedOnServer, syncdata) {

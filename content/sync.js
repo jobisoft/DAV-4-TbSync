@@ -61,8 +61,8 @@ dav.sync = {
             //if you send a request to a server and thus have to wait for answer, use a "send." syncstate, which will give visual feedback to the user,
             //that we are waiting for an answer with timeout countdown            
             
-            let home = false;
-            let principal = false;
+            let home = null;
+            let principal = null;
 
             {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
@@ -74,7 +74,7 @@ dav.sync = {
             
             //principal now contains something like "/remote.php/carddav/principals/john.bieling/"
             // -> get home/root of storage            
-            if (principal !== false) {
+            if (principal !== null) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
                 let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d", job])+"><d:prop><"+job+":"+davjobs[job].hometag+" /></d:prop></d:propfind>", principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
@@ -84,14 +84,14 @@ dav.sync = {
             
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
             // -> get all calendars and addressbooks
-            if (home !== false) {
+            if (home !== null) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
                 let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>", home, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
                 
                 for (let r=0; r < response.multi.length; r++) {
                     //is this a result with a valid recourcetype? (the node must be present)
-                    let valid = dav.tools.evaluateNode(response.multi[r].node, [["d","propstat"], ["d","prop"], ["d","resourcetype"], [job, davjobs[job].typetag]]);                       
-                    if (valid === false || response.multi[r].status != "200") continue;
+                    let resourcetype = dav.tools.evaluateNode(response.multi[r].node, [["d","propstat"], ["d","prop"], ["d","resourcetype"], [job, davjobs[job].typetag]]);                       
+                    if (resourcetype === null || response.multi[r].status != "200") continue;
 
                     let href = response.multi[r].href;
                     let name = dav.tools.evaluateNode(response.multi[r].node, [["d","propstat"], ["d","prop"], ["d","displayname"]]).textContent;                       
@@ -284,13 +284,13 @@ dav.sync = {
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
         let cards = yield dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d","card"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/><card:address-data /></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {"Content-Type": "application/xml; charset=utf-8"});
 
-        if (cards === null) {
+        if (cards.exception) {
             //token sync failed, reset ctag and do a full sync
             return false;
         }
 
         let tokenNode = dav.tools.evaluateNode(cards.node, [["d", "sync-token"]]);
-        if (tokenNode === false) {
+        if (tokenNode === null) {
             //token sync failed, reset ctag and do a full sync
             return false;
         }
@@ -349,7 +349,7 @@ dav.sync = {
         tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
         let ctag = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","propstat"], ["d","prop"], ["cs", "getctag"]], syncdata.folderID);                       
         let token = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","propstat"], ["d","prop"], ["d", "sync-token"]], syncdata.folderID);                       
-        if (ctag === false) 
+        if (ctag === null) 
             throw dav.sync.failed("invalid-response");
 
         //if CTAG changed, we need to sync everything and compare
@@ -367,7 +367,7 @@ dav.sync = {
             for (let c=0; c < cards.multi.length; c++) {
                 let id =  cards.multi[c].href;
                 let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["d","getetag"]]);                       
-                if (cards.multi[c].status == "200" && etag !== false && id !== null) {
+                if (cards.multi[c].status == "200" && etag !== null && id !== null) {
                     vCardsFoundOnServer.push(id);
                     let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
                     if (!card) vCardsChangedOnServer[id] = "ADD";
@@ -394,7 +394,7 @@ dav.sync = {
                         let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["d","getetag"]]);                       
                         let data = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["card","address-data"]]); 
 
-                        if (cards.multi[c].status == "200" && etag !== false && data && id !== null && vCardsChangedOnServer.hasOwnProperty(id)) {
+                        if (cards.multi[c].status == "200" && etag !== null && data !== null && id !== null && vCardsChangedOnServer.hasOwnProperty(id)) {
                             switch (vCardsChangedOnServer[id]) {
                                 case "ADD":
                                     dav.tools.addContact (addressBook, id, data, etag, syncdata);
