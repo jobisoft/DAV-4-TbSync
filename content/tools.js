@@ -144,6 +144,25 @@ dav.tools = {
     },
     
 
+    convertToXML: function(text) {
+        //try to convert response body to xml
+        let xml = null;
+        let oParser = (Services.vc.compare(Services.appinfo.platformVersion, "61.*") >= 0) ? new DOMParser() : Components.classes["@mozilla.org/xmlextras/domparser;1"].createInstance(Components.interfaces.nsIDOMParser);
+        try {
+            xml = oParser.parseFromString(text, "application/xml");
+        } catch (e) {
+            //however, domparser does not throw an error, it returns an error document
+            //https://developer.mozilla.org/de/docs/Web/API/DOMParser
+            xml = null;
+        }
+        //check if xml is error document
+        if (xml.documentElement.nodeName == "parsererror") {
+            xml = null;
+        }
+
+        return xml;
+    },
+    
     sendRequest: Task.async (function* (request, _url, method, syncdata, headers) {
         let account = tbSync.db.getAccount(syncdata.account);
         let password = tbSync.getPassword(account);
@@ -220,89 +239,82 @@ dav.tools = {
                 }        
             }
 
-            //try to convert response body to xml
-            let text = yield response.text();
-            let xml = null;
-            let oParser = (Services.vc.compare(Services.appinfo.platformVersion, "61.*") >= 0) ? new DOMParser() : Components.classes["@mozilla.org/xmlextras/domparser;1"].createInstance(Components.interfaces.nsIDOMParser);
-            try {
-                xml = oParser.parseFromString(text, "application/xml");
-            } catch (e) {
-                //however, domparser does not throw an error, it returns an error document
-                //https://developer.mozilla.org/de/docs/Web/API/DOMParser
-                //just in case
-                throw dav.sync.failed("mailformed-xml");
-            }
-            //check if xml is error document
-            if (xml.documentElement.nodeName == "parsererror") {
-                throw dav.sync.failed("mailformed-xml");
-            }
-
             //TODO: Handle cert errors ??? formaly done by
             //let error = tbSync.createTCPErrorFromFailedXHR(syncdata.req);
-            
+
+            let text = yield response.text();            
             tbSync.dump("RESPONSE", response.status + " : " + text);
             switch(response.status) {
                 case 401: // AuthError
-                {
-                    let authHeader = response.headers.get("WWW-Authenticate")
-                    //update authMethod and authOptions    
-                    if (authHeader) {
-                        let m = null;
-                        let o = null;
-                        [m, o] = authHeader.split(/ (.*)/);
-                        tbSync.dump("AUTH_HEADER_METHOD", m);
-                        tbSync.dump("AUTH_HEADER_OPTIONS", o);
+                    {
+                        let authHeader = response.headers.get("WWW-Authenticate")
+                        //update authMethod and authOptions    
+                        if (authHeader) {
+                            let m = null;
+                            let o = null;
+                            [m, o] = authHeader.split(/ (.*)/);
+                            tbSync.dump("AUTH_HEADER_METHOD", m);
+                            tbSync.dump("AUTH_HEADER_OPTIONS", o);
 
-                        //check if nonce changed, if so, reset nc
-                        let opt_old = dav.tools.getAuthOptions(tbSync.db.getAccountSetting(syncdata.account, "authOptions"));
-                        let opt_new = dav.tools.getAuthOptions(o);
-                        if (opt_old.nonce != opt_new.nonce) {
-                            tbSync.db.setAccountSetting(syncdata.account, "authDigestNC", "0");
+                            //check if nonce changed, if so, reset nc
+                            let opt_old = dav.tools.getAuthOptions(tbSync.db.getAccountSetting(syncdata.account, "authOptions"));
+                            let opt_new = dav.tools.getAuthOptions(o);
+                            if (opt_old.nonce != opt_new.nonce) {
+                                tbSync.db.setAccountSetting(syncdata.account, "authDigestNC", "0");
+                            }
+                            
+                            tbSync.db.setAccountSetting(syncdata.account, "authMethod", m);
+                            tbSync.db.setAccountSetting(syncdata.account, "authOptions", o);
+                            //is this the first fail? Retry with new settings.
+                            if (numberOfAuthLoops == 1) continue;
                         }
-                        
-                        tbSync.db.setAccountSetting(syncdata.account, "authMethod", m);
-                        tbSync.db.setAccountSetting(syncdata.account, "authOptions", o);
-                        //is this the first fail? Retry with new settings.
-                        if (numberOfAuthLoops == 1) continue;
+                        throw dav.sync.failed("401");
                     }
-                    throw dav.sync.failed("401");
-                }
-                break;
+                    break;
         
                 case 207: //preprocess multiresponse
-                {
-                    let response = {};
-                    response.node = xml.documentElement;
-
-                    let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
-                    response.multi = [];
-                    for (let i=0; i < multi.length; i++) {
-                        let statusNode = dav.tools.evaluateNode(multi[i], [["d","propstat"], ["d", "status"]]);
-                        let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
-
-                        let resp = {};
-                        resp.node = multi[i];
-                        resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
-                        resp.href = hrefNode === null ? null : hrefNode.textContent;
-                        response.multi.push(resp);
-                    }
-        
-                    return response;
-                }
-                break;
-                    
-                case 403:
-                {
-                    let exceptionNode = dav.tools.evaluateNode(xml.documentElement, [["s","exception"]]);
-                    if (exceptionNode !== null) {
+                    {
+                        let xml = dav.tools.convertToXML(text);
+                        if (xml === null) throw dav.sync.failed("mailformed-xml");
+                        
                         let response = {};
-                        response.exception = exceptionNode.textContent;
-                        tbSync.dump("EXCEPTION 403", response.exception);
+                        response.node = xml.documentElement;
+
+                        let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
+                        response.multi = [];
+                        for (let i=0; i < multi.length; i++) {
+                            let statusNode = dav.tools.evaluateNode(multi[i], [["d","propstat"], ["d", "status"]]);
+                            let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
+
+                            let resp = {};
+                            resp.node = multi[i];
+                            resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
+                            resp.href = hrefNode === null ? null : hrefNode.textContent;
+                            response.multi.push(resp);
+                        }
+            
                         return response;
                     }
-                }
+                    break;
                     
+                case 204: //is returned by DELETE - no data
+                    return null;
+                    break;
+
+                case 403:
                 case 404:
+                    {
+                        let xml = dav.tools.convertToXML(text);
+                        if (xml !== null) {
+                            let exceptionNode = dav.tools.evaluateNode(xml.documentElement, [["s","exception"]]);
+                            if (exceptionNode !== null) {
+                                let response = {};
+                                response.exception = exceptionNode.textContent;
+                                return response;
+                            }
+                        }
+                    }
+                                  
                 default:
                     throw dav.sync.failed(response.status);
                     

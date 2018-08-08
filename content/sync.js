@@ -253,7 +253,7 @@ dav.sync = {
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
         let cards = yield dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d","card"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/><card:address-data /></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {"Content-Type": "application/xml; charset=utf-8"});
 
-        if (cards.exception) {
+        if (cards.exception) { //Sabre\DAV\Exception\InvalidSyncToken
             //token sync failed, reset ctag and do a full sync
             return false;
         }
@@ -414,7 +414,50 @@ dav.sync = {
 
 
 
-    localChanges: Task.async (function* (syncdata) {
+    localChanges: Task.async (function* (syncdata) {        
+        //define how many entries can be send in one request
+        let maxnumbertosend = 50;
+        
+        //access changelog to get local modifications (done and todo are used for UI to display progress)
+        syncdata.done = 0;
+        syncdata.todo = db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
+
+        do {
+            tbSync.setSyncState("prepare.request.localchanges", syncdata.account, syncdata.folderID);
+
+            //get changed items from ChangeLog
+            let changes = db.getItemsFromChangeLog(syncdata.targetId, maxnumbertosend, "_by_user");
+            if (changes == 0)
+                break;
+            
+            for (let i=0; i<changes.length; i++) {
+                switch (changes[i].status) {
+                    case "added_by_user":
+                        break;
+                    
+                    case "modified_by_user":
+                        break;
+                    
+                    case "deleted_by_user":
+                        let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {});
+                        if (response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
+                            db.clearChangeLog(syncdata.targetId);
+                            //return true on permission error
+                            return true;
+                        }
+                        break;
+                }
+
+                db.removeItemFromChangeLog(syncdata.targetId, changes[i].id);
+                syncdata.done++; //UI feedback
+            }
+            tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
+
+            tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
+            
+        } while (true);
+        
+        //return true on permission error
         return false;
     }),
 
