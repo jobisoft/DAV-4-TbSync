@@ -170,6 +170,8 @@ var dav = {
      * @param folderID       [in] folder the new target belongs to
      */
     onResetTarget: function (account, folderID) {
+        tbSync.db.resetFolderSetting(account, folderID, "ctag");
+        tbSync.db.resetFolderSetting(account, folderID, "token");
     },
 
 

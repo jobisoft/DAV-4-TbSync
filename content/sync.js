@@ -206,8 +206,7 @@ dav.sync = {
         
         //revert all local changes on permission error by doing a clean sync
         if (permissionError) {
-            tbSync.db.resetFolderSetting(syncdata.account, syncdata.folderID, "ctag");
-            tbSync.db.resetFolderSetting(syncdata.account, syncdata.folderID, "token");
+            dav.onResetTarget(syncdata.account, syncdata.folderID);
             yield dav.sync.remoteChanges(syncdata);
             throw dav.sync.failed("info.restored");
         }
@@ -234,8 +233,7 @@ dav.sync = {
             if (tokenSyncSucceeded) return;
 
             //token sync failed, reset ctag and token and do a full sync
-            tbSync.db.resetFolderSetting(syncdata.account, syncdata.folderID, "ctag");
-            tbSync.db.resetFolderSetting(syncdata.account, syncdata.folderID, "token");
+            dav.onResetTarget(syncdata.account, syncdata.folderID);
         } 
         
         //Either token sync did not work or there is no token (initial sync)
