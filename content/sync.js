@@ -201,71 +201,17 @@ dav.sync = {
 
 
     singleFolder: Task.async (function* (syncdata)  {
-        //The syncdata.targetObj has a comon interface, regardless if this is a contact or calendar sync, 
-        //so you could use the same main sync process for both to reduce redundancy.
-        //The actual type can be stored in syncdata.type, so you can call type-based functions to read 
-        //or to create new Thunderbird items (contacts or events)
-
-        //Request remote changes
-        {
-            //Do we have a sync token? No? -> Initial Sync (or WebDAV sync not supported) / Yes? -> Get updates only (token only present if WebDAV sync is suported)
-            let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
-            if (token) {
-                //update via token sync
-                let tokenSyncSucceeded = yield dav.sync.remoteChangesByTOKEN(syncdata);
-                if (tokenSyncSucceeded) throw dav.sync.succeeded("token-update");
-
-                //token sync failed, reset ctag and do a full sync
-                tbSync.db.resetFolderSetting(syncdata.account, syncdata.folderID, "ctag");
-            } 
-            
-            //Either token sync did not work or there is no token (initial sync)
-            //loop until ctag is the same before and after polling data (sane start condition)
-            let maxloops = 20;
-            for (let i=0; i <= maxloops; i++) {
-                    if (i == maxloops) 
-                        throw dav.sync.failed("could-not-get-stable-ctag");
-                
-                    let ctagChanged = yield dav.sync.remoteChangesByCTAG(syncdata);
-                    if (!ctagChanged) break;
-            }
-            throw dav.sync.succeeded("full-sync");
-        }       
+        yield dav.sync.remoteChanges(syncdata);
+        let permissionError = yield dav.sync.localChanges(syncdata);
         
-        
-        //Pretend to send local changes
-        {
-            //define how many entries can be send in one request
-            let maxnumbertosend = 10;
-            
-            //access changelog to get local modifications (done and todo are used for UI to display progress)
-            syncdata.done = 0;
-            syncdata.todo = db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
-
-            do {
-                tbSync.setSyncState("prepare.request.localchanges", syncdata.account, syncdata.folderID);
-                yield tbSync.sleep(1500);
-
-                //get changed items from ChangeLog
-                let changes = db.getItemsFromChangeLog(syncdata.targetId, maxnumbertosend, "_by_user");
-                if (changes == 0)
-                    break;
-                
-                for (let i=0; i<changes.length; i++) {
-                    //DAV API SIMULATION: do something with the Thunderbird object here
-
-                    //eval based on changes[i].status (added_by_user, modified_by_user, deleted_by_user)
-                    db.removeItemFromChangeLog(syncdata.targetId, changes[i].id);
-                    syncdata.done++; //UI feedback
-                }
-                tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
-                yield tbSync.sleep(1500);
-
-                tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
-                
-            } while (true);
+        //revert all local changes on permission error by doing a clean sync
+        if (permissionError) {
+            tbSync.db.resetFolderSetting(syncdata.account, syncdata.folderID, "ctag");
+            tbSync.db.resetFolderSetting(syncdata.account, syncdata.folderID, "token");
+            yield dav.sync.remoteChanges(syncdata);
+            throw dav.sync.failed("info.restored");
         }
-        
+
         //always finish sync by throwing failed or succeeded
         throw dav.sync.succeeded();
     }),
@@ -278,6 +224,31 @@ dav.sync = {
 
 
 
+
+    remoteChanges: Task.async (function* (syncdata) {
+        //Do we have a sync token? No? -> Initial Sync (or WebDAV sync not supported) / Yes? -> Get updates only (token only present if WebDAV sync is suported)
+        let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
+        if (token) {
+            //update via token sync
+            let tokenSyncSucceeded = yield dav.sync.remoteChangesByTOKEN(syncdata);
+            if (tokenSyncSucceeded) return;
+
+            //token sync failed, reset ctag and token and do a full sync
+            tbSync.db.resetFolderSetting(syncdata.account, syncdata.folderID, "ctag");
+            tbSync.db.resetFolderSetting(syncdata.account, syncdata.folderID, "token");
+        } 
+        
+        //Either token sync did not work or there is no token (initial sync)
+        //loop until ctag is the same before and after polling data (sane start condition)
+        let maxloops = 20;
+        for (let i=0; i <= maxloops; i++) {
+                if (i == maxloops) 
+                    throw dav.sync.failed("could-not-get-stable-ctag");
+            
+                let ctagChanged = yield dav.sync.remoteChangesByCTAG(syncdata);
+                if (!ctagChanged) break;
+        }
+    }),       
 
     remoteChangesByTOKEN: Task.async (function* (syncdata) {
         let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
@@ -440,5 +411,14 @@ dav.sync = {
         }
         
     }),
+
+
+
+
+
+    localChanges: Task.async (function* (syncdata) {
+        return false;
+    }),
+
     
 }
