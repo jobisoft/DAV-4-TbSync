@@ -12,6 +12,7 @@
         <em:description>Add sync support for sabre/dav (CalDAV/CardDAV) accounts to TbSync</em:description>
         <em:creator>John Bieling</em:creator>
         <em:homepageURL>https://github.com/jobisoft/DAV-4-TbSync</em:homepageURL>
+        <em:updateURL>https://raw.githubusercontent.com/jobisoft/DAV-4-TbSync/master/update.rdf</em:updateURL>
         <em:iconURL>chrome://dav4tbsync/skin/sabredav32.png</em:iconURL>
 
         <em:targetApplication>
