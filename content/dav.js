@@ -192,7 +192,17 @@ var dav = {
         return abManager.newAddressBook(newname, "", 2);
     },
 
-
+    /**
+     * Is called if TbSync needs to create a new UID for an address book card
+     *
+     * @param aItem       [in] card that needs new ID
+     *
+     * returns the new id 
+     */
+    getNewCardID: function (aItem) {
+        let uuid = new dav.UUID();
+        return uuid.toString();
+    },
 
     /**
      * Is called if TbSync needs to create a new lightning calendar associated with an account of this provider.
@@ -486,3 +496,4 @@ var dav = {
 tbSync.includeJS("chrome://dav4tbsync/content/sync.js");
 tbSync.includeJS("chrome://dav4tbsync/content/tools.js");
 tbSync.includeJS("chrome://dav4tbsync/content/vcard/vcard.js");
+tbSync.includeJS("chrome://dav4tbsync/content/uuid/uuid.js", dav);
