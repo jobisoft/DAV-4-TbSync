@@ -289,7 +289,7 @@ var dav = {
         } catch (e) {
             if (e.type == "dav4tbsync") tbSync.finishAccountSync(syncdata, e.message);
             else {
-                tbSync.finishAccountSync(syncdata, "Javascript Error");
+                tbSync.finishAccountSync(syncdata, "javascriptError::" + (e.message ? e.message : e));            
                 Components.utils.reportError(e);
             }
         }            
@@ -485,5 +485,4 @@ var dav = {
 
 tbSync.includeJS("chrome://dav4tbsync/content/sync.js");
 tbSync.includeJS("chrome://dav4tbsync/content/tools.js");
-tbSync.includeJS("chrome://dav4tbsync/content/vcf/vcard.js");
-tbSync.includeJS("chrome://dav4tbsync/content/vcf/vcf.js");
+tbSync.includeJS("chrome://dav4tbsync/content/vcard/vcard.js");

@@ -382,27 +382,55 @@ dav.tools = {
         }
     },
     
-    addContact: function(addressBook, id, data, etag, syncdata) {
-        VCF.parse(data.textContent, function(vcard) {
-                let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
-                card.setProperty("TBSYNCID", id);
-                card.setProperty("X-DAV-ETAG", etag.textContent);
-                card.setProperty("X-DAV-VCARD", data.textContent);
-                card.setProperty("DisplayName", vcard.fn);
-                tbSync.db.addItemToChangeLog(syncdata.targetId, id, "added_by_server");
-                addressBook.addCard(card);
-            });
+    addContactFromServer: function(addressBook, id, data, etag, syncdata) {
+        let vcard = data.textContent.trim();
+        let vcarddata = tbSync.dav.vCard.parse(vcard);
+        tbSync.dump("JSON", JSON.stringify(vcarddata));
+        
+        //prepare new card
+        let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
+        card.setProperty("TBSYNCID", id);
+
+        //add/mod common start
+        card.setProperty("X-DAV-ETAG", etag.textContent);
+        card.setProperty("X-DAV-VCARD", vcard);
+        card.setProperty("DisplayName", vcarddata.fn[0].value);
+        //add/mod common end
+        
+        tbSync.db.addItemToChangeLog(syncdata.targetId, id, "added_by_server");
+        addressBook.addCard(card);
     },
     
-    modifyContact: function(addressBook, id, data, etag, syncdata) {
-        VCF.parse(data.textContent, function(vcard) {
-            let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
-            card.setProperty("X-DAV-ETAG", etag.textContent);
-            card.setProperty("X-DAV-VCARD", data.textContent);
-            card.setProperty("DisplayName", vcard.fn);
-            tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
-            addressBook.modifyCard(card);
-            });
-    },
+    modifyContactFromServer: function(addressBook, id, data, etag, syncdata) {
+        let vcard = data.textContent.trim();
+        let vcarddata = tbSync.dav.vCard.parse(vcard);
+        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
         
+        //get last version from server to do a smart merge (do not overide local changes, if field was not changed by server)
+        let olddata = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
+
+        //add/mod common start (modulo smart merge)
+        card.setProperty("X-DAV-ETAG", etag.textContent);
+        card.setProperty("X-DAV-VCARD", vcard);
+        card.setProperty("DisplayName", carddata.fn[0].value);
+        //add/mod common end
+        
+        tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
+        addressBook.modifyCard(card);
+    },
+
+    
+    
+    
+    
+    getModifiedVCard: function(addressBook, id, syncdata) {
+        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
+        let carddata = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
+        
+        //update the stored card with current TB values
+        carddata.fn[0].value = card.getProperty("DisplayName", "");
+        
+        return tbSync.dav.vCard.generate(carddata).trim(); 
+    },
+    
 }

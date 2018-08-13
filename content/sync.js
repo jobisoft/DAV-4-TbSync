@@ -189,7 +189,7 @@ dav.sync = {
                 if (e.type == "dav4tbsync") tbSync.finishFolderSync(syncdata, e.message);
                 else {
                     //abort sync of other folders on javascript error
-                    tbSync.finishFolderSync(syncdata, "Javascript Error");
+                    tbSync.finishFolderSync(syncdata, "javascriptError::" + (e.message ? e.message : e));
                     throw e;
                 }
             }                            
@@ -283,10 +283,10 @@ dav.sync = {
                     let data = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["card","address-data"]]); 
                     if (!card) {
                         //ADD
-                        dav.tools.addContact (addressBook, id, data, etag, syncdata);
+                        dav.tools.addContactFromServer (addressBook, id, data, etag, syncdata);
                     } else {
                         //MOD
-                        dav.tools.modifyContact (addressBook, id, data, etag, syncdata);
+                        dav.tools.modifyContactFromServer (addressBook, id, data, etag, syncdata);
                     }
                 } else {
                     let statusNode = dav.tools.evaluateNode(cards.multi[c].node, [["d","status"]]);
@@ -366,11 +366,11 @@ dav.sync = {
                         if (cards.multi[c].status == "200" && etag !== null && data !== null && id !== null && vCardsChangedOnServer.hasOwnProperty(id)) {
                             switch (vCardsChangedOnServer[id]) {
                                 case "ADD":
-                                    dav.tools.addContact (addressBook, id, data, etag, syncdata);
+                                    dav.tools.addContactFromServer (addressBook, id, data, etag, syncdata);
                                     break;
 
                                 case "MOD":
-                                    dav.tools.modifyContact (addressBook, id, data, etag, syncdata);
+                                    dav.tools.modifyContactFromServer (addressBook, id, data, etag, syncdata);
                                     break;
                             }
                         }
@@ -422,6 +422,9 @@ dav.sync = {
         syncdata.done = 0;
         syncdata.todo = db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
 
+        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+        let addressBook = abManager.getDirectory(syncdata.targetId);
+        
         do {
             tbSync.setSyncState("prepare.request.localchanges", syncdata.account, syncdata.folderID);
 
@@ -433,17 +436,30 @@ dav.sync = {
             for (let i=0; i<changes.length; i++) {
                 switch (changes[i].status) {
                     case "added_by_user":
+                        {
+                        }
                         break;
                     
                     case "modified_by_user":
+                        {
+                            let vcard = dav.tools.getModifiedVCard (addressBook, changes[i].id, syncdata);
+                            let response = yield dav.tools.sendRequest(vcard, changes[i].id , "PUT", syncdata, {"Content-Type": "text/vcard; charset=utf-8"});
+                            if (response && response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
+                                db.clearChangeLog(syncdata.targetId);
+                                //return true on permission error
+                                return true;
+                            }
+                        }
                         break;
                     
                     case "deleted_by_user":
-                        let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {});
-                        if (response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
-                            db.clearChangeLog(syncdata.targetId);
-                            //return true on permission error
-                            return true;
+                        {
+                            let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {});
+                            if (response && response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
+                                db.clearChangeLog(syncdata.targetId);
+                                //return true on permission error
+                                return true;
+                            }
                         }
                         break;
                 }

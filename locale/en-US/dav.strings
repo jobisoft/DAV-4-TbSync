@@ -35,7 +35,7 @@ status.503=Service unavailable.
 status.httperror=Communication error (HTTP status ##replace.1##).
 status.OK=Ok
 status.nolightning=Lightning Add-On not installed, calendars are not supported.
-status.javascriptError=Javascript error! Check debug log for details.
+status.javascriptError=Javascript error: ##replace.1##
 
 status.info.carddavnotimplemented=CardDAV sync not yet implemented.
 status.OK.managedbylightning=Calendar managed by lightning.
