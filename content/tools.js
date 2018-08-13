@@ -394,7 +394,8 @@ dav.tools = {
         //add/mod common start
         card.setProperty("X-DAV-ETAG", etag.textContent);
         card.setProperty("X-DAV-VCARD", vcard);
-        card.setProperty("DisplayName", vcarddata.fn[0].value);
+        if (vcarddata.fn && vcarddata.fn.length > 0) card.setProperty("DisplayName", vcarddata.fn[0].value);
+        if (vcarddata.email && vcarddata.email.length > 0) card.setProperty("PrimaryEmail", vcarddata.email[0].value);
         //add/mod common end
         
         tbSync.db.addItemToChangeLog(syncdata.targetId, id, "added_by_server");
@@ -412,7 +413,8 @@ dav.tools = {
         //add/mod common start (modulo smart merge)
         card.setProperty("X-DAV-ETAG", etag.textContent);
         card.setProperty("X-DAV-VCARD", vcard);
-        card.setProperty("DisplayName", carddata.fn[0].value);
+        if (vcarddata.fn && vcarddata.fn.length > 0) card.setProperty("DisplayName", vcarddata.fn[0].value);
+        if (vcarddata.email && vcarddata.email.length > 0) card.setProperty("PrimaryEmail", vcarddata.email[0].value);        
         //add/mod common end
         
         tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
@@ -423,14 +425,28 @@ dav.tools = {
     
     
     
-    getModifiedVCard: function(addressBook, id, syncdata) {
+    getModifiedVCard: function(addressBook, id, syncdata) {        
         let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
-        let carddata = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
+        let vcarddata = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
         
         //update the stored card with current TB values
-        carddata.fn[0].value = card.getProperty("DisplayName", "");
+        dav.tools.updateVCardData(card, "DisplayName", vcarddata, "fn");
+        dav.tools.updateVCardData(card, "PrimaryEmail", vcarddata, "email");
         
-        return tbSync.dav.vCard.generate(carddata).trim(); 
+        return tbSync.dav.vCard.generate(vcarddata).trim(); 
     },
+    
+    updateVCardData: function(card, cardfield, vcarddata, vcardfield) {
+        let value = card.getProperty(cardfield, "");
+        if (value) {
+            //store value
+            if (!vcarddata[vcardfield]) vcarddata[vcardfield] = [{}];
+            vcarddata[vcardfield][0].value = value;
+        } else {
+            //remove value
+            if (vcarddata[vcardfield]) vcarddata[vcardfield].splice(0,1);            
+        }
+    
+    }
     
 }
