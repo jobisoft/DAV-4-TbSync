@@ -436,40 +436,57 @@ dav.sync = {
             for (let i=0; i<changes.length; i++) {
                 switch (changes[i].status) {
                     case "added_by_user":
-                        {
-                        }
-                        break;
-                    
                     case "modified_by_user":
                         {
-                            let vcard = dav.tools.getModifiedVCard (addressBook, changes[i].id, syncdata);
-                            let response = yield dav.tools.sendRequest(vcard, changes[i].id , "PUT", syncdata, {"Content-Type": "text/vcard; charset=utf-8"});
+                            let vcard = dav.tools.getVCardFromThunderbirdCard (addressBook, changes[i].id, changes[i].status == "added_by_user");
+                            tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
+                            let response = yield dav.tools.sendRequest(vcard, changes[i].id, "PUT", syncdata, {"Content-Type": "text/vcard; charset=utf-8"});
+                            
+                            tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
                             if (response && response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
                                 db.clearChangeLog(syncdata.targetId);
                                 //return true on permission error
                                 return true;
                             }
+
+                            //get new etag and new vcard
+                            tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
+                            let request = dav.tools.getMultiGetRequest([changes[i].id]);
+                            let cards = yield dav.tools.sendRequest(request, syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Content-Type": "application/xml; charset=utf-8"});
+
+                            tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
+                            let id =  cards.multi[0].href;
+                            let etag = dav.tools.evaluateNode(cards.multi[0].node, [["d","propstat"], ["d","prop"], ["d","getetag"]]);                       
+                            let data = dav.tools.evaluateNode(cards.multi[0].node, [["d","propstat"], ["d","prop"], ["card","address-data"]]); 
+                            
+                            //update card
+                            let card = addressBook.getCardFromProperty("TBSYNCID", changes[i].id, true);                    
+                            card.setProperty("X-DAV-ETAG", etag.textContent);
+                            card.setProperty("X-DAV-VCARD", data.textContent.trim());
+                            tbSync.db.addItemToChangeLog(syncdata.targetId, changes[i].id, "modified_by_server");
+                            addressBook.modifyCard(card);
                         }
                         break;
                     
                     case "deleted_by_user":
                         {
+                            tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
                             let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {});
+                            
+                            tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
                             if (response && response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
                                 db.clearChangeLog(syncdata.targetId);
                                 //return true on permission error
                                 return true;
                             }
+                            db.removeItemFromChangeLog(syncdata.targetId, changes[i].id);
                         }
                         break;
                 }
 
-                db.removeItemFromChangeLog(syncdata.targetId, changes[i].id);
                 syncdata.done++; //UI feedback
             }
-            tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
 
-            tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
             
         } while (true);
         

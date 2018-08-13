@@ -192,6 +192,8 @@ var dav = {
         return abManager.newAddressBook(newname, "", 2);
     },
 
+
+
     /**
      * Is called if TbSync needs to create a new UID for an address book card
      *
@@ -199,10 +201,13 @@ var dav = {
      *
      * returns the new id 
      */
-    getNewCardID: function (aItem) {
+    getNewCardID: function (aItem, folder) {
         let uuid = new dav.UUID();
-        return uuid.toString();
+        //actually use the full href of this vcard as id - the actual UID is not used by TbSync
+        return folder.folderID + uuid.toString() + ".vcf";
     },
+
+
 
     /**
      * Is called if TbSync needs to create a new lightning calendar associated with an account of this provider.

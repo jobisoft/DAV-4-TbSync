@@ -298,6 +298,7 @@ dav.tools = {
                     break;
                     
                 case 204: //is returned by DELETE - no data
+                case 201: //is returned by CREATE - no data
                     return null;
                     break;
 
@@ -421,18 +422,22 @@ dav.tools = {
         addressBook.modifyCard(card);
     },
 
-    
-    
-    
-    
-    getModifiedVCard: function(addressBook, id, syncdata) {        
+
+
+    getVCardFromThunderbirdCard: function(addressBook, id, updateUID = false) {        
         let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
         let vcarddata = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
         
+        if (updateUID) {
+            let uuid = new dav.UUID();
+            //the UID of the vcard is never used by TbSync, it differs from the href of this card (following the specs)
+            vcarddata["uid"] = [{value: uuid.toString()}];
+        }
+
         //update the stored card with current TB values
         dav.tools.updateVCardData(card, "DisplayName", vcarddata, "fn");
         dav.tools.updateVCardData(card, "PrimaryEmail", vcarddata, "email");
-        
+    
         return tbSync.dav.vCard.generate(vcarddata).trim(); 
     },
     
@@ -444,7 +449,7 @@ dav.tools = {
             vcarddata[vcardfield][0].value = value;
         } else {
             //remove value
-            if (vcarddata[vcardfield]) vcarddata[vcardfield].splice(0,1);            
+            if (vcarddata[vcardfield]) vcarddata[vcardfield].splice(0,1); //TODO, metatype!!!
         }
     
     }
