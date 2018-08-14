@@ -271,37 +271,41 @@ dav.sync = {
 
         syncdata.todo = cards.multi.length;
         syncdata.done = 0;
-        tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
         let addressBook = abManager.getDirectory(syncdata.targetId);
         let vCardsDeletedOnServer = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+        let maxitems = 50;
 
-        for (let c=0; c < cards.multi.length; c++) {
-            let id = cards.multi[c].href;
-            if (id !==null) {
-                //valid
-                let status = cards.multi[c].status;
-                let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
-                if (status == "200") {
-                    //MOD or ADD
-                    let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["d","getetag"]]);                       
-                    let data = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["card","address-data"]]); 
-                    if (!card) {
-                        //ADD
-                        dav.tools.addContact (addressBook, id, data, etag, syncdata);
+        for (let ca=0; ca < cards.multi.length; ca+=maxitems) {
+            tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
+            yield tbSync.sleep(100);
+            for (let c=ca; c < cards.multi.length && c < ca + maxitems; c++) {
+                let id = cards.multi[c].href;
+                if (id !==null) {
+                    //valid
+                    let status = cards.multi[c].status;
+                    let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
+                    if (status == "200") {
+                        //MOD or ADD
+                        let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["d","getetag"]]);                       
+                        let data = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["card","address-data"]]); 
+                        if (!card) {
+                            //ADD
+                            dav.tools.addContact (addressBook, id, data, etag, syncdata);
+                        } else {
+                            //MOD
+                            dav.tools.modifyContact (addressBook, id, data, etag, syncdata);
+                        }
                     } else {
-                        //MOD
-                        dav.tools.modifyContact (addressBook, id, data, etag, syncdata);
-                    }
-                } else {
-                    let statusNode = dav.tools.evaluateNode(cards.multi[c].node, [["d","status"]]);
-                    if (card && statusNode.textContent && statusNode.textContent.split(" ")[1] == "404") {
-                        //DEL
-                        vCardsDeletedOnServer.appendElement(card, "");
+                        let statusNode = dav.tools.evaluateNode(cards.multi[c].node, [["d","status"]]);
+                        if (card && statusNode.textContent && statusNode.textContent.split(" ")[1] == "404") {
+                            //DEL
+                            vCardsDeletedOnServer.appendElement(card, "");
+                        }
                     }
                 }
+                syncdata.done++;
             }
-            
         }
 
         //delete all contacts added to vCardsDeletedOnServer
