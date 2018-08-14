@@ -422,7 +422,6 @@ dav.tools = {
         card.setProperty("X-DAV-VCARD", vCard);
         if (vCardData.fn && vCardData.fn.length > 0) card.setProperty("DisplayName", vCardData.fn[0].value);
         if (vCardData.email && vCardData.email.length > 0) card.setProperty("PrimaryEmail", vCardData.email[0].value);        
-        //add/mod common end
     },
     
     getVCardFromThunderbirdCard: function(addressBook, id, generateUID = false) {        

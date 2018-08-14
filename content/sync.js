@@ -451,7 +451,7 @@ dav.sync = {
                                 return true;
                             }
 
-                            //get new etag and new vcard
+                            //get new etag and new vcard (sync server version as if it has been modifed)
                             tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
                             let request = dav.tools.getMultiGetRequest([changes[i].id]);
                             let cards = yield dav.tools.sendRequest(request, syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Content-Type": "application/xml; charset=utf-8"});
@@ -460,13 +460,7 @@ dav.sync = {
                             let id =  cards.multi[0].href;
                             let etag = dav.tools.evaluateNode(cards.multi[0].node, [["d","propstat"], ["d","prop"], ["d","getetag"]]);                       
                             let data = dav.tools.evaluateNode(cards.multi[0].node, [["d","propstat"], ["d","prop"], ["card","address-data"]]); 
-                            
-                            //update card
-                            let card = addressBook.getCardFromProperty("TBSYNCID", changes[i].id, true);                    
-                            card.setProperty("X-DAV-ETAG", etag.textContent);
-                            card.setProperty("X-DAV-VCARD", data.textContent.trim());
-                            tbSync.db.addItemToChangeLog(syncdata.targetId, changes[i].id, "modified_by_server");
-                            addressBook.modifyCard(card);
+                            dav.tools.modifyContact (addressBook, id, data, etag, syncdata);
                         }
                         break;
                     
