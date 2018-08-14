@@ -38,6 +38,7 @@ status.nolightning=Lightning Add-On not installed, calendars are not supported.
 status.javascriptError=Javascript error: ##replace.1##
 
 status.info.carddavnotimplemented=CardDAV sync not yet implemented.
+status.info.caldav-calendar-already-exists=Calendar already managed by lightning (skipped).
 status.OK.managedbylightning=Calendar managed by lightning.
 
 status.security=Could not establish a secure connection. Are you using a self-signed or otherwise untrusted certificate without importing it into Thunderbird? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[help]

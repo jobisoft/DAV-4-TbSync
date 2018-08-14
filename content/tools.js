@@ -39,7 +39,7 @@ dav.tools = {
         let calManager = cal.getCalendarManager();
         let cals = calManager.getCalendars({});
         if (cals.some(calendar => calendar.uri.spec == uri.spec)) {
-            throw dav.sync.failed("caldav-calendar-already-exists");
+            throw dav.sync.failed("info.caldav-calendar-already-exists");
         }
 
         return uri;
