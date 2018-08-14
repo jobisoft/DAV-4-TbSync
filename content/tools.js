@@ -407,10 +407,7 @@ dav.tools = {
         addressBook.modifyCard(card);
     },
 
-
-
-
-
+    //update send from server to client
     setThunderbirdCardFromVCard: function(addressBook, card, vCard, etag, oCard = null) {
         let vCardData = tbSync.dav.vCard.parse(vCard);
         let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
@@ -420,10 +417,42 @@ dav.tools = {
 
         card.setProperty("X-DAV-ETAG", etag);
         card.setProperty("X-DAV-VCARD", vCard);
-        if (vCardData.fn && vCardData.fn.length > 0) card.setProperty("DisplayName", vCardData.fn[0].value);
-        if (vCardData.email && vCardData.email.length > 0) card.setProperty("PrimaryEmail", vCardData.email[0].value);        
+        
+        for (let f=0; f < dav.tools.allowedProperties.length; f++) {
+
+            //For a given Thunderbird property, identify the vCard field
+            // -> which main item
+            // -> which array element (based on meta)
+
+            let property = dav.tools.allowedProperties[f];
+            let vCardField = dav.tools.getVCardField(property);
+
+            let newServerValue = (vCardData && vCardData[vCardField.item] && vCardData[vCardField.item].length > vCardField.entry) ? 
+                                                dav.tools.prepareValueForThunderbird(property, vCardData[vCardField.item][vCardField.entry].value) :
+                                                null;
+
+            let oldServerValue = (oCardData && oCardData[vCardField.item] && oCardData[vCardField.item].length > vCardField.entry) ? 
+                                                dav.tools.prepareValueForThunderbird(property, oCardData[vCardField.item][vCardField.entry].value) :
+                                                null;
+
+            //smart merge: only update the property, if it has changed on the server (keep local modifications)
+            if (newServerValue !== oldServerValue) {
+                if (newServerValue) {
+                    //set
+                    card.setProperty(property, newServerValue);
+                } else {
+                    //clear (del if possible)
+                    card.setProperty(property, "");
+                    try {
+                        card.deleteProperty(property);
+                    } catch (e) {}
+                }
+            }
+
+        }
     },
     
+    //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
     getVCardFromThunderbirdCard: function(addressBook, id, generateUID = false) {        
         let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
         let vCardData = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
@@ -431,27 +460,74 @@ dav.tools = {
         if (generateUID) {
             let uuid = new dav.UUID();
             //the UID of the vCard is never used by TbSync, it differs from the href of this card (following the specs)
-            vCardData["uid"] = [{value: uuid.toString()}];
+            vCardData["uid"] = [{"value": uuid.toString()}];
         }
 
-        //update the stored card with current TB values
-        dav.tools.updateVCardData(card, "DisplayName", vCardData, "fn");
-        dav.tools.updateVCardData(card, "PrimaryEmail", vCardData, "email");
-    
+        for (let f=0; f < dav.tools.allowedProperties.length; f++) {
+
+            //For a given Thunderbird property, identify the vCard field
+            // -> which main item
+            // -> which array element (based on meta)
+            let property = dav.tools.allowedProperties[f];
+            let vCardField = dav.tools.getVCardField(property);
+
+            let value = card.getProperty(property, "");
+            if (value) {
+                //store value 
+                if (!vCardData[vCardField.item]) vCardData[vCardField.item] = [{"value": dav.tools.prepareValueForVCard(property, value)}];
+                else vCardData[vCardField.item][vCardField.entry].value = value;
+            } else {
+                //remove value
+                if (vCardData[vCardField.item]) vCardData[vCardField.item].splice(vCardField.entry,1);
+            }
+
+        }    
         return tbSync.dav.vCard.generate(vCardData).trim(); 
     },
+
+
+
+
+
+    //* * * * * * * * * * * * * * * * *
+    //* ACTUAL SYNC MAGIC *
+    //* * * * * * * * * * * * * * * * *
     
-    updateVCardData: function(card, cardField, vCardData, vCardField) {
-        let value = card.getProperty(cardField, "");
-        if (value) {
-            //store value
-            if (!vCardData[vCardField]) vCardData[vCardField] = [{}];
-            vCardData[vCardField][0].value = value;
-        } else {
-            //remove value
-            if (vCardData[vCardField]) vCardData[vCardField].splice(0,1); //TODO, metatype!!!
+    allowedProperties: ["DisplayName", "PrimaryEmail"],
+
+    //For a given Thunderbird property, identify the vCard field
+    // -> which main item
+    // -> which array element (based on meta)
+    getVCardField: function (property) {
+        switch (property) {
+            case "DisplayName": 
+                return {item: "fn", entry: 0}
+                break;
+            case "PrimaryEmail": 
+                return {item: "email", entry: 0}
+                break;
+            default:
+                throw "Unknown TB property <"+property+">";
         }
-    
-    }
+    },        
+
+    //turn the given vCardValue into a string to be stored as a Thunderbird property
+    prepareValueForThunderbird: function (property, vCardValue) {
+        switch (property) {
+            case "Category": 
+            default:
+                if (Array.isArray(vCardValue)) return vCardValue[0];//.join(" ");
+                else return vCardValue;
+        }
+    },
+
+    //turn the given Thunderbird propetyValue into a vCardValue to be stored in the vCard
+    prepareValueForVCard: function (property, propetyValue) {
+        switch (property) {
+            case "Category": 
+            default:
+                return propetyValue;//.split(" ");
+        }
+    },     
     
 }
