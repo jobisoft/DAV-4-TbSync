@@ -204,13 +204,16 @@ dav.sync = {
 
     singleFolder: Task.async (function* (syncdata)  {
         yield dav.sync.remoteChanges(syncdata);
-        let permissionError = yield dav.sync.localChanges(syncdata);
+        let numOfLocalChanges = yield dav.sync.localChanges(syncdata);
         
         //revert all local changes on permission error by doing a clean sync
-        if (permissionError) {
+        if (numOfLocalChanges == -1) {
             dav.onResetTarget(syncdata.account, syncdata.folderID);
             yield dav.sync.remoteChanges(syncdata);
             throw dav.sync.failed("info.restored");
+        } else if (numOfLocalChanges > 0){
+            //we will get back our own changes and can store etags and vcards and also get a clean ctag/token
+            yield dav.sync.remoteChanges(syncdata);
         }
 
         //always finish sync by throwing failed or succeeded
@@ -341,8 +344,10 @@ dav.sync = {
                 if (cards.multi[c].status == "200" && etag !== null && id !== null) {
                     vCardsFoundOnServer.push(id);
                     let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
-                    if (!card) vCardsChangedOnServer[id] = "ADD";
-                    else if (etag.textContent != card.getProperty("X-DAV-ETAG","")) vCardsChangedOnServer[id] = "MOD";
+                    if (!card) {
+                        //if the user deleted this card (not yet send to server), do not add it again
+                        if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "deleted_by_user")  vCardsChangedOnServer[id] = "ADD";
+                    } else if (etag.textContent != card.getProperty("X-DAV-ETAG","")) vCardsChangedOnServer[id] = "MOD";
                 }
             }
 
@@ -419,7 +424,7 @@ dav.sync = {
     localChanges: Task.async (function* (syncdata) {        
         //define how many entries can be send in one request
         let maxnumbertosend = 50;
-        
+
         //access changelog to get local modifications (done and todo are used for UI to display progress)
         syncdata.done = 0;
         syncdata.todo = db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
@@ -447,20 +452,9 @@ dav.sync = {
                             tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
                             if (response && response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
                                 db.clearChangeLog(syncdata.targetId);
-                                //return true on permission error
-                                return true;
+                                //return -1 on permission error
+                                return -1;
                             }
-
-                            //get new etag and new vcard (sync server version as if it has been modifed)
-                            tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
-                            let request = dav.tools.getMultiGetRequest([changes[i].id]);
-                            let cards = yield dav.tools.sendRequest(request, syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Content-Type": "application/xml; charset=utf-8"});
-
-                            tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
-                            let id =  cards.multi[0].href;
-                            let etag = dav.tools.evaluateNode(cards.multi[0].node, [["d","propstat"], ["d","prop"], ["d","getetag"]]);                       
-                            let data = dav.tools.evaluateNode(cards.multi[0].node, [["d","propstat"], ["d","prop"], ["card","address-data"]]); 
-                            dav.tools.modifyContact (addressBook, id, data, etag, syncdata);
                         }
                         break;
                     
@@ -472,22 +466,22 @@ dav.sync = {
                             tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
                             if (response && response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
                                 db.clearChangeLog(syncdata.targetId);
-                                //return true on permission error
-                                return true;
+                                //return -1 on permission error
+                                return -1;
                             }
-                            db.removeItemFromChangeLog(syncdata.targetId, changes[i].id);
                         }
                         break;
                 }
 
+                db.removeItemFromChangeLog(syncdata.targetId, changes[i].id);
                 syncdata.done++; //UI feedback
             }
 
             
         } while (true);
         
-        //return true on permission error
-        return false;
+        //return number of modified cards
+        return syncdata.done;
     }),
 
     
