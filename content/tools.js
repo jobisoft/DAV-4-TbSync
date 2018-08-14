@@ -374,6 +374,10 @@ dav.tools = {
         else return null;
     },
     
+
+
+
+
     deleteContacts: function(addressBook, vCardsDeletedOnServer, syncdata) {
         if (vCardsDeletedOnServer.length > 0) {
             syncdata.todo = vCardsDeletedOnServer.length;
@@ -383,73 +387,70 @@ dav.tools = {
         }
     },
     
-    addContactFromServer: function(addressBook, id, data, etag, syncdata) {
-        let vcard = data.textContent.trim();
-        let vcarddata = tbSync.dav.vCard.parse(vcard);
-        tbSync.dump("JSON", JSON.stringify(vcarddata));
-        
+    addContact: function(addressBook, id, data, etag, syncdata) {        
         //prepare new card
         let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
         card.setProperty("TBSYNCID", id);
 
-        //add/mod common start
-        card.setProperty("X-DAV-ETAG", etag.textContent);
-        card.setProperty("X-DAV-VCARD", vcard);
-        if (vcarddata.fn && vcarddata.fn.length > 0) card.setProperty("DisplayName", vcarddata.fn[0].value);
-        if (vcarddata.email && vcarddata.email.length > 0) card.setProperty("PrimaryEmail", vcarddata.email[0].value);
-        //add/mod common end
+        dav.tools.setThunderbirdCardFromVCard(addressBook, card, data.textContent.trim(), etag.textContent);
         
         tbSync.db.addItemToChangeLog(syncdata.targetId, id, "added_by_server");
         addressBook.addCard(card);
     },
     
-    modifyContactFromServer: function(addressBook, id, data, etag, syncdata) {
-        let vcard = data.textContent.trim();
-        let vcarddata = tbSync.dav.vCard.parse(vcard);
+    modifyContact: function(addressBook, id, data, etag, syncdata) {
         let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
-        
-        //get last version from server to do a smart merge (do not overide local changes, if field was not changed by server)
-        let olddata = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
 
-        //add/mod common start (modulo smart merge)
-        card.setProperty("X-DAV-ETAG", etag.textContent);
-        card.setProperty("X-DAV-VCARD", vcard);
-        if (vcarddata.fn && vcarddata.fn.length > 0) card.setProperty("DisplayName", vcarddata.fn[0].value);
-        if (vcarddata.email && vcarddata.email.length > 0) card.setProperty("PrimaryEmail", vcarddata.email[0].value);        
-        //add/mod common end
-        
+        dav.tools.setThunderbirdCardFromVCard(addressBook, card, data.textContent.trim(), etag.textContent, card.getProperty("X-DAV-VCARD", ""));        
+
         tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
         addressBook.modifyCard(card);
     },
 
 
 
-    getVCardFromThunderbirdCard: function(addressBook, id, updateUID = false) {        
+
+
+    setThunderbirdCardFromVCard: function(addressBook, card, vCard, etag, oCard = null) {
+        let vCardData = tbSync.dav.vCard.parse(vCard);
+        let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
+
+        tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
+        if (oCard) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
+
+        card.setProperty("X-DAV-ETAG", etag);
+        card.setProperty("X-DAV-VCARD", vCard);
+        if (vCardData.fn && vCardData.fn.length > 0) card.setProperty("DisplayName", vCardData.fn[0].value);
+        if (vCardData.email && vCardData.email.length > 0) card.setProperty("PrimaryEmail", vCardData.email[0].value);        
+        //add/mod common end
+    },
+    
+    getVCardFromThunderbirdCard: function(addressBook, id, generateUID = false) {        
         let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
-        let vcarddata = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
+        let vCardData = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
         
-        if (updateUID) {
+        if (generateUID) {
             let uuid = new dav.UUID();
-            //the UID of the vcard is never used by TbSync, it differs from the href of this card (following the specs)
-            vcarddata["uid"] = [{value: uuid.toString()}];
+            //the UID of the vCard is never used by TbSync, it differs from the href of this card (following the specs)
+            vCardData["uid"] = [{value: uuid.toString()}];
         }
 
         //update the stored card with current TB values
-        dav.tools.updateVCardData(card, "DisplayName", vcarddata, "fn");
-        dav.tools.updateVCardData(card, "PrimaryEmail", vcarddata, "email");
+        dav.tools.updateVCardData(card, "DisplayName", vCardData, "fn");
+        dav.tools.updateVCardData(card, "PrimaryEmail", vCardData, "email");
     
-        return tbSync.dav.vCard.generate(vcarddata).trim(); 
+        return tbSync.dav.vCard.generate(vCardData).trim(); 
     },
     
-    updateVCardData: function(card, cardfield, vcarddata, vcardfield) {
-        let value = card.getProperty(cardfield, "");
+    updateVCardData: function(card, cardField, vCardData, vCardField) {
+        let value = card.getProperty(cardField, "");
         if (value) {
             //store value
-            if (!vcarddata[vcardfield]) vcarddata[vcardfield] = [{}];
-            vcarddata[vcardfield][0].value = value;
+            if (!vCardData[vCardField]) vCardData[vCardField] = [{}];
+            vCardData[vCardField][0].value = value;
         } else {
             //remove value
-            if (vcarddata[vcardfield]) vcarddata[vcardfield].splice(0,1); //TODO, metatype!!!
+            if (vCardData[vCardField]) vCardData[vCardField].splice(0,1); //TODO, metatype!!!
         }
     
     }

@@ -71,7 +71,8 @@ var dav = {
             "user" : "",
             "https" : "1",
             "autosync" : "0",
-            "downloadonly" : "0",            
+            "downloadonly" : "0",
+            "lastUsedProviderVersion" : "0",
             //some example options
             "syncdefaultfolders" : "1",
             "displayoverride" : "0",

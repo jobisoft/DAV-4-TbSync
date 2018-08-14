@@ -40,7 +40,7 @@ dav.sync = {
     
     folderList: Task.async (function* (syncdata) {
         //This is a very simple implementation of the discovery method of sabre/dav.
-        //I am not even checking if there are changes, I jut pull the current list from the server and replace the local list
+        //I am not even checking if there are changes, I just pull the current list from the server and replace the local list
         //Method description: http://sabre.io/dav/building-a-caldav-client/
         
         let davjobs = {
@@ -125,6 +125,8 @@ dav.sync = {
             tbSync.takeTargetOffline("dav", folders[deletedFolders[i]], " [deleted on server]");
         }                        
     
+        tbSync.db.setAccountSetting(syncdata.account, "lastUsedProviderVersion", tbSync.providerList.dav.version)
+
     }),
 
 
@@ -283,10 +285,10 @@ dav.sync = {
                     let data = dav.tools.evaluateNode(cards.multi[c].node, [["d","propstat"], ["d","prop"], ["card","address-data"]]); 
                     if (!card) {
                         //ADD
-                        dav.tools.addContactFromServer (addressBook, id, data, etag, syncdata);
+                        dav.tools.addContact (addressBook, id, data, etag, syncdata);
                     } else {
                         //MOD
-                        dav.tools.modifyContactFromServer (addressBook, id, data, etag, syncdata);
+                        dav.tools.modifyContact (addressBook, id, data, etag, syncdata);
                     }
                 } else {
                     let statusNode = dav.tools.evaluateNode(cards.multi[c].node, [["d","status"]]);
@@ -366,11 +368,11 @@ dav.sync = {
                         if (cards.multi[c].status == "200" && etag !== null && data !== null && id !== null && vCardsChangedOnServer.hasOwnProperty(id)) {
                             switch (vCardsChangedOnServer[id]) {
                                 case "ADD":
-                                    dav.tools.addContactFromServer (addressBook, id, data, etag, syncdata);
+                                    dav.tools.addContact (addressBook, id, data, etag, syncdata);
                                     break;
 
                                 case "MOD":
-                                    dav.tools.modifyContactFromServer (addressBook, id, data, etag, syncdata);
+                                    dav.tools.modifyContact (addressBook, id, data, etag, syncdata);
                                     break;
                             }
                         }
