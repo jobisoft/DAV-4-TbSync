@@ -205,18 +205,8 @@ dav.tools = {
                     break;
 
                 case "Digest":
-                    //for digest we need to run multiple times
-                    switch (numberOfAuthLoops) {
-                        case 1:
-                            //first time, do not send an authentication header to get the nonce
-                            break;
-                        case 2:
-                            //second time, calculate digest and send header
-                            options.headers["Authorization"] = dav.tools.getDigestAuthHeader(method, _url, account.user, password, account.authOptions, syncdata.account);
-                            break;
-                        default:
-                            throw dav.sync.failed("401");
-                    }
+                    //try to re-use the known server nounce (stored in account.authOptions)
+                    options.headers["Authorization"] = dav.tools.getDigestAuthHeader(method, _url, account.user, password, account.authOptions, syncdata.account);
                     break;
             
                 default:
