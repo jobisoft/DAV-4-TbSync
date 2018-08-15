@@ -481,7 +481,8 @@ dav.tools = {
         let metaTypeData = [];
         for (let i=0; i < vCardData[item].length; i++) {
             if (dav.tools.itemHasMetaType(vCardData, item, i)) {
-                metaTypeData.push( vCardData[item][i].meta.type.map(function(x){ return x.toUpperCase() }) );
+                //bug in vCard parser? type is always array of length 1, all values joined by ,
+                metaTypeData.push( vCardData[item][i].meta.type[0].split(",").map(function(x){ return x.toUpperCase().trim() }) );
             } else {
                 metaTypeData.push([]);                
             }
@@ -497,22 +498,42 @@ dav.tools = {
         "DisplayName", 
         "PrimaryEmail", 
         "SecondEmail",
+        "NickName",
 
         "HomeCity",
         "HomeCountry",
         "HomeZipCode",
         "HomeState",
         "HomeAddress",
+        "HomePhone",
         "WorkCity",
         "WorkCountry",
         "WorkZipCode",
         "WorkState",
         "WorkAddress",
+        "WorkPhone",
     
         "Categories",
 
-        "HomePhone",
-        "WorkPhone",
+        "JobTitle",
+        "Department",
+        "WebPage1",
+        "WebPage2",
+        "CellularNumber",
+        "PagerNumber",
+        "FaxNumber",
+
+/*        
+        "FirstName",
+        "LastName",
+        "Company",
+        ChatNames
+        Birthday
+        Organisation
+        Benutzer 1-4
+        Notes
+        Foto
+*/
     ],
 
 
@@ -523,49 +544,41 @@ dav.tools = {
     //https://tools.ietf.org/html/rfc2426#section-3.6.1
     getVCardField: function (property, vCardData) {
         let data = {item: "", metatype: [], entry: -1};
+
+        let simpleMap = {
+            "JobTitle" : "title",
+            "Department" : "role",
+            "DisplayName" : "fn",
+            "NickName" : "nickname",
+            "Categories" : "categories",
+        }
         
+        let complexMap = {
+            "WebPage1" : {item: "url", type: "WORK"},
+            "WebPage2" : {item: "url", type: "HOME"},
+            "CellularNumber" : {item: "tel", type: "CELL"},
+            "PagerNumber" : {item: "tel", type: "PAGER"},
+            "FaxNumber" : {item: "tel", type: "FAX"},
+
+            "HomeCity" : {item: "adr", type: "HOME"},
+            "HomeCountry" : {item: "adr", type: "HOME"},
+            "HomeZipCode" : {item: "adr", type: "HOME"},
+            "HomeState" : {item: "adr", type: "HOME"},
+            "HomeAddress" : {item: "adr", type: "HOME"},
+            "HomePhone" : {item: "tel", type: "HOME"},
+
+            "WorkCity" : {item: "adr", type: "WORK"},
+            "WorkCountry" : {item: "adr", type: "WORK"},
+            "WorkZipCode" : {item: "adr", type: "WORK"},
+            "WorkState" : {item: "adr", type: "WORK"},
+            "WorkAddress" : {item: "adr", type: "WORK"},
+            "WorkPhone" : {item: "tel", type: "WORK"},
+        }
+
+
         if (vCardData) {
+            //handle special cases independently, those from simpleMap and complexMap will be handled by default
             switch (property) {
-                case "DisplayName": 
-                    data.item = "fn";
-                    if (vCardData[data.item] && vCardData[data.item].length > 0) data.entry = 0;
-                    break;
-
-                case "Categories":
-                    data.item = "categories";
-                    if (vCardData[data.item] && vCardData[data.item].length > 0) data.entry = 0;
-                    break;
-                    
-                case "HomeCity":
-                case "HomeCountry":
-                case "HomeZipCode":
-                case "HomeState":
-                case "HomeAddress":
-                case "WorkCity":
-                case "WorkCountry":
-                case "WorkZipCode":
-                case "WorkState":
-                case "WorkAddress":
-                case "HomePhone":
-                case "WorkPhone":
-                    {
-                        let type = property.substring(0,4).toUpperCase();
-                        let field = property.substring(4);;
-                        data.metatype.push(type);
-                        data.item = (field == "Phone") ? "tel" : "adr";
-                        
-                        if (vCardData[data.item]) {
-                            let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item);
-                            let valids = [];
-                            for (let i=0; i < metaTypeData.length; i++) {
-                                if (metaTypeData[i].includes(type)) valids.push(i);
-                            }
-                            if (valids.length > 0) data.entry = valids[0];
-                            
-                        }
-                    }                    
-                    break;
-
                 case "PrimaryEmail": 
                 case "SecondEmail": 
                     {
@@ -612,7 +625,28 @@ dav.tools = {
                     break;
 
                 default:
-                    throw "Unknown TB property <"+property+">";
+                    //Check simpleMap + complexMap
+                    if (simpleMap.hasOwnProperty(property)) {
+
+                        data.item = simpleMap[property];
+                        if (vCardData[data.item] && vCardData[data.item].length > 0) data.entry = 0;
+
+                    } else if (complexMap.hasOwnProperty(property)) {
+
+                        let type = complexMap[property].type;
+                        data.metatype.push(type);
+                        data.item = complexMap[property].item;
+                        
+                        if (vCardData[data.item]) {
+                            let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item);
+                            let valids = [];
+                            for (let i=0; i < metaTypeData.length; i++) {
+                                if (metaTypeData[i].includes(type)) valids.push(i);
+                            }
+                            if (valids.length > 0) data.entry = valids[0];                            
+                        }
+
+                    } else throw "Unknown TB property <"+property+">";
             }
         }
         
@@ -632,6 +666,7 @@ dav.tools = {
             return null;
         }
 
+        //Manually handle all fields wich are arrays
         switch (property) {
             case "HomeCity":
             case "HomeCountry":
@@ -654,8 +689,8 @@ dav.tools = {
                 return (Array.isArray(vCardValue) ? vCardValue.join("\u001A") : vCardValue);
                 break;
 
-            default:
-                if (Array.isArray(vCardValue)) return vCardValue[0];//.join(" ");
+            default: //should be a single string
+                if (Array.isArray(vCardValue)) return vCardValue.join(" ");
                 else return vCardValue;
         }
     },
@@ -676,6 +711,7 @@ dav.tools = {
             add = true;
         }
 
+        //Manually handle all fields wich are arrays
         switch (property) {
             case "HomeCity":
             case "HomeCountry":
@@ -704,9 +740,9 @@ dav.tools = {
                 else if (remove) vCardData[vCardField.item][vCardField.entry].value = [];
                 break;
 
-            default:
+            default: //should be a string
                 if (store) vCardData[vCardField.item][vCardField.entry].value = value;
-                else if (remove) vCardData[vCardField.item][vCardField.entry].value = "";//splice(vCardField.entry, 1);
+                else if (remove) vCardData[vCardField.item][vCardField.entry].value = "";
         }        
     },
         
