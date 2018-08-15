@@ -168,7 +168,7 @@ dav.tools = {
         let password = tbSync.getPassword(account);
 
         let url = "http" + (account.https ? "s" : "") + "://" + account.host + _url;
-        tbSync.dump("URL", url);
+        //tbSync.dump("URL", url);
 
         let useAbortSignal = (Services.vc.compare(Services.appinfo.platformVersion, "57.*") >= 0);
 
@@ -243,8 +243,8 @@ dav.tools = {
                             let m = null;
                             let o = null;
                             [m, o] = authHeader.split(/ (.*)/);
-                            tbSync.dump("AUTH_HEADER_METHOD", m);
-                            tbSync.dump("AUTH_HEADER_OPTIONS", o);
+                            //tbSync.dump("AUTH_HEADER_METHOD", m);
+                            //tbSync.dump("AUTH_HEADER_OPTIONS", o);
 
                             //check if nonce changed, if so, reset nc
                             let opt_old = dav.tools.getAuthOptions(tbSync.db.getAccountSetting(syncdata.account, "authOptions"));
@@ -403,27 +403,20 @@ dav.tools = {
         let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
 
         tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
-        if (oCard) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
+        //if (oCardData) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
 
         card.setProperty("X-DAV-ETAG", etag);
         card.setProperty("X-DAV-VCARD", vCard);
         
-        for (let f=0; f < dav.tools.allowedProperties.length; f++) {
+        for (let f=0; f < dav.tools.supportedProperties.length; f++) {
 
-            //For a given Thunderbird property, identify the vCard field
-            // -> which main item
-            // -> which array element (based on meta)
+            let property = dav.tools.supportedProperties[f];
 
-            let property = dav.tools.allowedProperties[f];
-            let vCardField = dav.tools.getVCardField(property);
+            let vCardField = dav.tools.getVCardField(property, vCardData);
+            let newServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(property, vCardData, vCardField);
 
-            let newServerValue = (vCardData && vCardData[vCardField.item] && vCardData[vCardField.item].length > vCardField.entry) ? 
-                                                dav.tools.prepareValueForThunderbird(property, vCardData[vCardField.item][vCardField.entry].value) :
-                                                null;
-
-            let oldServerValue = (oCardData && oCardData[vCardField.item] && oCardData[vCardField.item].length > vCardField.entry) ? 
-                                                dav.tools.prepareValueForThunderbird(property, oCardData[vCardField.item][vCardField.entry].value) :
-                                                null;
+            let oCardField = dav.tools.getVCardField(property, oCardData);            
+            let oldServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(property, oCardData, oCardField);
 
             //smart merge: only update the property, if it has changed on the server (keep local modifications)
             if (newServerValue !== oldServerValue) {
@@ -453,27 +446,20 @@ dav.tools = {
             vCardData["uid"] = [{"value": uuid.toString()}];
         }
 
-        for (let f=0; f < dav.tools.allowedProperties.length; f++) {
-
-            //For a given Thunderbird property, identify the vCard field
-            // -> which main item
-            // -> which array element (based on meta)
-            let property = dav.tools.allowedProperties[f];
-            let vCardField = dav.tools.getVCardField(property);
-
+        for (let f=0; f < dav.tools.supportedProperties.length; f++) {
+            let property = dav.tools.supportedProperties[f];
             let value = card.getProperty(property, "");
-            if (value) {
-                //store value 
-                if (!vCardData[vCardField.item]) vCardData[vCardField.item] = [{"value": dav.tools.prepareValueForVCard(property, value)}];
-                else vCardData[vCardField.item][vCardField.entry].value = value;
-            } else {
-                //remove value
-                if (vCardData[vCardField.item]) vCardData[vCardField.item].splice(vCardField.entry,1);
-            }
-
+            let vCardField = dav.tools.getVCardField(property, vCardData);
+            dav.tools.updateValueOfVCard(property, vCardData, vCardField, value);
         }    
-        return tbSync.dav.vCard.generate(vCardData).trim(); 
+        
+        return tbSync.dav.vCard.generate(vCardData).trim();
     },
+
+
+
+
+
 
 
 
@@ -483,41 +469,245 @@ dav.tools = {
     //* ACTUAL SYNC MAGIC *
     //* * * * * * * * * * * * * * * * *
     
-    allowedProperties: ["DisplayName", "PrimaryEmail"],
+    //helper function: check vCardData object if it has a meta.type associated
+    itemHasMetaType: function (vCardData, item, entry) {
+        return (vCardData[item][entry].meta && 
+                vCardData[item][entry].meta.type && 
+                vCardData[item][entry].meta.type.length > 0);
+    },
+    
+    //helper function: for each entry for the given item, extract the associated meta.type
+    getMetaTypeData: function (vCardData, item) {
+        let metaTypeData = [];
+        for (let i=0; i < vCardData[item].length; i++) {
+            if (dav.tools.itemHasMetaType(vCardData, item, i)) {
+                metaTypeData.push( vCardData[item][i].meta.type.map(function(x){ return x.toUpperCase() }) );
+            } else {
+                metaTypeData.push([]);                
+            }
+        }
+        return metaTypeData;
+    },
 
+
+
+
+
+    supportedProperties: [
+        "DisplayName", 
+        "PrimaryEmail", 
+        "SecondEmail",
+
+        "HomeCity",
+        "HomeCountry",
+        "HomeZipCode",
+        "HomeState",
+        "HomeAddress",
+        "WorkCity",
+        "WorkCountry",
+        "WorkZipCode",
+        "WorkState",
+        "WorkAddress",
+    
+        "Categories",
+
+        "HomePhone",
+        "WorkPhone",
+    ],
+
+
+    
     //For a given Thunderbird property, identify the vCard field
     // -> which main item
-    // -> which array element (based on meta)
-    getVCardField: function (property) {
-        switch (property) {
-            case "DisplayName": 
-                return {item: "fn", entry: 0}
-                break;
-            case "PrimaryEmail": 
-                return {item: "email", entry: 0}
-                break;
-            default:
-                throw "Unknown TB property <"+property+">";
+    // -> which array element (based on metatype, if needed)
+    //https://tools.ietf.org/html/rfc2426#section-3.6.1
+    getVCardField: function (property, vCardData) {
+        let data = {item: "", metatype: [], entry: -1};
+        
+        if (vCardData) {
+            switch (property) {
+                case "DisplayName": 
+                    data.item = "fn";
+                    if (vCardData[data.item] && vCardData[data.item].length > 0) data.entry = 0;
+                    break;
+
+                case "Categories":
+                    data.item = "categories";
+                    if (vCardData[data.item] && vCardData[data.item].length > 0) data.entry = 0;
+                    break;
+                    
+                case "HomeCity":
+                case "HomeCountry":
+                case "HomeZipCode":
+                case "HomeState":
+                case "HomeAddress":
+                case "WorkCity":
+                case "WorkCountry":
+                case "WorkZipCode":
+                case "WorkState":
+                case "WorkAddress":
+                case "HomePhone":
+                case "WorkPhone":
+                    {
+                        let type = property.substring(0,4).toUpperCase();
+                        let field = property.substring(4);;
+                        data.metatype.push(type);
+                        data.item = (field == "Phone") ? "tel" : "adr";
+                        
+                        if (vCardData[data.item]) {
+                            let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item);
+                            let valids = [];
+                            for (let i=0; i < metaTypeData.length; i++) {
+                                if (metaTypeData[i].includes(type)) valids.push(i);
+                            }
+                            if (valids.length > 0) data.entry = valids[0];
+                            
+                        }
+                    }                    
+                    break;
+
+                case "PrimaryEmail": 
+                case "SecondEmail": 
+                    {
+                        let metamap = {"PrimaryEmail": "WORK", "SecondEmail": "HOME"};
+                        data.metatype.push(metamap[property]);
+                        data.item = "email";
+
+                        //search the first valid entry
+                        if (vCardData[data.item]) {
+                            let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item);
+
+                            //check metaTypeData to find correct entry
+                            if (property == "PrimaryEmail") {
+
+                                let prev = [];
+                                let work =[]; 
+                                let workprev = [];
+                                let nothome = [];
+                                for (let i=0; i < metaTypeData.length; i++) {
+                                    if (metaTypeData[i].includes("WORK") && metaTypeData[i].includes("PREV")) workprev.push(i);
+                                    if (metaTypeData[i].includes("PREV") && !metaTypeData[i].includes("HOME")) prev.push(i);
+                                    if (metaTypeData[i].includes("WORK")) work.push(i);
+                                    if (!metaTypeData[i].includes("HOME")) nothome.push(i);
+                                }
+                                if (workprev.length > 0) data.entry = workprev[0];
+                                else if (prev.length > 0) data.entry = prev[0];
+                                else if (work.length > 0) data.entry = work[0];
+                                else if (nothome.length > 0) data.entry = nothome[0];
+
+                            } else {
+                                
+                                let homeprev = [];
+                                let home = [];
+                                for (let i=0; i < metaTypeData.length; i++) {
+                                    if (metaTypeData[i].includes("HOME") && metaTypeData[i].includes("PREV")) homeprev.push(i);
+                                    if (metaTypeData[i].includes("HOME")) home.push(i);
+                                }
+                                if (homeprev.length > 0) data.entry = homeprev[0];
+                                else if (home.length > 0) data.entry = home[0];
+
+                            }
+                        }                        
+                    }
+                    break;
+
+                default:
+                    throw "Unknown TB property <"+property+">";
+            }
         }
+        
+        return data;
     },        
 
     //turn the given vCardValue into a string to be stored as a Thunderbird property
-    prepareValueForThunderbird: function (property, vCardValue) {
+    getThunderbirdPropertyValueFromVCard: function (property, vCardData, vCardField) {
+        let vCardValue = (vCardData && 
+                                    vCardField && 
+                                    vCardField.entry != -1 && 
+                                    vCardData[vCardField.item] && 
+                                    vCardData[vCardField.item][vCardField.entry]  && 
+                                    vCardData[vCardField.item][vCardField.entry].value) ? vCardData[vCardField.item][vCardField.entry].value : null;
+        
+        if (vCardValue === null) {
+            return null;
+        }
+
         switch (property) {
-            case "Category": 
+            case "HomeCity":
+            case "HomeCountry":
+            case "HomeZipCode":
+            case "HomeState":
+            case "HomeAddress":
+            case "WorkCity":
+            case "WorkCountry":
+            case "WorkZipCode":
+            case "WorkState":
+            case "WorkAddress":
+                {
+                    let field = property.substring(4);
+                    let index = ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"].indexOf(field);
+                    return vCardValue[index];
+                }
+                break;
+
+            case "Categories": 
+                return (Array.isArray(vCardValue) ? vCardValue.join("\u001A") : vCardValue);
+                break;
+
             default:
                 if (Array.isArray(vCardValue)) return vCardValue[0];//.join(" ");
                 else return vCardValue;
         }
     },
 
-    //turn the given Thunderbird propetyValue into a vCardValue to be stored in the vCard
-    prepareValueForVCard: function (property, propetyValue) {
-        switch (property) {
-            case "Category": 
-            default:
-                return propetyValue;//.split(" ");
+    //add/update the given Thunderbird propeties value in vCardData obj
+    updateValueOfVCard: function (property, vCardData, vCardField, value) {
+        let add = false;
+        let store = value ? true : false;
+        let remove = (!store && vCardData[vCardField.item] && vCardField.entry != -1);
+        
+        //preperations if this item does not exist
+        if (store && vCardField.entry == -1) {
+            //entry does not exists, does the item exists?
+            if (!vCardData[vCardField.item]) vCardData[vCardField.item] = [];
+            let newItem = {};
+            if (vCardField.metatype.length > 0) newItem["meta"] = { "type" : vCardField.metatype};
+            vCardField.entry = vCardData[vCardField.item].push(newItem) - 1;
+            add = true;
         }
-    },     
-    
+
+        switch (property) {
+            case "HomeCity":
+            case "HomeCountry":
+            case "HomeZipCode":
+            case "HomeState":
+            case "HomeAddress":
+            case "WorkCity":
+            case "WorkCountry":
+            case "WorkZipCode":
+            case "WorkState":
+            case "WorkAddress":
+                {
+                    let field = property.substring(4);
+                    let index = ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"].indexOf(field);
+                    if (store) {
+                        if (add) vCardData[vCardField.item][vCardField.entry].value = ["","","","","","",""];
+                        vCardData[vCardField.item][vCardField.entry].value[index] = value;
+                    } else if (remove) {
+                        vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
+                    }
+                }
+                break;
+                
+            case "Categories": 
+                if (store) vCardData[vCardField.item][vCardField.entry].value = value.split("\u001A");
+                else if (remove) vCardData[vCardField.item][vCardField.entry].value = [];
+                break;
+
+            default:
+                if (store) vCardData[vCardField.item][vCardField.entry].value = value;
+                else if (remove) vCardData[vCardField.item][vCardField.entry].value = "";//splice(vCardField.entry, 1);
+        }        
+    },
+        
 }
