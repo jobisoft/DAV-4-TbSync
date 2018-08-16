@@ -393,7 +393,9 @@ dav.tools = {
 
         dav.tools.setThunderbirdCardFromVCard(addressBook, card, data.textContent.trim(), etag.textContent, card.getProperty("X-DAV-VCARD", ""));        
 
-        tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
+        if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "modified_by_user") {
+            tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
+        }
         addressBook.modifyCard(card);
     },
 
