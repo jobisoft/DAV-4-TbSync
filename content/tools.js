@@ -518,7 +518,10 @@ dav.tools = {
         "Categories",
 
         "JobTitle",
+        
         "Department",
+        "Company",
+        
         "WebPage1",
         "WebPage2",
         "CellularNumber",
@@ -534,7 +537,6 @@ dav.tools = {
 /*        
         ChatNames
         Birthday
-        Organisation
         Foto
 */
     ],
@@ -550,7 +552,8 @@ dav.tools = {
 
         let simpleMap = {
             "JobTitle" : "title",
-            "Department" : "role",
+            "Department" : "org",
+            "Company" : "org",
             "DisplayName" : "fn",
             "NickName" : "nickname",
             "Categories" : "categories",
@@ -704,6 +707,16 @@ dav.tools = {
                 }
                 break;
                 
+            case "Department":
+            case "Company":
+                {
+                    let index = ["Company","Department"].indexOf(property);
+                    if (vCardValue.length > index) return vCardValue[index];
+                    //either not an array or field does not exist -> fallback for Company, return value
+                    return "";
+                }
+                break;
+
             case "Categories": 
                 return (Array.isArray(vCardValue) ? vCardValue.join("\u001A") : vCardValue);
                 break;
@@ -753,6 +766,7 @@ dav.tools = {
                     let index = ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"].indexOf(field);
                     if (store) {
                         if (add) vCardData[vCardField.item][vCardField.entry].value = ["","","","","","",""];
+                        while (vCardData[vCardField.item][vCardField.entry].value.length < index) vCardData[vCardField.item][vCardField.entry].value.push("");                        
                         vCardData[vCardField.item][vCardField.entry].value[index] = value;
                     } else if (remove) {
                         vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
@@ -766,8 +780,23 @@ dav.tools = {
                     let index = ["LastName","FirstName","MiddleName","Prefix","Suffix"].indexOf(property);
                     if (store) {
                         if (add) vCardData[vCardField.item][vCardField.entry].value = ["","","","",""];
+                        while (vCardData[vCardField.item][vCardField.entry].value.length < index) vCardData[vCardField.item][vCardField.entry].value.push("");                                                
                         vCardData[vCardField.item][vCardField.entry].value[index] = value;
                     } else if (remove) {
+                        vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
+                    }
+                }
+                break;
+
+            case "Department":
+            case "Company":
+                {
+                    let index = ["Company","Department"].indexOf(property);
+                    if (store) {
+                        if (add) vCardData[vCardField.item][vCardField.entry].value = ["",""];
+                        while (vCardData[vCardField.item][vCardField.entry].value.length < index) vCardData[vCardField.item][vCardField.entry].value.push("");                        
+                        vCardData[vCardField.item][vCardField.entry].value[index] = value;
+                    } else if (remove && vCardData[vCardField.item][vCardField.entry].value.length > index) {
                         vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
                     }
                 }
