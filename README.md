@@ -1,5 +1,5 @@
 # DAV-4-TbSync
-The CalDAV/CardDAV provider for the Thunderbird synchronisation AddOn TbSync. If this AddOn and TbSync are installed, TbSync is able to sync CaldDAV/CardDAV accounts. This provider is closely following the specs defined by sabre/dav.
+The CalDAV/CardDAV provider for the Thunderbird synchronization AddOn TbSync. If this AddOn and TbSync are installed, TbSync is able to sync CaldDAV/CardDAV accounts. This provider is closely following the specs defined by sabre/dav.
 
 The server URL needed to add an CalDAV/CardDAV account is the plain server name (FQDN) like "cloud.server.de". There is no need to know any specific URL. The provider will find all available calendars and address books.
 
