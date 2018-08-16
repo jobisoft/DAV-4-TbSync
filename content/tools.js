@@ -496,6 +496,8 @@ dav.tools = {
 
     supportedProperties: [
         "DisplayName", 
+        "FirstName",
+        "LastName",
         "PrimaryEmail", 
         "SecondEmail",
         "NickName",
@@ -522,16 +524,13 @@ dav.tools = {
         "CellularNumber",
         "PagerNumber",
         "FaxNumber",
+        "Notes",
 
 /*        
-        "FirstName",
-        "LastName",
-        "Company",
         ChatNames
         Birthday
         Organisation
-        Benutzer 1-4
-        Notes
+        User 1-4
         Foto
 */
     ],
@@ -551,6 +550,9 @@ dav.tools = {
             "DisplayName" : "fn",
             "NickName" : "nickname",
             "Categories" : "categories",
+            "Notes" : "note",
+            "FirstName" : "n",
+            "LastName" : "n",            
         }
         
         let complexMap = {
@@ -685,6 +687,14 @@ dav.tools = {
                 }
                 break;
 
+            case "FirstName":
+            case "LastName":
+                {
+                    let index = ["LastName","FirstName","MiddleName","Prefix","Suffix"].indexOf(property);
+                    return vCardValue[index];
+                }
+                break;
+                
             case "Categories": 
                 return (Array.isArray(vCardValue) ? vCardValue.join("\u001A") : vCardValue);
                 break;
@@ -735,6 +745,19 @@ dav.tools = {
                 }
                 break;
                 
+            case "FirstName":
+            case "LastName":
+                {
+                    let index = ["LastName","FirstName","MiddleName","Prefix","Suffix"].indexOf(property);
+                    if (store) {
+                        if (add) vCardData[vCardField.item][vCardField.entry].value = ["","","","",""];
+                        vCardData[vCardField.item][vCardField.entry].value[index] = value;
+                    } else if (remove) {
+                        vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
+                    }
+                }
+                break;
+
             case "Categories": 
                 if (store) vCardData[vCardField.item][vCardField.entry].value = value.split("\u001A");
                 else if (remove) vCardData[vCardField.item][vCardField.entry].value = [];
