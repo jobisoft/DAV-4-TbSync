@@ -470,19 +470,19 @@ dav.tools = {
     //* * * * * * * * * * * * * * * * *
     
     //helper function: check vCardData object if it has a meta.type associated
-    itemHasMetaType: function (vCardData, item, entry) {
+    itemHasMetaType: function (vCardData, item, entry, typefield) {
         return (vCardData[item][entry].meta && 
-                vCardData[item][entry].meta.type && 
-                vCardData[item][entry].meta.type.length > 0);
+                vCardData[item][entry].meta[typefield] && 
+                vCardData[item][entry].meta[typefield].length > 0);
     },
     
     //helper function: for each entry for the given item, extract the associated meta.type
-    getMetaTypeData: function (vCardData, item) {
+    getMetaTypeData: function (vCardData, item, typefield) {
         let metaTypeData = [];
         for (let i=0; i < vCardData[item].length; i++) {
-            if (dav.tools.itemHasMetaType(vCardData, item, i)) {
+            if (dav.tools.itemHasMetaType(vCardData, item, i, typefield)) {
                 //bug in vCard parser? type is always array of length 1, all values joined by ,
-                metaTypeData.push( vCardData[item][i].meta.type[0].split(",").map(function(x){ return x.toUpperCase().trim() }) );
+                metaTypeData.push( vCardData[item][i].meta[typefield][0].split(",").map(function(x){ return x.toUpperCase().trim() }) );
             } else {
                 metaTypeData.push([]);                
             }
@@ -534,6 +534,17 @@ dav.tools = {
         "Custom2",
         "Custom3",
         "Custom4",
+        
+        "_GoogleTalk",
+        "_JabberId",
+        "_Yahoo",
+        "_QQ",
+        "_AimScreenName",
+        "_MSN",
+        "_Skype",
+        "_ICQ",
+        "_IRC",
+        
 /*        
         ChatNames
         Birthday
@@ -548,8 +559,20 @@ dav.tools = {
     // -> which array element (based on metatype, if needed)
     //https://tools.ietf.org/html/rfc2426#section-3.6.1
     getVCardField: function (property, vCardData) {
-        let data = {item: "", metatype: [], entry: -1};
+        let data = {item: "", metatype: [], metatypefield: "type", entry: -1, prefix: ""};
 
+        let imppMap = {
+            "_GoogleTalk" : {item: "impp" , prefix: "xmpp:", type: "GOOGLETALK"}, //actually x-service-type
+            "_JabberId" : {item: "impp", prefix: "xmpp:", type: "JABBER"},
+            "_Yahoo" : {item: "impp", prefix: "ymsgr:", type: "YAHOO"},
+            "_QQ" : {item: "impp", prefix: "x-apple:", type: "QQ"},
+            "_AimScreenName" : {item: "impp", prefix: "aim:", type: "AIM"},
+            "_MSN" : {item: "impp", prefix: "msn:", type: "MSN"},
+            "_Skype" : {item: "impp", prefix: "skype:", type: "SKYPE"},
+            "_ICQ" : {item: "impp", prefix: "icq:", type: "ICQ"},
+            "_IRC" : {item: "impp", prefix: "irc:", type: "IRC"},
+        }
+        
         let simpleMap = {
             "JobTitle" : "title",
             "Department" : "org",
@@ -602,7 +625,7 @@ dav.tools = {
 
                         //search the first valid entry
                         if (vCardData[data.item]) {
-                            let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item);
+                            let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
 
                             //check metaTypeData to find correct entry
                             if (property == "PrimaryEmail") {
@@ -645,6 +668,24 @@ dav.tools = {
                         data.item = simpleMap[property];
                         if (vCardData[data.item] && vCardData[data.item].length > 0) data.entry = 0;
 
+                    } else if (imppMap.hasOwnProperty(property)) {
+                        
+                        let type = imppMap[property].type;
+                        data.metatype.push(type);
+                        data.item = imppMap[property].item;
+                        data.prefix = imppMap[property].prefix;
+                        data.metatypefield = "x-service-type";
+                        
+                        if (vCardData[data.item]) {
+                            let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
+                            
+                            let valids = [];
+                            for (let i=0; i < metaTypeData.length; i++) {
+                                if (metaTypeData[i].includes(type)) valids.push(i);
+                            }
+                            if (valids.length > 0) data.entry = valids[0];                            
+                        }
+                        
                     } else if (complexMap.hasOwnProperty(property)) {
 
                         let type = complexMap[property].type;
@@ -652,7 +693,7 @@ dav.tools = {
                         data.item = complexMap[property].item;
                         
                         if (vCardData[data.item]) {
-                            let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item);
+                            let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
                             let valids = [];
                             for (let i=0; i < metaTypeData.length; i++) {
                                 if (metaTypeData[i].includes(type)) valids.push(i);
@@ -728,8 +769,9 @@ dav.tools = {
                 break;
                 
             default: //should be a single string
-                if (Array.isArray(vCardValue)) return vCardValue.join(" ");
-                else return vCardValue;
+                let v = (Array.isArray(vCardValue)) ? vCardValue.join(" ") : vCardValue;
+                if (vCardField.prefix.length > 0 && v.startsWith(vCardField.prefix)) return v.substring(vCardField.prefix.length);
+                else return v;
         }
     },
 
@@ -744,7 +786,10 @@ dav.tools = {
             //entry does not exists, does the item exists?
             if (!vCardData[vCardField.item]) vCardData[vCardField.item] = [];
             let newItem = {};
-            if (vCardField.metatype.length > 0) newItem["meta"] = { "type" : vCardField.metatype};
+            if (vCardField.metatype.length > 0) {
+                newItem["meta"] = {};
+                newItem["meta"][vCardField.metatypefield] = vCardField.metatype;
+            }
             vCardField.entry = vCardData[vCardField.item].push(newItem) - 1;
             add = true;
         }
@@ -817,7 +862,7 @@ dav.tools = {
                 break;
 
             default: //should be a string
-                if (store) vCardData[vCardField.item][vCardField.entry].value = value;
+                if (store) vCardData[vCardField.item][vCardField.entry].value = vCardField.prefix + value;
                 else if (remove) vCardData[vCardField.item][vCardField.entry].value = "";
         }        
     },
