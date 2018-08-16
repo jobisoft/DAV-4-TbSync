@@ -397,65 +397,6 @@ dav.tools = {
         addressBook.modifyCard(card);
     },
 
-    //update send from server to client
-    setThunderbirdCardFromVCard: function(addressBook, card, vCard, etag, oCard = null) {
-        let vCardData = tbSync.dav.vCard.parse(vCard);
-        let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
-
-        tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
-        //if (oCardData) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
-
-        card.setProperty("X-DAV-ETAG", etag);
-        card.setProperty("X-DAV-VCARD", vCard);
-        
-        for (let f=0; f < dav.tools.supportedProperties.length; f++) {
-
-            let property = dav.tools.supportedProperties[f];
-
-            let vCardField = dav.tools.getVCardField(property, vCardData);
-            let newServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(property, vCardData, vCardField);
-
-            let oCardField = dav.tools.getVCardField(property, oCardData);            
-            let oldServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(property, oCardData, oCardField);
-
-            //smart merge: only update the property, if it has changed on the server (keep local modifications)
-            if (newServerValue !== oldServerValue) {
-                if (newServerValue) {
-                    //set
-                    card.setProperty(property, newServerValue);
-                } else {
-                    //clear (del if possible)
-                    card.setProperty(property, "");
-                    try {
-                        card.deleteProperty(property);
-                    } catch (e) {}
-                }
-            }
-
-        }
-    },
-    
-    //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
-    getVCardFromThunderbirdCard: function(addressBook, id, generateUID = false) {        
-        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
-        let vCardData = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
-        
-        if (generateUID) {
-            let uuid = new dav.UUID();
-            //the UID of the vCard is never used by TbSync, it differs from the href of this card (following the specs)
-            vCardData["uid"] = [{"value": uuid.toString()}];
-        }
-
-        for (let f=0; f < dav.tools.supportedProperties.length; f++) {
-            let property = dav.tools.supportedProperties[f];
-            let value = card.getProperty(property, "");
-            let vCardField = dav.tools.getVCardField(property, vCardData);
-            dav.tools.updateValueOfVCard(property, vCardData, vCardField, value);
-        }    
-        
-        return tbSync.dav.vCard.generate(vCardData).trim();
-    },
-
 
 
 
@@ -490,10 +431,6 @@ dav.tools = {
         return metaTypeData;
     },
 
-
-
-
-
     supportedProperties: [
         "DisplayName", 
         "FirstName",
@@ -501,7 +438,8 @@ dav.tools = {
         "PrimaryEmail", 
         "SecondEmail",
         "NickName",
-
+        "Birthday", //fake, will trigger special handling 
+    
         "HomeCity",
         "HomeCountry",
         "HomeZipCode",
@@ -516,9 +454,7 @@ dav.tools = {
         "WorkPhone",
     
         "Categories",
-
         "JobTitle",
-        
         "Department",
         "Company",
         
@@ -544,77 +480,80 @@ dav.tools = {
         "_Skype",
         "_ICQ",
         "_IRC",
-        
+                
 /*        
-        ChatNames
-        Birthday
         Foto
 */
     ],
 
+    //map thunderbird fields to simple vcard fields without additional types
+    simpleMap : {
+        "Birthday" : "bday", //fake
+        "JobTitle" : "title",
+        "Department" : "org",
+        "Company" : "org",
+        "DisplayName" : "fn",
+        "NickName" : "nickname",
+        "Categories" : "categories",
+        "Notes" : "note",
+        "FirstName" : "n",
+        "LastName" : "n",
+        "PreferMailFormat" : "X-MOZILLA-HTML",
+        "Custom1" : "X-MOZILLA-CUSTOM1",
+        "Custom2" : "X-MOZILLA-CUSTOM2",
+        "Custom3" : "X-MOZILLA-CUSTOM3",
+        "Custom4" : "X-MOZILLA-CUSTOM4",
+    },
+        
+    //map thunderbird fields to vcard fields with additional types
+    complexMap : {
+        "WebPage1" : {item: "url", type: "WORK"},
+        "WebPage2" : {item: "url", type: "HOME"},
+        "CellularNumber" : {item: "tel", type: "CELL"},
+        "PagerNumber" : {item: "tel", type: "PAGER"},
+        "FaxNumber" : {item: "tel", type: "FAX"},
 
-    
+        "HomeCity" : {item: "adr", type: "HOME"},
+        "HomeCountry" : {item: "adr", type: "HOME"},
+        "HomeZipCode" : {item: "adr", type: "HOME"},
+        "HomeState" : {item: "adr", type: "HOME"},
+        "HomeAddress" : {item: "adr", type: "HOME"},
+        "HomePhone" : {item: "tel", type: "HOME"},
+
+        "WorkCity" : {item: "adr", type: "WORK"},
+        "WorkCountry" : {item: "adr", type: "WORK"},
+        "WorkZipCode" : {item: "adr", type: "WORK"},
+        "WorkState" : {item: "adr", type: "WORK"},
+        "WorkAddress" : {item: "adr", type: "WORK"},
+        "WorkPhone" : {item: "tel", type: "WORK"},
+    },
+
+    //map thunderbird fields to impp vcard fields with additional x-service-types
+    imppMap : {
+        "_GoogleTalk" : {item: "impp" , prefix: "xmpp:", type: "GOOGLETALK"}, //actually x-service-type
+        "_JabberId" : {item: "impp", prefix: "xmpp:", type: "JABBER"},
+        "_Yahoo" : {item: "impp", prefix: "ymsgr:", type: "YAHOO"},
+        "_QQ" : {item: "impp", prefix: "x-apple:", type: "QQ"},
+        "_AimScreenName" : {item: "impp", prefix: "aim:", type: "AIM"},
+        "_MSN" : {item: "impp", prefix: "msn:", type: "MSN"},
+        "_Skype" : {item: "impp", prefix: "skype:", type: "SKYPE"},
+        "_ICQ" : {item: "impp", prefix: "icq:", type: "ICQ"},
+        "_IRC" : {item: "impp", prefix: "irc:", type: "IRC"},
+    },
+
+
+
+
+
     //For a given Thunderbird property, identify the vCard field
     // -> which main item
     // -> which array element (based on metatype, if needed)
     //https://tools.ietf.org/html/rfc2426#section-3.6.1
     getVCardField: function (property, vCardData) {
         let data = {item: "", metatype: [], metatypefield: "type", entry: -1, prefix: ""};
-
-        let imppMap = {
-            "_GoogleTalk" : {item: "impp" , prefix: "xmpp:", type: "GOOGLETALK"}, //actually x-service-type
-            "_JabberId" : {item: "impp", prefix: "xmpp:", type: "JABBER"},
-            "_Yahoo" : {item: "impp", prefix: "ymsgr:", type: "YAHOO"},
-            "_QQ" : {item: "impp", prefix: "x-apple:", type: "QQ"},
-            "_AimScreenName" : {item: "impp", prefix: "aim:", type: "AIM"},
-            "_MSN" : {item: "impp", prefix: "msn:", type: "MSN"},
-            "_Skype" : {item: "impp", prefix: "skype:", type: "SKYPE"},
-            "_ICQ" : {item: "impp", prefix: "icq:", type: "ICQ"},
-            "_IRC" : {item: "impp", prefix: "irc:", type: "IRC"},
-        }
         
-        let simpleMap = {
-            "JobTitle" : "title",
-            "Department" : "org",
-            "Company" : "org",
-            "DisplayName" : "fn",
-            "NickName" : "nickname",
-            "Categories" : "categories",
-            "Notes" : "note",
-            "FirstName" : "n",
-            "LastName" : "n",
-            "PreferMailFormat" : "X-MOZILLA-HTML",
-            "Custom1" : "X-MOZILLA-CUSTOM1",
-            "Custom2" : "X-MOZILLA-CUSTOM2",
-            "Custom3" : "X-MOZILLA-CUSTOM3",
-            "Custom4" : "X-MOZILLA-CUSTOM4",
-        }
-        
-        let complexMap = {
-            "WebPage1" : {item: "url", type: "WORK"},
-            "WebPage2" : {item: "url", type: "HOME"},
-            "CellularNumber" : {item: "tel", type: "CELL"},
-            "PagerNumber" : {item: "tel", type: "PAGER"},
-            "FaxNumber" : {item: "tel", type: "FAX"},
-
-            "HomeCity" : {item: "adr", type: "HOME"},
-            "HomeCountry" : {item: "adr", type: "HOME"},
-            "HomeZipCode" : {item: "adr", type: "HOME"},
-            "HomeState" : {item: "adr", type: "HOME"},
-            "HomeAddress" : {item: "adr", type: "HOME"},
-            "HomePhone" : {item: "tel", type: "HOME"},
-
-            "WorkCity" : {item: "adr", type: "WORK"},
-            "WorkCountry" : {item: "adr", type: "WORK"},
-            "WorkZipCode" : {item: "adr", type: "WORK"},
-            "WorkState" : {item: "adr", type: "WORK"},
-            "WorkAddress" : {item: "adr", type: "WORK"},
-            "WorkPhone" : {item: "tel", type: "WORK"},
-        }
-
-
         if (vCardData) {
-            //handle special cases independently, those from simpleMap and complexMap will be handled by default
+            //handle special cases independently, those from *Map will be handled by default
             switch (property) {
                 case "PrimaryEmail": 
                 case "SecondEmail": 
@@ -662,18 +601,18 @@ dav.tools = {
                     break;
 
                 default:
-                    //Check simpleMap + complexMap
-                    if (simpleMap.hasOwnProperty(property)) {
+                    //Check *Maps
+                    if (dav.tools.simpleMap.hasOwnProperty(property)) {
 
-                        data.item = simpleMap[property];
+                        data.item = dav.tools.simpleMap[property];
                         if (vCardData[data.item] && vCardData[data.item].length > 0) data.entry = 0;
 
-                    } else if (imppMap.hasOwnProperty(property)) {
+                    } else if (dav.tools.imppMap.hasOwnProperty(property)) {
                         
-                        let type = imppMap[property].type;
+                        let type = dav.tools.imppMap[property].type;
                         data.metatype.push(type);
-                        data.item = imppMap[property].item;
-                        data.prefix = imppMap[property].prefix;
+                        data.item = dav.tools.imppMap[property].item;
+                        data.prefix = dav.tools.imppMap[property].prefix;
                         data.metatypefield = "x-service-type";
                         
                         if (vCardData[data.item]) {
@@ -686,11 +625,11 @@ dav.tools = {
                             if (valids.length > 0) data.entry = valids[0];                            
                         }
                         
-                    } else if (complexMap.hasOwnProperty(property)) {
+                    } else if (dav.tools.complexMap.hasOwnProperty(property)) {
 
-                        let type = complexMap[property].type;
+                        let type = dav.tools.complexMap[property].type;
                         data.metatype.push(type);
-                        data.item = complexMap[property].item;
+                        data.item = dav.tools.complexMap[property].item;
                         
                         if (vCardData[data.item]) {
                             let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
@@ -707,6 +646,10 @@ dav.tools = {
         
         return data;
     },        
+
+
+
+
 
     //turn the given vCardValue into a string to be stored as a Thunderbird property
     getThunderbirdPropertyValueFromVCard: function (property, vCardData, vCardField) {
@@ -774,6 +717,10 @@ dav.tools = {
                 else return v;
         }
     },
+
+
+
+
 
     //add/update the given Thunderbird propeties value in vCardData obj
     updateValueOfVCard: function (property, vCardData, vCardField, value) {
@@ -865,6 +812,121 @@ dav.tools = {
                 if (store) vCardData[vCardField.item][vCardField.entry].value = vCardField.prefix + value;
                 else if (remove) vCardData[vCardField.item][vCardField.entry].value = "";
         }        
+    },
+
+
+
+
+    //MAIN FUNCTIONS FOR UP/DOWN SYNC
+    
+    //update send from server to client
+    setThunderbirdCardFromVCard: function(addressBook, card, vCard, etag, oCard = null) {
+        let vCardData = tbSync.dav.vCard.parse(vCard);
+        let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
+
+        tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
+        //if (oCardData) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
+
+        card.setProperty("X-DAV-ETAG", etag);
+        card.setProperty("X-DAV-VCARD", vCard);
+        
+        for (let f=0; f < dav.tools.supportedProperties.length; f++) {
+
+            let property = dav.tools.supportedProperties[f];
+
+            let vCardField = dav.tools.getVCardField(property, vCardData);
+            let newServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(property, vCardData, vCardField);
+
+            let oCardField = dav.tools.getVCardField(property, oCardData);            
+            let oldServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(property, oCardData, oCardField);
+
+            //smart merge: only update the property, if it has changed on the server (keep local modifications)
+            if (newServerValue !== oldServerValue) {
+                //some "properties" need special handling
+                switch (property) {
+                    case "Birthday":
+                        {
+                            if (newServerValue) {
+                                //set
+                                let bday = newServerValue.split("-");
+                                card.setProperty("BirthYear", bday[0]);
+                                card.setProperty("BirthMonth", bday[1]);
+                                card.setProperty("BirthDay", bday[2]);
+                            } else {
+                                //clear (del if possible)
+                                card.deleteProperty("BirthYear");
+                                card.deleteProperty("BirthMonth");
+                                card.deleteProperty("BirthDay");
+                            }
+                        }
+                        break;
+                    
+                    default:
+                        {
+                            if (newServerValue) {
+                                //set
+                                card.setProperty(property, newServerValue);
+                            } else {
+                                //clear (del if possible)
+                                card.setProperty(property, "");
+                                try {
+                                    card.deleteProperty(property);
+                                } catch (e) {}
+                            }
+                        }
+                        break;
+                 }
+            }
+        }
+        
+        //Take care of Photo
+        //tbSync.addphoto(id + '.jpg', item.card, xmltools.nodeAsArray(data.Picture)[0]); //Kerio sends Picture as container
+        //if (card.getProperty("PhotoType", "") == "file") {
+        //    wbxml.atag("Picture", tbSync.getphoto(item.card));                    
+        //}
+    },
+    
+    //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
+    getVCardFromThunderbirdCard: function(addressBook, id, generateUID = false) {        
+        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
+        let vCardData = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
+        
+        if (generateUID) {
+            let uuid = new dav.UUID();
+            //the UID of the vCard is never used by TbSync, it differs from the href of this card (following the specs)
+            vCardData["uid"] = [{"value": uuid.toString()}];
+        }
+
+        for (let f=0; f < dav.tools.supportedProperties.length; f++) {
+            let property = dav.tools.supportedProperties[f];
+            let vCardField = dav.tools.getVCardField(property, vCardData);
+
+            //some "properties" need special handling
+            switch (property) {
+                case "Birthday":
+                    {
+                        let birthYear = parseInt(card.getProperty("BirthYear", 0));
+                        let birthMonth = parseInt(card.getProperty("BirthMonth", 0));
+                        let birthDay = parseInt(card.getProperty("BirthDay", 0));
+
+                        let value = "";
+                        if (birthYear && birthMonth && birthDay) {
+                            value = birthYear + "-" + (birthMonth < 10 ? "0" : "") + birthMonth + "-" + (birthDay < 10 ? "0" : "") + birthDay;
+                        }
+                        dav.tools.updateValueOfVCard(property, vCardData, vCardField, value);
+                    }
+                    break;
+                    
+                default:
+                    {
+                        let value = card.getProperty(property, "");
+                        dav.tools.updateValueOfVCard(property, vCardData, vCardField, value);
+                    }
+                    break;
+            }
+        }    
+        
+        return tbSync.dav.vCard.generate(vCardData).trim();
     },
         
 }
