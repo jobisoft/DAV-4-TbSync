@@ -526,11 +526,15 @@ dav.tools = {
         "FaxNumber",
         "Notes",
 
+        "PreferMailFormat",
+        "Custom1",
+        "Custom2",
+        "Custom3",
+        "Custom4",
 /*        
         ChatNames
         Birthday
         Organisation
-        User 1-4
         Foto
 */
     ],
@@ -552,7 +556,12 @@ dav.tools = {
             "Categories" : "categories",
             "Notes" : "note",
             "FirstName" : "n",
-            "LastName" : "n",            
+            "LastName" : "n",
+            "PreferMailFormat" : "X-MOZILLA-HTML",
+            "Custom1" : "X-MOZILLA-CUSTOM1",
+            "Custom2" : "X-MOZILLA-CUSTOM2",
+            "Custom3" : "X-MOZILLA-CUSTOM3",
+            "Custom4" : "X-MOZILLA-CUSTOM4",
         }
         
         let complexMap = {
@@ -668,7 +677,7 @@ dav.tools = {
             return null;
         }
 
-        //Manually handle all fields wich are arrays
+        //handle all special fields, which are not plain strings
         switch (property) {
             case "HomeCity":
             case "HomeCountry":
@@ -699,6 +708,12 @@ dav.tools = {
                 return (Array.isArray(vCardValue) ? vCardValue.join("\u001A") : vCardValue);
                 break;
 
+            case "PreferMailFormat":
+                if (vCardValue.toLowerCase() == "true") return 2;
+                if (vCardValue.toLowerCase() == "false") return 1;
+                return 0;
+                break;
+                
             default: //should be a single string
                 if (Array.isArray(vCardValue)) return vCardValue.join(" ");
                 else return vCardValue;
@@ -721,7 +736,7 @@ dav.tools = {
             add = true;
         }
 
-        //Manually handle all fields wich are arrays
+        //handle all special fields, which are not plain strings
         switch (property) {
             case "HomeCity":
             case "HomeCountry":
@@ -761,6 +776,15 @@ dav.tools = {
             case "Categories": 
                 if (store) vCardData[vCardField.item][vCardField.entry].value = value.split("\u001A");
                 else if (remove) vCardData[vCardField.item][vCardField.entry].value = [];
+                break;
+
+            case "PreferMailFormat":
+                {
+                    if (store) {
+                        let v = (value == 2) ? "TRUE" : (value == 1) ? "FALSE" : "";
+                        vCardData[vCardField.item][vCardField.entry].value = v;
+                    } else if (remove) vCardData[vCardField.item][vCardField.entry].value = "";
+                }
                 break;
 
             default: //should be a string
