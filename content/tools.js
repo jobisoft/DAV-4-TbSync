@@ -850,7 +850,7 @@ dav.tools = {
                         {
                             if (newServerValue) {
                                 //set
-                                let bday = newServerValue.split("-");
+                                let bday = newServerValue.split("T")[0].split("-");
                                 card.setProperty("BirthYear", bday[0]);
                                 card.setProperty("BirthMonth", bday[1]);
                                 card.setProperty("BirthDay", bday[2]);
