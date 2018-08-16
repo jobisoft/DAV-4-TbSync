@@ -440,8 +440,8 @@ dav.tools = {
         "PrimaryEmail", 
         "SecondEmail",
         "NickName",
-        "Birthday", //fake, will trigger special handling 
-    
+        "Birthday", //fake, will trigger special handling
+        "Photo", //fake, will trigger special handling    
         "HomeCity",
         "HomeCountry",
         "HomeZipCode",
@@ -454,25 +454,21 @@ dav.tools = {
         "WorkState",
         "WorkAddress",
         "WorkPhone",
-    
         "Categories",
         "JobTitle",
         "Department",
         "Company",
-        
         "WebPage1",
         "WebPage2",
         "CellularNumber",
         "PagerNumber",
         "FaxNumber",
         "Notes",
-
         "PreferMailFormat",
         "Custom1",
         "Custom2",
         "Custom3",
         "Custom4",
-        
         "_GoogleTalk",
         "_JabberId",
         "_Yahoo",
@@ -482,15 +478,12 @@ dav.tools = {
         "_Skype",
         "_ICQ",
         "_IRC",
-                
-/*        
-        Foto
-*/
     ],
 
     //map thunderbird fields to simple vcard fields without additional types
     simpleMap : {
         "Birthday" : "bday", //fake
+        "Photo" : "photo", //fake
         "JobTitle" : "title",
         "Department" : "org",
         "Company" : "org",
@@ -846,6 +839,23 @@ dav.tools = {
             if (newServerValue !== oldServerValue) {
                 //some "properties" need special handling
                 switch (property) {
+                    case "Photo":
+                        {
+                            if (newServerValue) {
+                                //set if supported
+                                if (vCardData[vCardField.item][0].meta && vCardData[vCardField.item][0].meta.encoding) {
+                                    let uuid = new dav.UUID();
+                                    tbSync.addphoto(uuid.toString() + '.jpg', addressBook.URI, card, vCardData["photo"][0].value);
+                                }
+                            } else {
+                                //clear
+                                card.deleteProperty("PhotoName");
+                                card.deleteProperty("PhotoType");
+                                card.deleteProperty("PhotoURI");
+                            }
+                        }
+                        break;
+
                     case "Birthday":
                         {
                             if (newServerValue) {
@@ -855,7 +865,7 @@ dav.tools = {
                                 card.setProperty("BirthMonth", bday[1]);
                                 card.setProperty("BirthDay", bday[2]);
                             } else {
-                                //clear (del if possible)
+                                //clear
                                 card.deleteProperty("BirthYear");
                                 card.deleteProperty("BirthMonth");
                                 card.deleteProperty("BirthDay");
@@ -881,11 +891,6 @@ dav.tools = {
             }
         }
         
-        //Take care of Photo
-        //tbSync.addphoto(id + '.jpg', item.card, xmltools.nodeAsArray(data.Picture)[0]); //Kerio sends Picture as container
-        //if (card.getProperty("PhotoType", "") == "file") {
-        //    wbxml.atag("Picture", tbSync.getphoto(item.card));                    
-        //}
     },
     
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
@@ -905,6 +910,15 @@ dav.tools = {
 
             //some "properties" need special handling
             switch (property) {
+                case "Photo":
+                    {
+                        if (card.getProperty("PhotoType", "") == "file") {
+                            dav.tools.updateValueOfVCard(property, vCardData, vCardField, tbSync.getphoto(card));
+                            vCardData[vCardField.item][0].meta = {"encoding": ["b"], "type": ["JPEG"]};
+                        }
+                    }
+                    break;
+                    
                 case "Birthday":
                     {
                         let birthYear = parseInt(card.getProperty("BirthYear", 0));
