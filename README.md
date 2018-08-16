@@ -1,13 +1,12 @@
 # DAV-4-TbSync
-The CalDAV/CardDAV provider has always been a hidden part of TbSync. Since I finished the external sync provider interface, I decided to move the CalDav/CardDav stuff out of TbSync into its own extension.
+The CalDAV/CardDAV provider for the Thunderbird synchronisation AddOn TbSync. If this AddOn and TbSync are installed, TbSync is able to sync CaldDAV/CardDAV accounts. This provider is closely following the specs defined by sabre/dav.
 
-This provider is able to retrieve all available resources (calendars, address books) from the server and adds the found CalDAV calendars to lightning. It does not implement CalDAV sync by its own, the calendars are managed by lightning.
+The server URL needed to add an CalDAV/CardDAV account is the plain server name (FQDN) like "cloud.server.de". There is no need to know any specific URL. The provider will find all available calendars and address books.
 
-The following is still missing:
- - CardDAV sync
- - push sync
+This provider not actually implementing the CalDAV protocol, but will add the found calendars to lightning and let lightning handle the sync. Please keep in mind: Lightning is not able to sync multiple calendars of different users on the same server.
+**This limitation does not exist for the CardDAV implementation of this provider!**
 
-The [DAV-4-TbSync extension](https://github.com/jobisoft/DAV-4-TbSync/releases) needs the latest [beta of TbSync](https://github.com/jobisoft/TbSync/releases).
+The [DAV-4-TbSync extension](https://github.com/jobisoft/DAV-4-TbSync/releases) need the latest [beta of TbSync](https://github.com/jobisoft/TbSync/releases).
 
 ### Image of the sabre/dav provider hooked into TbSync:
 
