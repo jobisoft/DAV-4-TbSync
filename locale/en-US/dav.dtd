@@ -24,10 +24,7 @@
 <!ENTITY pref.never "A setting of 0 disables periodic sync. Push sync is no yet supported.">
 
 <!ENTITY pref.syncstate "Sync status">
-<!ENTITY pref.seperator.comma "Comma">
-<!ENTITY pref.seperator.linebreak "Line break">
-<!ENTITY pref.seperator.description "Seperator for multiline address field.">
-<!ENTITY pref.displayoverride "Overide Display Name with 'First Name' + 'Second Name'">
+<!ENTITY pref.useHomeAsPrimary "Use vCard type 'HOME' as primary email address">
 
 <!ENTITY pref.foldername "Folder">
 <!ENTITY pref.targetname "SyncTarget">

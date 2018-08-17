@@ -161,7 +161,6 @@ dav.sync = {
                         //promisify addressbook, so it can be used together with yield (using same interface as promisified calender)
                         syncdata.targetObj = tbSync.promisifyAddressbook(syncdata.addressbookObj);
                         
-                        //throw dav.sync.failed("info.carddavnotimplemented");         
                         yield dav.sync.singleFolder(syncdata);
                         break;
 
@@ -203,14 +202,17 @@ dav.sync = {
 
 
     singleFolder: Task.async (function* (syncdata)  {
+        syncdata.downloadonly = (tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "downloadonly") == "1");
+        
         yield dav.sync.remoteChanges(syncdata);
         let numOfLocalChanges = yield dav.sync.localChanges(syncdata);
         
         //revert all local changes on permission error by doing a clean sync
-        if (numOfLocalChanges == -1) {
+        if (numOfLocalChanges < 0) {
             dav.onResetTarget(syncdata.account, syncdata.folderID);
             yield dav.sync.remoteChanges(syncdata);
-            throw dav.sync.failed("info.restored");
+            
+            if (!syncdata.downloadonly) throw dav.sync.failed("info.restored");
         } else if (numOfLocalChanges > 0){
             //we will get back our own changes and can store etags and vcards and also get a clean ctag/token
             yield dav.sync.remoteChanges(syncdata);
@@ -435,6 +437,7 @@ dav.sync = {
 
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
         let addressBook = abManager.getDirectory(syncdata.targetId);
+        let permissionError = syncdata.downloadonly; //start with "permissionError", if the user has set this to downloadonly
         
         do {
             tbSync.setSyncState("prepare.request.localchanges", syncdata.account, syncdata.folderID);
@@ -449,29 +452,37 @@ dav.sync = {
                     case "added_by_user":
                     case "modified_by_user":
                         {
-                            let vcard = dav.tools.getVCardFromThunderbirdCard (addressBook, changes[i].id, changes[i].status == "added_by_user");
-                            tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
-                            let response = yield dav.tools.sendRequest(vcard, changes[i].id, "PUT", syncdata, {"Content-Type": "text/vcard; charset=utf-8"});
+                            if (!permissionError) { //no need to do any other requests, if there was a permission error already
+                                let vcard = dav.tools.getVCardFromThunderbirdCard (syncdata, addressBook, changes[i].id, changes[i].status == "added_by_user");
+                                tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
+                                let response = yield dav.tools.sendRequest(vcard, changes[i].id, "PUT", syncdata, {"Content-Type": "text/vcard; charset=utf-8"});
                             
-                            tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
-                            if (response && response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
-                                db.clearChangeLog(syncdata.targetId);
-                                //return -1 on permission error
-                                return -1;
+                                tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
+                                if (response && response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
+                                    permissionError = true;
+                                }
+                            }
+                            
+                            if (permissionError) {
+                                dav.tools.invalidateThunderbirdCard(syncdata, addressBook, changes[i].id);
                             }
                         }
                         break;
                     
                     case "deleted_by_user":
                         {
-                            tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
-                            let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {});
+                            if (!permissionError) { //no need to do any other requests, if there was a permission error already
+                                tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
+                                let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {});
+                                
+                                tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
+                                if (response && response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
+                                    permissionError = true;
+                                }
+                            }
                             
-                            tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
-                            if (response && response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
-                                db.clearChangeLog(syncdata.targetId);
-                                //return -1 on permission error
-                                return -1;
+                            if (permissionError) {
+                                tbSync.db.addItemToChangeLog(syncdata.targetId, changes[i].id, "deleted_by_server");
                             }
                         }
                         break;
@@ -484,8 +495,8 @@ dav.sync = {
             
         } while (true);
         
-        //return number of modified cards
-        return syncdata.done;
+        //return number of modified cards or -1 on permission error
+        return (permissionError ? -1 : syncdata.done);
     }),
 
     

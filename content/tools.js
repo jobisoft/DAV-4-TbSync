@@ -33,7 +33,7 @@ dav.tools = {
             // Test if the entered uri can be parsed.
             uri = Services.io.newURI(aUri, null, null);
         } catch (ex) {
-            throw dav.sync.failed("invalid-carddav-uri");
+            throw dav.sync.failed("invalid-uri");
         }
 
         let calManager = cal.getCalendarManager();
@@ -382,7 +382,7 @@ dav.tools = {
         let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
         card.setProperty("TBSYNCID", id);
 
-        dav.tools.setThunderbirdCardFromVCard(addressBook, card, data.textContent.trim(), etag.textContent);
+        dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, data.textContent.trim(), etag.textContent);
         
         tbSync.db.addItemToChangeLog(syncdata.targetId, id, "added_by_server");
         addressBook.addCard(card);
@@ -391,9 +391,9 @@ dav.tools = {
     modifyContact: function(addressBook, id, data, etag, syncdata) {
         let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
 
-        dav.tools.setThunderbirdCardFromVCard(addressBook, card, data.textContent.trim(), etag.textContent, card.getProperty("X-DAV-VCARD", ""));        
+        dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, data.textContent.trim(), etag.textContent, card.getProperty("X-DAV-VCARD", ""));        
 
-        if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "modified_by_user") {
+        if (syncdata.revert || tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "modified_by_user") {
             tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
         }
         addressBook.modifyCard(card);
@@ -544,7 +544,7 @@ dav.tools = {
     // -> which main item
     // -> which array element (based on metatype, if needed)
     //https://tools.ietf.org/html/rfc2426#section-3.6.1
-    getVCardField: function (property, vCardData) {
+    getVCardField: function (syncdata, property, vCardData) {
         let data = {item: "", metatype: [], metatypefield: "type", entry: -1, prefix: ""};
         
         if (vCardData) {
@@ -553,7 +553,7 @@ dav.tools = {
                 case "PrimaryEmail": 
                 case "SecondEmail": 
                     {
-                        let metamap = {"PrimaryEmail": "WORK", "SecondEmail": "HOME"};
+                        let metamap = (tbSync.db.getAccountSetting(syncdata.account, "useHomeAsPrimary") == "0") ? {"PrimaryEmail": "WORK", "SecondEmail": "HOME"} : {"PrimaryEmail": "HOME", "SecondEmail": "WORK"};
                         data.metatype.push(metamap[property]);
                         data.item = "email";
 
@@ -569,10 +569,10 @@ dav.tools = {
                                 let workprev = [];
                                 let nothome = [];
                                 for (let i=0; i < metaTypeData.length; i++) {
-                                    if (metaTypeData[i].includes("WORK") && metaTypeData[i].includes("PREV")) workprev.push(i);
-                                    if (metaTypeData[i].includes("PREV") && !metaTypeData[i].includes("HOME")) prev.push(i);
-                                    if (metaTypeData[i].includes("WORK")) work.push(i);
-                                    if (!metaTypeData[i].includes("HOME")) nothome.push(i);
+                                    if (metaTypeData[i].includes(metamap.PrimaryEmail) && metaTypeData[i].includes("PREV")) workprev.push(i);
+                                    if (metaTypeData[i].includes("PREV") && !metaTypeData[i].includes(metamap.SecondEmail)) prev.push(i);
+                                    if (metaTypeData[i].includes(metamap.PrimaryEmail)) work.push(i);
+                                    if (!metaTypeData[i].includes(metamap.SecondEmail)) nothome.push(i);
                                 }
                                 if (workprev.length > 0) data.entry = workprev[0];
                                 else if (prev.length > 0) data.entry = prev[0];
@@ -584,8 +584,8 @@ dav.tools = {
                                 let homeprev = [];
                                 let home = [];
                                 for (let i=0; i < metaTypeData.length; i++) {
-                                    if (metaTypeData[i].includes("HOME") && metaTypeData[i].includes("PREV")) homeprev.push(i);
-                                    if (metaTypeData[i].includes("HOME")) home.push(i);
+                                    if (metaTypeData[i].includes(metamap.SecondEmail) && metaTypeData[i].includes("PREV")) homeprev.push(i);
+                                    if (metaTypeData[i].includes(metamap.SecondEmail)) home.push(i);
                                 }
                                 if (homeprev.length > 0) data.entry = homeprev[0];
                                 else if (home.length > 0) data.entry = home[0];
@@ -815,7 +815,7 @@ dav.tools = {
     //MAIN FUNCTIONS FOR UP/DOWN SYNC
     
     //update send from server to client
-    setThunderbirdCardFromVCard: function(addressBook, card, vCard, etag, oCard = null) {
+    setThunderbirdCardFromVCard: function(syncdata, addressBook, card, vCard, etag, oCard = null) {
         let vCardData = tbSync.dav.vCard.parse(vCard);
         let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
 
@@ -829,10 +829,10 @@ dav.tools = {
 
             let property = dav.tools.supportedProperties[f];
 
-            let vCardField = dav.tools.getVCardField(property, vCardData);
+            let vCardField = dav.tools.getVCardField(syncdata, property, vCardData);
             let newServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(property, vCardData, vCardField);
 
-            let oCardField = dav.tools.getVCardField(property, oCardData);            
+            let oCardField = dav.tools.getVCardField(syncdata, property, oCardData);            
             let oldServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(property, oCardData, oCardField);
 
             //smart merge: only update the property, if it has changed on the server (keep local modifications)
@@ -893,8 +893,16 @@ dav.tools = {
         
     },
     
+    invalidateThunderbirdCard: function(syncdata, addressBook, id) {        
+        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
+        card.setProperty("X-DAV-ETAG", "");
+        card.setProperty("X-DAV-VCARD", "");	    
+        tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
+        addressBook.modifyCard(card);	    
+    },
+    
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
-    getVCardFromThunderbirdCard: function(addressBook, id, generateUID = false) {        
+    getVCardFromThunderbirdCard: function(syncdata, addressBook, id, generateUID = false) {        
         let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
         let vCardData = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
         
@@ -906,7 +914,7 @@ dav.tools = {
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             let property = dav.tools.supportedProperties[f];
-            let vCardField = dav.tools.getVCardField(property, vCardData);
+            let vCardField = dav.tools.getVCardField(syncdata, property, vCardData);
 
             //some "properties" need special handling
             switch (property) {

@@ -73,10 +73,10 @@ var dav = {
             "autosync" : "0",
             "downloadonly" : "0",
             "lastUsedProviderVersion" : "0",
+            "createdWithProviderVersion" : "0",
             //some example options
             "syncdefaultfolders" : "1",
-            "displayoverride" : "0",
-            "seperator" : "44",            
+            "useHomeAsPrimary" : "0",
             }; 
         return row;
     },
