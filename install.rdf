@@ -7,9 +7,9 @@
         <em:bootstrap>true</em:bootstrap>
         <em:unpack>false</em:unpack>
         <em:multiprocessCompatible>true</em:multiprocessCompatible>
-        <em:name>sabre/dav (CalDAV/CardDAV) provider for TbSync</em:name>
+        <em:name>sabre/dav (CalDAV &amp; CardDAV) provider for TbSync</em:name>
         <em:version>0.6</em:version>
-        <em:description>Add sync support for sabre/dav (CalDAV/CardDAV) accounts to TbSync</em:description>
+        <em:description>Add sync support for sabre/dav (CalDAV &amp; CardDAV) accounts to TbSync</em:description>
         <em:creator>John Bieling</em:creator>
         <em:homepageURL>https://github.com/jobisoft/DAV-4-TbSync</em:homepageURL>
         <em:updateURL>https://raw.githubusercontent.com/jobisoft/DAV-4-TbSync/master/update.rdf</em:updateURL>

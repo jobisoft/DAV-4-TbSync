@@ -1,10 +1,10 @@
-<!ENTITY add.title "Adding an sabre/dav (CalDAV/CardDAV) account to TbSync">
+<!ENTITY add.title "Adding an sabre/dav (CalDAV &amp; CardDAV) account to TbSync">
 <!ENTITY add.ok "Add account">
 <!ENTITY add.name "Account name:">
 <!ENTITY add.user "User name:">
 <!ENTITY add.password "Password:">
 <!ENTITY add.server "Server URL:">
-<!ENTITY add.description "Please enter a name for the new TbSync account and the user name and password of the sabre/dav (CalDAV/CardDAV) account you want to add. ">
+<!ENTITY add.description "Please enter a name for the new TbSync account and the user name and password of the sabre/dav account you want to add. ">
 
 <!ENTITY pref.EnableAccount "Enable account &amp; try to connect to server">
 <!ENTITY pref.SynchronizeAccount "Synchronize account">
@@ -24,7 +24,7 @@
 <!ENTITY pref.never "A setting of 0 disables periodic sync. Push sync is no yet supported.">
 
 <!ENTITY pref.syncstate "Sync status">
-<!ENTITY pref.useHomeAsPrimary "Use vCard type 'HOME' as primary email address">
+<!ENTITY pref.useHomeAsPrimary "Use vCard email of type 'HOME' as primary email address">
 
 <!ENTITY pref.foldername "Folder">
 <!ENTITY pref.targetname "SyncTarget">
