@@ -6,14 +6,14 @@
 
         <RDF:li>
           <RDF:Description>
-            <em:version>0.6</em:version>
+            <em:version>0.7</em:version>
             <em:targetApplication>
               <RDF:Description>
                 <em:id>{3550f703-e582-4d05-9a08-453d09bdfdc6}</em:id>
                 <em:minVersion>50.0</em:minVersion>
                 <em:maxVersion>61.*</em:maxVersion>
-                <em:updateLink>https://github.com/jobisoft/DAV-4-TbSync/releases/download/v0.6/DAV-4-TbSync.xpi</em:updateLink>
-                <em:updateInfoURL>https://github.com/jobisoft/DAV-4-TbSync/releases/tag/v0.6</em:updateInfoURL>
+                <em:updateLink>https://github.com/jobisoft/DAV-4-TbSync/releases/download/v0.7/DAV-4-TbSync.xpi</em:updateLink>
+                <em:updateInfoURL>https://github.com/jobisoft/DAV-4-TbSync/releases/tag/v0.7</em:updateInfoURL>
               </RDF:Description>
             </em:targetApplication>
           </RDF:Description>

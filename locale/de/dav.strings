@@ -43,6 +43,7 @@ status.unsupported_auth_method=Server verlangt unbekannte Authentifizierungsmeth
 status.info.caldav-calendar-already-exists=Kalender wird bereits durch lightning verwaltet.
 status.info.restored=Adressbuch wegen fehlender Schreibrechte zutückgesetzt.
 status.mailformed-xml=Antwort enthält fehlerhaftes XML, Sync angebrochen.
+status.service-discovery-failed=Der sabre/dav service discovery funktioniert mit diesem Server nicht.
 
 status.OK.managedbylightning=Kalender wird von lightning verwaltet.
 

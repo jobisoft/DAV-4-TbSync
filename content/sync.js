@@ -55,6 +55,7 @@ dav.sync = {
             deletedFolders.push(f);
         }
         
+        let jobsfound = 0;
         for (let job in davjobs) {
             //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncdata)
             //example state "getfolders" to get folder information from server
@@ -63,15 +64,17 @@ dav.sync = {
             
             let home = null;
             let principal = null;
-
-            {
-                tbSync.setSyncState("send.getfolders", syncdata.account);
-                let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", "/.well-known/"+davjobs[job].type+"/", "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
-
-                tbSync.setSyncState("eval.folders", syncdata.account); 
-                principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","propstat"], ["d","prop"], ["d","current-user-principal"], ["d","href"]]);
-            }
             
+            tbSync.setSyncState("send.getfolders", syncdata.account);
+            try {
+                    let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", "/.well-known/"+davjobs[job].type+"/", "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                    tbSync.setSyncState("eval.folders", syncdata.account); 
+                    principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","propstat"], ["d","prop"], ["d","current-user-principal"], ["d","href"]]);
+            } catch (e) {
+                continue;
+            }
+            jobsfound++;
+
             //principal now contains something like "/remote.php/carddav/principals/john.bieling/"
             // -> get home/root of storage            
             if (principal !== null) {
@@ -118,6 +121,10 @@ dav.sync = {
                 //home was not found - connection error? - do not delete anything
                 let deletedFolders = [];
             }
+        }
+        
+        if (jobsfound == 0) {
+            throw dav.sync.failed("service-discovery-failed");         
         }
         
         //remove deleted folders (no longer there)
