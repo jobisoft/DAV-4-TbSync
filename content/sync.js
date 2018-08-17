@@ -459,9 +459,13 @@ dav.sync = {
                     case "modified_by_user":
                         {
                             if (!permissionError) { //no need to do any other requests, if there was a permission error already
-                                let vcard = dav.tools.getVCardFromThunderbirdCard (syncdata, addressBook, changes[i].id, changes[i].status == "added_by_user");
+                                let isAdding = (changes[i].status == "added_by_user");
+                                let vcard = dav.tools.getVCardFromThunderbirdCard (syncdata, addressBook, changes[i].id, isAdding);
+                                let options = {"Content-Type": "text/vcard; charset=utf-8"};
+                                //if (!isAdding) options["If-Match"] = vcard.etag;
+
                                 tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID); 
-                                let response = yield dav.tools.sendRequest(vcard, changes[i].id, "PUT", syncdata, {"Content-Type": "text/vcard; charset=utf-8"});
+                                let response = yield dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, options);
                             
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
                                 if (response && response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges

@@ -181,7 +181,10 @@ dav.tools = {
         options.redirect = "follow";// manual, *follow, error
         options.headers = headers;
         options.headers["Content-Length"] = request.length;
-        options.headers["Content-Type"] = "application/xml; charset=utf-8";            
+        
+        //default
+        if (!options.headers.hasOwnProperty("Content-Type")) 
+            options.headers["Content-Type"] = "application/xml; charset=utf-8";            
 
             
         //add abort/timeout signal
@@ -958,7 +961,7 @@ dav.tools = {
             }
         }    
         
-        return tbSync.dav.vCard.generate(vCardData).trim();
+        return {data: tbSync.dav.vCard.generate(vCardData).trim(), etag: card.getProperty("X-DAV-ETAG", "")};
     },
         
 }
