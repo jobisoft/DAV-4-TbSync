@@ -434,51 +434,51 @@ dav.tools = {
     },
 
     supportedProperties: [
-        "DisplayName", 
-        "FirstName",
-        "LastName",
-        "MiddleName",
-        "PrimaryEmail", 
-        "SecondEmail",
-        "NickName",
-        "Birthday", //fake, will trigger special handling
-        "Photo", //fake, will trigger special handling    
-        "HomeCity",
-        "HomeCountry",
-        "HomeZipCode",
-        "HomeState",
-        "HomeAddress",
-        "HomePhone",
-        "WorkCity",
-        "WorkCountry",
-        "WorkZipCode",
-        "WorkState",
-        "WorkAddress",
-        "WorkPhone",
-        "Categories",
-        "JobTitle",
-        "Department",
-        "Company",
-        "WebPage1",
-        "WebPage2",
-        "CellularNumber",
-        "PagerNumber",
-        "FaxNumber",
-        "Notes",
-        "PreferMailFormat",
-        "Custom1",
-        "Custom2",
-        "Custom3",
-        "Custom4",
-        "_GoogleTalk",
-        "_JabberId",
-        "_Yahoo",
-        "_QQ",
-        "_AimScreenName",
-        "_MSN",
-        "_Skype",
-        "_ICQ",
-        "_IRC",
+        {name: "DisplayName", minversion: "0.4"}, 
+        {name: "FirstName", minversion: "0.4"},
+        {name: "MiddleName", minversion: "0.6"},
+        {name: "LastName", minversion: "0.4"},
+        {name: "PrimaryEmail", minversion: "0.4"}, 
+        {name: "SecondEmail", minversion: "0.4"},
+        {name: "NickName", minversion: "0.4"},
+        {name: "Birthday", minversion: "0.4"}, //fake, will trigger special handling
+        {name: "Photo", minversion: "0.4"}, //fake, will trigger special handling    
+        {name: "HomeCity", minversion: "0.4"},
+        {name: "HomeCountry", minversion: "0.4"},
+        {name: "HomeZipCode", minversion: "0.4"},
+        {name: "HomeState", minversion: "0.4"},
+        {name: "HomeAddress", minversion: "0.4"},
+        {name: "HomePhone", minversion: "0.4"},
+        {name: "WorkCity", minversion: "0.4"},
+        {name: "WorkCountry", minversion: "0.4"},
+        {name: "WorkZipCode", minversion: "0.4"},
+        {name: "WorkState", minversion: "0.4"},
+        {name: "WorkAddress", minversion: "0.4"},
+        {name: "WorkPhone", minversion: "0.4"},
+        {name: "Categories", minversion: "0.4"},
+        {name: "JobTitle", minversion: "0.4"},
+        {name: "Department", minversion: "0.4"},
+        {name: "Company", minversion: "0.4"},
+        {name: "WebPage1", minversion: "0.4"},
+        {name: "WebPage2", minversion: "0.4"},
+        {name: "CellularNumber", minversion: "0.4"},
+        {name: "PagerNumber", minversion: "0.4"},
+        {name: "FaxNumber", minversion: "0.4"},
+        {name: "Notes", minversion: "0.4"},
+        {name: "PreferMailFormat", minversion: "0.4"},
+        {name: "Custom1", minversion: "0.4"},
+        {name: "Custom2", minversion: "0.4"},
+        {name: "Custom3", minversion: "0.4"},
+        {name: "Custom4", minversion: "0.4"},
+        {name: "_GoogleTalk", minversion: "0.4"},
+        {name: "_JabberId", minversion: "0.4"},
+        {name: "_Yahoo", minversion: "0.4"},
+        {name: "_QQ", minversion: "0.4"},
+        {name: "_AimScreenName", minversion: "0.4"},
+        {name: "_MSN", minversion: "0.4"},
+        {name: "_Skype", minversion: "0.4"},
+        {name: "_ICQ", minversion: "0.4"},
+        {name: "_IRC", minversion: "0.4"},
     ],
 
     //map thunderbird fields to simple vcard fields without additional types
@@ -828,11 +828,12 @@ dav.tools = {
 
         card.setProperty("X-DAV-ETAG", etag);
         card.setProperty("X-DAV-VCARD", vCard);
-        
+
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
+            //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
+            if (tbSync.cmpVersions(dav.tools.supportedProperties[f].minversion, syncdata.folderCreatedWithProviderVersion)> 0) continue;
 
-            let property = dav.tools.supportedProperties[f];
-
+            let property = dav.tools.supportedProperties[f].name;
             let vCardField = dav.tools.getVCardField(syncdata, property, vCardData);
             let newServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(property, vCardData, vCardField);
 
@@ -917,7 +918,10 @@ dav.tools = {
         }
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
-            let property = dav.tools.supportedProperties[f];
+            //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
+            if (tbSync.cmpVersions(dav.tools.supportedProperties[f].minversion, syncdata.folderCreatedWithProviderVersion)> 0) continue;
+
+            let property = dav.tools.supportedProperties[f].name;
             let vCardField = dav.tools.getVCardField(syncdata, property, vCardData);
 
             //some "properties" need special handling

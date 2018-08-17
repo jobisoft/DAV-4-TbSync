@@ -74,7 +74,6 @@ var dav = {
             "https" : "1",
             "autosync" : "0",
             "downloadonly" : "0",
-            "lastUsedProviderVersion" : "0",
             "createdWithProviderVersion" : "0",
             //some example options
             "syncdefaultfolders" : "1",
@@ -105,6 +104,7 @@ var dav = {
             "ctag" : "",
             "token" : "",
             "downloadonly" : tbSync.db.getAccountSetting(account, "downloadonly"), //each folder has its own settings, the main setting is just the default,
+            "createdWithProviderVersion" : "0",                        
             };
         return folder;
     },
@@ -175,6 +175,7 @@ var dav = {
     onResetTarget: function (account, folderID) {
         tbSync.db.resetFolderSetting(account, folderID, "ctag");
         tbSync.db.resetFolderSetting(account, folderID, "token");
+        tbSync.db.setFolderSetting(account, folderID, "createdWithProviderVersion", tbSync.providerList.dav.version);
     },
 
 

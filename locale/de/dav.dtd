@@ -1,0 +1,38 @@
+<!ENTITY add.title "Ein sabre/dav (CalDAV &amp; CardDAV) Konto hinzufügen">
+<!ENTITY add.ok "Konto hinzufügen">
+<!ENTITY add.name "Kontoname:">
+<!ENTITY add.user "Benutzername:">
+<!ENTITY add.password "Passwort:">
+<!ENTITY add.server "Serveradresse:">
+<!ENTITY add.description "Bitte wählen Sie einen Namen für das neue TbSync Konto, und tragen den Benutzername und das Passwort für das sabre/dav Konto ein, welches Sie hinzufügen möchten. ">
+
+<!ENTITY pref.EnableAccount "Konto aktivieren &amp; mit dem Server verbinden">
+<!ENTITY pref.SynchronizeAccount "Konto synchronisieren">
+
+<!ENTITY pref.AccountName "Kontoname">
+<!ENTITY pref.UserName "Benutzername">
+<!ENTITY pref.ServerName "Serveradresse">
+<!ENTITY pref.ServerNameDescription "z.B. cloud.meinserver.de">
+<!ENTITY pref.usehttps "Sichere Verbindungen verwenden (via https://)">
+<!ENTITY pref.DeviceId "Geräte-ID">
+<!ENTITY pref.contactoptions "Kontakt Optionen">
+<!ENTITY pref.downloadonly "Lokale Änderungen verwerfen (one-way sync)">
+<!ENTITY pref.generaloptions "Allgemeine Optionen">
+<!ENTITY pref.syncdefaultfolders "Beim ersten Verbindungsaufbau alle Standard-Ordner abonnieren und synchronisieren">
+
+<!ENTITY pref.autotime "Sync Intervall (Minuten)">
+<!ENTITY pref.never "Eine Einstellung von 0 deaktiviert periodische Synchronisation. Push Synchronisation wird noch nicht unterstützt.">
+
+<!ENTITY pref.syncstate "Sync Status">
+<!ENTITY pref.useHomeAsPrimary "Verwende die vCard E-Mail mit Type 'HOME' als primäre E-Mail Adresse">
+
+<!ENTITY pref.foldername "Ordner">
+<!ENTITY pref.targetname "Synchronisationsziel">
+<!ENTITY pref.status "Status">
+
+<!ENTITY pref.switchFoldersAndConfig "Doppelklick um zwischen der Ordneransicht und der Anzeige der Einstellungen zu wechseln.">
+
+<!ENTITY servertype.custom "Benutzerspezifische Konfiguration">
+<!ENTITY servertype.unlock "Doppelklick um die vordefinierten Servereinstellungen zu entsperren.">
+
+<!ENTITY abCard.MiddleName "Zweiter Vorname:">

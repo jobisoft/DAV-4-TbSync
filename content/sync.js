@@ -125,8 +125,6 @@ dav.sync = {
             tbSync.takeTargetOffline("dav", folders[deletedFolders[i]], " [deleted on server]");
         }                        
     
-        tbSync.db.setAccountSetting(syncdata.account, "lastUsedProviderVersion", tbSync.providerList.dav.version)
-
     }),
 
 
@@ -203,7 +201,8 @@ dav.sync = {
 
     singleFolder: Task.async (function* (syncdata)  {
         syncdata.downloadonly = (tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "downloadonly") == "1");
-        
+        syncdata.folderCreatedWithProviderVersion = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "createdWithProviderVersion");
+
         yield dav.sync.remoteChanges(syncdata);
         let numOfLocalChanges = yield dav.sync.localChanges(syncdata);
         
