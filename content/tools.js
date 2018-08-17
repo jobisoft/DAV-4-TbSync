@@ -168,7 +168,7 @@ dav.tools = {
         let password = tbSync.getPassword(account);
 
         let url = "http" + (account.https ? "s" : "") + "://" + account.host + _url;
-        //tbSync.dump("URL", url);
+        tbSync.dump("URL", url);
 
         let useAbortSignal = (Services.vc.compare(Services.appinfo.platformVersion, "57.*") >= 0);
 
