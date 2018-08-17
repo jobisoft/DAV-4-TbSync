@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE window SYSTEM "chrome://dav4tbsync/locale/dav.dtd">
+
+<overlay 
+	id="abCardWindow" 
+	onbeforeinject="tbSync.dav.onBeforeInjectIntoCardEditWindow(window)"
+	oninject="tbSync.dav.onInjectIntoCardEditWindow(window)"
+	xmlns:html="http://www.w3.org/1999/xhtml">
+	
+   <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/abCardWindow.js" />
+
+    <hbox id="DavMiddleNameContainer" align="center" insertafter="NameField1Container" >
+        <spacer flex="1" />
+        <label control="MiddleName" value="&abCard.MiddleName;" />
+        <hbox class="CardEditWidth" >
+            <textbox id="MiddleName" flex="1" class="davProperty CardEditWidth" />
+        </hbox>
+    </hbox>
+
+</overlay>
+
+
+

@@ -34,3 +34,5 @@
 
 <!ENTITY servertype.custom "Custom configuration">
 <!ENTITY servertype.unlock "Double click to unlock all predefined server settings.">
+
+<!ENTITY abCard.MiddleName "Middle name">

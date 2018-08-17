@@ -437,6 +437,7 @@ dav.tools = {
         "DisplayName", 
         "FirstName",
         "LastName",
+        "MiddleName",
         "PrimaryEmail", 
         "SecondEmail",
         "NickName",
@@ -492,6 +493,7 @@ dav.tools = {
         "Categories" : "categories",
         "Notes" : "note",
         "FirstName" : "n",
+        "MiddleName" : "n",
         "LastName" : "n",
         "PreferMailFormat" : "X-MOZILLA-HTML",
         "Custom1" : "X-MOZILLA-CUSTOM1",
@@ -680,6 +682,7 @@ dav.tools = {
 
             case "FirstName":
             case "LastName":
+            case "MiddleName":
                 {
                     let index = ["LastName","FirstName","MiddleName","Prefix","Suffix"].indexOf(property);
                     return vCardValue[index];
@@ -762,6 +765,7 @@ dav.tools = {
                 break;
                 
             case "FirstName":
+            case "MiddleName":
             case "LastName":
                 {
                     let index = ["LastName","FirstName","MiddleName","Prefix","Suffix"].indexOf(property);
