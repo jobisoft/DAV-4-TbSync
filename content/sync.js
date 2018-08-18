@@ -66,12 +66,13 @@ dav.sync = {
             let principal = null;
             
             tbSync.setSyncState("send.getfolders", syncdata.account);
-            try {
-                    let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", "/.well-known/"+davjobs[job].type+"/", "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
-                    tbSync.setSyncState("eval.folders", syncdata.account); 
-                    principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","propstat"], ["d","prop"], ["d","current-user-principal"], ["d","href"]]);
-            } catch (e) {
-                continue;
+            {
+                let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", "/.well-known/"+davjobs[job].type, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                if (response && response.error) { //404 or 403
+                    continue;
+                }
+                tbSync.setSyncState("eval.folders", syncdata.account); 
+                principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","propstat"], ["d","prop"], ["d","current-user-principal"], ["d","href"]]);
             }
             jobsfound++;
 
@@ -266,7 +267,7 @@ dav.sync = {
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
         let cards = yield dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d","card"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/><card:address-data /></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {"Content-Type": "application/xml; charset=utf-8"});
 
-        if (cards.exception) { //Sabre\DAV\Exception\InvalidSyncToken
+        if (cards.error) { //Sabre\DAV\Exception\InvalidSyncToken
             //token sync failed, reset ctag and do a full sync
             return false;
         }
@@ -468,7 +469,7 @@ dav.sync = {
                                 let response = yield dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, options);
                             
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
-                                if (response && response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
+                                if (response && response.error) { //Sabre\DAVACL\Exception\NeedPrivileges
                                     permissionError = true;
                                 }
                             }
@@ -486,7 +487,7 @@ dav.sync = {
                                 let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {});
                                 
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID); 	    
-                                if (response && response.exception) { //Sabre\DAVACL\Exception\NeedPrivileges
+                                if (response && response.error) { //Sabre\DAVACL\Exception\NeedPrivileges
                                     permissionError = true;
                                 }
                             }

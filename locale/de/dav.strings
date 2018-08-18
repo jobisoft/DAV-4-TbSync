@@ -41,7 +41,7 @@ status.invalid-response=Fehlerhafte Antwort erhalten, Sync angebrochen.
 status.invalid-uri=Fehlerhafte URI erhalten, Sync angebrochen.
 status.unsupported_auth_method=Server verlangt unbekannte Authentifizierungsmethode (##replace.1##).
 status.info.caldav-calendar-already-exists=Kalender wird bereits durch lightning verwaltet.
-status.info.restored=Adressbuch wegen fehlender Schreibrechte zutückgesetzt.
+status.info.restored=Adressbuch wegen fehlender Schreibrechte zurückgesetzt.
 status.mailformed-xml=Antwort enthält fehlerhaftes XML, Sync angebrochen.
 status.service-discovery-failed=Der sabre/dav service discovery funktioniert mit diesem Server nicht.
 

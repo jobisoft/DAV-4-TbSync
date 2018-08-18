@@ -169,6 +169,8 @@ dav.tools = {
 
         let url = "http" + (account.https ? "s" : "") + "://" + account.host + _url;
         tbSync.dump("URL", url);
+        tbSync.dump("HEADERS", JSON.stringify(headers));
+        tbSync.dump("REQUEST", method + " : " + request);
 
         let useAbortSignal = (Services.vc.compare(Services.appinfo.platformVersion, "57.*") >= 0);
 
@@ -297,16 +299,19 @@ dav.tools = {
 
                 case 403:
                 case 404:
+                case 405: //Not allowed
+                case 415: //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book)
                     {
+                        let noresponse = {};
+                        noresponse.error = response.status;
                         let xml = dav.tools.convertToXML(text);
                         if (xml !== null) {
                             let exceptionNode = dav.tools.evaluateNode(xml.documentElement, [["s","exception"]]);
                             if (exceptionNode !== null) {
-                                let response = {};
-                                response.exception = exceptionNode.textContent;
-                                return response;
+                                noresponse.exception = exceptionNode.textContent;
                             }
                         }
+                        return noresponse;
                     }
                                   
                 default:
@@ -436,6 +441,14 @@ dav.tools = {
         return metaTypeData;
     },
 
+    fixArrayValue: function (vCardData, vCardField, index) {
+        if (!Array.isArray(vCardData[vCardField.item][vCardField.entry].value)) {
+            let v = vCardData[vCardField.item][vCardField.entry].value;
+            vCardData[vCardField.item][vCardField.entry].value = [v];
+        }
+        while (vCardData[vCardField.item][vCardField.entry].value.length < index) vCardData[vCardField.item][vCardField.entry].value.push("");                        
+    },
+    
     supportedProperties: [
         {name: "DisplayName", minversion: "0.4"}, 
         {name: "FirstName", minversion: "0.4"},
@@ -759,7 +772,8 @@ dav.tools = {
                     let index = ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"].indexOf(field);
                     if (store) {
                         if (add) vCardData[vCardField.item][vCardField.entry].value = ["","","","","","",""];
-                        while (vCardData[vCardField.item][vCardField.entry].value.length < index) vCardData[vCardField.item][vCardField.entry].value.push("");                        
+
+                        dav.tools.fixArrayValue(vCardData, vCardField, index);
                         vCardData[vCardField.item][vCardField.entry].value[index] = value;
                     } else if (remove) {
                         vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
@@ -774,7 +788,8 @@ dav.tools = {
                     let index = ["LastName","FirstName","MiddleName","Prefix","Suffix"].indexOf(property);
                     if (store) {
                         if (add) vCardData[vCardField.item][vCardField.entry].value = ["","","","",""];
-                        while (vCardData[vCardField.item][vCardField.entry].value.length < index) vCardData[vCardField.item][vCardField.entry].value.push("");                                                
+
+                        dav.tools.fixArrayValue(vCardData, vCardField, index);
                         vCardData[vCardField.item][vCardField.entry].value[index] = value;
                     } else if (remove) {
                         vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
@@ -788,7 +803,8 @@ dav.tools = {
                     let index = ["Company","Department"].indexOf(property);
                     if (store) {
                         if (add) vCardData[vCardField.item][vCardField.entry].value = ["",""];
-                        while (vCardData[vCardField.item][vCardField.entry].value.length < index) vCardData[vCardField.item][vCardField.entry].value.push("");                        
+                        
+                        dav.tools.fixArrayValue(vCardData, vCardField, index);
                         vCardData[vCardField.item][vCardField.entry].value[index] = value;
                     } else if (remove && vCardData[vCardField.item][vCardField.entry].value.length > index) {
                         vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
@@ -960,6 +976,11 @@ dav.tools = {
                     break;
             }
         }    
+
+        //add required fields
+        if (!vCardData.hasOwnProperty("version")) vCardData["version"] = [{"value": "3.0"}];
+        if (!vCardData.hasOwnProperty("fn")) vCardData["fn"] = [{"value": " "}];
+        if (!vCardData.hasOwnProperty("n")) vCardData["n"] = [{"value": [" ","","","",""]}];
         
         return {data: tbSync.dav.vCard.generate(vCardData).trim(), etag: card.getProperty("X-DAV-ETAG", "")};
     },
