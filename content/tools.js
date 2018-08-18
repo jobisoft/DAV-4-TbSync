@@ -448,6 +448,14 @@ dav.tools = {
         }
         while (vCardData[vCardField.item][vCardField.entry].value.length < index) vCardData[vCardField.item][vCardField.entry].value.push("");                        
     },
+
+    getSaveArrayValue: function (vCardValue, index) {
+        if (Array.isArray(vCardValue)) {
+            if(vCardValue.length > index) return vCardValue[index];
+            else return "";
+        } else if (index == 0) return vCardValue;
+        else return "";
+    },
     
     supportedProperties: [
         {name: "DisplayName", minversion: "0.4"}, 
@@ -692,7 +700,7 @@ dav.tools = {
                 {
                     let field = property.substring(4);
                     let index = ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"].indexOf(field);
-                    return vCardValue[index];
+                    return dav.tools.getSaveArrayValue(vCardValue, index);
                 }
                 break;
 
@@ -701,7 +709,7 @@ dav.tools = {
             case "MiddleName":
                 {
                     let index = ["LastName","FirstName","MiddleName","Prefix","Suffix"].indexOf(property);
-                    return vCardValue[index];
+                    return dav.tools.getSaveArrayValue(vCardValue, index);
                 }
                 break;
                 
@@ -709,9 +717,7 @@ dav.tools = {
             case "Company":
                 {
                     let index = ["Company","Department"].indexOf(property);
-                    if (vCardValue.length > index) return vCardValue[index];
-                    //either not an array or field does not exist -> fallback for Company, return value
-                    return "";
+                    return dav.tools.getSaveArrayValue(vCardValue, index);
                 }
                 break;
 
