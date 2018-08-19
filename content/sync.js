@@ -90,7 +90,11 @@ dav.sync = {
             // -> get all calendars and addressbooks
             if (home !== null) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
-                let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>", home, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
+                let request = (job == "cal") 
+                                        ? "<d:propfind "+dav.tools.xmlns(["d","apple"])+"><d:prop><d:resourcetype /><d:displayname /><apple:calendar-color/></d:prop></d:propfind>" 
+                                        : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
+                
+                let response = yield dav.tools.sendRequest(request, home, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
                 
                 for (let r=0; r < response.multi.length; r++) {
                     //is this a result with a valid recourcetype? (the node must be present)
@@ -99,7 +103,8 @@ dav.sync = {
 
                     let href = response.multi[r].href;
                     let name = dav.tools.evaluateNode(response.multi[r].node, [["d","propstat"], ["d","prop"], ["d","displayname"]]).textContent;                       
-
+                    let color = dav.tools.evaluateNode(response.multi[r].node, [["d","propstat"], ["d","prop"], ["apple","calendar-color"]]);                       
+                    
                     let folder = tbSync.db.getFolder(syncdata.account, href);
                     if (folder === null || folder.cached === "1") {
                         let newFolder = {}
@@ -108,12 +113,18 @@ dav.sync = {
                         newFolder.type = davjobs[job].type;
                         newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
                         newFolder.selected = (r == 1) ? "1" : "0"; //only select the first one
+                        if (color) newFolder.targetColor = color.textContent;
 
                         //if there is a cached version of this folderID, addFolder will merge all persistent settings - all other settings not defined here will be set to their defaults
                         tbSync.db.addFolder(syncdata.account, newFolder);
                     } else {
-                        //Update name
+                        //Update name & color
                         tbSync.db.setFolderSetting(syncdata.account, href, "name", name);
+                        if (color && job == "cal" && cal) {
+                            //actually update the color of the calendar this will also store its value
+                            let targetCal = cal.getCalendarManager().getCalendarById(folder.target);
+                            if (targetCal !== null) targetCal.setProperty("color", color.textContent);
+                        }
                         deletedFolders = deletedFolders.filter(item => item !== href);
                     }
                 }
