@@ -106,26 +106,33 @@ dav.sync = {
                     let color = dav.tools.evaluateNode(response.multi[r].node, [["d","propstat"], ["d","prop"], ["apple","calendar-color"]]);                       
                     
                     let folder = tbSync.db.getFolder(syncdata.account, href);
-                    if (folder === null || folder.cached === "1") {
+                    if (folder === null || folder.cached === "1") { //this is NOT called by unsubscribing/subscribing
                         let newFolder = {}
                         newFolder.folderID = href;
                         newFolder.name = name;
                         newFolder.type = davjobs[job].type;
                         newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
                         newFolder.selected = (r == 1) ? "1" : "0"; //only select the first one
-                        if (color) newFolder.targetColor = color.textContent;
 
                         //if there is a cached version of this folderID, addFolder will merge all persistent settings - all other settings not defined here will be set to their defaults
                         tbSync.db.addFolder(syncdata.account, newFolder);
                     } else {
                         //Update name & color
                         tbSync.db.setFolderSetting(syncdata.account, href, "name", name);
-                        if (color && job == "cal" && cal) {
-                            //actually update the color of the calendar this will also store its value
-                            let targetCal = cal.getCalendarManager().getCalendarById(folder.target);
-                            if (targetCal !== null) targetCal.setProperty("color", color.textContent);
-                        }
                         deletedFolders = deletedFolders.filter(item => item !== href);
+                    }
+
+                    //update color from server
+                    if (color && job == "cal") {
+                        color = color.textContent.substring(0,7);
+                        tbSync.db.setFolderSetting(syncdata.account, href, "targetColor", color); 
+                        //do we have to update the calendar?
+                        if (cal && folder && folder.target) {
+                            let targetCal = cal.getCalendarManager().getCalendarById(folder.target);
+                            if (targetCal !== null) {
+                                targetCal.setProperty("color", color);
+                            }
+                        }
                     }
                 }
                                 
