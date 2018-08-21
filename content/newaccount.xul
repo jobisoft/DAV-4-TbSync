@@ -42,6 +42,8 @@
                 </row>
             </rows>
         </grid>
+        
+        <description style="width: 450px; margin-top:1ex">&add.description2;</description>
 
     </vbox>
 </dialog>

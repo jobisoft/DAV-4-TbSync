@@ -167,7 +167,7 @@ dav.tools = {
         let account = tbSync.db.getAccount(syncdata.account);
         let password = tbSync.getPassword(account);
 
-        let url = "http" + (account.https ? "s" : "") + "://" + account.host + _url;
+        let url = "http" + (account.https ? "s" : "") + "://" + syncdata.host + _url;
         tbSync.dump("URL", url);
         tbSync.dump("HEADERS", JSON.stringify(headers));
         tbSync.dump("REQUEST", method + " : " + request);

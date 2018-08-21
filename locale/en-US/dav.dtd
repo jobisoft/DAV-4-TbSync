@@ -5,6 +5,7 @@
 <!ENTITY add.password "Password:">
 <!ENTITY add.server "Server URL:">
 <!ENTITY add.description "Please enter a name for the new TbSync account and the user name and password of the sabre/dav account you want to add. ">
+<!ENTITY add.description2 "Most servers have the discovery service enabled, and it is enough to enter just the host as server URL, for example 'cloud.myserver.com'. If this is not working for you, enter the full path to the DAV server, for example 'cloud.myserver.com/SOGo/dav'.">
 
 <!ENTITY pref.EnableAccount "Enable account &amp; try to connect to server">
 <!ENTITY pref.SynchronizeAccount "Synchronize account">
@@ -19,13 +20,12 @@
 <!ENTITY pref.downloadonly "Revert local changes (one-way sync)">
 <!ENTITY pref.generaloptions "General options">
 <!ENTITY pref.syncdefaultfolders "Subscribe and sync all default folders after the initial connection has been established.">
-<!ENTITY pref.sogo "SOGo server (provide address without /SOGo/dav)">
 
 <!ENTITY pref.autotime "Sync interval (minutes)">
 <!ENTITY pref.never "A setting of 0 disables periodic sync. Push sync is no yet supported.">
 
 <!ENTITY pref.syncstate "Sync status">
-<!ENTITY pref.useHomeAsPrimary "Use vCard email of type 'HOME' as primary email address">
+<!ENTITY pref.useHomeAsPrimary "Use vCard email of type 'HOME' (and not 'WORK') as primary email address">
 
 <!ENTITY pref.foldername "Folder">
 <!ENTITY pref.targetname "SyncTarget">

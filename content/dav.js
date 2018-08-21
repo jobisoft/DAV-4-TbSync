@@ -76,7 +76,6 @@ var dav = {
             "autosync" : "0",
             "downloadonly" : "0",
             "createdWithProviderVersion" : "0",
-            "sogo" : "0",
             //some example options
             "syncdefaultfolders" : "1",
             "useHomeAsPrimary" : "0",

@@ -52,11 +52,11 @@
                     <vbox>
                         <label class="header" style="margin-left:0" value="" id="tbsync.accountsettings.label.config" />
                         <hbox>
-                            <hbox flex="1"><label style="padding:1px; margin-left:0" control="tbsync.accountsettings.pref.host" value="&pref.ServerName;" /></hbox>
+                            <hbox flex="1"><label class="lockable" style="padding:1px; margin-left:0" control="tbsync.accountsettings.pref.host" value="&pref.ServerName;" /></hbox>
                         </hbox>
 
                         <hbox>
-                            <hbox flex="1"><textbox flex="1" style="margin-left:0; margin-right:0" tooltiptext="&pref.ServerNameDescription;" id="tbsync.accountsettings.pref.host" onblur="tbSync.eas.ui.stripHost(document, tbSyncAccountSettings.account);" /></hbox>
+                            <hbox flex="1"><textbox flex="1" style="margin-left:0; margin-right:0" tooltiptext="&add.description2;" id="tbsync.accountsettings.pref.host" onblur="tbSync.eas.ui.stripHost(document, tbSyncAccountSettings.account);" /></hbox>
                             <image style="margin-left:5px; margin-right:0" tooltiptext="&servertype.unlock;" ondblclick="tbSyncAccountSettings.unlockSettings()" width="24" height="24" id="tbsync.accountsettings.unlock" src="chrome://tbsync/skin/lock24.png" />
                         </hbox>
 
@@ -73,7 +73,6 @@
                         <checkbox id="tbsync.accountsettings.pref.https" label="&pref.usehttps;"  />
                         <checkbox id="tbsync.accountsettings.pref.downloadonly" label="&pref.downloadonly;"  />
                         <checkbox id="tbsync.accountsettings.pref.syncdefaultfolders" label="&pref.syncdefaultfolders;"  />
-                        <checkbox id="tbsync.accountsettings.pref.sogo" label="&pref.sogo;"  />
 
                         <hbox height="24" align="center">
                             <label flex="1" style="margin-left:0" class="header" value="&pref.contactoptions;"/>
@@ -102,7 +101,7 @@
                 </row> 
 
                 <row>
-                     <label  style="text-align:left" value="&pref.DeviceId;" />
+                     <label  style="text-align:left" value="" />
                      <hbox><label style="margin-left:0; margin-bottom: 1ex;" flex="1" value="" disabled="true" id="tbsync.accountsettings.pref.deviceId" /><image style="margin-right:0" tooltiptext="&pref.switchFoldersAndConfig;" ondblclick="tbSyncAccountSettings.switchFoldersAndConfigView()" width="24" height="24" id="tbsync.accountsettings.slider" src="chrome://tbsync/skin/slider-on.png" /></hbox>
                 </row>
                 <row>
