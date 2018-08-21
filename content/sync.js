@@ -67,7 +67,8 @@ dav.sync = {
             
             tbSync.setSyncState("send.getfolders", syncdata.account);
             {
-                let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", "/.well-known/"+davjobs[job].type, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                let addr = tbSync.db.getAccountSetting(syncdata.account, "sogo") == "1" ? "/SOGo/dav" : "/.well-known/"+davjobs[job].type;
+                let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", addr , "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
                 if (response && response.error) { //404 or 403
                     continue;
                 }
