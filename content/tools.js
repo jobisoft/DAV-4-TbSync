@@ -200,16 +200,16 @@ dav.tools = {
         do {
             numberOfAuthLoops++;
             
-            switch(tbSync.db.getAccountSetting(syncdata.account, "authMethod")) {
+            switch(tbSync.db.getAccountSetting(syncdata.account, "authMethod").toUpperCase()) {
                 case "":
                     //not set yet, send unauthenticated request
                     break;
                 
-                case "Basic":
+                case "BASIC":
                     options.headers["Authorization"] = "Basic " + btoa(account.user + ':' + password);
                     break;
 
-                case "Digest":
+                case "DIGEST":
                     //try to re-use the known server nounce (stored in account.authOptions)
                     options.headers["Authorization"] = dav.tools.getDigestAuthHeader(method, _url, account.user, password, account.authOptions, syncdata.account);
                     break;
