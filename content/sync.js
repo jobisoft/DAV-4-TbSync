@@ -360,11 +360,9 @@ dav.sync = {
         tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
         let ctag = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["cs", "getctag"]], syncdata.folderID);                       
         let token = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d", "sync-token"]], syncdata.folderID);                       
-        if (ctag === null) 
-            throw dav.sync.failed("invalid-response");
 
         //if CTAG changed, we need to sync everything and compare
-        if (ctag != tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "ctag")) {
+        if (ctag === null || ctag != tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "ctag")) {
             let vCardsFoundOnServer = [];
             let vCardsChangedOnServer = {};
 
@@ -441,7 +439,8 @@ dav.sync = {
             
             
             //update ctag and token (if there is one)
-            tbSync.db.setFolderSetting(syncdata.account, syncdata.folderID, "ctag", ctag);                        
+            if (ctag === null) return false; //if server does not support ctag, "it did not change"
+            tbSync.db.setFolderSetting(syncdata.account, syncdata.folderID, "ctag", ctag);    
             if (token) tbSync.db.setFolderSetting(syncdata.account, syncdata.folderID, "token", token);
 
             //ctag did change
