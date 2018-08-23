@@ -208,7 +208,7 @@ dav.sync = {
 
                         //we do not do anything here, because that calendar is managed by lightning directly
                         tbSync.db.clearChangeLog(tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target"));
-                        throw dav.sync.succeeded("managedbylightning");         
+                        throw dav.sync.succeeded();         
                         break;
 
                     default:
