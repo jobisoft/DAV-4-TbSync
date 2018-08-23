@@ -355,9 +355,10 @@ dav.tools = {
 
     getNodeTextContentFromMultiResponse: function (response, path, href = null, status = "200") {
         for (let i=0; i < response.multi.length; i++) {
-            let node = dav.tools.evaluateNode(response.multi[i].node, path);
-            if (node !== null && (href === null || response.multi[i].href == href) && response.multi[i].status == status) 
+            let node = dav.tools.evaluateNode(response.multi[i].node, path);            
+            if (node !== null && (href === null || response.multi[i].href == href || decodeURIComponent(response.multi[i].href) == href || response.multi[i].href == decodeURIComponent(href)) && response.multi[i].status == status) {
                 return node.textContent;
+            }
         }
         return null;
     },
