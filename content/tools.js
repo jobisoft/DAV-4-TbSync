@@ -785,6 +785,7 @@ dav.tools = {
                         dav.tools.fixArrayValue(vCardData, vCardField, index);
                         vCardData[vCardField.item][vCardField.entry].value[index] = value;
                     } else if (remove) {
+                        dav.tools.fixArrayValue(vCardData, vCardField, index);
                         vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
                     }
                 }
@@ -801,6 +802,7 @@ dav.tools = {
                         dav.tools.fixArrayValue(vCardData, vCardField, index);
                         vCardData[vCardField.item][vCardField.entry].value[index] = value;
                     } else if (remove) {
+                        dav.tools.fixArrayValue(vCardData, vCardField, index);
                         vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
                     }
                 }
@@ -816,6 +818,7 @@ dav.tools = {
                         dav.tools.fixArrayValue(vCardData, vCardField, index);
                         vCardData[vCardField.item][vCardField.entry].value[index] = value;
                     } else if (remove && vCardData[vCardField.item][vCardField.entry].value.length > index) {
+                        dav.tools.fixArrayValue(vCardData, vCardField, index);
                         vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
                     }
                 }
