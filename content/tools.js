@@ -280,11 +280,23 @@ dav.tools = {
                         for (let i=0; i < multi.length; i++) {
                             let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
                             let propstats = multi[i].getElementsByTagNameNS(dav.ns.d, "propstat");
-                            for (let p=0; p < propstats.length; p++) {
-                                let statusNode = dav.tools.evaluateNode(propstats[p], [["d", "status"]]);
+                            if (propstats.length > 0) {
+                                //response contains propstats, push each as single entry
+                                for (let p=0; p < propstats.length; p++) {
+                                    let statusNode = dav.tools.evaluateNode(propstats[p], [["d", "status"]]);
 
+                                    let resp = {};
+                                    resp.node = propstats[p];
+                                    resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
+                                    resp.href = hrefNode === null ? null : hrefNode.textContent;
+                                    response.multi.push(resp);
+                                }
+                            } else {
+                                //response does not contain any propstats, push raw response
+                                let statusNode = dav.tools.evaluateNode(multi[i], [["d", "status"]]);
+                                
                                 let resp = {};
-                                resp.node = propstats[p];
+                                resp.node = multi[i];
                                 resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
                                 resp.href = hrefNode === null ? null : hrefNode.textContent;
                                 response.multi.push(resp);
