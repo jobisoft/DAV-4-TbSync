@@ -371,12 +371,16 @@ dav.sync = {
 
             //get etags of all cards on server and find the changed cards
             tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-            let cards = yield dav.tools.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});           
+            let cards = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /><d:getcontenttype /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});           
+
+            //does not work on older servers
+            //let cards = yield dav.tools.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});           
             tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);            
-            for (let c=0; c < cards.multi.length; c++) {
+            for (let c=0; cards.multi && c < cards.multi.length; c++) {
                 let id =  cards.multi[c].href;
                 let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);                       
-                if (cards.multi[c].status == "200" && etag !== null && id !== null) {
+                let ctype = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getcontenttype"]]);                       
+                if (cards.multi[c].status == "200" && etag !== null && id !== null && ctype !== null) { //we do not actualyl check the content of ctype
                     vCardsFoundOnServer.push(id);
                     let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
                     if (!card) {
