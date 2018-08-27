@@ -464,7 +464,8 @@ dav.tools = {
     supportedProperties: [
         {name: "DisplayName", minversion: "0.4"}, 
         {name: "FirstName", minversion: "0.4"},
-        {name: "MiddleName", minversion: "0.6"},
+        {name: "X-DAV-MiddleName", minversion: "0.8.8"},
+        {name: "X-DAV-MainPhone", minversion: "0.8.8"},
         {name: "LastName", minversion: "0.4"},
         {name: "PrimaryEmail", minversion: "0.4"}, 
         {name: "SecondEmail", minversion: "0.4"},
@@ -521,7 +522,7 @@ dav.tools = {
         "Categories" : "categories",
         "Notes" : "note",
         "FirstName" : "n",
-        "MiddleName" : "n",
+        "X-DAV-MiddleName" : "n",
         "LastName" : "n",
         "PreferMailFormat" : "X-MOZILLA-HTML",
         "Custom1" : "X-MOZILLA-CUSTOM1",
@@ -625,6 +626,40 @@ dav.tools = {
                     }
                     break;
 
+                case "X-DAV-MainPhone": 
+                    {
+                        data.metatype.push("PREV");
+                        data.item = "tel";
+
+                        //search the first valid entry
+                        if (vCardData[data.item]) {
+                            let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
+
+                            //we take everything that is not HOME, WORK, CELL, PAGER or FAX
+                            //we take PREV over MAIN (fruux) over VOICE over ?
+                            let tel = {};
+                            tel.prev =[]; 
+                            tel.main =[]; 
+                            tel.voice =[]; 
+                            tel.other =[]; 
+                            for (let i=0; i < metaTypeData.length; i++) {
+                                if (!metaTypeData[i].includes("HOME") && !metaTypeData[i].includes("WORK") && !metaTypeData[i].includes("CELL") && !metaTypeData[i].includes("PAGER") && !metaTypeData[i].includes("FAX")) {
+                                    if (metaTypeData[i].includes("PREV")) tel.prev.push(i);
+                                    else if (metaTypeData[i].includes("MAIN")) tel.main.push(i);
+                                    else if (metaTypeData[i].includes("VOICE")) tel.voice.push(i);
+                                    else tel.other.push(i);
+                                }
+                            }
+
+                            if (tel.prev.length > 0) data.entry = tel.prev[0];
+                            else if (tel.main.length > 0) data.entry = tel.main[0];
+                            else if (tel.voice.length > 0) data.entry = tel.voice[0];
+                            else if (tel.other.length > 0) data.entry = tel.other[0];
+
+                        }                        
+                    }
+                    break;                    
+
                 default:
                     //Check *Maps
                     if (dav.tools.simpleMap.hasOwnProperty(property)) {
@@ -710,9 +745,9 @@ dav.tools = {
 
             case "FirstName":
             case "LastName":
-            case "MiddleName":
+            case "X-DAV-MiddleName":
                 {
-                    let index = ["LastName","FirstName","MiddleName","Prefix","Suffix"].indexOf(property);
+                    let index = ["LastName","FirstName","X-DAV-MiddleName","Prefix","Suffix"].indexOf(property);
                     return dav.tools.getSaveArrayValue(vCardValue, index);
                 }
                 break;
@@ -793,10 +828,10 @@ dav.tools = {
                 break;
                 
             case "FirstName":
-            case "MiddleName":
+            case "X-DAV-MiddleName":
             case "LastName":
                 {
-                    let index = ["LastName","FirstName","MiddleName","Prefix","Suffix"].indexOf(property);
+                    let index = ["LastName","FirstName","X-DAV-MiddleName","Prefix","Suffix"].indexOf(property);
                     if (store) {
                         if (add) vCardData[vCardField.item][vCardField.entry].value = ["","","","",""];
 

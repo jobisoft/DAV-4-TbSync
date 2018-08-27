@@ -69,7 +69,7 @@ tbSync.dav.onLoadCard = function (aCard, aDocument) {
     let items = aDocument.getElementsByClassName("davProperty");
     for (let i=0; i < items.length; i++)
     {
-        items[i].value = aCard.getProperty(items[i].id.substring(3), ""); //All custom IDs start with Dav, which needs to be cut off
+        items[i].value = aCard.getProperty(items[i].id, "");
     }
     window.document.getElementById("WorkAddress2Container").hidden = true;
     window.document.getElementById("abHomeTab").children[1].hidden = true;
@@ -84,7 +84,7 @@ tbSync.dav.onSaveCard = function (aCard, aDocument) {
         let items = aDocument.getElementsByClassName("davProperty");
         for (let i=0; i < items.length; i++)
         {
-            aCard.setProperty(items[i].id.substring(3), items[i].value); //All custom IDs start with Dav, which needs to be cut off
+            aCard.setProperty(items[i].id, items[i].value);
         }
     }
 }

@@ -11,16 +11,16 @@
 
     <hbox id="DavMiddleNameContainer" align="center" insertafter="NameField1Container" >
         <spacer flex="1" />
-        <label control="DavMiddleName" value="&abCard.MiddleName;" />
+        <label control="X-DAV-MiddleName" value="&abCard.MiddleName;" />
         <hbox class="CardEditWidth" >
-            <textbox id="DavMiddleName" flex="1" class="davProperty CardEditWidth" />
+            <textbox id="X-DAV-MiddleName" flex="1" class="davProperty CardEditWidth" />
         </hbox>
     </hbox>
 
     <hbox id="DavMainPhoneContainer" align="center" insertbefore="WorkPhoneContainer" >
         <spacer flex="1" />
-        <label control="DavMainPhone" value="&abCard.Phone;" />
-        <textbox id="DavMainPhone" class="davProperty PhoneEditWidth" />
+        <label control="X-DAV-MainPhone" value="&abCard.Phone;" />
+        <textbox id="X-DAV-MainPhone" class="davProperty PhoneEditWidth" />
     </hbox>
 
 </overlay>
