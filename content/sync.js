@@ -329,12 +329,10 @@ dav.sync = {
                             //MOD
                             dav.tools.modifyContact (addressBook, id, data, etag, syncdata);
                         }
-                    } else {
-                        let statusNode = dav.tools.evaluateNode(cards.multi[c].node, [["d","status"]]);
-                        if (card && statusNode.textContent && statusNode.textContent.split(" ")[1] == "404") {
-                            //DEL
-                            vCardsDeletedOnServer.appendElement(card, "");
-                        }
+                    } else if (status == "404") {
+                        //DEL
+                        vCardsDeletedOnServer.appendElement(card, "");
+                        tbSync.db.addItemToChangeLog(syncdata.targetId, id, "deleted_by_server");
                     }
                 }
                 syncdata.done++;
@@ -437,6 +435,7 @@ dav.sync = {
                 if (id && !vCardsFoundOnServer.includes(id) && tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "added_by_user") {
                     //delete request from server
                     vCardsDeletedOnServer.appendElement(card, "");
+                    tbSync.db.addItemToChangeLog(syncdata.targetId, id, "deleted_by_server");
                 }
             }
             dav.tools.deleteContacts (addressBook, vCardsDeletedOnServer, syncdata);
