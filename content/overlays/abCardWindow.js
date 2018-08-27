@@ -57,6 +57,7 @@ tbSync.dav.onInjectIntoCardEditWindow = function (window) {
 tbSync.dav.onAbSelectChangeNewCard = function(window) {
     let folders = tbSync.db.findFoldersWithSetting("target", window.document.getElementById("abPopup").value);
     let dav = (folders.length == 1 && tbSync.db.getAccountSetting(folders[0].account, "provider") == "dav");
+    window.document.getElementById("DavMainPhoneContainer").hidden = !dav;
     window.document.getElementById("DavMiddleNameContainer").hidden = !dav;
     window.document.getElementById("WorkAddress2Container").hidden = dav;
     window.document.getElementById("abHomeTab").children[1].hidden = dav;
@@ -68,7 +69,7 @@ tbSync.dav.onLoadCard = function (aCard, aDocument) {
     let items = aDocument.getElementsByClassName("davProperty");
     for (let i=0; i < items.length; i++)
     {
-        items[i].value = aCard.getProperty(items[i].id, "");
+        items[i].value = aCard.getProperty(items[i].id.substring(3), ""); //All custom IDs start with Dav, which needs to be cut off
     }
     window.document.getElementById("WorkAddress2Container").hidden = true;
     window.document.getElementById("abHomeTab").children[1].hidden = true;
@@ -83,7 +84,7 @@ tbSync.dav.onSaveCard = function (aCard, aDocument) {
         let items = aDocument.getElementsByClassName("davProperty");
         for (let i=0; i < items.length; i++)
         {
-            aCard.setProperty(items[i].id, items[i].value);
+            aCard.setProperty(items[i].id.substring(3), items[i].value); //All custom IDs start with Dav, which needs to be cut off
         }
     }
 }
