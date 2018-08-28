@@ -2,14 +2,10 @@
 <!DOCTYPE window SYSTEM "chrome://dav4tbsync/locale/dav.dtd">
 
 <overlay 
-	id="abCardWindow" 
-	onbeforeinject="tbSync.dav.onBeforeInjectIntoCardEditWindow(window)"
-	oninject="tbSync.dav.onInjectIntoCardEditWindow(window)"
-	xmlns:html="http://www.w3.org/1999/xhtml">
-	
-    <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/abCardWindow.js" />
-
-    <hbox id="DavMiddleNameContainer" align="center" insertafter="NameField1Container" >
+    id="abCardWindow" 
+    xmlns:html="http://www.w3.org/1999/xhtml">
+    
+    <hbox id="DavMiddleNameContainer" align="center" class="davContainer" insertafter="NameField1Container" >
         <spacer flex="1" />
         <label control="X-DAV-MiddleName" value="&abCard.MiddleName;" />
         <hbox class="CardEditWidth" >
@@ -17,7 +13,7 @@
         </hbox>
     </hbox>
 
-    <hbox id="DavMainPhoneContainer" align="center" insertbefore="WorkPhoneContainer" >
+    <hbox id="DavMainPhoneContainer" align="center" class="davContainer" insertbefore="WorkPhoneContainer" >
         <spacer flex="1" />
         <label control="X-DAV-MainPhone" value="&abCard.Phone;" />
         <textbox id="X-DAV-MainPhone" class="davProperty PhoneEditWidth" />
