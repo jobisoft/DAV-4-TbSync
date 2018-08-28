@@ -43,6 +43,8 @@ var dav = {
         //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
+        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
+        
     }),
 
 
@@ -267,6 +269,36 @@ var dav = {
 //        let galdata = [];        
 //        return galdata;
 //    }),
+
+
+
+    /**
+     * Is called if one or more cards have been selected in the addressbook, to update 
+     * field information in the card view pane
+     * 
+     * OPTIONAL, do not implement, if this provider is not adding any fields to the
+     * address book
+     *
+     * @param window       [in] window obj of address book
+     * @param cards        [in] selected card (if owned by this provider)
+     */
+    onAbResultsPaneSelectionChanged: function (window, card) {
+        let cvPhMain = window.document.getElementById("cvPhMain");
+        if (cvPhMain) {
+
+            if (card !== null) {
+                let cvPhMainValue = card.getProperty("X-DAV-MainPhone","");
+                if (cvPhMainValue) {
+                    cvPhMain.textContent = cvPhMain.getAttribute("labelprefix") + " " + cvPhMainValue;
+                    cvPhMain.hidden = false;
+                    return;
+                }
+            }
+            
+            //nothing to print
+            cvPhMain.hidden = true;
+        }
+    },
 
 
 

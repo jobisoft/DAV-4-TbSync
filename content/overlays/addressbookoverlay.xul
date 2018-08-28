@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!DOCTYPE window SYSTEM "chrome://dav4tbsync/locale/dav.dtd">
+
+<overlay 
+	id="abOverlay" 
+	xmlns:html="http://www.w3.org/1999/xhtml">
+
+    <description class="CardViewText" id="cvPhMain" labelprefix="&abCard.Phone;" insertbefore="cvPhWork" >
+    </description>
+
+</overlay>        
