@@ -23,6 +23,7 @@
 var dav = {
     bundle: Services.strings.createBundle("chrome://dav4tbsync/locale/dav.strings"),
     prefSettings: Services.prefs.getBranch("extensions.dav4tbsync."),
+    minTbSyncVersionRequired: "0.7.14",
     
     ns: {
         d: "DAV:",
@@ -40,11 +41,6 @@ var dav = {
      * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
      */
     init: Task.async (function* (lightningIsAvail)  {
-        if (tbSync.cmpVersions("0.7.12.4", tbSync.providerList.eas.version) > 0) {
-            tbSync.window.alert("The installed version of DAV-4-TbSync needs TbSync 0.7.12.4 or newer.");
-            return;
-        }
-
         //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
