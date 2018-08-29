@@ -229,7 +229,6 @@ var dav = {
      * @param folderID      [in] id of the folder this calendar belongs to (sync target)
      */
     createCalendar: function(newname, account, folderID) {
-        //This example implementation is using the standard storage calendar, but you may use another one
         let calManager = cal.getCalendarManager();
         let accountdata = tbSync.db.getAccount(account);
         let password = tbSync.getPassword(accountdata);

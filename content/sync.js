@@ -118,7 +118,7 @@ dav.sync = {
                         newFolder.name = name;
                         newFolder.type = davjobs[job].type;
                         newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
-                        newFolder.selected = (r == 1) ? "1" : "0"; //only select the first one
+                        newFolder.selected = (r == 1) ? tbSync.db.getAccountSetting(syncdata.account, "syncdefaultfolders") : "0"; //only select the first one
 
                         //if there is a cached version of this folderID, addFolder will merge all persistent settings - all other settings not defined here will be set to their defaults
                         tbSync.db.addFolder(syncdata.account, newFolder);
@@ -178,41 +178,51 @@ dav.sync = {
             try {
                 switch ( syncdata.type) {
                     case "carddav": 
-                        // check SyncTarget
-                        if (!tbSync.checkAddressbook(syncdata.account, syncdata.folderID)) {
-                            //could not create target
-                            throw dav.sync.failed("notargets");         
+                        {
+                            // check SyncTarget
+                            if (!tbSync.checkAddressbook(syncdata.account, syncdata.folderID)) {
+                                //could not create target
+                                throw dav.sync.failed("notargets");         
+                            }
+
+                            //get sync target of this addressbook
+                            syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
+                            syncdata.addressbookObj = tbSync.getAddressBookObject(syncdata.targetId);
+
+                            //promisify addressbook, so it can be used together with yield (using same interface as promisified calender)
+                            syncdata.targetObj = tbSync.promisifyAddressbook(syncdata.addressbookObj);
+                            
+                            yield dav.sync.singleFolder(syncdata);
                         }
-
-                        //get sync target of this addressbook
-                        syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
-                        syncdata.addressbookObj = tbSync.getAddressBookObject(syncdata.targetId);
-
-                        //promisify addressbook, so it can be used together with yield (using same interface as promisified calender)
-                        syncdata.targetObj = tbSync.promisifyAddressbook(syncdata.addressbookObj);
-                        
-                        yield dav.sync.singleFolder(syncdata);
                         break;
 
                     case "caldav":
-                        // skip if lightning is not installed
-                        if (tbSync.lightningIsAvailable() == false) {
-                            throw dav.sync.failed("nolightning");         
-                        }
-                        
-                        // check SyncTarget
-                        if (!tbSync.checkCalender(syncdata.account, syncdata.folderID)) {
-                            //could not create target
-                            throw dav.sync.failed("notargets");         
-                        }
+                        {
+                            // skip if lightning is not installed
+                            if (tbSync.lightningIsAvailable() == false) {
+                                throw dav.sync.failed("nolightning");         
+                            }
+                            
+                            // check SyncTarget
+                            if (!tbSync.checkCalender(syncdata.account, syncdata.folderID)) {
+                                //could not create target
+                                throw dav.sync.failed("notargets");         
+                            }
 
-                        //we do not do anything here, because that calendar is managed by lightning directly
-                        tbSync.db.clearChangeLog(tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target"));
-                        throw dav.sync.succeeded();         
+                            //init sync via lightning
+                            let target = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
+                            let calManager = cal.getCalendarManager();
+                            let targetCal = calManager.getCalendarById(target);
+                            targetCal.refresh();
+                            tbSync.db.clearChangeLog(target);
+                            throw dav.sync.succeeded();         
+                        }
                         break;
 
                     default:
-                        throw dav.sync.failed("notsupported");
+                        {
+                            throw dav.sync.failed("notsupported");
+                        }
                         break;
 
                 }
