@@ -74,6 +74,7 @@ var dav = {
             "authOptions" :"",
             "authDigestNC" :"",		
             "host" : "",
+            "fqdn" : "",
             "user" : "",
             "https" : "1",
             "autosync" : "0",
@@ -231,7 +232,7 @@ var dav = {
         let user = accountdata.user;
         
         //Create the new standard calendar with a unique name
-        let hostport = "http" + (accountdata.https ? "s" : "") + "://" + accountdata.host;
+        let hostport = "http" + (accountdata.https ? "s" : "") + "://" + tbSync.db.getAccountSetting(account, "fqdn");
         let url = dav.tools.parseUri(hostport + folderID);
     
         let newCalendar = calManager.createCalendar("caldav", url);
