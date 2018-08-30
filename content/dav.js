@@ -23,7 +23,7 @@
 var dav = {
     bundle: Services.strings.createBundle("chrome://dav4tbsync/locale/dav.strings"),
     prefSettings: Services.prefs.getBranch("extensions.dav4tbsync."),
-    minTbSyncVersionRequired: "0.7.14",
+    minTbSyncVersionRequired: "0.7.15",
     
     ns: {
         d: "DAV:",
