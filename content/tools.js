@@ -724,7 +724,7 @@ dav.tools = {
 
 
     //turn the given vCardValue into a string to be stored as a Thunderbird property
-    getThunderbirdPropertyValueFromVCard: function (property, vCardData, vCardField) {
+    getThunderbirdPropertyValueFromVCard: function (syncdata, property, vCardData, vCardField) {
         let vCardValue = (vCardData && 
                                     vCardField && 
                                     vCardField.entry != -1 && 
@@ -750,7 +750,11 @@ dav.tools = {
             case "WorkAddress":
                 {
                     let field = property.substring(4);
-                    let index = ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"].indexOf(field);
+                    let adr = (tbSync.cmpVersions("0.8.11", syncdata.folderCreatedWithProviderVersion) > 0) 
+                                    ?  ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"] //WRONG
+                                    : ["OfficeBox","ExtAddr","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
+                    
+                    let index = adr.indexOf(field);
                     return dav.tools.getSaveArrayValue(vCardValue, index);
                 }
                 break;
@@ -826,7 +830,11 @@ dav.tools = {
             case "WorkAddress":
                 {
                     let field = property.substring(4);
-                    let index = ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"].indexOf(field);
+                    let adr = (tbSync.cmpVersions("0.8.11", syncdata.folderCreatedWithProviderVersion) > 0) 
+                                    ?  ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"] //WRONG
+                                    : ["OfficeBox","ExtAddr","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
+                    
+                    let index = adr.indexOf(field);
                     if (store) {
                         if (add) vCardData[vCardField.item][vCardField.entry].value = ["","","","","","",""];
 
@@ -914,10 +922,10 @@ dav.tools = {
 
             let property = dav.tools.supportedProperties[f].name;
             let vCardField = dav.tools.getVCardField(syncdata, property, vCardData);
-            let newServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(property, vCardData, vCardField);
+            let newServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(syncdata, property, vCardData, vCardField);
 
             let oCardField = dav.tools.getVCardField(syncdata, property, oCardData);            
-            let oldServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(property, oCardData, oCardField);
+            let oldServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(syncdata, property, oCardData, oCardField);
 
             //smart merge: only update the property, if it has changed on the server (keep local modifications)
             if (newServerValue !== oldServerValue) {
