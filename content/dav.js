@@ -290,6 +290,8 @@ var dav = {
             if (cvPhMainValue) {
                 cvPhMain.textContent = cvPhMain.getAttribute("labelprefix") + " " + cvPhMainValue;
                 cvPhMain.hidden = false;
+                window.document.getElementById("cvbPhone").collapsed = false;
+                window.document.getElementById("cvhPhone").collapsed = false;
             }
         }
     },
