@@ -6,7 +6,7 @@ Most servers provide the discovery service, which allows to use just the plain s
 This provider is not actually implementing the CalDAV protocol, but will add the found calendars to lightning and let lightning handle the sync. Please keep in mind: Lightning is not able to sync multiple calendars of different users on the same server.
 **This limitation does not exist for the CardDAV implementation of this provider!**
 
-The [DAV-4-TbSync extension](https://github.com/jobisoft/DAV-4-TbSync/releases) need the [TbSync v0.7.12 or later](https://github.com/jobisoft/TbSync/releases).
+The [DAV-4-TbSync extension](https://github.com/jobisoft/DAV-4-TbSync/releases) need the [TbSync v0.7.15 or later](https://github.com/jobisoft/TbSync/releases).
 
 ### Image of the sabre/dav provider hooked into TbSync:
 
