@@ -798,7 +798,7 @@ dav.tools = {
 
 
     //add/update the given Thunderbird propeties value in vCardData obj
-    updateValueOfVCard: function (property, vCardData, vCardField, value) {
+    updateValueOfVCard: function (syncdata, property, vCardData, vCardField, value) {
         let add = false;
         let store = value ? true : false;
         let remove = (!store && vCardData[vCardField.item] && vCardField.entry != -1);
@@ -1016,7 +1016,7 @@ dav.tools = {
                 case "Photo":
                     {
                         if (card.getProperty("PhotoType", "") == "file") {
-                            dav.tools.updateValueOfVCard(property, vCardData, vCardField, tbSync.getphoto(card));
+                            dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, tbSync.getphoto(card));
                             vCardData[vCardField.item][0].meta = {"encoding": ["b"], "type": ["JPEG"]};
                         }
                     }
@@ -1032,14 +1032,14 @@ dav.tools = {
                         if (birthYear && birthMonth && birthDay) {
                             value = birthYear + "-" + (birthMonth < 10 ? "0" : "") + birthMonth + "-" + (birthDay < 10 ? "0" : "") + birthDay;
                         }
-                        dav.tools.updateValueOfVCard(property, vCardData, vCardField, value);
+                        dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, value);
                     }
                     break;
                     
                 default:
                     {
                         let value = card.getProperty(property, "");
-                        dav.tools.updateValueOfVCard(property, vCardData, vCardField, value);
+                        dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, value);
                     }
                     break;
             }

@@ -344,7 +344,7 @@ dav.sync = {
                             //MOD
                             dav.tools.modifyContact (addressBook, id, data, etag, syncdata);
                         }
-                    } else if (status == "404") {
+                    } else if (status == "404" && card) {
                         //DEL
                         vCardsDeletedOnServer.appendElement(card, "");
                         tbSync.db.addItemToChangeLog(syncdata.targetId, id, "deleted_by_server");
