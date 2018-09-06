@@ -24,7 +24,7 @@ var dav = {
     bundle: Services.strings.createBundle("chrome://dav4tbsync/locale/dav.strings"),
     prefSettings: Services.prefs.getBranch("extensions.dav4tbsync."),
     minTbSyncVersionRequired: "0.7.15",
-    
+
     ns: {
         d: "DAV:",
         cal: "urn:ietf:params:xml:ns:caldav" ,
@@ -33,7 +33,7 @@ var dav = {
         s: "http://sabredav.org/ns",
         apple: "http://apple.com/ns/ical/"
     },
-    
+
 
     /**
      * Called during load of external provider extension to init provider.
@@ -45,7 +45,7 @@ var dav = {
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
-        
+
     }),
 
 
@@ -67,12 +67,12 @@ var dav = {
             "account" : "",
             "accountname": "",
             "provider": "dav",
-            "lastsynctime" : "0", 
+            "lastsynctime" : "0",
             "status" : "disabled", //global status: disabled, OK, syncing, notsyncronized, nolightning, ...
             "servertype": "custom",
             "authMethod" :"",
             "authOptions" :"",
-            "authDigestNC" :"",		
+            "authDigestNC" :"",
             "host" : "",
             "fqdn" : "",
             "user" : "",
@@ -83,7 +83,7 @@ var dav = {
             //some example options
             "syncdefaultfolders" : "1",
             "useHomeAsPrimary" : "0",
-            }; 
+            };
         return row;
     },
 
@@ -105,11 +105,11 @@ var dav = {
             "lastsynctime" : "",
             "status" : "",
             "parentID" : "",
-            "useChangeLog" : "1", //log changes into changelog	
+            "useChangeLog" : "1", //log changes into changelog
             "ctag" : "",
             "token" : "",
             "downloadonly" : tbSync.db.getAccountSetting(account, "downloadonly"), //each folder has its own settings, the main setting is just the default,
-            "createdWithProviderVersion" : "0",                        
+            "createdWithProviderVersion" : "0",
             };
         return folder;
     },
@@ -126,7 +126,7 @@ var dav = {
 
 
     /**
-     * Return the thunderbird type (tb-contact, tb-event, tb-todo) for a given folder type of this provider. A provider could have multiple 
+     * Return the thunderbird type (tb-contact, tb-event, tb-todo) for a given folder type of this provider. A provider could have multiple
      * type definitions for a single thunderbird type (default calendar, shared address book, etc), this maps all possible provider types to
      * one of the three thunderbird types.
      *
@@ -134,7 +134,7 @@ var dav = {
      */
     getThunderbirdFolderType: function(type) {
         switch (type) {
-            case "carddav": 
+            case "carddav":
                 return "tb-contact";
             case "caldav":
                 return "tb-event";
@@ -192,7 +192,7 @@ var dav = {
      * @param account       [in] id of the account this address book belongs to
      * @param folderID      [in] id of the folder this address book belongs to (sync target)
      *
-     * return the id of the newAddressBook 
+     * return the id of the newAddressBook
      */
     createAddressBook: function (newname, account, folderID) {
         //This example implementation is using the standard address book, but you may use another one
@@ -208,7 +208,7 @@ var dav = {
      *
      * @param aItem       [in] card that needs new ID
      *
-     * returns the new id 
+     * returns the new id
      */
     getNewCardID: function (aItem, folder) {
         let uuid = new dav.UUID();
@@ -230,11 +230,11 @@ var dav = {
         let accountdata = tbSync.db.getAccount(account);
         let password = tbSync.getPassword(accountdata);
         let user = accountdata.user;
-        
+
         //Create the new standard calendar with a unique name
         let hostport = "http" + (accountdata.https ? "s" : "") + "://" + tbSync.db.getAccountSetting(account, "fqdn");
         let url = dav.tools.parseUri(hostport + folderID);
-    
+
         let newCalendar = calManager.createCalendar("caldav", url);
         newCalendar.id = cal.getUUID();
         newCalendar.name = newname;
@@ -246,9 +246,9 @@ var dav = {
         tbSync.setLoginInfo(hostport, authOptions.realm, user, password);
 
         //do not monitor CalDAV calendars (managed by lightning)
-        tbSync.db.setFolderSetting(account, folderID, "useChangeLog", "0"); 
+        tbSync.db.setFolderSetting(account, folderID, "useChangeLog", "0");
 
-        calManager.registerCalendar(newCalendar);            
+        calManager.registerCalendar(newCalendar);
         return newCalendar;
     },
 
@@ -267,16 +267,16 @@ var dav = {
      * @param currentQuery  [in] search query
      */
 //        abServerSearch: Task.async (function* (account, currentQuery)  {
-//        let galdata = [];        
+//        let galdata = [];
 //        return galdata;
 //    }),
 
 
 
     /**
-     * Is called if one or more cards have been selected in the addressbook, to update 
+     * Is called if one or more cards have been selected in the addressbook, to update
      * field information in the card view pane
-     * 
+     *
      * OPTIONAL, do not implement, if this provider is not adding any fields to the
      * address book
      *
@@ -299,11 +299,11 @@ var dav = {
 
 
     /**
-     * Is called if a card is loaded in the edit dialog to show/hide elements 
+     * Is called if a card is loaded in the edit dialog to show/hide elements
     *  besides those of class type "<provider>Container"
-     * 
-     * OPTIONAL, do not implement, if this provider is not manipulating 
-     * the edit/new dialog beyond toggeling the elements of 
+     *
+     * OPTIONAL, do not implement, if this provider is not manipulating
+     * the edit/new dialog beyond toggeling the elements of
      * class  "<provider>Container"
      *
      * @param document       [in] document obj of edit/new dialog
@@ -324,30 +324,30 @@ var dav = {
      * @param job           [in] identifier about what is to be done, the standard job is "sync", you are free to add
      *                           custom jobs like "deletefolder" via your own accountSettings.xul
      */
-    start: Task.async (function* (syncdata, job)  {                        
+    start: Task.async (function* (syncdata, job)  {
         try {
             switch (job) {
                 case "sync":
                     //update folders avail on server and handle added, removed, renamed folders
                     yield dav.sync.folderList(syncdata);
 
-                    //set all selected folders to "pending", so they are marked for syncing 
+                    //set all selected folders to "pending", so they are marked for syncing
                     //this also removes all leftover cached folders and sets all other folders to a well defined cached = "0"
                     //which will set this account as connected (if at least one folder with cached == "0" is present)
                     tbSync.prepareFoldersForSync(syncdata.account);
 
                     //check if any folder was found
-                    if (!tbSync.isConnected(syncdata.account)) {	
+                    if (!tbSync.isConnected(syncdata.account)) {
                         throw dav.sync.failed("no-folders-found-on-server");
                     }
-            
+
                     //update folder list in GUI
                     Services.obs.notifyObservers(null, "tbsync.updateFolderList", syncdata.account);
 
                     //process all pending folders
                     yield dav.sync.allPendingFolders(syncdata);
                     break;
-                                    
+
                 default:
                     throw dav.sync.failed("unknown::"+job);
                     break;
@@ -355,17 +355,17 @@ var dav = {
         } catch (e) {
             if (e.type == "dav4tbsync") tbSync.finishAccountSync(syncdata, e.message);
             else {
-                tbSync.finishAccountSync(syncdata, "javascriptError::" + (e.message ? e.message : e));            
+                tbSync.finishAccountSync(syncdata, "javascriptError::" + (e.message ? e.message : e));
                 Components.utils.reportError(e);
             }
-        }            
+        }
     }),
-    
+
 
 
 
     /**
-     * Implements the TbSync UI interface for external provider extensions, 
+     * Implements the TbSync UI interface for external provider extensions,
      * only needed, if the standard TbSync UI logic is used (chrome://tbsync/content/manager/accountSettings.js).
      */
     ui: {
@@ -410,7 +410,7 @@ var dav = {
 
 
         /**
-         * Is called before the context menu of the folderlist is shown, allows to 
+         * Is called before the context menu of the folderlist is shown, allows to
          * show/hide custom menu options based on selected folder
          *
          * @param document       [in] document object of the account settings window
@@ -422,7 +422,7 @@ var dav = {
 
 
         /**
-         * Returns an array of folderRowData objects, containing all information needed 
+         * Returns an array of folderRowData objects, containing all information needed
          * to fill the folderlist. The content of the folderRowData object is free to choose,
          * it will be passed back to addRowToFolderList() and updateRowOfFolderList()
          *
@@ -446,13 +446,13 @@ var dav = {
          * in the folderlist. The content of the folderRowData object is free to choose, it
          * will be passed back to addRowToFolderList() and updateRowOfFolderList()
          *
-         * Use tbSync.getSyncStatusMsg(folder, syncdata, provider) to get a nice looking 
+         * Use tbSync.getSyncStatusMsg(folder, syncdata, provider) to get a nice looking
          * status message, including sync progress (if folder is synced)
          *
          * @param folder         [in] folder databasse object of requested folder
          * @param syncdata       [in] optional syncdata obj send by updateRowOfFolderList(),
          *                            needed to check if the folder is currently synced
-         */        
+         */
         getFolderRowData: function (folder, syncdata = null) {
             let rowData = {};
             rowData.folderID = folder.folderID;
@@ -463,7 +463,7 @@ var dav = {
 
             return rowData;
         },
-    
+
 
 
         /**
@@ -472,7 +472,7 @@ var dav = {
          * @param document       [in] document object of the account settings window
          * @param newListItem    [in] the listitem of the row, where row items should be added to
          * @param rowData        [in] rowData object with all information needed to add the row
-         */        
+         */
         addRowToFolderList: function (document, newListItem, rowData) {
             //add folder type/img
             let itemTypeCell = document.createElement("listcell");
@@ -504,7 +504,7 @@ var dav = {
             itemStatusCell.setAttribute("label", rowData.status);
             itemStatusCell.setAttribute("tooltiptext", rowData.status);
             newListItem.appendChild(itemStatusCell);
-        },		
+        },
 
 
 
@@ -514,7 +514,7 @@ var dav = {
          * @param document       [in] document object of the account settings window
          * @param listItem       [in] the listitem of the row, which needs to be updated
          * @param rowData        [in] rowData object with all information needed to add the row
-         */        
+         */
         updateRowOfFolderList: function (document, listItem, rowData) {
             tbSync.updateListItemCell(listItem.childNodes[1], ["label","tooltiptext"], rowData.name);
             tbSync.updateListItemCell(listItem.childNodes[2], ["label","tooltiptext"], rowData.status);
@@ -535,9 +535,9 @@ var dav = {
          * @param type       [in] provider folder type
          */
         getTypeImage: function (type) {
-            let src = ""; 
+            let src = "";
             switch (type) {
-                case "carddav": 
+                case "carddav":
                     src = "contacts16.png";
                     break;
                 case "caldav":
