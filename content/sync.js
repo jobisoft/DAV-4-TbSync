@@ -113,7 +113,11 @@ dav.sync = {
                     if (resourcetype === null || response.multi[r].status != "200") continue;
 
                     let href = response.multi[r].href;
-                    let name = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","displayname"]]).textContent;
+                    let name_node = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","displayname"]]);
+                    let name = job == "cal" ? "unnamed calendar" : "unnamed address book";
+                    if (name_node != null) {
+                        name = name_node.textContent;
+                    }
                     let color = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["apple","calendar-color"]]);
 
                     let folder = tbSync.db.getFolder(syncdata.account, href);
