@@ -44,7 +44,7 @@ dav.tools = {
 
         return uri;
     },
-    
+
     hashMD5: function (str) {
         var converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
 
@@ -69,10 +69,10 @@ dav.tools = {
         // convert the binary hash data to a hex string.
         var s = Array.from(hash, (c, i) => toHexString(hash.charCodeAt(i))).join("");
         // s now contains your hash in hex: should be
-        // 5eb63bbbe01eeed093cb22bb8f5acdc3    
+        // 5eb63bbbe01eeed093cb22bb8f5acdc3
         return s;
     },
-    
+
     /*
      * Part of digest-header - index.js : https://github.com/node-modules/digest-header
      *
@@ -110,7 +110,7 @@ dav.tools = {
             return "";
         }
         let qop = opts.qop || "";
-  
+
         let userpass = [user,password];
 
         let NC_PAD = '00000000';
@@ -118,7 +118,7 @@ dav.tools = {
         tbSync.db.setAccountSetting(account, "authDigestNC", String(++nc))
 
         nc = NC_PAD.substring(nc.length) + nc;
-  
+
         let randomarray = new Uint8Array(8);
         tbSync.window.crypto.getRandomValues(randomarray);
         let cnonce = randomarray.toString('hex');
@@ -131,7 +131,7 @@ dav.tools = {
             s += ':' + nc + ':' + cnonce + ':' + qop;
         }
         s += ':' + ha2;
-        
+
         var response = dav.tools.hashMD5(s);
         var authstring = 'Digest username="' + userpass[0] + '", realm="' + opts.realm + '", nonce="' + opts.nonce + '", uri="' + uri + '", response="' + response + '"';
         if (opts.opaque) {
@@ -140,9 +140,9 @@ dav.tools = {
         if (qop) {
             authstring +=', qop=' + qop + ', nc=' + nc + ', cnonce="' + cnonce + '"';
         }
-        return authstring;        
+        return authstring;
     },
-    
+
 
     convertToXML: function(text) {
         //try to convert response body to xml
@@ -162,7 +162,7 @@ dav.tools = {
 
         return xml;
     },
-    
+
     sendRequest: Task.async (function* (request, _url, method, syncdata, headers) {
         let account = tbSync.db.getAccount(syncdata.account);
         let password = tbSync.getPassword(account);
@@ -179,32 +179,32 @@ dav.tools = {
         options.body = request;
         options.cache = "no-cache";
         //do not include credentials, so we do not end up in a session, see https://github.com/owncloud/core/issues/27093
-        options.credentials = "omit"; 
+        options.credentials = "omit";
         options.redirect = "follow";// manual, *follow, error
         options.headers = headers;
         options.headers["Content-Length"] = request.length;
-        
-        //default
-        if (!options.headers.hasOwnProperty("Content-Type")) 
-            options.headers["Content-Type"] = "application/xml; charset=utf-8";            
 
-            
+        //default
+        if (!options.headers.hasOwnProperty("Content-Type"))
+            options.headers["Content-Type"] = "application/xml; charset=utf-8";
+
+
         //add abort/timeout signal
         let controller = null;
         if (useAbortSignal) {
             controller = new  tbSync.window.AbortController();
             options.signal = controller.signal;
         }
-        
+
         let numberOfAuthLoops = 0;
         do {
             numberOfAuthLoops++;
-            
+
             switch(tbSync.db.getAccountSetting(syncdata.account, "authMethod").toUpperCase()) {
                 case "":
                     //not set yet, send unauthenticated request
                     break;
-                
+
                 case "BASIC":
                     options.headers["Authorization"] = "Basic " + btoa(account.user + ':' + password);
                     break;
@@ -213,7 +213,7 @@ dav.tools = {
                     //try to re-use the known server nounce (stored in account.authOptions)
                     options.headers["Authorization"] = dav.tools.getDigestAuthHeader(method, _url, account.user, password, account.authOptions, syncdata.account);
                     break;
-            
+
                 default:
                     throw dav.sync.failed("unsupported_auth_method:" + account.authMethod);
             }
@@ -231,19 +231,19 @@ dav.tools = {
                     throw dav.sync.failed("timeout");
                 } else {
                     throw dav.sync.failed("networkerror");
-                }        
+                }
             }
 
             //TODO: Handle cert errors ??? formaly done by
             //let error = tbSync.createTCPErrorFromFailedXHR(syncdata.req);
 
-            let text = yield response.text();            
+            let text = yield response.text();
             tbSync.dump("RESPONSE", response.status + " : " + text);
             switch(response.status) {
                 case 401: // AuthError
                     {
                         let authHeader = response.headers.get("WWW-Authenticate")
-                        //update authMethod and authOptions    
+                        //update authMethod and authOptions
                         if (authHeader) {
                             let m = null;
                             let o = null;
@@ -257,7 +257,7 @@ dav.tools = {
                             if (opt_old.nonce != opt_new.nonce) {
                                 tbSync.db.setAccountSetting(syncdata.account, "authDigestNC", "0");
                             }
-                            
+
                             tbSync.db.setAccountSetting(syncdata.account, "authMethod", m);
                             tbSync.db.setAccountSetting(syncdata.account, "authOptions", o);
                             //is this the first fail? Retry with new settings.
@@ -266,12 +266,12 @@ dav.tools = {
                         throw dav.sync.failed("401");
                     }
                     break;
-        
+
                 case 207: //preprocess multiresponse
                     {
                         let xml = dav.tools.convertToXML(text);
                         if (xml === null) throw dav.sync.failed("mailformed-xml");
-                        
+
                         let response = {};
                         response.node = xml.documentElement;
 
@@ -294,7 +294,7 @@ dav.tools = {
                             } else {
                                 //response does not contain any propstats, push raw response
                                 let statusNode = dav.tools.evaluateNode(multi[i], [["d", "status"]]);
-                                
+
                                 let resp = {};
                                 resp.node = multi[i];
                                 resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
@@ -302,11 +302,11 @@ dav.tools = {
                                 response.multi.push(resp);
                             }
                         }
-            
+
                         return response;
                     }
                     break;
-                    
+
                 case 204: //is returned by DELETE - no data
                 case 201: //is returned by CREATE - no data
                     return null;
@@ -328,25 +328,25 @@ dav.tools = {
                         }
                         return noresponse;
                     }
-                                  
+
                 default:
                     throw dav.sync.failed(response.status);
-                    
+
             }
         }
         while (true);
     }),
-    
-    
+
+
     evaluateNode: function (_node, path) {
         let node = _node;
         let valid = false;
-        
+
         for (let i=0; i < path.length; i++) {
 
             let children = node.children;
             valid = false;
-            
+
             for (let c=0; c < children.length; c++) {
                 if (children[c].localName == path[i][1] && children[c].namespaceURI == dav.ns[path[i][0]]) {
                     node = children[c];
@@ -367,14 +367,14 @@ dav.tools = {
 
     getNodeTextContentFromMultiResponse: function (response, path, href = null, status = "200") {
         for (let i=0; i < response.multi.length; i++) {
-            let node = dav.tools.evaluateNode(response.multi[i].node, path);            
+            let node = dav.tools.evaluateNode(response.multi[i].node, path);
             if (node !== null && (href === null || response.multi[i].href == href || decodeURIComponent(response.multi[i].href) == href || response.multi[i].href == decodeURIComponent(href)) && response.multi[i].status == status) {
                 return node.textContent;
             }
         }
         return null;
     },
-    
+
     getMultiGetRequest: function(hrefs) {
         let request = "<card:addressbook-multiget "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /><card:address-data /></d:prop>";
         let counts = 0;
@@ -387,7 +387,7 @@ dav.tools = {
         if (counts > 0) return request;
         else return null;
     },
-    
+
 
 
 
@@ -397,25 +397,25 @@ dav.tools = {
             syncdata.todo = vCardsDeletedOnServer.length;
             syncdata.done = 0;
             tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
-            addressBook.deleteCards(vCardsDeletedOnServer);           
+            addressBook.deleteCards(vCardsDeletedOnServer);
         }
     },
-    
-    addContact: function(addressBook, id, data, etag, syncdata) {        
+
+    addContact: function(addressBook, id, data, etag, syncdata) {
         //prepare new card
         let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
         card.setProperty("TBSYNCID", id);
 
         dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, data.textContent.trim(), etag.textContent);
-        
+
         tbSync.db.addItemToChangeLog(syncdata.targetId, id, "added_by_server");
         addressBook.addCard(card);
     },
-    
-    modifyContact: function(addressBook, id, data, etag, syncdata) {
-        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
 
-        dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, data.textContent.trim(), etag.textContent, card.getProperty("X-DAV-VCARD", ""));        
+    modifyContact: function(addressBook, id, data, etag, syncdata) {
+        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
+
+        dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, data.textContent.trim(), etag.textContent, card.getProperty("X-DAV-VCARD", ""));
 
         if (syncdata.revert || tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "modified_by_user") {
             tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
@@ -435,14 +435,14 @@ dav.tools = {
     //* * * * * * * * * * * * * * * * *
     //* ACTUAL SYNC MAGIC *
     //* * * * * * * * * * * * * * * * *
-    
+
     //helper function: check vCardData object if it has a meta.type associated
     itemHasMetaType: function (vCardData, item, entry, typefield) {
-        return (vCardData[item][entry].meta && 
-                vCardData[item][entry].meta[typefield] && 
+        return (vCardData[item][entry].meta &&
+                vCardData[item][entry].meta[typefield] &&
                 vCardData[item][entry].meta[typefield].length > 0);
     },
-    
+
     //helper function: for each entry for the given item, extract the associated meta.type
     getMetaTypeData: function (vCardData, item, typefield) {
         let metaTypeData = [];
@@ -451,7 +451,7 @@ dav.tools = {
                 //bug in vCard parser? type is always array of length 1, all values joined by ,
                 metaTypeData.push( vCardData[item][i].meta[typefield][0].split(",").map(function(x){ return x.toUpperCase().trim() }) );
             } else {
-                metaTypeData.push([]);                
+                metaTypeData.push([]);
             }
         }
         return metaTypeData;
@@ -462,7 +462,7 @@ dav.tools = {
             let v = vCardData[vCardField.item][vCardField.entry].value;
             vCardData[vCardField.item][vCardField.entry].value = [v];
         }
-        while (vCardData[vCardField.item][vCardField.entry].value.length < index) vCardData[vCardField.item][vCardField.entry].value.push("");                        
+        while (vCardData[vCardField.item][vCardField.entry].value.length < index) vCardData[vCardField.item][vCardField.entry].value.push("");
     },
 
     getSaveArrayValue: function (vCardValue, index) {
@@ -472,18 +472,18 @@ dav.tools = {
         } else if (index == 0) return vCardValue;
         else return "";
     },
-    
+
     supportedProperties: [
-        {name: "DisplayName", minversion: "0.4"}, 
+        {name: "DisplayName", minversion: "0.4"},
         {name: "FirstName", minversion: "0.4"},
         {name: "X-DAV-MiddleName", minversion: "0.8.8"},
         {name: "X-DAV-MainPhone", minversion: "0.8.8"},
         {name: "LastName", minversion: "0.4"},
-        {name: "PrimaryEmail", minversion: "0.4"}, 
+        {name: "PrimaryEmail", minversion: "0.4"},
         {name: "SecondEmail", minversion: "0.4"},
         {name: "NickName", minversion: "0.4"},
         {name: "Birthday", minversion: "0.4"}, //fake, will trigger special handling
-        {name: "Photo", minversion: "0.4"}, //fake, will trigger special handling    
+        {name: "Photo", minversion: "0.4"}, //fake, will trigger special handling
         {name: "HomeCity", minversion: "0.4"},
         {name: "HomeCountry", minversion: "0.4"},
         {name: "HomeZipCode", minversion: "0.4"},
@@ -542,7 +542,7 @@ dav.tools = {
         "Custom3" : "X-MOZILLA-CUSTOM3",
         "Custom4" : "X-MOZILLA-CUSTOM4",
     },
-        
+
     //map thunderbird fields to vcard fields with additional types
     complexMap : {
         "WebPage1" : {item: "url", type: "WORK"},
@@ -589,12 +589,12 @@ dav.tools = {
     //https://tools.ietf.org/html/rfc2426#section-3.6.1
     getVCardField: function (syncdata, property, vCardData) {
         let data = {item: "", metatype: [], metatypefield: "type", entry: -1, prefix: ""};
-        
+
         if (vCardData) {
             //handle special cases independently, those from *Map will be handled by default
             switch (property) {
-                case "PrimaryEmail": 
-                case "SecondEmail": 
+                case "PrimaryEmail":
+                case "SecondEmail":
                     {
                         let metamap = (tbSync.db.getAccountSetting(syncdata.account, "useHomeAsPrimary") == "0") ? {"PrimaryEmail": "WORK", "SecondEmail": "HOME"} : {"PrimaryEmail": "HOME", "SecondEmail": "WORK"};
                         data.metatype.push(metamap[property]);
@@ -608,7 +608,7 @@ dav.tools = {
                             if (property == "PrimaryEmail") {
 
                                 let prev = [];
-                                let work =[]; 
+                                let work =[];
                                 let workprev = [];
                                 let nothome = [];
                                 for (let i=0; i < metaTypeData.length; i++) {
@@ -623,7 +623,7 @@ dav.tools = {
                                 else if (nothome.length > 0) data.entry = nothome[0];
 
                             } else {
-                                
+
                                 let homeprev = [];
                                 let home = [];
                                 for (let i=0; i < metaTypeData.length; i++) {
@@ -634,11 +634,11 @@ dav.tools = {
                                 else if (home.length > 0) data.entry = home[0];
 
                             }
-                        }                        
+                        }
                     }
                     break;
 
-                case "X-DAV-MainPhone": 
+                case "X-DAV-MainPhone":
                     {
                         data.metatype.push("PREV");
                         data.item = "tel";
@@ -650,10 +650,10 @@ dav.tools = {
                             //we take everything that is not HOME, WORK, CELL, PAGER or FAX
                             //we take PREV over MAIN (fruux) over VOICE over ?
                             let tel = {};
-                            tel.prev =[]; 
-                            tel.main =[]; 
-                            tel.voice =[]; 
-                            tel.other =[]; 
+                            tel.prev =[];
+                            tel.main =[];
+                            tel.voice =[];
+                            tel.other =[];
                             for (let i=0; i < metaTypeData.length; i++) {
                                 if (!metaTypeData[i].includes("HOME") && !metaTypeData[i].includes("WORK") && !metaTypeData[i].includes("CELL") && !metaTypeData[i].includes("PAGER") && !metaTypeData[i].includes("FAX")) {
                                     if (metaTypeData[i].includes("PREV")) tel.prev.push(i);
@@ -668,9 +668,9 @@ dav.tools = {
                             else if (tel.voice.length > 0) data.entry = tel.voice[0];
                             else if (tel.other.length > 0) data.entry = tel.other[0];
 
-                        }                        
+                        }
                     }
-                    break;                    
+                    break;
 
                 default:
                     //Check *Maps
@@ -680,44 +680,44 @@ dav.tools = {
                         if (vCardData[data.item] && vCardData[data.item].length > 0) data.entry = 0;
 
                     } else if (dav.tools.imppMap.hasOwnProperty(property)) {
-                        
+
                         let type = dav.tools.imppMap[property].type;
                         data.metatype.push(type);
                         data.item = dav.tools.imppMap[property].item;
                         data.prefix = dav.tools.imppMap[property].prefix;
                         data.metatypefield = "x-service-type";
-                        
+
                         if (vCardData[data.item]) {
                             let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
-                            
+
                             let valids = [];
                             for (let i=0; i < metaTypeData.length; i++) {
                                 if (metaTypeData[i].includes(type)) valids.push(i);
                             }
-                            if (valids.length > 0) data.entry = valids[0];                            
+                            if (valids.length > 0) data.entry = valids[0];
                         }
-                        
+
                     } else if (dav.tools.complexMap.hasOwnProperty(property)) {
 
                         let type = dav.tools.complexMap[property].type;
                         data.metatype.push(type);
                         data.item = dav.tools.complexMap[property].item;
-                        
+
                         if (vCardData[data.item]) {
                             let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
                             let valids = [];
                             for (let i=0; i < metaTypeData.length; i++) {
                                 if (metaTypeData[i].includes(type)) valids.push(i);
                             }
-                            if (valids.length > 0) data.entry = valids[0];                            
+                            if (valids.length > 0) data.entry = valids[0];
                         }
 
                     } else throw "Unknown TB property <"+property+">";
             }
         }
-        
+
         return data;
-    },        
+    },
 
 
 
@@ -725,13 +725,13 @@ dav.tools = {
 
     //turn the given vCardValue into a string to be stored as a Thunderbird property
     getThunderbirdPropertyValueFromVCard: function (syncdata, property, vCardData, vCardField) {
-        let vCardValue = (vCardData && 
-                                    vCardField && 
-                                    vCardField.entry != -1 && 
-                                    vCardData[vCardField.item] && 
-                                    vCardData[vCardField.item][vCardField.entry]  && 
+        let vCardValue = (vCardData &&
+                                    vCardField &&
+                                    vCardField.entry != -1 &&
+                                    vCardData[vCardField.item] &&
+                                    vCardData[vCardField.item][vCardField.entry]  &&
                                     vCardData[vCardField.item][vCardField.entry].value) ? vCardData[vCardField.item][vCardField.entry].value : null;
-        
+
         if (vCardValue === null) {
             return null;
         }
@@ -750,10 +750,10 @@ dav.tools = {
             case "WorkAddress":
                 {
                     let field = property.substring(4);
-                    let adr = (tbSync.cmpVersions("0.8.11", syncdata.folderCreatedWithProviderVersion) > 0) 
+                    let adr = (tbSync.cmpVersions("0.8.11", syncdata.folderCreatedWithProviderVersion) > 0)
                                     ?  ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"] //WRONG
                                     : ["OfficeBox","ExtAddr","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
-                    
+
                     let index = adr.indexOf(field);
                     return dav.tools.getSaveArrayValue(vCardValue, index);
                 }
@@ -767,7 +767,7 @@ dav.tools = {
                     return dav.tools.getSaveArrayValue(vCardValue, index);
                 }
                 break;
-                
+
             case "Department":
             case "Company":
                 {
@@ -776,7 +776,7 @@ dav.tools = {
                 }
                 break;
 
-            case "Categories": 
+            case "Categories":
                 return (Array.isArray(vCardValue) ? vCardValue.join("\u001A") : vCardValue);
                 break;
 
@@ -785,7 +785,7 @@ dav.tools = {
                 if (vCardValue.toLowerCase() == "false") return 1;
                 return 0;
                 break;
-                
+
             default: //should be a single string
                 let v = (Array.isArray(vCardValue)) ? vCardValue.join(" ") : vCardValue;
                 if (vCardField.prefix.length > 0 && v.startsWith(vCardField.prefix)) return v.substring(vCardField.prefix.length);
@@ -802,7 +802,7 @@ dav.tools = {
         let add = false;
         let store = value ? true : false;
         let remove = (!store && vCardData[vCardField.item] && vCardField.entry != -1);
-        
+
         //preperations if this item does not exist
         if (store && vCardField.entry == -1) {
             //entry does not exists, does the item exists?
@@ -830,10 +830,10 @@ dav.tools = {
             case "WorkAddress":
                 {
                     let field = property.substring(4);
-                    let adr = (tbSync.cmpVersions("0.8.11", syncdata.folderCreatedWithProviderVersion) > 0) 
+                    let adr = (tbSync.cmpVersions("0.8.11", syncdata.folderCreatedWithProviderVersion) > 0)
                                     ?  ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"] //WRONG
                                     : ["OfficeBox","ExtAddr","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
-                    
+
                     let index = adr.indexOf(field);
                     if (store) {
                         if (add) vCardData[vCardField.item][vCardField.entry].value = ["","","","","","",""];
@@ -842,11 +842,11 @@ dav.tools = {
                         vCardData[vCardField.item][vCardField.entry].value[index] = value;
                     } else if (remove) {
                         dav.tools.fixArrayValue(vCardData, vCardField, index);
-                        vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
+                        vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!
                     }
                 }
                 break;
-                
+
             case "FirstName":
             case "X-DAV-MiddleName":
             case "LastName":
@@ -859,7 +859,7 @@ dav.tools = {
                         vCardData[vCardField.item][vCardField.entry].value[index] = value;
                     } else if (remove) {
                         dav.tools.fixArrayValue(vCardData, vCardField, index);
-                        vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
+                        vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!
                     }
                 }
                 break;
@@ -870,17 +870,17 @@ dav.tools = {
                     let index = ["Company","Department"].indexOf(property);
                     if (store) {
                         if (add) vCardData[vCardField.item][vCardField.entry].value = ["",""];
-                        
+
                         dav.tools.fixArrayValue(vCardData, vCardField, index);
                         vCardData[vCardField.item][vCardField.entry].value[index] = value;
                     } else if (remove && vCardData[vCardField.item][vCardField.entry].value.length > index) {
                         dav.tools.fixArrayValue(vCardData, vCardField, index);
-                        vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!                      
+                        vCardData[vCardField.item][vCardField.entry].value[index] = "";  //Will be completly removed by the parser, if all fields are empty!
                     }
                 }
                 break;
 
-            case "Categories": 
+            case "Categories":
                 if (store) vCardData[vCardField.item][vCardField.entry].value = value.split("\u001A");
                 else if (remove) vCardData[vCardField.item][vCardField.entry].value = [];
                 break;
@@ -897,14 +897,14 @@ dav.tools = {
             default: //should be a string
                 if (store) vCardData[vCardField.item][vCardField.entry].value = vCardField.prefix + value;
                 else if (remove) vCardData[vCardField.item][vCardField.entry].value = "";
-        }        
+        }
     },
 
 
 
 
     //MAIN FUNCTIONS FOR UP/DOWN SYNC
-    
+
     //update send from server to client
     setThunderbirdCardFromVCard: function(syncdata, addressBook, card, vCard, etag, oCard = null) {
         let vCardData = tbSync.dav.vCard.parse(vCard);
@@ -924,7 +924,7 @@ dav.tools = {
             let vCardField = dav.tools.getVCardField(syncdata, property, vCardData);
             let newServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(syncdata, property, vCardData, vCardField);
 
-            let oCardField = dav.tools.getVCardField(syncdata, property, oCardData);            
+            let oCardField = dav.tools.getVCardField(syncdata, property, oCardData);
             let oldServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(syncdata, property, oCardData, oCardField);
 
             //smart merge: only update the property, if it has changed on the server (keep local modifications)
@@ -964,7 +964,7 @@ dav.tools = {
                             }
                         }
                         break;
-                    
+
                     default:
                         {
                             if (newServerValue) {
@@ -982,22 +982,22 @@ dav.tools = {
                  }
             }
         }
-        
+
     },
-    
-    invalidateThunderbirdCard: function(syncdata, addressBook, id) {        
-        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
+
+    invalidateThunderbirdCard: function(syncdata, addressBook, id) {
+        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
         card.setProperty("X-DAV-ETAG", "");
-        card.setProperty("X-DAV-VCARD", "");	    
+        card.setProperty("X-DAV-VCARD", "");
         tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
-        addressBook.modifyCard(card);	    
+        addressBook.modifyCard(card);
     },
-    
+
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
-    getVCardFromThunderbirdCard: function(syncdata, addressBook, id, generateUID = false) {        
-        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);                    
+    getVCardFromThunderbirdCard: function(syncdata, addressBook, id, generateUID = false) {
+        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
         let vCardData = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
-        
+
         if (generateUID) {
             let uuid = new dav.UUID();
             //the UID of the vCard is never used by TbSync, it differs from the href of this card (following the specs)
@@ -1021,7 +1021,7 @@ dav.tools = {
                         }
                     }
                     break;
-                    
+
                 case "Birthday":
                     {
                         let birthYear = parseInt(card.getProperty("BirthYear", 0));
@@ -1035,7 +1035,7 @@ dav.tools = {
                         dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, value);
                     }
                     break;
-                    
+
                 default:
                     {
                         let value = card.getProperty(property, "");
@@ -1043,14 +1043,14 @@ dav.tools = {
                     }
                     break;
             }
-        }    
+        }
 
         //add required fields
         if (!vCardData.hasOwnProperty("version")) vCardData["version"] = [{"value": "3.0"}];
         if (!vCardData.hasOwnProperty("fn")) vCardData["fn"] = [{"value": " "}];
         if (!vCardData.hasOwnProperty("n")) vCardData["n"] = [{"value": [" ","","","",""]}];
-        
+
         return {data: tbSync.dav.vCard.generate(vCardData).trim(), etag: card.getProperty("X-DAV-ETAG", "")};
     },
-        
+
 }
