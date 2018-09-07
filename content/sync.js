@@ -114,7 +114,7 @@ dav.sync = {
 
                     let href = response.multi[r].href;
                     let name_node = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","displayname"]]);
-                    let name = job == "cal" ? "unnamed calendar" : "unnamed address book";
+                    let name = (job == "cal") ? "unnamed calendar" : "unnamed address book";
                     if (name_node != null) {
                         name = name_node.textContent;
                     }
