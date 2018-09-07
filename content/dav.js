@@ -244,6 +244,7 @@ var dav = {
 
         let authOptions = dav.tools.getAuthOptions(accountdata.authOptions);
         tbSync.setLoginInfo(hostport, authOptions.realm, user, password);
+        //tbSync.setLoginInfo(url.spec.toLowerCase(), authOptions.realm, user, password);
 
         //do not monitor CalDAV calendars (managed by lightning)
         tbSync.db.setFolderSetting(account, folderID, "useChangeLog", "0");
