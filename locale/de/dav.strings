@@ -1,8 +1,8 @@
 
 deletefolder.confirm=Möchten Sie den Ordner "##replace.1##" wirklich ENDGÜLTIG aus dem Papierkorb ENTFERNEN?
 
-subscribe.on="##replace.1##" abonieren
-subscribe.off="##replace.1##" nicht länger abonieren
+subscribe.on="##replace.1##" abonnieren
+subscribe.off="##replace.1##" nicht länger abonnieren
 
 syncstate.syncing=Initiiere Synchronisation
 syncstate.preparing=Bereite das nächste Element für die Synchronisation vor
