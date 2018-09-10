@@ -5,7 +5,9 @@ Most servers provide the discovery service, which allows to use just the plain s
 
 This provider is not actually implementing the CalDAV protocol, but will add the found calendars to lightning and let lightning handle the sync. 
 
-Important: Lightning has problems subscribing to multiple calendars of different users on the same server. TbSync 0.8.16 (or later) can probably resolve this issue, if you set
+### Work around for subscribing to multiple calendars of different users on the same server
+
+Lightning has problems subscribing to multiple calendars of different users on the same server. TbSync 0.8.16 (or later) can probably resolve this issue, if you set
 
 *extensions.dav4tbsync.addUserToCardDavUrl = true*
 
@@ -13,7 +15,7 @@ If this still does not work for you, also set
 
 *network.cookie.cookieBehavior = 1*
 
-The second setting works around a bug in the cookie management by rejecting third-party-cookies.
+The second setting works around a bug in the cookie management by rejecting third-party-cookies. Feedback on this work around is appreciated.
 
 
 The [DAV-4-TbSync extension](https://github.com/jobisoft/DAV-4-TbSync/releases) need the [TbSync v0.7.15 or later](https://github.com/jobisoft/TbSync/releases).
