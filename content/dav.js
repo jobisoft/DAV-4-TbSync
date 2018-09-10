@@ -232,8 +232,7 @@ var dav = {
         let user = accountdata.user;
 
         //Create the new standard calendar with a unique name
-        let hostport = "http" + (accountdata.https ? "s" : "") + "://" + tbSync.db.getAccountSetting(account, "fqdn");
-        let url = dav.tools.parseUri(hostport + folderID);
+        let url = dav.tools.parseUri("http" + (accountdata.https ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addUserToCardDavUrl") ? user + "@" : "") + tbSync.db.getAccountSetting(account, "fqdn") + folderID);
 
         let newCalendar = calManager.createCalendar("caldav", url);
         newCalendar.id = cal.getUUID();
@@ -243,8 +242,7 @@ var dav = {
         newCalendar.setProperty("calendar-main-in-composite", true);
 
         let authOptions = dav.tools.getAuthOptions(accountdata.authOptions);
-        tbSync.setLoginInfo(hostport, authOptions.realm, user, password);
-        //tbSync.setLoginInfo(url.spec.toLowerCase(), authOptions.realm, user, password);
+        tbSync.setLoginInfo(url.prePath, authOptions.realm, user, password);
 
         //do not monitor CalDAV calendars (managed by lightning)
         tbSync.db.setFolderSetting(account, folderID, "useChangeLog", "0");
