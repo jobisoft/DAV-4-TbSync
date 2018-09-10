@@ -5,7 +5,7 @@ Most servers provide the discovery service, which allows to use just the plain s
 
 This provider is not actually implementing the CalDAV protocol, but will add the found calendars to lightning and let lightning handle the sync. 
 
-## Work around for subscribing to multiple calendars of different users on the same server
+## Work around for subscribing calendars of different users on the same server
 
 Lightning has problems subscribing to multiple calendars of different users on the same server. TbSync 0.8.16 (or later) can probably resolve this issue, if you set
 
