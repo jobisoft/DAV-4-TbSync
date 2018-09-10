@@ -17,6 +17,7 @@ If this still does not work for you, also set
 
 The second setting works around a bug in the cookie management by rejecting third-party-cookies. Feedback on this work around is appreciated.
 
+<hr>
 
 The [DAV-4-TbSync extension](https://github.com/jobisoft/DAV-4-TbSync/releases) need the [TbSync v0.7.15 or later](https://github.com/jobisoft/TbSync/releases).
 
