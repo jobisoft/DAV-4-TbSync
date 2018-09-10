@@ -3,8 +3,18 @@ The CalDAV/CardDAV provider for the Thunderbird synchronization AddOn TbSync. If
 
 Most servers provide the discovery service, which allows to use just the plain server name (FQDN) like "cloud.server.com" as server URL. TbSync will find all available calendars and address books and there is no need to know any specific URLs for individual address books or calendars. If this does not work because your server does not provide the discovery service, you have to enter the full path to the dav server itself, like "cloud.server.com/SOGo/dav".
 
-This provider is not actually implementing the CalDAV protocol, but will add the found calendars to lightning and let lightning handle the sync. Please keep in mind: Lightning is not able to sync multiple calendars of different users on the same server.
-**This limitation does not exist for the CardDAV implementation of this provider!**
+This provider is not actually implementing the CalDAV protocol, but will add the found calendars to lightning and let lightning handle the sync. 
+
+Important: Lightning has problems subscribing to multiple calendars of different users on the same server. TbSync 0.8.16 (or later) can probably resolve this issue, if you set
+
+*extensions.dav4tbsync.addUserToCardDavUrl = true*
+
+If this still does not work for you, also set
+
+*network.cookie.cookieBehavior = 1*
+
+The second setting works around a bug in the cookie management by rejecting third-party-cookies.
+
 
 The [DAV-4-TbSync extension](https://github.com/jobisoft/DAV-4-TbSync/releases) need the [TbSync v0.7.15 or later](https://github.com/jobisoft/TbSync/releases).
 
