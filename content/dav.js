@@ -232,7 +232,7 @@ var dav = {
         let user = accountdata.user;
 
         //Create the new standard calendar with a unique name
-        let url = dav.tools.parseUri("http" + (accountdata.https ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addUserToCardDavUrl") ? user + "@" : "") + tbSync.db.getAccountSetting(account, "fqdn") + folderID);
+        let url = dav.tools.parseUri("http" + (accountdata.https ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToCardDavUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getAccountSetting(account, "fqdn") + folderID);
 
         let newCalendar = calManager.createCalendar("caldav", url);
         newCalendar.id = cal.getUUID();
@@ -241,8 +241,11 @@ var dav = {
         newCalendar.setProperty("color", tbSync.db.getFolderSetting(account, folderID, "targetColor"));
         newCalendar.setProperty("calendar-main-in-composite", true);
 
-        let authOptions = dav.tools.getAuthOptions(accountdata.authOptions);
-        tbSync.setLoginInfo(url.prePath, authOptions.realm, user, password);
+        //only add credentials to password manager if they are not added to the URL directly
+        if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToCardDavUrl")) {
+            let authOptions = dav.tools.getAuthOptions(accountdata.authOptions);
+            tbSync.setLoginInfo(url.prePath, authOptions.realm, user, password);
+        }
 
         //do not monitor CalDAV calendars (managed by lightning)
         tbSync.db.setFolderSetting(account, folderID, "useChangeLog", "0");

@@ -7,15 +7,18 @@ This provider is not actually implementing the CalDAV protocol, but will add the
 
 ## Work around for subscribing calendars of different users on the same server
 
-Lightning has problems subscribing to multiple calendars of different users on the same server. TbSync 0.8.16 (or later) can probably resolve this issue, if you set
+Lightning has problems subscribing to multiple calendars of different users on the same server. TbSync 0.8.17 (or later) can probably resolve this issue, if you set
 
-*extensions.dav4tbsync.addUserToCardDavUrl = true*
+*extensions.dav4tbsync.addCredentialsToCardDavUrl = true*
 
 If this still does not work for you, also set
 
 *network.cookie.cookieBehavior = 1*
 
-The second setting works around a bug in the cookie management by rejecting third-party-cookies. Feedback on this work around is appreciated.
+The first setting works around a bug in the PasswordManager by adding the credentials directly to the URl and thus bypassing the PasswordManager. This is of course not very secure, but the only way until this is fixed in lightning (it is beeing worked on).
+The second setting works around a bug in the cookie management by rejecting third-party-cookies. 
+
+Feedback on this work around is appreciated.
 
 <hr>
 
