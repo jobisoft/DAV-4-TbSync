@@ -44,8 +44,8 @@ dav.sync = {
         //Method description: http://sabre.io/dav/building-a-caldav-client/
 
         let davjobs = {
-            card : {type: 'carddav', hometag: 'addressbook-home-set', typetag: 'addressbook'},
-            cal : {type: 'caldav', hometag: 'calendar-home-set', typetag: 'calendar'},
+            card : {run: true, type: 'carddav', hometag: 'addressbook-home-set', typetag: 'addressbook'},
+            cal : {run: tbSync.lightningIsAvailable(), type: 'caldav', hometag: 'calendar-home-set', typetag: 'calendar'},
         };
 
         //get all folders currently known
@@ -57,6 +57,8 @@ dav.sync = {
 
         let jobsfound = 0;
         for (let job in davjobs) {
+            if (!davjobs[job].run) continue;
+            
             //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncdata)
             //example state "getfolders" to get folder information from server
             //if you send a request to a server and thus have to wait for answer, use a "send." syncstate, which will give visual feedback to the user,
@@ -142,7 +144,7 @@ dav.sync = {
                         color = color.textContent.substring(0,7);
                         tbSync.db.setFolderSetting(syncdata.account, href, "targetColor", color);
                         //do we have to update the calendar?
-                        if (cal && folder && folder.target) {
+                        if (tbSync.lightningIsAvailable() && folder && folder.target) {
                             let targetCal = cal.getCalendarManager().getCalendarById(folder.target);
                             if (targetCal !== null) {
                                 targetCal.setProperty("color", color);
