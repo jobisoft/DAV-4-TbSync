@@ -33,7 +33,7 @@ function startup(data, reason) {
     branch.setIntPref("maxitems", 50);
     branch.setCharPref("clientID.type", "TbSync");
     branch.setCharPref("clientID.useragent", "Thunderbird CalDAV/CardDAV");    
-    branch.setBoolPref("addCredentialsToCardDavUrl", false);
+    branch.setBoolPref("addCredentialsToCalDavUrl", false);
     
     //during APP_STARTUP, TbSync will find auto load all active providers, if this provider gets enabled later, load it dynamically 
     if (reason != APP_STARTUP) {

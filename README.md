@@ -9,7 +9,7 @@ This provider is not actually implementing the CalDAV protocol, but will add the
 
 Lightning has problems subscribing to multiple calendars of different users on the same server. DAV-4-TbSync 0.8.17 (or later) can probably resolve this issue, if you set
 
-*extensions.dav4tbsync.addCredentialsToCardDavUrl = true*
+*extensions.dav4tbsync.addCredentialsToCalDavUrl = true*
 
 If this still does not work for you, also set
 

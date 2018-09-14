@@ -232,7 +232,7 @@ var dav = {
         let user = accountdata.user;
 
         //Create the new standard calendar with a unique name
-        let url = dav.tools.parseUri("http" + (accountdata.https ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToCardDavUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getAccountSetting(account, "fqdn") + folderID);
+        let url = dav.tools.parseUri("http" + (accountdata.https ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToCalDavUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getAccountSetting(account, "fqdn") + folderID);
 
         let newCalendar = calManager.createCalendar("caldav", url);
         newCalendar.id = cal.getUUID();
@@ -242,7 +242,7 @@ var dav = {
         newCalendar.setProperty("calendar-main-in-composite", true);
 
         //only add credentials to password manager if they are not added to the URL directly
-        if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToCardDavUrl")) {
+        if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToCalDavUrl")) {
             let authOptions = dav.tools.getAuthOptions(accountdata.authOptions);
             tbSync.setLoginInfo(url.prePath, authOptions.realm, user, password);
         }
