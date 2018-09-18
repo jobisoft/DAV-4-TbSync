@@ -138,6 +138,7 @@ var dav = {
             case "carddav":
                 return "tb-contact";
             case "caldav":
+            case "ics":
                 return "tb-event";
             default:
                 return "unknown ("+type + ")";
@@ -231,11 +232,15 @@ var dav = {
         let accountdata = tbSync.db.getAccount(account);
         let password = tbSync.getPassword(accountdata);
         let user = accountdata.user;
+        let caltype = tbSync.db.getFolderSetting(account, folderID, "type");
+        
+        let baseUrl = "";
+        if (caltype == "caldav") {
+            baseUrl =  "http" + (accountdata.https ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToCalDavUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getAccountSetting(account, "fqdn");
+        }
 
-        //Create the new standard calendar with a unique name
-        let url = dav.tools.parseUri("http" + (accountdata.https ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToCalDavUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getAccountSetting(account, "fqdn") + folderID);
-
-        let newCalendar = calManager.createCalendar("caldav", url);
+        let url = dav.tools.parseUri(baseUrl + folderID);        
+        let newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
         newCalendar.id = cal.getUUID();
         newCalendar.name = newname;
 
@@ -243,8 +248,8 @@ var dav = {
         newCalendar.setProperty("calendar-main-in-composite", true);
         newCalendar.setProperty("cache.enabled", (tbSync.db.getAccountSetting(account, "useCache") == "1"));
 
-        //only add credentials to password manager if they are not added to the URL directly
-        if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToCalDavUrl")) {
+        //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
+        if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToCalDavUrl") && caltype == "caldav") {
             let authOptions = dav.tools.getAuthOptions(accountdata.authOptions);
             tbSync.setLoginInfo(url.prePath, authOptions.realm, user, password);
         }
@@ -542,13 +547,12 @@ var dav = {
             let src = "";
             switch (type) {
                 case "carddav":
-                    src = "contacts16.png";
-                    break;
+                    return "chrome://tbsync/skin/contacts16.png";
                 case "caldav":
-                    src = "calendar16.png";
-                    break;
+                    return "chrome://tbsync/skin/calendar16.png";
+                case "ics":
+                    return "chrome://dav4tbsync/skin/ics16.png";
             }
-            return "chrome://tbsync/skin/" + src;
         }
    }
 };

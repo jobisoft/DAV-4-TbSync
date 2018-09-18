@@ -44,8 +44,8 @@ dav.sync = {
         //Method description: http://sabre.io/dav/building-a-caldav-client/
 
         let davjobs = {
-            card : {run: true, type: 'carddav', hometag: 'addressbook-home-set', typetag: 'addressbook'},
-            cal : {run: tbSync.lightningIsAvailable(), type: 'caldav', hometag: 'calendar-home-set', typetag: 'calendar'},
+            card : {run: true, type: 'carddav', hometag: 'addressbook-home-set'},
+            cal : {run: tbSync.lightningIsAvailable(), type: 'caldav', hometag: 'calendar-home-set'},        
         };
 
         //get all folders currently known
@@ -104,17 +104,31 @@ dav.sync = {
             if (home !== null) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
                 let request = (job == "cal")
-                                        ? "<d:propfind "+dav.tools.xmlns(["d","apple"])+"><d:prop><d:resourcetype /><d:displayname /><apple:calendar-color/></d:prop></d:propfind>"
+                                        ? "<d:propfind "+dav.tools.xmlns(["d","apple","cs"])+"><d:prop><d:resourcetype /><d:displayname /><apple:calendar-color/><cs:source/></d:prop></d:propfind>"
                                         : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
 
                 let response = yield dav.tools.sendRequest(request, home, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
 
                 for (let r=0; r < response.multi.length; r++) {
+                    if (response.multi[r].status != "200") continue;
+                    
+                    let resourcetype = null;
                     //is this a result with a valid recourcetype? (the node must be present)
-                    let resourcetype = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], [job, davjobs[job].typetag]]);
-                    if (resourcetype === null || response.multi[r].status != "200") continue;
-
+                    switch (job) {
+                        case "card": 
+                                if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["card", "addressbook"]]) !== null) resourcetype = "carddav";
+                            break;
+                            
+                        case "cal":
+                                if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["cal", "calendar"]]) !== null) resourcetype = "caldav";
+                                else if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["cs", "subscribed"]]) !== null) resourcetype = "ics";
+                            break;
+                    }
+                    if (resourcetype === null) continue;
+                    
                     let href = response.multi[r].href;
+                    if (resourcetype == "ics") href =  dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cs","source"], ["d","href"]]).textContent;
+                    
                     let name_node = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","displayname"]]);
                     let name = (job == "cal") ? "unnamed calendar" : "unnamed address book";
                     if (name_node != null) {
@@ -127,7 +141,7 @@ dav.sync = {
                         let newFolder = {}
                         newFolder.folderID = href;
                         newFolder.name = name;
-                        newFolder.type = davjobs[job].type;
+                        newFolder.type = resourcetype;
                         newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
                         newFolder.selected = (r == 1) ? tbSync.db.getAccountSetting(syncdata.account, "syncdefaultfolders") : "0"; //only select the first one
 
@@ -187,7 +201,7 @@ dav.sync = {
             syncdata.type = folders[0].type;
 
             try {
-                switch ( syncdata.type) {
+                switch (syncdata.type) {
                     case "carddav":
                         {
                             // check SyncTarget
@@ -208,6 +222,7 @@ dav.sync = {
                         break;
 
                     case "caldav":
+                    case "ics":
                         {
                             // skip if lightning is not installed
                             if (tbSync.lightningIsAvailable() == false) {
