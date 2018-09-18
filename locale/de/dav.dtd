@@ -27,6 +27,9 @@
 <!ENTITY pref.syncstate "Sync Status">
 <!ENTITY pref.useHomeAsPrimary "Verwende die vCard E-Mail mit Typ 'HOME' (und nicht 'WORK') als primäre E-Mail Adresse">
 
+<!ENTITY pref.calendaroptions "Kalender Optionen">
+<!ENTITY pref.useCache "Offline-Unterstützung">
+
 <!ENTITY pref.foldername "Ordner">
 <!ENTITY pref.targetname "Synchronisationsziel">
 <!ENTITY pref.status "Status">

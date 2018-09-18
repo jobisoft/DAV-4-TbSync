@@ -83,6 +83,7 @@ var dav = {
             //some example options
             "syncdefaultfolders" : "1",
             "useHomeAsPrimary" : "0",
+            "useCache" : "1",
             };
         return row;
     },
@@ -240,6 +241,7 @@ var dav = {
 
         newCalendar.setProperty("color", tbSync.db.getFolderSetting(account, folderID, "targetColor"));
         newCalendar.setProperty("calendar-main-in-composite", true);
+        newCalendar.setProperty("cache.enabled", (tbSync.db.getAccountSetting(account, "useCache") == "1"));
 
         //only add credentials to password manager if they are not added to the URL directly
         if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToCalDavUrl")) {
