@@ -27,3 +27,8 @@ The [DAV-4-TbSync extension](https://github.com/jobisoft/DAV-4-TbSync/releases) 
 ## Image of the sabre/dav provider hooked into TbSync:
 
 ![image](https://raw.githubusercontent.com/jobisoft/DAV-4-TbSync/master/screenshots/AddAccount.png)
+
+### Icon sources and attributions
+
+#### CC-BY 3.0
+* [ics16.png] by [FatCow Web Hosting](https://www.iconfinder.com/icons/35803/)
