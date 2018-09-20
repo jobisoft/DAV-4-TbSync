@@ -40,14 +40,14 @@ var dav = {
      *
      * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
      */
-    init: Task.async (function* (lightningIsAvail)  {
+    init: Task.async (function* (lightningIsAvail) {
         //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
-    }), // remove old API after next TbSync is out
+    }), // remove old API after next TbSync is out, also set new minTbSyncVersionRequired
 
-    load: Task.async (function* (lightningIsAvail)  {
+    load: Task.async (function* (lightningIsAvail) {
         //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
@@ -64,11 +64,12 @@ var dav = {
      *
      * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
      */
-    unload: Task.async (function* (lightningIsAvail)  {
+    unload: function (lightningIsAvail) {
+        tbSync.dump("Unloading", "dav");
         if (lightningIsAvail) {
             cal.getCalendarManager().removeObserver(tbSync.dav.calendarManagerObserver);
         }        
-    }),
+    },
     
     calendarManagerObserver : {
         onCalendarRegistered : function (aCalendar) { 
