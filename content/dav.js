@@ -45,9 +45,50 @@ var dav = {
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
+    }), // remove old API after next TbSync is out
 
+    load: Task.async (function* (lightningIsAvail)  {
+        //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
+        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
+        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
+        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
+
+        if (lightningIsAvail) {
+            cal.getCalendarManager().addObserver(tbSync.dav.calendarManagerObserver);                
+        }
+        
     }),
 
+    /**
+     * Called during unload of external provider extension to unload provider.
+     *
+     * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
+     */
+    unload: Task.async (function* (lightningIsAvail)  {
+        if (lightningIsAvail) {
+            cal.getCalendarManager().removeObserver(tbSync.dav.calendarManagerObserver);
+        }        
+    }),
+    
+    calendarManagerObserver : {
+        onCalendarRegistered : function (aCalendar) { 
+            
+            //identify a calendar which has been deleted and is now being recreated by lightning (not TbSync) - which is probably due to changing the offline support option
+            let folders =  tbSync.db.findFoldersWithSetting(["folderID","status"], [aCalendar.uri.spec,"aborted"]); //if it is pending status, we are creating it, not someone else
+            if (folders.length == 1) {
+
+                if (folders[0].selected == "1") {
+                    tbSync.db.setFolderSetting(folders[0].account, folders[0].folderID, "status", "OK");
+                    //add target to re-take control
+                    tbSync.db.setFolderSetting(folders[0].account, folders[0].folderID, "target", aCalendar.id);
+                    //update settings window, if open
+                    Services.obs.notifyObservers(null, "tbsync.updateSyncstate", folders[0].account);
+                }
+            }
+        },
+        onCalendarUnregistering : function (aCalendar) {},
+        onCalendarDeleting : function (aCalendar) {},
+    },
 
 
     /**
