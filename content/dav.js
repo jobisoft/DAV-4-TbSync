@@ -75,7 +75,7 @@ var dav = {
         onCalendarRegistered : function (aCalendar) { 
             
             //identify a calendar which has been deleted and is now being recreated by lightning (not TbSync) - which is probably due to changing the offline support option
-            let folders =  tbSync.db.findFoldersWithSetting(["folderID","status"], [aCalendar.uri.spec,"aborted"]); //if it is pending status, we are creating it, not someone else
+            let folders =  tbSync.db.findFoldersWithSetting(["url","status"], [aCalendar.uri.spec,"aborted"]); //if it is pending status, we are creating it, not someone else
             if (folders.length == 1) {
 
                 if (folders[0].selected == "1") {
@@ -139,6 +139,7 @@ var dav = {
         let folder = {
             "account" : account,
             "folderID" : "",
+            "url" : "",
             "name" : "",
             "type" : "",
             "target" : "",
@@ -282,6 +283,8 @@ var dav = {
         }
 
         let url = dav.tools.parseUri(baseUrl + folderID);        
+        tbSync.db.setFolderSetting(account, folderID, "url", url.spec);
+
         let newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
         newCalendar.id = cal.getUUID();
         newCalendar.name = newname;
