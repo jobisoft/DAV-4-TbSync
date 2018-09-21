@@ -63,7 +63,10 @@ var tbSyncDavNewAccount = {
         newAccountEntry.createdWithProviderVersion = tbSync.providerList.dav.version;
 
         //default to https, if not specified
-        newAccountEntry.https = (server.substring(0,4) == "http") ? "0" : "1";
+        let hasHttp = (server.substring(0,4) == "http");
+        let hasHttps = (server.substring(0,5) == "https");
+        newAccountEntry.https = (!hasHttps && hasHttp) ? "0" : "1";
+
         newAccountEntry.host = server.replace("https://","").replace("http://","");
     
         //also update password in PasswordManager

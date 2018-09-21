@@ -278,7 +278,7 @@ var dav = {
         
         let baseUrl = "";
         if (caltype == "caldav") {
-            baseUrl =  "http" + (accountdata.https ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToCalDavUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getAccountSetting(account, "fqdn");
+            baseUrl =  "http" + (accountdata.https == "1" ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToCalDavUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getAccountSetting(account, "fqdn");
         }
 
         let url = dav.tools.parseUri(baseUrl + folderID);        
