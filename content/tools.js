@@ -227,7 +227,7 @@ dav.tools = {
                 if (useAbortSignal) tbSync.window.clearTimeout(timeoutId);
             } catch (e) {
                 //fetch throws on network errors or timeout errors
-                if (useAbortSignal && e instanceof AbortError) {
+                if (useAbortSignal && e.name === 'AbortError' ) {
                     throw dav.sync.failed("timeout");
                 } else {
                     throw dav.sync.failed("networkerror");
