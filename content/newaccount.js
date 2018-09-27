@@ -43,15 +43,15 @@ var tbSyncDavNewAccount = {
     },
 
     onUserTextInput: function () {
-        document.documentElement.getButton("extra1").disabled = (this.elementServer.value == "" || this.elementName.value == "" || this.elementUser.value == "" || this.elementPass.value == "");
+        document.documentElement.getButton("extra1").disabled = (this.elementServer.value.trim() == "" || this.elementName.value.trim() == "" || this.elementUser.value == "" || this.elementPass.value == "");
     },
 
     onAdd: function () {
         if (document.documentElement.getButton("extra1").disabled == false) {
             let user = this.elementUser.value;
             let password = this.elementPass.value;
-            let server = this.elementServer.value;
-            let accountname = this.elementName.value;
+            let server = this.elementServer.value.trim();
+            let accountname = this.elementName.value.trim();
             tbSyncDavNewAccount.addAccount(user, password, server, accountname);
         }
     },
