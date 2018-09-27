@@ -75,15 +75,17 @@ var dav = {
         onCalendarRegistered : function (aCalendar) { 
             
             //identify a calendar which has been deleted and is now being recreated by lightning (not TbSync) - which is probably due to changing the offline support option
-            let folders =  tbSync.db.findFoldersWithSetting(["url","status"], [aCalendar.uri.spec,"aborted"]); //if it is pending status, we are creating it, not someone else
-            if (folders.length == 1) {
-
-                if (folders[0].selected == "1") {
-                    tbSync.db.setFolderSetting(folders[0].account, folders[0].folderID, "status", "OK");
+            let folders =  tbSync.db.findFoldersWithSetting(["status"], ["aborted"]); //if it is pending status, we are creating it, not someone else
+            for (let f=0; f < folders.length; f++) {
+                let provider = tbSync.db.getAccountSetting(folders[f].account, "provider");
+            
+                //only act on dav calendars which have the same uri
+                if (provider == "dav" && folders[f].selected == "1" && folders[f].url == aCalendar.uri.spec) {
+                    tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "status", "OK");
                     //add target to re-take control
-                    tbSync.db.setFolderSetting(folders[0].account, folders[0].folderID, "target", aCalendar.id);
+                    tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "target", aCalendar.id);
                     //update settings window, if open
-                    Services.obs.notifyObservers(null, "tbsync.updateSyncstate", folders[0].account);
+                    Services.obs.notifyObservers(null, "tbsync.updateSyncstate", folders[f].account);
                 }
             }
         },
