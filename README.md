@@ -18,8 +18,6 @@ If this still does not work for you, also set
 The first setting works around a bug in the PasswordManager by adding the credentials directly to the URl and thus bypassing the PasswordManager. This is of course not very secure, but the only way until this is fixed in lightning (it is beeing worked on).
 The second setting works around a bug in the cookie management by rejecting third-party-cookies. 
 
-Feedback on this work around is appreciated.
-
 <hr>
 
 The [DAV-4-TbSync extension](https://github.com/jobisoft/DAV-4-TbSync/releases) need the [TbSync v0.7.15 or later](https://github.com/jobisoft/TbSync/releases).
