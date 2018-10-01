@@ -323,6 +323,9 @@ dav.sync = {
     }),
 
     remoteChangesByTOKEN: Task.async (function* (syncdata) {
+        syncdata.todo = 0;
+        syncdata.done = 0;
+
         let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
         let cards = yield dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {"Content-Type": "application/xml; charset=utf-8"});
@@ -341,7 +344,7 @@ dav.sync = {
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
         let addressBook = abManager.getDirectory(syncdata.targetId);
 
-        let vCardsDeletedOnServer = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+        let vCardsDeletedOnServer = new dav.tools.deleteCardsContainer(tbSync.dav.prefSettings.getIntPref("maxitems"));
         let vCardsChangedOnServer = {};
 
         for (let c=0; c < cards.multi.length; c++) {
@@ -354,15 +357,19 @@ dav.sync = {
                     //MOD or ADD
                     let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
                     if (!card) {
-                        //ADD
-                        vCardsChangedOnServer[id] = "ADD";
-                    } else {
-                        //MOD
-                        vCardsChangedOnServer[id] = "MOD";
+                        //if the user deleted this card (not yet send to server), do not add it again
+                        if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "deleted_by_user")  {
+                            syncdata.todo++;
+                            vCardsChangedOnServer[id] = "ADD"; 
+                        }
+                    } else if (etag.textContent != card.getProperty("X-DAV-ETAG","")) {
+                        syncdata.todo++;
+                        vCardsChangedOnServer[id] = "MOD"; 
                     }
                 } else if (status == "404" && card) {
                     //DEL
-                    vCardsDeletedOnServer.appendElement(card, "");
+                    syncdata.todo++;
+                    vCardsDeletedOnServer.appendElement(card, false);
                     tbSync.db.addItemToChangeLog(syncdata.targetId, id, "deleted_by_server");
                 }
             }
@@ -372,7 +379,7 @@ dav.sync = {
         yield dav.sync.multiget(addressBook, vCardsChangedOnServer, syncdata);
 
         //delete all contacts added to vCardsDeletedOnServer
-        dav.tools.deleteContacts (addressBook, vCardsDeletedOnServer, syncdata);
+        yield dav.sync.deleteContacts (addressBook, vCardsDeletedOnServer, syncdata);
 
         //update token
         tbSync.db.setFolderSetting(syncdata.account, syncdata.folderID, "token", tokenNode.textContent);
@@ -381,12 +388,13 @@ dav.sync = {
     }),
 
     remoteChangesByCTAG: Task.async (function* (syncdata) {
+        syncdata.todo = 0;
+        syncdata.done = 0;
+
         //Request ctag and token
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
         let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d", "cs"])+"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "0"});
 
-        syncdata.todo = 0;
-        syncdata.done = 0;
         tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
         let ctag = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["cs", "getctag"]], syncdata.folderID);
         let token = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d", "sync-token"]], syncdata.folderID);
@@ -410,18 +418,24 @@ dav.sync = {
                 let id =  cards.multi[c].href;
                 let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
                 let ctype = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getcontenttype"]]);
-                if (cards.multi[c].status == "200" && etag !== null && id !== null && ctype !== null) { //we do not actualyl check the content of ctype
+                if (cards.multi[c].status == "200" && etag !== null && id !== null && ctype !== null) { //we do not actually check the content of ctype
                     vCardsFoundOnServer.push(id);
                     let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
                     if (!card) {
                         //if the user deleted this card (not yet send to server), do not add it again
-                        if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "deleted_by_user")  vCardsChangedOnServer[id] = "ADD";
-                    } else if (etag.textContent != card.getProperty("X-DAV-ETAG","")) vCardsChangedOnServer[id] = "MOD";
+                        if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "deleted_by_user") {
+                            syncdata.todo++;
+                            vCardsChangedOnServer[id] = "ADD"; 
+                        }
+                    } else if (etag.textContent != card.getProperty("X-DAV-ETAG","")) {
+                        syncdata.todo++;
+                        vCardsChangedOnServer[id] = "MOD"; 
+                    }
                 }
             }
 
             //FIND DELETES: loop over current addressbook and check each local card if it still exists on the server
-            let vCardsDeletedOnServer = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+            let vCardsDeletedOnServer =  new dav.tools.deleteCardsContainer(tbSync.dav.prefSettings.getIntPref("maxitems"));
             cards = addressBook.childCards;
             while (true) {
                 let more = false;
@@ -432,7 +446,8 @@ dav.sync = {
                 let id = card.getProperty("TBSYNCID","");
                 if (id && !vCardsFoundOnServer.includes(id) && tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "added_by_user") {
                     //delete request from server
-                    vCardsDeletedOnServer.appendElement(card, "");
+                    syncdata.todo++;
+                    vCardsDeletedOnServer.appendElement(card, false);
                     tbSync.db.addItemToChangeLog(syncdata.targetId, id, "deleted_by_server");
                 }
             }
@@ -442,7 +457,7 @@ dav.sync = {
             yield dav.sync.multiget(addressBook, vCardsChangedOnServer, syncdata);
 
             //delete all contacts added to vCardsDeletedOnServer
-            dav.tools.deleteContacts (addressBook, vCardsDeletedOnServer, syncdata);
+            yield dav.sync.deleteContacts (addressBook, vCardsDeletedOnServer, syncdata);
 
             //update ctag and token (if there is one)
             if (ctag === null) return false; //if server does not support ctag, "it did not change"
@@ -460,12 +475,11 @@ dav.sync = {
     }),
 
 
+
     multiget: Task.async (function*(addressBook, vCardsChangedOnServer, syncdata) {
         //download all changed cards and process changes
         let cards2catch = Object.keys(vCardsChangedOnServer);
-        syncdata.todo = cards2catch.length;
-        syncdata.done = 0;
-        let maxitems = 50;
+        let maxitems = tbSync.dav.prefSettings.getIntPref("maxitems");
 
         for (let i=0; i < cards2catch.length; i+=maxitems) {
             let request = dav.tools.getMultiGetRequest(cards2catch.slice(i, i+maxitems));
@@ -473,9 +487,9 @@ dav.sync = {
                 tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
                 let cards = yield dav.tools.sendRequest(request, syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Content-Type": "application/xml; charset=utf-8"});
 
-                syncdata.done = i;
                 tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
                 for (let c=0; c < cards.multi.length; c++) {
+                    syncdata.done++;
                     let id =  cards.multi[c].href;
                     let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
                     let data = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["card","address-data"]]);
@@ -496,10 +510,23 @@ dav.sync = {
         }
     }),
 
+    deleteContacts: Task.async (function*(addressBook, vCardsDeletedOnServer, syncdata) {
+        //the vCardsDeletedOnServer object has a data member (array of nsIMutableArray) and each nsIMutableArray has a maximum size
+        //of maxitems, so we can show a progress during delete and not delete all at once
+        for (let i=0; i < vCardsDeletedOnServer.data.length; i++) {
+            syncdata.done += vCardsDeletedOnServer.data[i].length;
+            tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
+            yield tbSync.sleep(200); //we want the user to see, that deletes are happening
+            addressBook.deleteCards(vCardsDeletedOnServer.data[i]);
+        }
+    }),
+
+
+
 
     localChanges: Task.async (function* (syncdata) {
         //define how many entries can be send in one request
-        let maxnumbertosend = 50;
+        let maxitems = tbSync.dav.prefSettings.getIntPref("maxitems");
 
         //access changelog to get local modifications (done and todo are used for UI to display progress)
         syncdata.done = 0;
@@ -513,7 +540,7 @@ dav.sync = {
             tbSync.setSyncState("prepare.request.localchanges", syncdata.account, syncdata.folderID);
 
             //get changed items from ChangeLog
-            let changes = db.getItemsFromChangeLog(syncdata.targetId, maxnumbertosend, "_by_user");
+            let changes = db.getItemsFromChangeLog(syncdata.targetId, maxitems, "_by_user");
             if (changes == 0)
                 break;
 

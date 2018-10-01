@@ -388,19 +388,18 @@ dav.tools = {
         else return null;
     },
 
-
-
-
-
-    deleteContacts: function(addressBook, vCardsDeletedOnServer, syncdata) {
-        if (vCardsDeletedOnServer.length > 0) {
-            syncdata.todo = vCardsDeletedOnServer.length;
-            syncdata.done = 0;
-            tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
-            addressBook.deleteCards(vCardsDeletedOnServer);
-        }
+    deleteCardsContainer: function (maxitems) {
+        this.maxitems = maxitems;
+        this.data = [];
+        this.data.push(Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray));
+        this.appendElement = function(element, weak) {            
+            if (!(this.data[this.data.length-1].length<this.maxitems)) {
+                this.data.push(Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray));
+            }
+            this.data[this.data.length-1].appendElement(element, weak);
+        };
     },
-
+    
     addContact: function(addressBook, id, data, etag, syncdata) {
         //prepare new card
         let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
