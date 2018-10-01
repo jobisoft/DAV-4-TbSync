@@ -559,7 +559,7 @@ dav.sync = {
                                 let response = yield dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, options);
 
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
-                                if (response && response.error) { //Sabre\DAVACL\Exception\NeedPrivileges
+                                if (response && [403,405].includes(response.error)) {
                                     permissionError = true;
                                 }
                             }
@@ -577,7 +577,7 @@ dav.sync = {
                                 let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {});
 
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
-                                if (response && response.error) { //Sabre\DAVACL\Exception\NeedPrivileges
+                                if (response && [403,405].includes(response.error)) {
                                     permissionError = true;
                                 }
                             }
