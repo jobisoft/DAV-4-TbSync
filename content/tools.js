@@ -163,6 +163,172 @@ dav.tools = {
         return xml;
     },
 
+
+
+
+
+
+    Prompt: class {
+        constructor(aUser) {
+            this.mCounts = 0;
+            this.mUser = aUser;
+        }
+
+        // boolean promptAuth(in nsIChannel aChannel,
+        //                    in uint32_t level,
+        //                    in nsIAuthInformation authInfo)
+        promptAuth (aChannel, aLevel, aAuthInfo) {
+
+            let logins = Services.logins.findLogins({},  aChannel.URI.prePath, null, aAuthInfo.realm);
+            let found = false;
+            for (let i=0; i < logins.length && !found; i++) {
+                if (this.mUser == logins[i].username) {                
+                    tbSync.dump("promptAuth", logins[i].username + " @ " + aChannel.URI.spec);
+                    aAuthInfo.username = logins[i].username;
+                    aAuthInfo.password = logins[i].password;
+                    found = true;
+                }
+            }
+            
+            this.mCounts++
+            if (this.mCounts < 2 && found) {
+                return true;
+            } else {
+                return false; //if the credentials in the password manager are wrong or not found, abort and pass on the 401 to the caller
+            }
+        }
+    },    
+       
+    prepHttpChannel: function(aUri, aUploadData, aHeaders, aMethod, aNotificationCallbacks=null, aExisting=null) {
+        let channel = aExisting || Services.io.newChannelFromURI2(
+                                                                aUri,
+                                                                null,
+                                                                Services.scriptSecurityManager.getSystemPrincipal(),
+                                                                null,
+                                                                Components.interfaces.nsILoadInfo.SEC_ALLOW_CROSS_ORIGIN_DATA_IS_NULL,
+                                                                Components.interfaces.nsIContentPolicy.TYPE_OTHER);
+        let httpchannel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
+
+        httpchannel.setRequestHeader("Accept", "text/xml", false);
+        httpchannel.setRequestHeader("Accept-Charset", "utf-8,*;q=0.1", false);
+        httpchannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
+        httpchannel.notificationCallbacks = aNotificationCallbacks;
+
+        if (aUploadData) {
+            httpchannel = httpchannel.QueryInterface(Components.interfaces.nsIUploadChannel);
+            let stream;
+            if (aUploadData instanceof Components.interfaces.nsIInputStream) {
+                // Make sure the stream is reset
+                stream = aUploadData.QueryInterface(Components.interfaces.nsISeekableStream);
+                stream.seek(Components.interfaces.nsISeekableStream.NS_SEEK_SET, 0);
+            } else {
+                // Otherwise its something that should be a string, convert it.
+                let converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+                converter.charset = "UTF-8";
+                stream = converter.convertToInputStream(aUploadData.toString());
+            }
+
+            httpchannel.setUploadStream(stream, "application/xml; charset=utf-8", -1);
+        /*
+            If aContentType is empty, the protocol will assume that no content headers are to be added to the uploaded stream and 
+            that any required headers are already encoded in the stream. In the case of HTTP, if this parameter is non-empty, 
+            then its value will replace any existing Content-Type header on the HTTP request. In the case of FTP and FILE, 
+            this parameter is ignored.
+            */
+        }
+
+        //must be set after setUploadStream
+        //https://developer.mozilla.org/en-US/docs/Mozilla/Creating_sandboxed_HTTP_connections
+        httpchannel.requestMethod = aMethod;
+        
+        for (let header in aHeaders) {
+            if (aHeaders.hasOwnProperty(header)) {
+                httpchannel.setRequestHeader(header, aHeaders[header], false);
+            }
+        }
+      
+        //default content type
+        if (!aHeaders.hasOwnProperty("Content-Type"))
+            httpchannel.setRequestHeader("Content-Type", "application/xml; charset=utf-8", false);
+
+        return httpchannel;
+    },
+ 
+    sendRequest2: Task.async (function* (requestData, _url, method, syncdata, headers, aUseStreamLoader = true) {
+        let account = tbSync.db.getAccount(syncdata.account);
+        let password = tbSync.getPassword(account);
+        
+        //Note: 
+        // - by specifying a user, the system falls back to user:<none>, which will trigger a 401 which will cause the authCallbacks and lets me set a new user/pass combination
+        // - after it has recevied a new pass, it will use the cached version
+        // - this allows to switch users but will cause a 401 on each user switch, and it probably breaks digest auth
+        // - the username is lost during redirects...
+        let uri = Services.io.newURI("http" + (account.https == "1" ? "s" : "") + "://" + tbSync.db.getAccountSetting(syncdata.account, "fqdn") + _url);
+
+        tbSync.dump("URL", uri.spec);
+        tbSync.dump("HEADERS", JSON.stringify(headers));
+        tbSync.dump("REQUEST", method + " : " + requestData);
+        
+        return new Promise(function(resolve, reject) {                  
+            let user =  account.user;
+            let listener = {
+                onStreamComplete: function(aLoader, aContext, aStatus, aResultLength, aResult) {
+                    let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
+                    let listenerStatus = Components.results.NS_OK;
+                    let responseStatus = 0;
+                    try {
+                        responseStatus = request.responseStatus;
+                        tbSync.dump("LS GOOD",  responseStatus);
+                    } catch (ex) {
+                        listenerStatus = ex.result;
+                        tbSync.dump("LS BAD",  ex.result + "(" + ex.message +")");
+                    }
+                    tbSync.dump("DATA", cal.provider.convertByteArray(aResult, aResultLength));
+                    
+                    //curently we only return the status
+                    resolve(responseStatus);
+                }
+            }
+
+            let notificationCallbacks = {
+                // nsIInterfaceRequestor
+                getInterface : function(aIID) {
+                    if (aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
+                        tbSync.dump("GET","nsIAuthPrompt2");
+                        if (!this.calAuthPrompt) {
+                            this.calAuthPrompt = new dav.tools.Prompt(user);
+                        }
+                        return this.calAuthPrompt;
+                    } else if (aIID.equals(Components.interfaces.nsIAuthPrompt)) {
+                        tbSync.dump("GET","nsIAuthPrompt");
+                    } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider)) {
+                        tbSync.dump("GET","nsIAuthPromptProvider");
+                    } else if (aIID.equals(Components.interfaces.nsIPrompt)) {
+                        tbSync.dump("GET","nsIPrompt");
+                    } else if (aIID.equals(Components.interfaces.nsIProgressEventSink)) {
+                        tbSync.dump("GET","nsIProgressEventSink");
+                    }
+
+                    throw Components.results.NS_ERROR_NO_INTERFACE;
+                },
+            }
+
+            let channel = dav.tools.prepHttpChannel(uri, requestData, headers, method, notificationCallbacks);    
+            if (aUseStreamLoader) {
+                let loader =  Components.classes["@mozilla.org/network/stream-loader;1"].createInstance(Components.interfaces.nsIStreamLoader);
+                loader.init(listener);
+                listener = loader;
+            }        
+        
+            channel.asyncOpen(listener, channel);
+        });
+    }),
+
+
+
+
+
+
     sendRequest: Task.async (function* (request, _url, method, syncdata, headers) {
         let account = tbSync.db.getAccount(syncdata.account);
         let password = tbSync.getPassword(account);
