@@ -23,7 +23,7 @@
 var dav = {
     bundle: Services.strings.createBundle("chrome://dav4tbsync/locale/dav.strings"),
     prefSettings: Services.prefs.getBranch("extensions.dav4tbsync."),
-    minTbSyncVersionRequired: "0.7.15",
+    minTbSyncVersionRequired: "0.7.16",
 
     ns: {
         d: "DAV:",
@@ -40,13 +40,6 @@ var dav = {
      *
      * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
      */
-    init: Task.async (function* (lightningIsAvail) {
-        //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
-        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
-    }), // remove old API after next TbSync is out, also set new minTbSyncVersionRequired
-
     load: Task.async (function* (lightningIsAvail) {
         //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
@@ -65,7 +58,6 @@ var dav = {
      * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
      */
     unload: function (lightningIsAvail) {
-        tbSync.dump("Unloading", "dav");
         if (lightningIsAvail) {
             cal.getCalendarManager().removeObserver(tbSync.dav.calendarManagerObserver);
         }        
