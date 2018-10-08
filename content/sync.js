@@ -411,11 +411,15 @@ dav.sync = {
             tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
             let cards = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /><d:getcontenttype /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
 
-            //does not work on older servers
+            //addressbook-query does not work on older servers (zimbra)
             //let cards = yield dav.tools.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
             tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
             for (let c=0; cards.multi && c < cards.multi.length; c++) {
                 let id =  cards.multi[c].href;
+                if (id == syncdata.folderID) {
+                    //some servers (Radicale) report the folder itself and a querry to that would return everything again
+                    continue;
+                }
                 let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
                 let ctype = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getcontenttype"]]);
                 if (cards.multi[c].status == "200" && etag !== null && id !== null && ctype !== null) { //we do not actually check the content of ctype
