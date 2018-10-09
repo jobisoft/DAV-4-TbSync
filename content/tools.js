@@ -473,6 +473,7 @@ dav.tools = {
                     }
                     break;
 
+                case 200: //returned by DELETE by radicale - watch this !!!
                 case 204: //is returned by DELETE - no data
                 case 201: //is returned by CREATE - no data
                     return null;
