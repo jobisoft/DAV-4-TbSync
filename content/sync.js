@@ -487,6 +487,8 @@ dav.sync = {
 
         for (let i=0; i < cards2catch.length; i+=maxitems) {
             let request = dav.tools.getMultiGetRequest(cards2catch.slice(i, i+maxitems));
+            let a=0;
+            let m=0;
             if (request) {
                 tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
                 let cards = yield dav.tools.sendRequest(request, syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Content-Type": "application/xml; charset=utf-8"});
@@ -502,15 +504,18 @@ dav.sync = {
                         switch (vCardsChangedOnServer[id]) {
                             case "ADD":
                                 dav.tools.addContact (addressBook, id, data, etag, syncdata);
+                                a++;
                                 break;
 
                             case "MOD":
                                 dav.tools.modifyContact (addressBook, id, data, etag, syncdata);
+                                d++;
                                 break;
                         }
                     }
                 }
             }
+            tbSync.dump("Multiget","added: "+a+" modified:" +m);
         }
     }),
 
