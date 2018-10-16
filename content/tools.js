@@ -199,11 +199,11 @@ dav.tools = {
         }
     },    
        
-    prepHttpChannel: function(aUri, aUploadData, aHeaders, aMethod, aNotificationCallbacks=null, aExisting=null) {
+    prepHttpChannel: function(aUri, aUploadData, aHeaders, aMethod, aUser, aNotificationCallbacks=null, aExisting=null) {
         let channel = aExisting || Services.io.newChannelFromURI2(
                                                                 aUri,
                                                                 null,
-                                                                Services.scriptSecurityManager.getSystemPrincipal(),
+                                                                Services.scriptSecurityManager.createCodebasePrincipal(aUri, {user: aUser}),
                                                                 null,
                                                                 Components.interfaces.nsILoadInfo.SEC_ALLOW_CROSS_ORIGIN_DATA_IS_NULL,
                                                                 Components.interfaces.nsIContentPolicy.TYPE_OTHER);
@@ -313,7 +313,7 @@ dav.tools = {
                 },
             }
 
-            let channel = dav.tools.prepHttpChannel(uri, requestData, headers, method, notificationCallbacks);    
+            let channel = dav.tools.prepHttpChannel(uri, requestData, headers, method, user, notificationCallbacks);    
             if (aUseStreamLoader) {
                 let loader =  Components.classes["@mozilla.org/network/stream-loader;1"].createInstance(Components.interfaces.nsIStreamLoader);
                 loader.init(listener);
