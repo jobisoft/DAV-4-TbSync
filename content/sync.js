@@ -508,6 +508,8 @@ dav.sync = {
                                 dav.tools.modifyContact (addressBook, id, data, etag, syncdata);
                                 break;
                         }
+                    } else {
+                        tbSync.dump("Skipped Card", [id, cards.multi[c].status == "200", etag !== null, data !== null, id !== null, vCardsChangedOnServer.hasOwnProperty(id)].join(", "));
                     }
                 }
             }
