@@ -23,5 +23,13 @@
           </Description>
         </em:targetApplication>
 
+        <em:localized>
+          <Description>
+            <em:locale>it-IT</em:locale>
+            <em:name>Provider Sabre/DAV (CalDAV e CardDAV) per TbSync</em:name>
+            <em:description>Aggiunge il supporto per gli account Sabre/DAV (CalDAV e CardDAV) a TbSync</em:description>
+          </Description>
+        </em:localized>
+
     </Description>
 </RDF>
