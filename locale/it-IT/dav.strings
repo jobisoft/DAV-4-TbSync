@@ -1,0 +1,68 @@
+
+deletefolder.confirm=ELIMINARE PERMANENTEMENTE la cartella "##replace.1##" dal Cestino?
+
+subscribe.on=Sottoscrivi "##replace.1##"
+subscribe.off=Annulla la sottoscrizione a "##replace.1##"
+
+syncstate.syncing=Inizializzazione sincronizzazione in corso
+syncstate.preparing=Preparazione prossimo elemento per la sincronizzazione in corso
+syncstate.done=Preparazione prossimo elemento per la sincronizzazione in corso
+syncstate.accountdone=Sincronizzazione account completata
+
+syncstate.send.getfolders=Richiesta elenco cartelle in corso
+syncstate.eval.folders=Aggiornamento elenco cartelle in corso
+
+syncstate.prepare.request.localchanges=Invio modifiche locali in corso
+syncstate.send.request.localchanges=In attesa del riconoscimento delle modifiche locali
+syncstate.eval.response.localchanges=Elaborazione riconoscimento modifiche locali in corso
+
+syncstate.send.request.remotechanges=In attesa delle modifiche remote
+syncstate.eval.response.remotechanges=Elaborazione modifiche remote in corso
+
+status.notsyncronized=L'account deve essere sincronizzato, almeno un elemento non è sincronizzato.
+status.needtorevert=L'account deve essere sincronizzato per eliminare le modifiche locali (sincronizzazione a una via).
+status.disabled=L'account non è abilitato, la sincronizzazione è disabilitata.
+status.notargets=Interruzione sincronizzazione in corso: non è possibile creare le destinazioni sincronizzazione.
+status.nouserhost=Nome utente e/o server mancanti. Fornire tali valori.
+status.timeout=Timeout durante la comunicazione.
+status.networkerror=Impossibile connettersi al server.
+status.404=Errore HTTP 404 (risorsa richiesta non trovata).
+status.403=Il server ha rifiutato la connessione (vietato).
+status.401=Impossibile autenticarsi, controllare nome utente e password.
+status.500=Errore server sconosciuto (errore HTTP 500).
+status.503=Servizio non disponibile.
+status.httperror=Errore di comunicazione (stato HTTP ##replace.1##).
+status.OK=OK
+status.nolightning=Componente aggiuntivo Lightning non installato, i calendari non sono supportati.
+status.javascriptError=Errore JavaScript: ##replace.1##
+
+status.no-folders-found-on-server=Impossibile trovare calendari o rubriche sul server.
+status.invalid-response=Ricevuta risposta non valida, sincronizzazione interrotta.
+status.invalid-uri=Trovato URI non valido, sincronizzazione interrotta.
+status.unsupported_auth_method=Il server ha richiesto un metodo di autenticazione non supportato (##replace.1##).
+status.OK.caldav-calendar-already-exists=Calendario già gestito da Lightning (omesso).
+status.info.restored=Permessi di scrittura mancanti, elemento ripristinato.
+status.mailformed-xml=La risposta contiene XML malformato, impossibile gestirla, sincronizzazione interrotta.
+status.service-discovery-failed=Rilevamento servizio Sabre/DAV non riuscito per questo server.
+
+status.OK.managedbylightning=Calendario gestito da Lightning.
+
+status.security=Impossibile stabilire una connessione sicura. Si sta utilizzando un certificato autofirmato o non affidabile senza averlo importato in Thunderbird? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[Guida]
+status.network=Impossibile collegarsi al server (##replace.1##).
+
+status.syncing=Sincronizzazione in corso
+status.connecting=Connessione al server in corso
+status.skipped=Non ancora supportato, omesso
+status.aborted=Non sincronizzato
+status.pending=In attesa di sincronizzazione
+status.modified=Modifiche locali presenti
+
+prompt.Unsubscribe=Annullare la sottoscrizione a questo elemento? Tutte le modifiche locali non ancora sincronizzate andranno perse!
+prompt.UnlockSettings=La modifica delle impostazioni predefinite del server potrebbe causare errori di sincronizzazione. Sbloccare tutte le impostazioni predefinite del server?
+
+button.syncthis=Sincronizza questo account
+button.tryagain=Riprova a collegarti al server
+button.enableAndConnect=Abilita account e prova a collegarti al server
+button.disableAndEdit=Disabilita l'account per modificarne le impostazioni
+
+config.custom=Configurazione server Sabre/DAV
