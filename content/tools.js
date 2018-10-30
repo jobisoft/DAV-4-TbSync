@@ -1064,8 +1064,8 @@ dav.tools = {
 
     //update send from server to client
     setThunderbirdCardFromVCard: function(syncdata, addressBook, card, vCard, etag, oCard = null) {
-        let vCardData = tbSync.vCard.parse(vCard);
-        let oCardData = oCard ? tbSync.vCard.parse(oCard) : null;
+        let vCardData = tbSync.dav.vCard.parse(vCard);
+        let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
 
         tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
         //if (oCardData) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
@@ -1093,7 +1093,7 @@ dav.tools = {
                             if (newServerValue) {
                                 //set if supported
                                 if (vCardData[vCardField.item][0].meta && vCardData[vCardField.item][0].meta.encoding) {
-                                    let uuid = new tbSync.UUID();
+                                    let uuid = new dav.UUID();
                                     tbSync.addphoto(uuid.toString() + '.jpg', addressBook.URI, card, vCardData["photo"][0].value);
                                 }
                             } else {
@@ -1153,10 +1153,10 @@ dav.tools = {
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
     getVCardFromThunderbirdCard: function(syncdata, addressBook, id, generateUID = false) {
         let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
-        let vCardData = tbSync.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
+        let vCardData = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
 
         if (generateUID) {
-            let uuid = new tbSync.UUID();
+            let uuid = new dav.UUID();
             //the UID of the vCard is never used by TbSync, it differs from the href of this card (following the specs)
             vCardData["uid"] = [{"value": uuid.toString()}];
         }
@@ -1207,7 +1207,7 @@ dav.tools = {
         if (!vCardData.hasOwnProperty("fn")) vCardData["fn"] = [{"value": " "}];
         if (!vCardData.hasOwnProperty("n")) vCardData["n"] = [{"value": [" ","","","",""]}];
 
-        return {data: tbSync.vCard.generate(vCardData).trim(), etag: card.getProperty("X-DAV-ETAG", "")};
+        return {data: tbSync.dav.vCard.generate(vCardData).trim(), etag: card.getProperty("X-DAV-ETAG", "")};
     },
 
 }

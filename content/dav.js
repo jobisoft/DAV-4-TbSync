@@ -14,7 +14,7 @@
 var dav = {
     bundle: Services.strings.createBundle("chrome://dav4tbsync/locale/dav.strings"),
     prefSettings: Services.prefs.getBranch("extensions.dav4tbsync."),
-    minTbSyncVersionRequired: "0.7.16.10",
+    minTbSyncVersionRequired: "0.7.16",
 
     ns: {
         d: "DAV:",
@@ -241,7 +241,7 @@ var dav = {
      * returns the new id
      */
     getNewCardID: function (aItem, folder) {
-        let uuid = new tbSync.UUID();
+        let uuid = new dav.UUID();
         //actually use the full href of this vcard as id - the actual UID is not used by TbSync
         return folder.folderID + uuid.toString() + ".vcf";
     },
@@ -589,3 +589,5 @@ var dav = {
 
 tbSync.includeJS("chrome://dav4tbsync/content/sync.js");
 tbSync.includeJS("chrome://dav4tbsync/content/tools.js");
+tbSync.includeJS("chrome://dav4tbsync/content/vcard/vcard.js");
+tbSync.includeJS("chrome://dav4tbsync/content/uuid/uuid.js", dav);
