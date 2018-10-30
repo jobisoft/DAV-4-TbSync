@@ -241,9 +241,9 @@ var dav = {
      * returns the new id
      */
     getNewCardID: function (aItem, folder) {
-        let uuid = new dav.UUID();
+        const { generateUUID } = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
         //actually use the full href of this vcard as id - the actual UID is not used by TbSync
-        return folder.folderID + uuid.toString() + ".vcf";
+        return folder.folderID + generateUUID().toString() + ".vcf";
     },
 
 
@@ -590,4 +590,3 @@ var dav = {
 tbSync.includeJS("chrome://dav4tbsync/content/sync.js");
 tbSync.includeJS("chrome://dav4tbsync/content/tools.js");
 tbSync.includeJS("chrome://dav4tbsync/content/vcard/vcard.js");
-tbSync.includeJS("chrome://dav4tbsync/content/uuid/uuid.js", dav);
