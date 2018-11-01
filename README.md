@@ -5,9 +5,13 @@ Most servers provide the discovery service, which allows to use just the plain s
 
 This provider is not actually implementing the CalDAV protocol, but will add the found calendars to lightning and let lightning handle the sync. 
 
+## Image of the CalDAV/CardDAV provider hooked into TbSync:
+
+![image](https://raw.githubusercontent.com/jobisoft/DAV-4-TbSync/master/screenshots/AddAccount.png)
+
 ## Work around for subscribing calendars of different users on the same server
 
-Lightning has problems subscribing to multiple calendars of different users on the same server. DAV-4-TbSync 0.8.17 (or later) can probably resolve this issue, if you set
+Lightning has problems subscribing to multiple calendars of different users on the same server. DAV-4-TbSync can probably resolve this issue, if you set
 
 *extensions.dav4tbsync.addCredentialsToCalDavUrl = true*
 
@@ -18,13 +22,6 @@ If this still does not work for you, also set
 The first setting works around a bug in the PasswordManager by adding the credentials directly to the URl and thus bypassing the PasswordManager. This is of course not very secure, but the only way until this is fixed in lightning (it is beeing worked on).
 The second setting works around a bug in the cookie management by rejecting third-party-cookies. 
 
-<hr>
-
-The [DAV-4-TbSync extension](https://github.com/jobisoft/DAV-4-TbSync/releases) need the [TbSync v0.7.15 or later](https://github.com/jobisoft/TbSync/releases).
-
-## Image of the sabre/dav provider hooked into TbSync:
-
-![image](https://raw.githubusercontent.com/jobisoft/DAV-4-TbSync/master/screenshots/AddAccount.png)
 
 ### Icon sources and attributions
 
