@@ -23,7 +23,7 @@ The first setting works around a bug in the PasswordManager by adding the creden
 The second setting works around a bug in the cookie management by rejecting third-party-cookies. 
 
 
-### Icon sources and attributions
+## Icon sources and attributions
 
 #### CC-BY 3.0
 * [ics16.png] by [FatCow Web Hosting](https://www.iconfinder.com/icons/35803/)
