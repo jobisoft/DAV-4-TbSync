@@ -9,6 +9,20 @@ This provider is not actually implementing the CalDAV protocol, but will add the
 
 ![image](https://raw.githubusercontent.com/jobisoft/DAV-4-TbSync/master/screenshots/AddAccount.png)
 
+## Compatibility list
+
+DAV-4-TbSync is known to work with the following service providers:
+* fruux.com
+* gmx.de
+* posteo.de
+* mailbox.org
+
+Furthermore, DAV-4-TbSync is known to work with the following server systems:
+* sabre/dav
+* ownCloud
+* Nextcloud
+* SOGo
+
 ## Work around for subscribing calendars of different users on the same server
 
 Lightning has problems subscribing to multiple calendars of different users on the same server. DAV-4-TbSync can probably resolve this issue, if you set
