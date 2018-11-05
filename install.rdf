@@ -7,9 +7,9 @@
         <em:bootstrap>true</em:bootstrap>
         <em:unpack>false</em:unpack>
         <em:multiprocessCompatible>true</em:multiprocessCompatible>
-        <em:name>sabre/dav (CalDAV &amp; CardDAV) provider for TbSync</em:name>
+        <em:name>CalDAV &amp; CardDAV provider for TbSync</em:name>
         <em:version>0.8.29</em:version>
-        <em:description>Add sync support for sabre/dav (CalDAV &amp; CardDAV) accounts to TbSync</em:description>
+        <em:description>Add sync support for CalDAV &amp; CardDAV accounts to TbSync</em:description>
         <em:creator>John Bieling</em:creator>
         <em:homepageURL>https://github.com/jobisoft/DAV-4-TbSync</em:homepageURL>
         <em:iconURL>chrome://dav4tbsync/skin/sabredav32.png</em:iconURL>
@@ -26,16 +26,16 @@
         <em:localized>
           <Description>
             <em:locale>de</em:locale>
-            <em:name>sabre/dav (CalDAV &amp; CardDAV) Provider für TbSync</em:name>
-            <em:description>Synchronisiert Kontakte, Aufgaben und Kalender über sabre/dav (CalDAV &amp; CardDAV) mit Thunderbird</em:description>
+            <em:name>CalDAV &amp; CardDAV Provider für TbSync</em:name>
+            <em:description>Synchronisiert Kontakte, Aufgaben und Kalender über CalDAV &amp; CardDAV mit Thunderbird</em:description>
           </Description>
         </em:localized>
 
         <em:localized>
           <Description>
             <em:locale>it</em:locale>
-            <em:name>Provider Sabre/DAV (CalDAV e CardDAV) per TbSync</em:name>
-            <em:description>Aggiunge il supporto per gli account Sabre/DAV (CalDAV e CardDAV) a TbSync</em:description>
+            <em:name>Provider CalDAV e CardDAV per TbSync</em:name>
+            <em:description>Aggiunge il supporto per gli account CalDAV e CardDAV a TbSync</em:description>
           </Description>
         </em:localized>
 
