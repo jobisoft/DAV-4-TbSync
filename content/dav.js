@@ -54,6 +54,8 @@ var dav = {
         }        
     },
     
+
+
     calendarManagerObserver : {
         onCalendarRegistered : function (aCalendar) { 
             
@@ -82,6 +84,15 @@ var dav = {
      */
     getProviderIcon: function () {
         return "chrome://dav4tbsync/skin/sabredav16.png";
+    },
+
+
+
+    /**
+     * Returns the email address of the maintainer (used for bug reports).
+     */
+    getMaintainerEmail: function () {
+        return "john.bieling@gmx.de";
     },
 
 
