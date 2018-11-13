@@ -154,7 +154,10 @@ dav.tools = {
         return xml;
     },
 
-
+    generateUUID: function (aItem, folder) {
+        const uuidGenerator  = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
+        return uuidGenerator.generateUUID().toString().replace(/[{}]/g, '');
+    },
 
 
 
@@ -1073,8 +1076,6 @@ dav.tools = {
         card.setProperty("X-DAV-ETAG", etag);
         card.setProperty("X-DAV-VCARD", vCard);
         
-        const { generateUUID } = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
-
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
             if (tbSync.cmpVersions(dav.tools.supportedProperties[f].minversion, syncdata.folderCreatedWithProviderVersion)> 0) continue;
@@ -1095,7 +1096,7 @@ dav.tools = {
                             if (newServerValue) {
                                 //set if supported
                                 if (vCardData[vCardField.item][0].meta && vCardData[vCardField.item][0].meta.encoding) {
-                                    tbSync.addphoto(generateUUID().toString() + '.jpg', addressBook.URI, card, vCardData["photo"][0].value);
+                                    tbSync.addphoto(dav.tools.generateUUID() + '.jpg', addressBook.URI, card, vCardData["photo"][0].value);
                                 }
                             } else {
                                 //clear
@@ -1152,15 +1153,13 @@ dav.tools = {
     },
 
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
-    getVCardFromThunderbirdCard: function(syncdata, addressBook, id, _generateUID = false) {
+    getVCardFromThunderbirdCard: function(syncdata, addressBook, id, generateUID = false) {
         let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
         let vCardData = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
-
-        const { generateUUID } = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);        
         
-        if (_generateUID) {
+        if (generateUID) {
             //the UID of the vCard is never used by TbSync, it differs from the href of this card (following the specs)
-            vCardData["uid"] = [{"value": generateUUID().toString()}];
+            vCardData["uid"] = [{"value": dav.tools.generateUUID()}];
         }
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
