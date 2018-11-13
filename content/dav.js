@@ -26,36 +26,6 @@ var dav = {
     },
 
 
-    /**
-     * Called during load of external provider extension to init provider.
-     *
-     * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
-     */
-    load: Task.async (function* (lightningIsAvail) {
-        //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
-        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
-
-        if (lightningIsAvail) {
-            cal.getCalendarManager().addObserver(tbSync.dav.calendarManagerObserver);                
-        }
-        
-    }),
-
-    /**
-     * Called during unload of external provider extension to unload provider.
-     *
-     * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
-     */
-    unload: function (lightningIsAvail) {
-        if (lightningIsAvail) {
-            cal.getCalendarManager().removeObserver(tbSync.dav.calendarManagerObserver);
-        }        
-    },
-    
-
-
     calendarManagerObserver : {
         onCalendarRegistered : function (aCalendar) { 
             
@@ -79,11 +49,67 @@ var dav = {
     },
 
 
+
+
+    /** API **/
+    
+    /**
+     * Called during load of external provider extension to init provider.
+     *
+     * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
+     */
+    load: Task.async (function* (lightningIsAvail) {
+        //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
+        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
+        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
+        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
+
+        if (lightningIsAvail) {
+            cal.getCalendarManager().addObserver(tbSync.dav.calendarManagerObserver);                
+        }
+        
+    }),
+
+
+
+    /**
+     * Called during unload of external provider extension to unload provider.
+     *
+     * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
+     */
+    unload: function (lightningIsAvail) {
+        if (lightningIsAvail) {
+            cal.getCalendarManager().removeObserver(tbSync.dav.calendarManagerObserver);
+        }        
+    },
+    
+
+
     /**
      * Returns location of 16x16 pixel provider icon.
      */
-    getProviderIcon: function () {
-        return "chrome://dav4tbsync/skin/sabredav16.png";
+    getProviderIcon: function (size = 16) {
+        switch (size) {
+            case 16:
+                return "chrome://dav4tbsync/skin/sabredav16.png";
+            case 32:
+                return "chrome://dav4tbsync/skin/sabredav32.png";
+            default :
+                return "chrome://dav4tbsync/skin/sabredav48.png";
+        }
+            
+    },
+
+
+
+    /**
+     * Returns a list of sponsors, they will be sorted by the index
+     */
+    getSponsors: function () {
+        return {
+            "Biebl, Michael" : {name: "Michael Biebl", description: "Nextcloud", icon: "", link: "" },
+            "László, Kovács" : {name: "Kovács László", description : "Radicale", icon: "", link: "" },
+        };
     },
 
 
@@ -193,10 +219,6 @@ var dav = {
      */
     onEnableAccount: function (account) {
         db.resetAccountSetting(account, "lastsynctime");
-
-        // reset custom values
-        //db.resetAccountSetting(account, "policykey");
-        //db.resetAccountSetting(account, "foldersynckey");
     },
 
 
@@ -252,9 +274,8 @@ var dav = {
      * returns the new id
      */
     getNewCardID: function (aItem, folder) {
-        const { generateUUID } = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
         //actually use the full href of this vcard as id - the actual UID is not used by TbSync
-        return folder.folderID + generateUUID().toString() + ".vcf";
+        return folder.folderID + dav.tools.generateUUID() + ".vcf";
     },
 
 
