@@ -7,7 +7,7 @@
         <em:bootstrap>true</em:bootstrap>
         <em:unpack>false</em:unpack>
         <em:multiprocessCompatible>true</em:multiprocessCompatible>
-        <em:name>CalDAV &amp; CardDAV provider for TbSync</em:name>
+        <em:name>Provider for CalDAV &amp; CardDAV</em:name>
         <em:version>0.8.29</em:version>
         <em:description>Add sync support for CalDAV &amp; CardDAV accounts to TbSync</em:description>
         <em:creator>John Bieling</em:creator>
@@ -31,8 +31,8 @@
         <em:localized>
           <Description>
             <em:locale>de</em:locale>
-            <em:name>CalDAV &amp; CardDAV Provider für TbSync</em:name>
-            <em:description>Synchronisiert Kontakte, Aufgaben und Kalender über CalDAV &amp; CardDAV mit Thunderbird</em:description>
+            <em:name>Provider für CalDAV &amp; CardDAV</em:name>
+            <em:description>Erweitert TbSync und erlaubt die Synchronisation von CalDAV &amp; CardDAV Konten (Kontakte, Aufgaben und Kalender).</em:description>
             <em:translator>John Bieling (de)</em:translator>
             <em:translator>John Bieling (en-US)</em:translator>
             <em:translator>Alessandro Menti (it)</em:translator>
