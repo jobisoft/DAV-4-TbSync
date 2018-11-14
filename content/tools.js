@@ -1110,14 +1110,13 @@ dav.tools = {
                     case "Birthday":
                         {
                             if (newServerValue) {
-                                //set - This accepts both RFC6350 or RFC2426 dates, though TB doesn't support all the cases (e.g. times)
-                                let bday = newServerValue.match( /^(\d{4}|-)-?(\d{2})-?(\d{2})/ );
+                                /*
+                                ** This accepts RFC2426 BDAY values (with/without hyphens),
+                                ** though TB doesn't handle the time part of date-times, so we discard it.
+                                */
+                                let bday = newServerValue.match( /^(\d{4})-?(\d{2})-?(\d{2})/ );
                                 if ( bday ) {
-                                    if ( bday[1] == '-' ) {
-                                        card.deleteProperty("BirthYear");
-                                    } else {
-                                        card.setProperty("BirthYear", bday[1]);
-                                    }
+                                    card.setProperty("BirthYear", bday[1]);
                                     card.setProperty("BirthMonth", bday[2]);
                                     card.setProperty("BirthDay", bday[3]);
                                 }
@@ -1192,15 +1191,16 @@ dav.tools = {
                         let birthMonth = parseInt(card.getProperty("BirthMonth", 0));
                         let birthDay = parseInt(card.getProperty("BirthDay", 0));
 
-                        // support missing year as --mmdd per RFC6350 4.3.4
-                        if (!birthYear) {
-                          birthYear = "--";
-                        }
+                        /*
+                        ** FIXME: If the user leaves some of the date elements empty in TB, the uploaded 
+                        ** vcard will have no BDAY, and if the server vcard is touched, causing the vcard
+                        ** to be pushed back to TB, the partial date in TB will be deleted.  See Issue #13.
+                        */
 
                         let value = "";
                         if (birthYear && birthMonth && birthDay) {
-                            // proper RFC6350 date (YYYYMMDD or --MMDD. Other date-and-or-time formats not supported.)
-                            value = birthYear + ("00"+birthMonth).slice(-2) + ("00"+birthDay).slice(-2);
+                            // TODO: for vcard4, we'll need to get rid of the hyphens and support missing date elements
+                            value = birthYear + "-" + ("00"+birthMonth).slice(-2) + "-" + ("00"+birthDay).slice(-2);
                         }
                         dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, value);
                     }
