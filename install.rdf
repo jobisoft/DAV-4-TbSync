@@ -13,10 +13,13 @@
         <em:creator>John Bieling</em:creator>
         <em:homepageURL>https://github.com/jobisoft/DAV-4-TbSync</em:homepageURL>
         <em:iconURL>chrome://dav4tbsync/skin/sabredav32.png</em:iconURL>
+        <em:translator>Ettore Atalan (de)</em:translator>
         <em:translator>John Bieling (de)</em:translator>
         <em:translator>John Bieling (en-US)</em:translator>
         <em:translator>Alessandro Menti (it)</em:translator>
-        <em:contributor>Alexandr Heymdall (vCard parser)</em:contributor>
+        <em:contributor>Brad2014</em:contributor>
+        <em:contributor>Nathan Gauër</em:contributor>
+        <em:contributor>Alexandr Heymdall (vCard parser)</em:contributor>	
         <em:creator>John Bieling</em:creator>
 
         <em:targetApplication>
@@ -33,10 +36,13 @@
             <em:locale>de</em:locale>
             <em:name>Provider für CalDAV &amp; CardDAV</em:name>
             <em:description>Erweitert TbSync und erlaubt die Synchronisation von CalDAV &amp; CardDAV Konten (Kontakte, Aufgaben und Kalender).</em:description>
+            <em:translator>Ettore Atalan (de)</em:translator>
             <em:translator>John Bieling (de)</em:translator>
             <em:translator>John Bieling (en-US)</em:translator>
             <em:translator>Alessandro Menti (it)</em:translator>
-            <em:contributor>Alexandr Heymdall (vCard parser)</em:contributor>
+            <em:contributor>Brad2014</em:contributor>
+            <em:contributor>Nathan Gauër</em:contributor>
+            <em:contributor>Alexandr Heymdall (vCard parser)</em:contributor>	
             <em:creator>John Bieling</em:creator>
           </Description>
         </em:localized>
@@ -46,10 +52,13 @@
             <em:locale>it</em:locale>
             <em:name>Provider CalDAV e CardDAV per TbSync</em:name>
             <em:description>Aggiunge il supporto per gli account CalDAV e CardDAV a TbSync</em:description>
+            <em:translator>Ettore Atalan (de)</em:translator>
             <em:translator>John Bieling (de)</em:translator>
             <em:translator>John Bieling (en-US)</em:translator>
             <em:translator>Alessandro Menti (it)</em:translator>
-            <em:contributor>Alexandr Heymdall (vCard parser)</em:contributor>
+            <em:contributor>Brad2014</em:contributor>
+            <em:contributor>Nathan Gauër</em:contributor>
+            <em:contributor>Alexandr Heymdall (vCard parser)</em:contributor>	
             <em:creator>John Bieling</em:creator>
           </Description>
         </em:localized>
