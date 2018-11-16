@@ -135,7 +135,7 @@ dav.tools = {
  
     // Promisified implementation of Components.interfaces.nsIHttpChannel
     // - let error = tbSync.createTCPErrorFromFailedXHR(syncdata.req);
-    sendRequest: Task.async (function* (requestData, _url, method, syncdata, headers, aUseStreamLoader = true) {
+    sendRequest: Task.async (function* (requestData, url, method, syncdata, headers, aUseStreamLoader = true) {
         let account = tbSync.db.getAccount(syncdata.account);
         
         //Note: 
@@ -143,7 +143,7 @@ dav.tools = {
         // - after it has recevied a new pass, it will use the cached version
         // - this allows to switch users but will cause a 401 on each user switch, and it probably breaks digest auth
         // - the username is lost during redirects...
-        let uri = Services.io.newURI("http" + (account.https == "1" ? "s" : "") + "://" + tbSync.db.getAccountSetting(syncdata.account, "fqdn") + _url);
+        let uri = Services.io.newURI("http" + (account.https == "1" ? "s" : "") + "://" + tbSync.db.getAccountSetting(syncdata.account, "fqdn") + url);
 
         tbSync.dump("URL", uri.spec);
         tbSync.dump("HEADERS", JSON.stringify(headers));
