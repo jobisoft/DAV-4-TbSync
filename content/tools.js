@@ -41,6 +41,32 @@ dav.tools = {
         return uuidGenerator.generateUUID().toString().replace(/[{}]/g, '');
     },
 
+    parseVcardDateTime: function ( newServerValue, metadata ) {
+        if (!newServerValue) {
+            return false;
+        }
+
+        /*
+        ** This accepts RFC2426 BDAY values (with/without hyphens),
+        ** though TB doesn't handle the time part of date-times, so we discard it.
+        */
+        let bday = newServerValue.match( /^(\d{4})-?(\d{2})-?(\d{2})/ );
+        if (!bday) {
+            return false;
+        }
+
+        /*
+        ** Apple Contacts shoehorns date with missing year into vcard3 thus:  BDAY;X-APPLE-OMIT-YEAR=1604:1604-03-15
+        ** Later in vcard4, it will be represented as BDAY:--0315
+        */
+        if (metadata
+         && metadata['x-apple-omit-year']
+         && metadata['x-apple-omit-year'] == bday[1]) {
+            bday[1] = '';
+        } 
+        return bday;
+    },
+
 
 
     //* * * * * * * * * * * * *
@@ -918,19 +944,12 @@ dav.tools = {
 
                     case "Birthday":
                         {
-                            if (newServerValue) {
-                                /*
-                                ** This accepts RFC2426 BDAY values (with/without hyphens),
-                                ** though TB doesn't handle the time part of date-times, so we discard it.
-                                */
-                                let bday = newServerValue.match( /^(\d{4})-?(\d{2})-?(\d{2})/ );
-                                if ( bday ) {
-                                    card.setProperty("BirthYear", bday[1]);
-                                    card.setProperty("BirthMonth", bday[2]);
-                                    card.setProperty("BirthDay", bday[3]);
-                                }
+                            let bday = dav.tools.parseVcardDateTime( newServerValue, vCardData[vCardField.item][0].meta );
+                            if ( bday ) {
+                                card.setProperty("BirthYear", bday[1]);
+                                card.setProperty("BirthMonth", bday[2]);
+                                card.setProperty("BirthDay", bday[3]);
                             } else {
-                                //clear
                                 card.deleteProperty("BirthYear");
                                 card.deleteProperty("BirthMonth");
                                 card.deleteProperty("BirthDay");
@@ -996,15 +1015,16 @@ dav.tools = {
 
                 case "Birthday":
                     {
+                        // Support missing year in vcard3, as done by Apple Contacts.
+                        const APPLE_MISSING_YEAR_MARK = "1604";
+
                         let birthYear = parseInt(card.getProperty("BirthYear", 0));
                         let birthMonth = parseInt(card.getProperty("BirthMonth", 0));
                         let birthDay = parseInt(card.getProperty("BirthDay", 0));
 
-                        /*
-                        ** FIXME: If the user leaves some of the date elements empty in TB, the uploaded 
-                        ** vcard will have no BDAY, and if the server vcard is touched, causing the vcard
-                        ** to be pushed back to TB, the partial date in TB will be deleted.  See Issue #13.
-                        */
+                        if (!birthYear) {
+                            birthYear = APPLE_MISSING_YEAR_MARK;
+                        }
 
                         let value = "";
                         if (birthYear && birthMonth && birthDay) {
@@ -1012,6 +1032,9 @@ dav.tools = {
                             value = birthYear + "-" + ("00"+birthMonth).slice(-2) + "-" + ("00"+birthDay).slice(-2);
                         }
                         dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, value);
+                        if (birthYear == APPLE_MISSING_YEAR_MARK) {
+                            vCardData[vCardField.item][0].meta = {"x-apple-omit-year": [APPLE_MISSING_YEAR_MARK]};
+                        }
                     }
                     break;
 
