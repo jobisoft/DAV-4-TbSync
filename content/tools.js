@@ -102,13 +102,28 @@ dav.tools = {
                 return false; //if the credentials in the password manager are wrong or not found, abort and pass on the 401 to the caller
             }
         }
-    },    
+    },
+
+    Redirect: class {
+        constructor(aRequestData, aHeaders, aMethod, aAccount) {
+            this.mRequestData = aRequestData; 
+            this.mHeaders = aHeaders;
+            this.mMethod = aMethod;
+            this.mAccount = aAccount;
+        }
+
+        asyncOnChannelRedirect (aOldChannel, aNewChannel, aFlags, aCallback) {
+            tbSync.dump("Redirect", aNewChannel.URI.spec);
+            dav.tools.prepHttpChannel (aNewChannel.URI, this.mRequestData, this.mHeaders, this.mMethod, this.mAccount, null, aNewChannel);            
+            aCallback.onRedirectVerifyCallback(Components.results.NS_OK);  
+        }
+    },
        
-    prepHttpChannel: function(aUri, aUploadData, aHeaders, aMethod, aUser, aNotificationCallbacks=null, aExisting=null) {
+    prepHttpChannel: function(aUri, aUploadData, aHeaders, aMethod, aAccount, aNotificationCallbacks=null, aExisting=null) {
         let channel = aExisting || Services.io.newChannelFromURI2(
                                                                 aUri,
                                                                 null,
-                                                                Services.scriptSecurityManager.createCodebasePrincipal(aUri, {user: aUser}),
+                                                                Services.scriptSecurityManager.createCodebasePrincipal(aUri, {user: aAccount.user}),
                                                                 null,
                                                                 Components.interfaces.nsILoadInfo.SEC_ALLOW_CROSS_ORIGIN_DATA_IS_NULL,
                                                                 Components.interfaces.nsIContentPolicy.TYPE_OTHER);
@@ -172,7 +187,7 @@ dav.tools = {
         // - after it has recevied a new pass, it will use the cached version
         // - this allows to switch users but will cause a 401 on each user switch, and it probably breaks digest auth
         // - the username is lost during redirects...
-        let uri = Services.io.newURI("http" + (account.https == "1" ? "s" : "") + "://" + tbSync.db.getAccountSetting(syncdata.account, "fqdn") + url);
+        let uri = Services.io.newURI("http" + (account.https == "1" ? "s" : "") + "://" + account.fqdn + url);
 
         tbSync.dump("URL", uri.spec);
         tbSync.dump("HEADERS", JSON.stringify(headers));
@@ -278,10 +293,10 @@ dav.tools = {
                 getInterface : function(aIID) {
                     if (aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
                         tbSync.dump("GET","nsIAuthPrompt2");
-                        if (!this.calAuthPrompt) {
-                            this.calAuthPrompt = new dav.tools.Prompt(account);
+                        if (!this.authPrompt) {
+                            this.authPrompt = new dav.tools.Prompt(account);
                         }
-                        return this.calAuthPrompt;
+                        return this.authPrompt;
                     } else if (aIID.equals(Components.interfaces.nsIAuthPrompt)) {
                         //tbSync.dump("GET","nsIAuthPrompt");
                     } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider)) {
@@ -290,13 +305,18 @@ dav.tools = {
                         //tbSync.dump("GET","nsIPrompt");
                     } else if (aIID.equals(Components.interfaces.nsIProgressEventSink)) {
                         //tbSync.dump("GET","nsIProgressEventSink");
+                    } else if (aIID.equals(Components.interfaces.nsIChannelEventSink)) {
+                        if (!this.redirectSink) {
+                            this.redirectSink = new dav.tools.Redirect(requestData, headers, method, account);
+                        }
+                        return this.redirectSink;
                     }
 
                     throw Components.results.NS_ERROR_NO_INTERFACE;
                 },
             }
 
-            let channel = dav.tools.prepHttpChannel(uri, requestData, headers, method, account.user, notificationCallbacks);    
+            let channel = dav.tools.prepHttpChannel(uri, requestData, headers, method, account, notificationCallbacks);    
             if (aUseStreamLoader) {
                 let loader =  Components.classes["@mozilla.org/network/stream-loader;1"].createInstance(Components.interfaces.nsIStreamLoader);
                 loader.init(listener);
