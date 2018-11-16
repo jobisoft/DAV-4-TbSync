@@ -132,6 +132,7 @@ var dav = {
      */
     getSponsors: function () {
         return {
+            "Thoben, Marc" : {name: "Marc Thoben", description: "Zimbra", icon: "", link: "" },
             "Biebl, Michael" : {name: "Michael Biebl", description: "Nextcloud", icon: "", link: "" },
             "László, Kovács" : {name: "Kovács László", description : "Radicale", icon: "", link: "" },
         };
