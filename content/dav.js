@@ -47,7 +47,30 @@ var dav = {
         onCalendarUnregistering : function (aCalendar) {},
         onCalendarDeleting : function (aCalendar) {},
     },
+    
+   calendarObserver : { 
+        onStartBatch : function () {},
+        onEndBatch : function () {},
+        onLoad : function (aCalendar) {},
+        onAddItem : function (aItem) {},
+        onModifyItem : function (aNewItem, aOldItem) {},
+        onDeleteItem : function (aDeletedItem) {},
+        onError : function (aCalendar, aErrNo, aMessage) {},
+        onPropertyDeleting : function (aCalendar, aName) {},
 
+        //Properties of the calendar itself (name, color etc.)
+        onPropertyChanged : function (aCalendar, aName, aValue, aOldValue) {
+            let folders = tbSync.db.findFoldersWithSetting(["target"], [aCalendar.id]);
+            if (folders.length == 1) {
+                switch (aName) {
+                    case "color":
+                        //update stored color to recover after disable
+                        dav.tools.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folders[0].folderID, "PROPPATCH", {account: folders[0].account}, {});
+                        break;
+                }
+            }
+        },
+    },    
 
 
 
@@ -65,7 +88,8 @@ var dav = {
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
 
         if (lightningIsAvail) {
-            cal.getCalendarManager().addObserver(tbSync.dav.calendarManagerObserver);                
+            cal.getCalendarManager().addObserver(tbSync.dav.calendarManagerObserver);    
+            cal.getCalendarManager().addCalendarObserver(tbSync.dav.calendarObserver);            
         }
         
     }),
@@ -80,6 +104,7 @@ var dav = {
     unload: function (lightningIsAvail) {
         if (lightningIsAvail) {
             cal.getCalendarManager().removeObserver(tbSync.dav.calendarManagerObserver);
+            cal.getCalendarManager().removeCalendarObserver(tbSync.dav.calendarObserver);                        
         }        
     },
     
