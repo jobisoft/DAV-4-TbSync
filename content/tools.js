@@ -157,7 +157,12 @@ dav.tools = {
                     try {
                         responseStatus = request.responseStatus;
                     } catch (ex) {
-                        reject(dav.sync.failed("ComErr:" + ex.result + " (" + ex.message +")"));
+                        let error = tbSync.createTCPErrorFromFailedChannel(aLoader.request);
+                        if (!error) {
+                            reject(dav.sync.failed("networkerror"));
+                        } else {
+                            reject(dav.sync.failed(error));
+                        }
                     }
                     
                     let text = cal.provider.convertByteArray(aResult, aResultLength);                    
