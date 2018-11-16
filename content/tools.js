@@ -910,7 +910,7 @@ dav.tools = {
             case "WorkAddress":
                 {
                     let field = property.substring(4);
-                    let adr = (tbSync.cmpVersions("0.8.11", syncdata.folderCreatedWithProviderVersion) > 0)
+                    let adr = (Services.vc.compare("0.8.11", syncdata.folderCreatedWithProviderVersion) > 0)
                                     ?  ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"] //WRONG
                                     : ["OfficeBox","ExtAddr","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
 
@@ -990,7 +990,7 @@ dav.tools = {
             case "WorkAddress":
                 {
                     let field = property.substring(4);
-                    let adr = (tbSync.cmpVersions("0.8.11", syncdata.folderCreatedWithProviderVersion) > 0)
+                    let adr = (Services.vc.compare("0.8.11", syncdata.folderCreatedWithProviderVersion) > 0)
                                     ?  ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"] //WRONG
                                     : ["OfficeBox","ExtAddr","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
 
@@ -1078,7 +1078,7 @@ dav.tools = {
         
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
-            if (tbSync.cmpVersions(dav.tools.supportedProperties[f].minversion, syncdata.folderCreatedWithProviderVersion)> 0) continue;
+            if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncdata.folderCreatedWithProviderVersion)> 0) continue;
 
             let property = dav.tools.supportedProperties[f].name;
             let vCardField = dav.tools.getVCardField(syncdata, property, vCardData);
@@ -1169,7 +1169,7 @@ dav.tools = {
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
-            if (tbSync.cmpVersions(dav.tools.supportedProperties[f].minversion, syncdata.folderCreatedWithProviderVersion)> 0) continue;
+            if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncdata.folderCreatedWithProviderVersion)> 0) continue;
 
             let property = dav.tools.supportedProperties[f].name;
             let vCardField = dav.tools.getVCardField(syncdata, property, vCardData);
