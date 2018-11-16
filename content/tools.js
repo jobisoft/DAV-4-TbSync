@@ -88,8 +88,6 @@ dav.tools = {
                                                                 Components.interfaces.nsIContentPolicy.TYPE_OTHER);
         let httpchannel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
 
-        httpchannel.setRequestHeader("Accept", "*/*", false);
-        //httpchannel.setRequestHeader("Accept-Charset", "utf-8,*;q=0.1", false);
         //httpchannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
         httpchannel.notificationCallbacks = aNotificationCallbacks;
 
@@ -130,6 +128,11 @@ dav.tools = {
         if (!aHeaders.hasOwnProperty("Content-Type"))
             httpchannel.setRequestHeader("Content-Type", "application/xml; charset=utf-8", false);
 
+        //default accept value
+        if (!aHeaders.hasOwnProperty("Accept"))
+            httpchannel.setRequestHeader("Accept", "*/*", false);
+
+        //httpchannel.setRequestHeader("Accept-Charset", "utf-8,*;q=0.1", false);
         return httpchannel;
     },
  
