@@ -171,7 +171,9 @@ dav.tools = {
         ** Apple Contacts shoehorns date with missing year into vcard3 thus:  BDAY;X-APPLE-OMIT-YEAR=1604:1604-03-15
         ** Later in vcard4, it will be represented as BDAY:--0315
         */
-        if ( bday[1] == metadata['x-apple-omit-year'] ) {
+        if (metadata
+         && metadata['x-apple-omit-year']
+         && metadata['x-apple-omit-year'] == bday[1]) {
             bday[1] = '';
         } 
         return bday;
