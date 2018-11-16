@@ -163,10 +163,16 @@ dav.tools = {
         if (!newServerValue) {
             return false;
         }
+
+        /*
+        ** This accepts RFC2426 BDAY values (with/without hyphens),
+        ** though TB doesn't handle the time part of date-times, so we discard it.
+        */
         let bday = newServerValue.match( /^(\d{4})-?(\d{2})-?(\d{2})/ );
         if (!bday) {
             return false;
         }
+
         /*
         ** Apple Contacts shoehorns date with missing year into vcard3 thus:  BDAY;X-APPLE-OMIT-YEAR=1604:1604-03-15
         ** Later in vcard4, it will be represented as BDAY:--0315
