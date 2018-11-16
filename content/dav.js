@@ -159,9 +159,7 @@ var dav = {
             "lastsynctime" : "0",
             "status" : "disabled", //global status: disabled, OK, syncing, notsyncronized, nolightning, ...
             "servertype": "custom",
-            "authMethod" :"",
-            "authOptions" :"",
-            "authDigestNC" :"",
+            "authRealm" :"",
             "host" : "",
             "fqdn" : "",
             "user" : "",
@@ -337,8 +335,7 @@ var dav = {
 
         //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
         if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToCalDavUrl") && caltype == "caldav") {
-            let authOptions = dav.tools.getAuthOptions(accountdata.authOptions);
-            tbSync.setLoginInfo(url.prePath, authOptions.realm, user, password);
+            tbSync.setLoginInfo(url.prePath, accountdata.authRealm, user, password);
         }
 
         //do not monitor CalDAV calendars (managed by lightning)

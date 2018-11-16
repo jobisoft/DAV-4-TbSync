@@ -36,124 +36,6 @@ dav.tools = {
         return uri;
     },
 
-    hashMD5: function (str) {
-        var converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
-
-        // we use UTF-8 here, you can choose other encodings.
-        converter.charset = "UTF-8";
-        // result is an out parameter,
-        // result.value will contain the array length
-        var result = {};
-        // data is an array of bytes
-        var data = converter.convertToByteArray(str, result);
-        var ch = Components.classes["@mozilla.org/security/hash;1"].createInstance(Components.interfaces.nsICryptoHash);
-        ch.init(ch.MD5);
-        ch.update(data, data.length);
-        var hash = ch.finish(false);
-
-        // return the two-digit hexadecimal code for a byte
-        function toHexString(charCode)
-        {
-          return ("0" + charCode.toString(16)).slice(-2);
-        }
-
-        // convert the binary hash data to a hex string.
-        var s = Array.from(hash, (c, i) => toHexString(hash.charCodeAt(i))).join("");
-        // s now contains your hash in hex: should be
-        // 5eb63bbbe01eeed093cb22bb8f5acdc3
-        return s;
-    },
-
-    /*
-     * Part of digest-header - index.js : https://github.com/node-modules/digest-header
-     *
-     * Copyright(c) fengmk2 and other contributors.
-     * MIT Licensed
-     *
-     * Authors:
-     *   fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com)
-     */
-    getAuthOptions: function (str) {
-        let parts = str.split(',');
-        let opts = {};
-        let AUTH_KEY_VALUE_RE = /(\w+)=["']?([^'"]+)["']?/;
-        for (let i = 0; i < parts.length; i++) {
-            let m = parts[i].match(AUTH_KEY_VALUE_RE);
-            if (m) {
-                opts[m[1]] = m[2].replace(/["']/g, '');
-            }
-        }
-        return opts;
-    },
-
-    /*
-     * Part of digest-header - index.js : https://github.com/node-modules/digest-header
-     *
-     * Copyright(c) fengmk2 and other contributors.
-     * MIT Licensed
-     *
-     * Authors:
-     *   fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com)
-     */
-    getDigestAuthHeader: function (method, uri, user, password, options, account) {
-        let opts = dav.tools.getAuthOptions(options);
-        if (!opts.realm || !opts.nonce) {
-            return "";
-        }
-        let qop = opts.qop || "";
-
-        let userpass = [user,password];
-
-        let NC_PAD = '00000000';
-        let nc = parseInt(tbSync.db.getAccountSetting(account, "authDigestNC"));
-        tbSync.db.setAccountSetting(account, "authDigestNC", String(++nc))
-
-        nc = NC_PAD.substring(nc.length) + nc;
-
-        let randomarray = new Uint8Array(8);
-        tbSync.window.crypto.getRandomValues(randomarray);
-        let cnonce = randomarray.toString('hex');
-
-        var ha1 = dav.tools.hashMD5(userpass[0] + ':' + opts.realm + ':' + userpass[1]);
-        var ha2 = dav.tools.hashMD5(method.toUpperCase() + ':' + uri);
-        var s = ha1 + ':' + opts.nonce;
-        if (qop) {
-            qop = qop.split(',')[0];
-            s += ':' + nc + ':' + cnonce + ':' + qop;
-        }
-        s += ':' + ha2;
-
-        var response = dav.tools.hashMD5(s);
-        var authstring = 'Digest username="' + userpass[0] + '", realm="' + opts.realm + '", nonce="' + opts.nonce + '", uri="' + uri + '", response="' + response + '"';
-        if (opts.opaque) {
-            authstring += ', opaque="' + opts.opaque + '"';
-        }
-        if (qop) {
-            authstring +=', qop=' + qop + ', nc=' + nc + ', cnonce="' + cnonce + '"';
-        }
-        return authstring;
-    },
-
-
-    convertToXML: function(text) {
-        //try to convert response body to xml
-        let xml = null;
-        let oParser = (Services.vc.compare(Services.appinfo.platformVersion, "61.*") >= 0) ? new DOMParser() : Components.classes["@mozilla.org/xmlextras/domparser;1"].createInstance(Components.interfaces.nsIDOMParser);
-        try {
-            xml = oParser.parseFromString(text, "application/xml");
-        } catch (e) {
-            //however, domparser does not throw an error, it returns an error document
-            //https://developer.mozilla.org/de/docs/Web/API/DOMParser
-            xml = null;
-        }
-        //check if xml is error document
-        if (xml.documentElement.nodeName == "parsererror") {
-            xml = null;
-        }
-
-        return xml;
-    },
-
     generateUUID: function (aItem, folder) {
         const uuidGenerator  = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
         return uuidGenerator.generateUUID().toString().replace(/[{}]/g, '');
@@ -161,11 +43,14 @@ dav.tools = {
 
 
 
-
+    //* * * * * * * * * * * * *
+    //* SERVER COMMUNICATIONS *
+    //* * * * * * * * * * * * *
+    
     Prompt: class {
-        constructor(aUser) {
+        constructor(aAccount) {
             this.mCounts = 0;
-            this.mUser = aUser;
+            this.mAccount = aAccount;
         }
 
         // boolean promptAuth(in nsIChannel aChannel,
@@ -173,19 +58,19 @@ dav.tools = {
         //                    in nsIAuthInformation authInfo)
         promptAuth (aChannel, aLevel, aAuthInfo) {
 
-            let logins = Services.logins.findLogins({},  aChannel.URI.prePath, null, aAuthInfo.realm);
-            let found = false;
-            for (let i=0; i < logins.length && !found; i++) {
-                if (this.mUser == logins[i].username) {                
-                    tbSync.dump("promptAuth", logins[i].username + " @ " + aChannel.URI.spec);
-                    aAuthInfo.username = logins[i].username;
-                    aAuthInfo.password = logins[i].password;
-                    found = true;
-                }
+            //get the password for this account from password manager
+            let password = tbSync.getPassword(this.mAccount);
+            if (password) {
+                tbSync.dump("Fetched password from password manager", this.mAccount.user + " @ " + this.mAccount.fqdn);
+                aAuthInfo.username = this.mAccount.user;
+                aAuthInfo.password = password;
             }
             
+            //store aAuthInfo.realm
+            tbSync.db.setAccountSetting(this.mAccount.account, "authRealm", aAuthInfo.realm);
+            
             this.mCounts++
-            if (this.mCounts < 2 && found) {
+            if (this.mCounts < 2 && password !== null) {
                 return true;
             } else {
                 return false; //if the credentials in the password manager are wrong or not found, abort and pass on the 401 to the caller
@@ -203,9 +88,9 @@ dav.tools = {
                                                                 Components.interfaces.nsIContentPolicy.TYPE_OTHER);
         let httpchannel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
 
-        httpchannel.setRequestHeader("Accept", "text/xml", false);
-        httpchannel.setRequestHeader("Accept-Charset", "utf-8,*;q=0.1", false);
-        httpchannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
+        //httpchannel.setRequestHeader("Accept", "text/xml", false);
+        //httpchannel.setRequestHeader("Accept-Charset", "utf-8,*;q=0.1", false);
+        //httpchannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
         httpchannel.notificationCallbacks = aNotificationCallbacks;
 
         if (aUploadData) {
@@ -248,9 +133,10 @@ dav.tools = {
         return httpchannel;
     },
  
-    sendRequest2: Task.async (function* (requestData, _url, method, syncdata, headers, aUseStreamLoader = true) {
+    // Promisified implementation of Components.interfaces.nsIHttpChannel
+    // - let error = tbSync.createTCPErrorFromFailedXHR(syncdata.req);
+    sendRequest: Task.async (function* (requestData, _url, method, syncdata, headers, aUseStreamLoader = true) {
         let account = tbSync.db.getAccount(syncdata.account);
-        let password = tbSync.getPassword(account);
         
         //Note: 
         // - by specifying a user, the system falls back to user:<none>, which will trigger a 401 which will cause the authCallbacks and lets me set a new user/pass combination
@@ -264,23 +150,92 @@ dav.tools = {
         tbSync.dump("REQUEST", method + " : " + requestData);
         
         return new Promise(function(resolve, reject) {                  
-            let user =  account.user;
             let listener = {
                 onStreamComplete: function(aLoader, aContext, aStatus, aResultLength, aResult) {
                     let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
-                    let listenerStatus = Components.results.NS_OK;
                     let responseStatus = 0;
                     try {
                         responseStatus = request.responseStatus;
-                        tbSync.dump("LS GOOD",  responseStatus);
                     } catch (ex) {
-                        listenerStatus = ex.result;
-                        tbSync.dump("LS BAD",  ex.result + "(" + ex.message +")");
+                        reject(dav.sync.failed("ComErr:" + ex.result + " (" + ex.message +")"));
                     }
-                    tbSync.dump("DATA", cal.provider.convertByteArray(aResult, aResultLength));
                     
-                    //curently we only return the status
-                    resolve(responseStatus);
+                    let text = cal.provider.convertByteArray(aResult, aResultLength);                    
+                    tbSync.dump("RESPONSE", responseStatus + " : " + text);
+                    switch(responseStatus) {
+                        case 401: //AuthError
+                            {
+                                reject(dav.sync.failed("401"));
+                            }
+                            break;
+
+                        case 207: //preprocess multiresponse
+                            {
+                                let xml = dav.tools.convertToXML(text);
+                                if (xml === null) reject(dav.sync.failed("mailformed-xml"));
+
+                                let response = {};
+                                response.node = xml.documentElement;
+
+                                let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
+                                response.multi = [];
+                                for (let i=0; i < multi.length; i++) {
+                                    let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
+                                    let propstats = multi[i].getElementsByTagNameNS(dav.ns.d, "propstat");
+                                    if (propstats.length > 0) {
+                                        //response contains propstats, push each as single entry
+                                        for (let p=0; p < propstats.length; p++) {
+                                            let statusNode = dav.tools.evaluateNode(propstats[p], [["d", "status"]]);
+
+                                            let resp = {};
+                                            resp.node = propstats[p];
+                                            resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
+                                            resp.href = hrefNode === null ? null : hrefNode.textContent;
+                                            response.multi.push(resp);
+                                        }
+                                    } else {
+                                        //response does not contain any propstats, push raw response
+                                        let statusNode = dav.tools.evaluateNode(multi[i], [["d", "status"]]);
+
+                                        let resp = {};
+                                        resp.node = multi[i];
+                                        resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
+                                        resp.href = hrefNode === null ? null : hrefNode.textContent;
+                                        response.multi.push(resp);
+                                    }
+                                }
+
+                                resolve(response);
+                            }
+                            break;
+
+                        case 200: //returned by DELETE by radicale - watch this !!!
+                        case 204: //is returned by DELETE - no data
+                        case 201: //is returned by CREATE - no data
+                            resolve(null);
+                            break;
+
+                        case 403:
+                        case 404:
+                        case 405: //Not allowed
+                        case 415: //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book)
+                            {
+                                let noresponse = {};
+                                noresponse.error = response.status;
+                                let xml = dav.tools.convertToXML(text);
+                                if (xml !== null) {
+                                    let exceptionNode = dav.tools.evaluateNode(xml.documentElement, [["s","exception"]]);
+                                    if (exceptionNode !== null) {
+                                        noresponse.exception = exceptionNode.textContent;
+                                    }
+                                }
+                                resolve(noresponse);
+                            }
+
+                        default:
+                            reject(dav.sync.failed(responseStatus));
+
+                    }
                 }
             }
 
@@ -290,24 +245,24 @@ dav.tools = {
                     if (aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
                         tbSync.dump("GET","nsIAuthPrompt2");
                         if (!this.calAuthPrompt) {
-                            this.calAuthPrompt = new dav.tools.Prompt(user);
+                            this.calAuthPrompt = new dav.tools.Prompt(account);
                         }
                         return this.calAuthPrompt;
                     } else if (aIID.equals(Components.interfaces.nsIAuthPrompt)) {
-                        tbSync.dump("GET","nsIAuthPrompt");
+                        //tbSync.dump("GET","nsIAuthPrompt");
                     } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider)) {
-                        tbSync.dump("GET","nsIAuthPromptProvider");
+                        //tbSync.dump("GET","nsIAuthPromptProvider");
                     } else if (aIID.equals(Components.interfaces.nsIPrompt)) {
-                        tbSync.dump("GET","nsIPrompt");
+                        //tbSync.dump("GET","nsIPrompt");
                     } else if (aIID.equals(Components.interfaces.nsIProgressEventSink)) {
-                        tbSync.dump("GET","nsIProgressEventSink");
+                        //tbSync.dump("GET","nsIProgressEventSink");
                     }
 
                     throw Components.results.NS_ERROR_NO_INTERFACE;
                 },
             }
 
-            let channel = dav.tools.prepHttpChannel(uri, requestData, headers, method, user, notificationCallbacks);    
+            let channel = dav.tools.prepHttpChannel(uri, requestData, headers, method, account.user, notificationCallbacks);    
             if (aUseStreamLoader) {
                 let loader =  Components.classes["@mozilla.org/network/stream-loader;1"].createInstance(Components.interfaces.nsIStreamLoader);
                 loader.init(listener);
@@ -322,182 +277,28 @@ dav.tools = {
 
 
 
+    //* * * * * * * * * * * * * *
+    //* EVALUATE XML RESPONSES  *
+    //* * * * * * * * * * * * * *
 
-    sendRequest: Task.async (function* (request, _url, method, syncdata, headers) {
-        let account = tbSync.db.getAccount(syncdata.account);
-        let password = tbSync.getPassword(account);
-
-        let url = "http" + (account.https == "1" ? "s" : "") + "://" + tbSync.db.getAccountSetting(syncdata.account, "fqdn") + _url;
-        tbSync.dump("URL", url);
-        tbSync.dump("HEADERS", JSON.stringify(headers));
-        tbSync.dump("REQUEST", method + " : " + request);
-
-        let useAbortSignal = (Services.vc.compare(Services.appinfo.platformVersion, "57.*") >= 0);
-
-        let options = {};
-        options.method = method;
-        options.body = request;
-        options.cache = "no-cache";
-        //do not include credentials, so we do not end up in a session, see https://github.com/owncloud/core/issues/27093
-        options.credentials = "omit";
-        options.redirect = "follow";// manual, *follow, error
-        options.headers = headers;
-        options.headers["Content-Length"] = request.length;
-
-        //default
-        if (!options.headers.hasOwnProperty("Content-Type"))
-            options.headers["Content-Type"] = "application/xml; charset=utf-8";
-
-
-        //add abort/timeout signal
-        let controller = null;
-        if (useAbortSignal) {
-            controller = new  tbSync.window.AbortController();
-            options.signal = controller.signal;
+    convertToXML: function(text) {
+        //try to convert response body to xml
+        let xml = null;
+        let oParser = (Services.vc.compare(Services.appinfo.platformVersion, "61.*") >= 0) ? new DOMParser() : Components.classes["@mozilla.org/xmlextras/domparser;1"].createInstance(Components.interfaces.nsIDOMParser);
+        try {
+            xml = oParser.parseFromString(text, "application/xml");
+        } catch (e) {
+            //however, domparser does not throw an error, it returns an error document
+            //https://developer.mozilla.org/de/docs/Web/API/DOMParser
+            xml = null;
+        }
+        //check if xml is error document
+        if (xml.documentElement.nodeName == "parsererror") {
+            xml = null;
         }
 
-        let numberOfAuthLoops = 0;
-        do {
-            numberOfAuthLoops++;
-
-            switch(tbSync.db.getAccountSetting(syncdata.account, "authMethod").toUpperCase()) {
-                case "":
-                    //not set yet, send unauthenticated request
-                    break;
-
-                case "BASIC":
-                    options.headers["Authorization"] = "Basic " + btoa(account.user + ':' + password);
-                    break;
-
-                case "DIGEST":
-                    //try to re-use the known server nounce (stored in account.authOptions)
-                    options.headers["Authorization"] = dav.tools.getDigestAuthHeader(method, _url, account.user, password, account.authOptions, syncdata.account);
-                    break;
-
-                default:
-                    throw dav.sync.failed("unsupported_auth_method:" + account.authMethod);
-            }
-
-            //try to fetch
-            let response = null;
-            let timeoutId = null;
-            try {
-                if (useAbortSignal) timeoutId = tbSync.window.setTimeout(() => controller.abort(), tbSync.prefSettings.getIntPref("timeout"));
-                response = yield tbSync.window.fetch(url, options);
-                if (useAbortSignal) tbSync.window.clearTimeout(timeoutId);
-            } catch (e) {
-                //fetch throws on network errors or timeout errors
-                if (useAbortSignal && e.name === 'AbortError' ) {
-                    throw dav.sync.failed("timeout");
-                } else {
-                    throw dav.sync.failed("networkerror");
-                }
-            }
-
-            //TODO: Handle cert errors ??? formaly done by
-            //let error = tbSync.createTCPErrorFromFailedXHR(syncdata.req);
-
-            let text = yield response.text();
-            tbSync.dump("RESPONSE", response.status + " : " + text);
-            switch(response.status) {
-                case 401: // AuthError
-                    {
-                        let authHeader = response.headers.get("WWW-Authenticate")
-                        //update authMethod and authOptions
-                        if (authHeader) {
-                            let m = null;
-                            let o = null;
-                            [m, o] = authHeader.split(/ (.*)/);
-                            //tbSync.dump("AUTH_HEADER_METHOD", m);
-                            //tbSync.dump("AUTH_HEADER_OPTIONS", o);
-
-                            //check if nonce changed, if so, reset nc
-                            let opt_old = dav.tools.getAuthOptions(tbSync.db.getAccountSetting(syncdata.account, "authOptions"));
-                            let opt_new = dav.tools.getAuthOptions(o);
-                            if (opt_old.nonce != opt_new.nonce) {
-                                tbSync.db.setAccountSetting(syncdata.account, "authDigestNC", "0");
-                            }
-
-                            tbSync.db.setAccountSetting(syncdata.account, "authMethod", m);
-                            tbSync.db.setAccountSetting(syncdata.account, "authOptions", o);
-                            //is this the first fail? Retry with new settings.
-                            if (numberOfAuthLoops == 1) continue;
-                        }
-                        throw dav.sync.failed("401");
-                    }
-                    break;
-
-                case 207: //preprocess multiresponse
-                    {
-                        let xml = dav.tools.convertToXML(text);
-                        if (xml === null) throw dav.sync.failed("mailformed-xml");
-
-                        let response = {};
-                        response.node = xml.documentElement;
-
-                        let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
-                        response.multi = [];
-                        for (let i=0; i < multi.length; i++) {
-                            let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
-                            let propstats = multi[i].getElementsByTagNameNS(dav.ns.d, "propstat");
-                            if (propstats.length > 0) {
-                                //response contains propstats, push each as single entry
-                                for (let p=0; p < propstats.length; p++) {
-                                    let statusNode = dav.tools.evaluateNode(propstats[p], [["d", "status"]]);
-
-                                    let resp = {};
-                                    resp.node = propstats[p];
-                                    resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
-                                    resp.href = hrefNode === null ? null : hrefNode.textContent;
-                                    response.multi.push(resp);
-                                }
-                            } else {
-                                //response does not contain any propstats, push raw response
-                                let statusNode = dav.tools.evaluateNode(multi[i], [["d", "status"]]);
-
-                                let resp = {};
-                                resp.node = multi[i];
-                                resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
-                                resp.href = hrefNode === null ? null : hrefNode.textContent;
-                                response.multi.push(resp);
-                            }
-                        }
-
-                        return response;
-                    }
-                    break;
-
-                case 200: //returned by DELETE by radicale - watch this !!!
-                case 204: //is returned by DELETE - no data
-                case 201: //is returned by CREATE - no data
-                    return null;
-                    break;
-
-                case 403:
-                case 404:
-                case 405: //Not allowed
-                case 415: //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book)
-                    {
-                        let noresponse = {};
-                        noresponse.error = response.status;
-                        let xml = dav.tools.convertToXML(text);
-                        if (xml !== null) {
-                            let exceptionNode = dav.tools.evaluateNode(xml.documentElement, [["s","exception"]]);
-                            if (exceptionNode !== null) {
-                                noresponse.exception = exceptionNode.textContent;
-                            }
-                        }
-                        return noresponse;
-                    }
-
-                default:
-                    throw dav.sync.failed(response.status);
-
-            }
-        }
-        while (true);
-    }),
-
+        return xml;
+    },
 
     evaluateNode: function (_node, path) {
         let node = _node;
@@ -549,6 +350,14 @@ dav.tools = {
         else return null;
     },
 
+
+
+
+
+    //* * * * * * * * * * *
+    //* CARDS OPERATIONS  *
+    //* * * * * * * * * * *
+
     deleteCardsContainer: function (maxitems) {
         this.maxitems = maxitems;
         this.data = [];
@@ -587,14 +396,9 @@ dav.tools = {
 
 
 
-
-
-
-
-
-    //* * * * * * * * * * * * * * * * *
+    //* * * * * * * * * * *
     //* ACTUAL SYNC MAGIC *
-    //* * * * * * * * * * * * * * * * *
+    //* * * * * * * * * * *
 
     //helper function: check vCardData object if it has a meta.type associated
     itemHasMetaType: function (vCardData, item, entry, typefield) {
