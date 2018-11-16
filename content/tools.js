@@ -226,7 +226,7 @@ dav.tools = {
                         case 415: //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book)
                             {
                                 let noresponse = {};
-                                noresponse.error = response.status;
+                                noresponse.error = responseStatus;
                                 let xml = dav.tools.convertToXML(text);
                                 if (xml !== null) {
                                     let exceptionNode = dav.tools.evaluateNode(xml.documentElement, [["s","exception"]]);
