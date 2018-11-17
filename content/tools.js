@@ -86,14 +86,16 @@ dav.tools = {
 
             //get the password for this account from password manager
             let password = tbSync.getPassword(this.mAccount);
-            if (password) {
-                tbSync.dump("Fetched password from password manager", this.mAccount.user + " @ " + this.mAccount.fqdn);
+            if (password !== null) {
+                tbSync.dump("SUCCEEDED to fetch password from password manager", this.mAccount.user + " @ " + this.mAccount.fqdn);
                 aAuthInfo.username = this.mAccount.user;
                 aAuthInfo.password = password;
+
+                //store aAuthInfo.realm, needed later to setup lightning passwords
+                tbSync.db.setAccountSetting(this.mAccount.account, "authRealm", aAuthInfo.realm);
+            } else {
+                tbSync.dump("FAILED to fetch password from password manager", this.mAccount.user + " @ " + this.mAccount.fqdn);
             }
-            
-            //store aAuthInfo.realm
-            tbSync.db.setAccountSetting(this.mAccount.account, "authRealm", aAuthInfo.realm);
             
             this.mCounts++
             if (this.mCounts < 2 && password !== null) {
@@ -105,17 +107,14 @@ dav.tools = {
     },
 
     Redirect: class {
-        constructor(aRequestData, aHeaders, aMethod, aAccount) {
-            this.mRequestData = aRequestData; 
-            this.mHeaders = aHeaders;
-            this.mMethod = aMethod;
-            this.mAccount = aAccount;
+        constructor() {
         }
 
         asyncOnChannelRedirect (aOldChannel, aNewChannel, aFlags, aCallback) {
-            tbSync.dump("Redirect", aNewChannel.URI.spec);
-            dav.tools.prepHttpChannel (aNewChannel.URI, this.mRequestData, this.mHeaders, this.mMethod, this.mAccount, null, aNewChannel);            
-            aCallback.onRedirectVerifyCallback(Components.results.NS_OK);  
+            //disallow redirects, we catch the new url and re-initiate the request
+            //aNewChannel.cancel(Components.results.NS_BINDING_ABORTED);
+            //aOldChannel.cancel(Components.results.NS_BINDING_ABORTED);
+            aCallback.onRedirectVerifyCallback(Components.results.NS_ERROR_FAILURE); 
         }
     },
        
@@ -123,13 +122,16 @@ dav.tools = {
         let channel = aExisting || Services.io.newChannelFromURI2(
                                                                 aUri,
                                                                 null,
-                                                                Services.scriptSecurityManager.createCodebasePrincipal(aUri, {user: aAccount.user}),
+                                                                Services.scriptSecurityManager.getSystemPrincipal(),        
+                                                                //Services.scriptSecurityManager.createCodebasePrincipal(aUri, {user: aAccount.user}),
                                                                 null,
                                                                 Components.interfaces.nsILoadInfo.SEC_ALLOW_CROSS_ORIGIN_DATA_IS_NULL,
                                                                 Components.interfaces.nsIContentPolicy.TYPE_OTHER);
         let httpchannel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
 
-        //httpchannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
+        
+        //httpchannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_EXPLICIT_CREDENTIALS; //does not help with the cookie problem
+        httpchannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
         httpchannel.notificationCallbacks = aNotificationCallbacks;
 
         if (aUploadData) {
@@ -177,9 +179,24 @@ dav.tools = {
         return httpchannel;
     },
  
-    // Promisified implementation of Components.interfaces.nsIHttpChannel
-    // - let error = tbSync.createTCPErrorFromFailedXHR(syncdata.req);
     sendRequest: Task.async (function* (requestData, url, method, syncdata, headers, aUseStreamLoader = true) {
+        let account = tbSync.db.getAccount(syncdata.account);
+        let fullUrl = "http" + (account.https == "1" ? "s" : "") + "://" + account.fqdn + url;
+
+        //manually handling redirects by re-issuing the request to the new url
+        for (let i=1; i < 10; i++) { //max number of redirects
+            let r = yield dav.tools.sendRequestCore (requestData, fullUrl, method, syncdata, headers, aUseStreamLoader);
+            if (r && r.redirect && r.url) {
+                fullUrl = r.url;
+                tbSync.dump("REDIRECT #" + i, r.url);
+            } else {
+                return r;
+            }
+        }
+    }),
+    
+    // Promisified implementation of Components.interfaces.nsIHttpChannel
+    sendRequestCore: Task.async (function* (requestData, fullUrl, method, syncdata, headers, aUseStreamLoader) {
         let account = tbSync.db.getAccount(syncdata.account);
         
         //Note: 
@@ -187,7 +204,10 @@ dav.tools = {
         // - after it has recevied a new pass, it will use the cached version
         // - this allows to switch users but will cause a 401 on each user switch, and it probably breaks digest auth
         // - the username is lost during redirects...
-        let uri = Services.io.newURI("http" + (account.https == "1" ? "s" : "") + "://" + account.fqdn + url);
+        
+        //inject user + password to be used with LOAD_EXPLICIT_CREDENTIALS (which does not help with cookies)
+        //let uri = Services.io.newURI(fullUrl.replace("://","://" + account.user + ":" + tbSync.getPassword(account) + "@"));
+        let uri = Services.io.newURI(fullUrl);
 
         tbSync.dump("URL", uri.spec);
         tbSync.dump("HEADERS", JSON.stringify(headers));
@@ -212,6 +232,20 @@ dav.tools = {
                     let text = cal.provider.convertByteArray(aResult, aResultLength);                    
                     tbSync.dump("RESPONSE", responseStatus + " : " + text);
                     switch(responseStatus) {
+                        case 301:
+                        case 302:
+                        case 303:
+                        case 305:
+                        case 307:
+                        case 308:
+                            {
+                                let response = {};
+                                response.redirect = responseStatus;
+                                response.url = request.getResponseHeader("Location");
+                                resolve(response);
+                            }
+                            break;
+                            
                         case 401: //AuthError
                             {
                                 reject(dav.sync.failed("401"));
@@ -307,7 +341,7 @@ dav.tools = {
                         //tbSync.dump("GET","nsIProgressEventSink");
                     } else if (aIID.equals(Components.interfaces.nsIChannelEventSink)) {
                         if (!this.redirectSink) {
-                            this.redirectSink = new dav.tools.Redirect(requestData, headers, method, account);
+                            this.redirectSink = new dav.tools.Redirect();
                         }
                         return this.redirectSink;
                     }
