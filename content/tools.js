@@ -357,7 +357,18 @@ dav.tools = {
                 listener = loader;
             }        
         
+            //manually set timout
+            syncdata.timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
+            let timeout = tbSync.prefSettings.getIntPref("timeout");
+            let event = {
+                notify: function(timer) {
+                    if (channel) channel.cancel(Components.results.NS_ERROR_NET_TIMEOUT);
+                }
+            }
+            syncdata.timer.initWithCallback(event, timeout, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+
             channel.asyncOpen(listener, channel);
+
         });
     }),
 
