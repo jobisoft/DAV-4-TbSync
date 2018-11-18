@@ -46,6 +46,14 @@ dav.sync = {
             deletedFolders.push(f);
         }
 
+        //get and update FQDN
+        let account = tbSync.db.getAccount(syncdata.account);
+        let hostparts = account.host.split("/").filter(i => i != "");
+        let fqdn = hostparts.splice(0,1);
+        if (fqdn != tbSync.db.getAccountSetting(syncdata.account, "fqdn")) {
+            tbSync.db.setAccountSetting(syncdata.account, "fqdn", fqdn);
+        }
+
         let jobsfound = 0;
         for (let job in davjobs) {
             if (!davjobs[job].run) continue;
@@ -61,14 +69,6 @@ dav.sync = {
             tbSync.setSyncState("send.getfolders", syncdata.account);
             {
                 //if host is FQDN assume .well-known approach, otherwise direct specification of dav server
-                let account = tbSync.db.getAccount(syncdata.account);
-                let hostparts = account.host.split("/").filter(i => i != "");
-                let fqdn = hostparts.splice(0,1);
-                //reduce IO by checking if value changed
-                if (fqdn != tbSync.db.getAccountSetting(syncdata.account, "fqdn")) {
-                    tbSync.db.setAccountSetting(syncdata.account, "fqdn", fqdn);
-                }
-
                 let addr = (hostparts.length == 0) ? "/.well-known/"+davjobs[job].type : "/" + hostparts.join("/");
 
                 let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", addr , "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
