@@ -72,9 +72,8 @@ dav.sync = {
                 let addr = (hostparts.length == 0) ? "/.well-known/"+davjobs[job].type : "/" + hostparts.join("/");
 
                 let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", addr , "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
-                if (response && response.error) { //404 or 403
-                    continue;
-                }
+                if (response && response.error) continue;
+
                 tbSync.setSyncState("eval.folders", syncdata.account);
                 principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]);
             }
@@ -85,6 +84,7 @@ dav.sync = {
             if (principal !== null) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
                 let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d", job])+"><d:prop><"+job+":"+davjobs[job].hometag+" /></d:prop></d:propfind>", principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                if (response && response.error) continue;
 
                 tbSync.setSyncState("eval.folders", syncdata.account);
                 home = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], [job, davjobs[job].hometag], ["d","href"]], principal);
@@ -99,7 +99,8 @@ dav.sync = {
                                         : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
 
                 let response = yield dav.tools.sendRequest(request, home, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
-
+                if (response && response.error) continue;
+                
                 for (let r=0; r < response.multi.length; r++) {
                     if (response.multi[r].status != "200") continue;
                     
