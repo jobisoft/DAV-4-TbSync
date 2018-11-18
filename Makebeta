@@ -30,5 +30,6 @@ fi
 
 cp beta-release-channel-update.rdf $2/$4
 
+rm $3
 zip -r $3 content locale README.md bootstrap.js install.rdf chrome.manifest LICENSE skin
 cp $3 $2/$3
