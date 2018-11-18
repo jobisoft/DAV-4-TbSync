@@ -10,6 +10,29 @@
 
 dav.tools = {
 
+    /**
+     * Convert a byte array to a string - copied from lightning
+     *
+     * @param {octet[]} aResult         The bytes to convert
+     * @param {Number} aResultLength    The number of bytes
+     * @param {String} aCharset         The character set of the bytes, defaults to utf-8
+     * @param {Boolean} aThrow          If true, the function will raise an exception on error
+     * @return {?String}                The string result, or null on error
+     */
+    convertByteArray: function(aResult, aResultLength, aCharset, aThrow) {
+        try {
+            let resultConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
+                                            .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+            resultConverter.charset = aCharset || "UTF-8";
+            return resultConverter.convertFromByteArray(aResult, aResultLength);
+        } catch (e) {
+            if (aThrow) {
+                throw e;
+            }
+        }
+        return null;
+    },
+    
     xmlns: function (ns) {
         let _xmlns = [];
         for (let i=0; i < ns.length; i++) {
@@ -229,7 +252,7 @@ dav.tools = {
                         }
                     }
                     
-                    let text = cal.provider.convertByteArray(aResult, aResultLength);                    
+                    let text = dav.tools.convertByteArray(aResult, aResultLength);                    
                     tbSync.dump("RESPONSE", responseStatus + " : " + text);
                     switch(responseStatus) {
                         case 301:
