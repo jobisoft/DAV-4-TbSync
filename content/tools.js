@@ -1127,7 +1127,8 @@ dav.tools = {
                             value = birthYear + "-" + ("00"+birthMonth).slice(-2) + "-" + ("00"+birthDay).slice(-2);
                         }
                         dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, value);
-                        if (birthYear == APPLE_MISSING_YEAR_MARK) {
+
+                        if (birthYear == APPLE_MISSING_YEAR_MARK && Array.isArray(vCardData[vCardField.item]) && vCardData[vCardField.item].length > 0) {
                             vCardData[vCardField.item][0].meta = {"x-apple-omit-year": [APPLE_MISSING_YEAR_MARK]};
                         }
                     }
