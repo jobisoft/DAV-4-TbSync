@@ -231,7 +231,7 @@ dav.tools = {
         let finalUrl = fullUrl;
         if (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl")) {
             //inject user + password to be used with LOAD_EXPLICIT_CREDENTIALS (does not help with cookie cache)
-            finalUrl = fullUrl.replace("://","://" + account.user + ":" + tbSync.getPassword(account) + "@");
+            finalUrl = fullUrl.replace("://","://" + encodeURIComponent(account.user) + ":" + encodeURIComponent(tbSync.getPassword(account)) + "@");
         }
         let uri = Services.io.newURI(finalUrl);
 
