@@ -153,7 +153,7 @@ dav.tools = {
         let httpchannel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
 
         
-        //httpchannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_EXPLICIT_CREDENTIALS; //does not help with the cookie problem
+        //httpchannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_EXPLICIT_CREDENTIALS; //does not help with the cookie cache problem
         httpchannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
         httpchannel.notificationCallbacks = aNotificationCallbacks;
 
@@ -228,11 +228,14 @@ dav.tools = {
         // - this allows to switch users but will cause a 401 on each user switch, and it probably breaks digest auth
         // - the username is lost during redirects...
         
-        //inject user + password to be used with LOAD_EXPLICIT_CREDENTIALS (which does not help with cookies)
-        //let uri = Services.io.newURI(fullUrl.replace("://","://" + account.user + ":" + tbSync.getPassword(account) + "@"));
-        let uri = Services.io.newURI(fullUrl);
+        let finalUrl = fullUrl;
+        if (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl")) {
+            //inject user + password to be used with LOAD_EXPLICIT_CREDENTIALS (does not help with cookie cache)
+            finalUrl = fullUrl.replace("://","://" + account.user + ":" + tbSync.getPassword(account) + "@"));
+        }
+        let uri = Services.io.newURI(finalUrl);
 
-        tbSync.dump("URL", uri.spec);
+        tbSync.dump("URL", fullUrl);
         tbSync.dump("HEADERS", JSON.stringify(headers));
         tbSync.dump("REQUEST", method + " : " + requestData);
         

@@ -320,7 +320,7 @@ var dav = {
         
         let baseUrl = "";
         if (caltype == "caldav") {
-            baseUrl =  "http" + (accountdata.https == "1" ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToCalDavUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getAccountSetting(account, "fqdn");
+            baseUrl =  "http" + (accountdata.https == "1" ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getAccountSetting(account, "fqdn");
         }
 
         let url = dav.tools.parseUri(baseUrl + folderID);        
@@ -335,7 +335,7 @@ var dav = {
         newCalendar.setProperty("cache.enabled", (tbSync.db.getAccountSetting(account, "useCache") == "1"));
 
         //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
-        if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToCalDavUrl") && caltype == "caldav") {
+        if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") && caltype == "caldav") {
             tbSync.setLoginInfo(url.prePath, accountdata.authRealm, user, password);
         }
 

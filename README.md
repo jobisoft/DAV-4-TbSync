@@ -23,18 +23,16 @@ Furthermore, DAV-4-TbSync is known to work with the following server systems:
 * Nextcloud
 * SOGo
 
-## Work around for subscribing calendars of different users on the same server
+## Multiple connections to the same server authenticated with different users
 
-Lightning has problems subscribing to multiple calendars of different users on the same server. DAV-4-TbSync can probably resolve this issue, if you set
+Thunderbird has problems connecting to the same server authenticating with different users. TbSync can bypass this issue by adding the credentials directly to the URL (i.e. https://user:password@host.tld). Set
 
-*extensions.dav4tbsync.addCredentialsToCalDavUrl = true*
+*extensions.dav4tbsync.addCredentialsToUrl = true*
 
-If this still does not work for you, also set
+to activate this behaviour. If this still does not work for you, also set
 
 *network.cookie.cookieBehavior = 1*
 
-The first setting works around a bug in the PasswordManager by adding the credentials directly to the URl and thus bypassing the PasswordManager. This is of course not very secure, but the only way until this is fixed in lightning (it is beeing worked on).
-The second setting works around a bug in the cookie management by rejecting third-party-cookies. 
 
 
 ## Icon sources and attributions
