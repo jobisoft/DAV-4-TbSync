@@ -31,7 +31,7 @@ function startup(data, reason) {
         //load this provider into TbSync (old API)
         Services.obs.notifyObservers(null, "tbsync.addProvider", "dav");
         //load this provider into TbSync
-        Services.obs.notifyObservers(null, "tbsync.registerProvider", "dav");
+        Services.obs.notifyObservers(null, "tbsync.registerProvider", JSON.stringify({provider: "dav", js: "//dav4tbsync/content/dav.js"}));
     }
 }
 
