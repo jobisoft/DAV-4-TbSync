@@ -150,6 +150,24 @@ var dav = {
 
 
     /**
+     * Returns XUL URL of the new account dialog.
+     */
+    getCreateAccountXulUrl: function () {
+        return "//dav4tbsync/content/createAccount.xul";
+    },
+
+
+
+    /**
+     * Returns XUL URL of the edit account dialog.
+     */
+    getEditAccountXulUrl: function () {
+        return "//dav4tbsync/content/editAccount.xul";
+    },
+
+
+
+    /**
      * Return object which contains all possible fields of a row in the accounts database with the default value if not yet stored in the database.
      */
     getDefaultAccountEntries: function () {
