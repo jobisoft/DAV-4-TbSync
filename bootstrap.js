@@ -28,12 +28,17 @@ function startup(data, reason) {
 
     //during APP_STARTUP, TbSync will find auto load all active providers, if this provider gets enabled later, load it dynamically 
     if (reason != APP_STARTUP) {
+        //load this provider into TbSync (old API)
         Services.obs.notifyObservers(null, "tbsync.addProvider", "dav");
+        //load this provider into TbSync
+        Services.obs.notifyObservers(null, "tbsync.registerProvider", "dav");
     }
 }
 
 function shutdown(data, reason) {
-    //unload this provider from TbSync
+    //unload this provider from TbSync (old API)
     Services.obs.notifyObservers(null, "tbsync.removeProvider", "dav");
+    //unload this provider from TbSync
+    Services.obs.notifyObservers(null, "tbsync.unregisterProvider", "dav");
     Services.obs.notifyObservers(null, "chrome-flush-caches", null);
 }
