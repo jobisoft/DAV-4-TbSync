@@ -161,6 +161,10 @@ var dav = {
             "status" : "disabled", //global status: disabled, OK, syncing, notsyncronized, nolightning, ...
             "servertype": "custom",
             "authRealm" :"",
+            //we use nsIHttpChannel, which should take care of authenticating, however there is this bug:
+            //https://groups.google.com/forum/#!topic/mozilla.dev.platform/kHSfF9IWwKU
+            //so we sometimes have to manually go for BASIC and we have to keep track of that
+            "authBasic" :"0",
             "host" : "",
             "fqdn" : "",
             "user" : "",
