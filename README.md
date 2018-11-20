@@ -3,7 +3,9 @@ If this provider Add-On is installed alongside of TbSync, TbSync is able to sync
 
 Most servers provide the discovery service, which allows to use just the plain server name (FQDN) like "cloud.server.com" as server URL. TbSync will find all available calendars and address books and there is no need to know any specific URLs for individual address books or calendars. If this does not work because your server does not provide the discovery service, you have to enter the full path to the dav server itself, like "cloud.server.com/SOGo/dav".
 
-This provider is not actually implementing the CalDAV protocol, but will add the found calendars to lightning and let lightning handle the sync. 
+This provider is not actually implementing the CalDAV protocol, but will add the found calendars to lightning and let lightning handle the sync.
+
+Download and install instructions can be found in the [wiki](https://github.com/jobisoft/DAV-4-TbSync/wiki) of this repository.
 
 ## Image of the CalDAV/CardDAV provider hooked into TbSync:
 
