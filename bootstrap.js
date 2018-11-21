@@ -9,6 +9,22 @@
 //no need to create namespace, we are in a sandbox
 
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/Task.jsm");
+
+let thisID = "";
+
+let onInitDoneObserver = {
+    observe: Task.async (function* (aSubject, aTopic, aData) {        
+        //it is now safe to import tbsync.jsm
+        Components.utils.import("chrome://tbsync/content/tbsync.jsm");
+        
+        //load all providers of this provider Add-on into TbSync (one at a time, obey order)
+       try {
+            yield tbSync.loadProvider(thisID, "dav", "//dav4tbsync/content/dav.js");
+            yield tbSync.loadProvider(thisID, "icloud", "//dav4tbsync/content/icloud.js");
+        } catch (e) {}
+    })
+}
 
 function install(data, reason) {
 }
@@ -26,19 +42,24 @@ function startup(data, reason) {
     branch.setCharPref("clientID.useragent", "Thunderbird CalDAV/CardDAV");    
     branch.setBoolPref("addCredentialsToUrl", false);
 
-    //during APP_STARTUP, TbSync will find auto load all active providers, if this provider gets enabled later, load it dynamically 
+    thisID = data.id;
+    Services.obs.addObserver(onInitDoneObserver, "tbsync.init.done", false);
+
+    //OLD API - REMOVE AFTER SWITCH
     if (reason != APP_STARTUP) {
-        //load this provider into TbSync (old API)
         Services.obs.notifyObservers(null, "tbsync.addProvider", "dav");
-        //load this provider into TbSync
-        Services.obs.notifyObservers(null, "tbsync.registerProvider", JSON.stringify({provider: "dav", js: "//dav4tbsync/content/dav.js"}));
     }
 }
 
 function shutdown(data, reason) {
-    //unload this provider from TbSync (old API)
+    //OLD API - REMOVE AFTER SWITCH
     Services.obs.notifyObservers(null, "tbsync.removeProvider", "dav");
-    //unload this provider from TbSync
-    Services.obs.notifyObservers(null, "tbsync.unregisterProvider", "dav");
+
+    Services.obs.removeObserver(onInitDoneObserver, "tbsync.init.done");
+
+    //unload this provider Add-On and all its loaded providers from TbSync
+    try {
+        tbSync.unloadProviderAddon(data.id);
+    } catch (e) {}
     Services.obs.notifyObservers(null, "chrome-flush-caches", null);
 }

@@ -11,67 +11,9 @@
 /**
  * Implements the TbSync interface for external provider extensions.
  */
-var dav = {
+var icloud = {
     bundle: Services.strings.createBundle("chrome://dav4tbsync/locale/dav.strings"),
     prefSettings: Services.prefs.getBranch("extensions.dav4tbsync."),
-
-    ns: {
-        d: "DAV:",
-        cal: "urn:ietf:params:xml:ns:caldav" ,
-        card: "urn:ietf:params:xml:ns:carddav" ,
-        cs: "http://calendarserver.org/ns/",
-        s: "http://sabredav.org/ns",
-        apple: "http://apple.com/ns/ical/"
-    },
-
-
-    calendarManagerObserver : {
-        onCalendarRegistered : function (aCalendar) { 
-            
-            //identify a calendar which has been deleted and is now being recreated by lightning (not TbSync) - which is probably due to changing the offline support option
-            let folders =  tbSync.db.findFoldersWithSetting(["status"], ["aborted"]); //if it is pending status, we are creating it, not someone else
-            for (let f=0; f < folders.length; f++) {
-                let provider = tbSync.db.getAccountSetting(folders[f].account, "provider");
-            
-                //only act on dav calendars which have the same uri
-                if (provider == "dav" && folders[f].selected == "1" && folders[f].url == aCalendar.uri.spec) {
-                    tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "status", "OK");
-                    //add target to re-take control
-                    tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "target", aCalendar.id);
-                    //update settings window, if open
-                    Services.obs.notifyObservers(null, "tbsync.updateSyncstate", folders[f].account);
-                }
-            }
-        },
-        onCalendarUnregistering : function (aCalendar) {},
-        onCalendarDeleting : function (aCalendar) {},
-    },
-    
-   calendarObserver : { 
-        onStartBatch : function () {},
-        onEndBatch : function () {},
-        onLoad : function (aCalendar) {},
-        onAddItem : function (aItem) {},
-        onModifyItem : function (aNewItem, aOldItem) {},
-        onDeleteItem : function (aDeletedItem) {},
-        onError : function (aCalendar, aErrNo, aMessage) {},
-        onPropertyDeleting : function (aCalendar, aName) {},
-
-        //Properties of the calendar itself (name, color etc.)
-        onPropertyChanged : function (aCalendar, aName, aValue, aOldValue) {
-            let folders = tbSync.db.findFoldersWithSetting(["target"], [aCalendar.id]);
-            if (folders.length == 1) {
-                switch (aName) {
-                    case "color":
-                        //update stored color to recover after disable
-                        dav.tools.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folders[0].folderID, "PROPPATCH", {account: folders[0].account}, {});
-                        break;
-                }
-            }
-        },
-    },    
-
-
 
     /** API **/
     
@@ -80,17 +22,7 @@ var dav = {
      *
      * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
      */
-    load: Task.async (function* (lightningIsAvail) {
-        //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
-        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
-
-        if (lightningIsAvail) {
-            cal.getCalendarManager().addObserver(tbSync.dav.calendarManagerObserver);    
-            cal.getCalendarManager().addCalendarObserver(tbSync.dav.calendarObserver);            
-        }
-        
+    load: Task.async (function* (lightningIsAvail) {      
     }),
 
 
@@ -100,11 +32,7 @@ var dav = {
      *
      * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
      */
-    unload: function (lightningIsAvail) {
-        if (lightningIsAvail) {
-            cal.getCalendarManager().removeObserver(tbSync.dav.calendarManagerObserver);
-            cal.getCalendarManager().removeCalendarObserver(tbSync.dav.calendarObserver);                        
-        }        
+    unload: function (lightningIsAvail) {    
     },
     
 
@@ -170,7 +98,7 @@ var dav = {
      * Returns nice string for name of provider (is used in the add account menu).
      */
     getNiceProviderName: function () {
-        return dav.bundle.GetStringFromName("menu.name")
+        return "iCloud"
     },
 
 
@@ -671,7 +599,3 @@ var dav = {
         }
    }
 };
-
-tbSync.includeJS("chrome://dav4tbsync/content/sync.js");
-tbSync.includeJS("chrome://dav4tbsync/content/tools.js");
-tbSync.includeJS("chrome://dav4tbsync/content/vcard/vcard.js");

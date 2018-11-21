@@ -1,3 +1,4 @@
+menu.name = CalDAV & CardDAV
 
 deletefolder.confirm=Do you really want to PERMANENTLY PURGE folder "##replace.1##" from trash?
 

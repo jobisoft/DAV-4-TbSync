@@ -51,7 +51,7 @@ var tbSyncDavNewAccount = {
         let newAccountEntry = tbSync.dav.getDefaultAccountEntries();
         newAccountEntry.accountname = accountname;
         newAccountEntry.user = user;
-        newAccountEntry.createdWithProviderVersion = tbSync.providerList.dav.version;
+        newAccountEntry.createdWithProviderVersion = tbSync.providerList.dav.addon.version.toString();
 
         //default to https, if not specified
         let hasHttp = (server.substring(0,4) == "http");
