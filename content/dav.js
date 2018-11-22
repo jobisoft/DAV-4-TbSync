@@ -297,7 +297,7 @@ var dav = {
     onResetTarget: function (account, folderID) {
         tbSync.db.resetFolderSetting(account, folderID, "ctag");
         tbSync.db.resetFolderSetting(account, folderID, "token");
-        tbSync.db.setFolderSetting(account, folderID, "createdWithProviderVersion", tbSync.providerList.dav.addon.version.toString());
+        tbSync.db.setFolderSetting(account, folderID, "createdWithProviderVersion", tbSync.loadedProviders.dav.version);
     },
 
 
