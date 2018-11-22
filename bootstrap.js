@@ -45,9 +45,12 @@ function startup(data, reason) {
     thisID = data.id;
     Services.obs.addObserver(onInitDoneObserver, "tbsync.init.done", false);
 
-    //OLD API - REMOVE AFTER SWITCH
+    //during app startup, the load of the provider will be triggered by a "tbsync.init.done" notification, 
+    //if load happens later, we need load manually 
     if (reason != APP_STARTUP) {
+        //OLD API - REMOVE AFTER SWITCH
         Services.obs.notifyObservers(null, "tbsync.addProvider", "dav");
+        onInitDoneObserver.observe();
     }
 }
 
