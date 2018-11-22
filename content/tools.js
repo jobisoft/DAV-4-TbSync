@@ -211,7 +211,7 @@ dav.tools = {
  
     sendRequest: Task.async (function* (requestData, url, method, syncdata, headers, aUseStreamLoader = true) {
         let account = tbSync.db.getAccount(syncdata.account);
-        let fullUrl = "http" + (account.https == "1" ? "s" : "") + "://" + account.fqdn + url;
+        let fullUrl = (url.startsWith("http://") || url.startsWith("https://")) ? url : "http" + (account.https == "1" ? "s" : "") + "://" + account.fqdn + url;
 
         //manually handling redirects by re-issuing the request to the new url
         for (let i=1; i < 10; i++) { //max number of redirects
@@ -321,7 +321,7 @@ dav.tools = {
                                  */
                                 
                                 if (!hasAuthorizationHeader && !basicAuthAllowed && currentEnforcement == "0") {
-                                    reject(dav.sync.failed("NO_KNOWN_AUTH_METHOD"));
+                                    reject(dav.sync.failed("401"));
                                 } else if (!hasAuthorizationHeader && basicAuthAllowed && currentEnforcement == "0") {
                                     tbSync.db.setAccountSetting(account.account, "authBasic", "1");
                                 } else if (hasAuthorizationHeader && !basicAuthAllowed && currentEnforcement == "1") {
