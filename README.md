@@ -7,3 +7,4 @@ More information can be found in the [wiki](https://github.com/jobisoft/DAV-4-Tb
 
 #### CC-BY 3.0
 * [ics16.png] by [FatCow Web Hosting](https://www.iconfinder.com/icons/35803/)
+* [iCloud16/32/48.png] by [Five Icons](https://www.iconfinder.com/icons/252111/apple_icon)
