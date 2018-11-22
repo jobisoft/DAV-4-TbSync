@@ -56,7 +56,7 @@
                         </hbox>
 
                         <hbox>
-                            <hbox flex="1"><textbox flex="1" style="margin-left:0; margin-right:0" tooltiptext="&add.description2;" id="tbsync.accountsettings.pref.host" onblur="tbSync.eas.ui.stripHost(document, tbSyncAccountSettings.account);" /></hbox>
+                            <hbox flex="1"><textbox flex="1" style="margin-left:0; margin-right:0" tooltiptext="&add.description2;" id="tbsync.accountsettings.pref.host" onblur="tbSyncAccountSettings.stripHost(document, tbSyncAccountSettings.account);" /></hbox>
                             <image style="margin-left:5px; margin-right:0" tooltiptext="&servertype.unlock;" ondblclick="tbSyncAccountSettings.unlockSettings()" width="24" height="24" id="tbsync.accountsettings.unlock" src="chrome://tbsync/skin/lock24.png" />
                         </hbox>
 
