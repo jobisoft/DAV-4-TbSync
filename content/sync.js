@@ -53,8 +53,7 @@ dav.sync = {
         let fqdn = hostparts.splice(0,1).toString();
         let domain = fqdn.split(".").slice(-2).join(".");
         
-        //Manipulate account.host if needed
-
+        //Manipulate account.host, to help users setup their accounts
         switch (domain) {
             case "yahoo.com":
                 tbSync.db.setAccountSetting(syncdata.account, "host", "yahoo.com");
