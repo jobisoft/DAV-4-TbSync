@@ -21,7 +21,6 @@ let onInitDoneObserver = {
         //load all providers of this provider Add-on into TbSync (one at a time, obey order)
        try {
             yield tbSync.loadProvider(thisID, "dav", "//dav4tbsync/content/dav.js");
-            yield tbSync.loadProvider(thisID, "icloud", "//dav4tbsync/content/icloud.js");
         } catch (e) {}
     })
 }
