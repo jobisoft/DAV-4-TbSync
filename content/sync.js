@@ -49,7 +49,7 @@ dav.sync = {
         //get and update FQDN
         let account = tbSync.db.getAccount(syncdata.account);
         let hostparts = account.host.split("/").filter(i => i != "");
-        let fqdn = hostparts.splice(0,1);
+        let fqdn = hostparts.splice(0,1).toString();
         if (fqdn != tbSync.db.getAccountSetting(syncdata.account, "fqdn")) {
             tbSync.db.setAccountSetting(syncdata.account, "fqdn", fqdn);
         }
