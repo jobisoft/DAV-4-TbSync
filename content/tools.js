@@ -59,6 +59,10 @@ dav.tools = {
         return uri;
     },
 
+    getDomainFromHost: function (host) {
+        return  host.split(".").slice(-2).join(".");
+    },
+    
     generateUUID: function (aItem, folder) {
         const uuidGenerator  = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
         return uuidGenerator.generateUUID().toString().replace(/[{}]/g, '');
@@ -106,18 +110,18 @@ dav.tools = {
         //                    in uint32_t level,
         //                    in nsIAuthInformation authInfo)
         promptAuth (aChannel, aLevel, aAuthInfo) {
+            //store aAuthInfo.realm, needed later to setup lightning passwords
+            tbSync.dump("NSIBUG Found authRealm for <"+aChannel.URI.host+">", aAuthInfo.realm);
+            dav.listOfRealms[aChannel.URI.host] = aAuthInfo.realm;
 
             //get the password for this account from password manager
             let password = tbSync.getPassword(this.mAccount);
             if (password !== null) {
-                tbSync.dump("SUCCEEDED to fetch password from password manager", this.mAccount.user + " @ " + this.mAccount.fqdn);
+                tbSync.dump("SUCCEEDED to fetch password from password manager", this.mAccount.user + " @ " + this.mAccount.host);
                 aAuthInfo.username = this.mAccount.user;
                 aAuthInfo.password = password;
-
-                //store aAuthInfo.realm, needed later to setup lightning passwords
-                tbSync.db.setAccountSetting(this.mAccount.account, "authRealm", aAuthInfo.realm);
             } else {
-                tbSync.dump("FAILED to fetch password from password manager", this.mAccount.user + " @ " + this.mAccount.fqdn);
+                tbSync.dump("FAILED to fetch password from password manager", this.mAccount.user + " @ " + this.mAccount.host);
             }
             
             this.mCounts++
@@ -199,19 +203,14 @@ dav.tools = {
             httpchannel.setRequestHeader("Accept", "*/*", false);
 
         //httpchannel.setRequestHeader("Accept-Charset", "utf-8,*;q=0.1", false);
-        
-        //manually add BASIC auth header, if requested
-        if (tbSync.db.getAccountSetting(aAccount.account, "authBasic") == "1") {
-            tbSync.dump("Authorization", "Manually adding BASIC auth header");
-            httpchannel.setRequestHeader("Authorization",  "Basic " + tbSync.b64encode(aAccount.user + ":" + tbSync.getPassword(aAccount)), false);
-        }
-        
         return httpchannel;
     },
  
     sendRequest: Task.async (function* (requestData, url, method, syncdata, headers, aUseStreamLoader = true) {
         let account = tbSync.db.getAccount(syncdata.account);
-        let fullUrl = (url.startsWith("http://") || url.startsWith("https://")) ? url : "http" + (account.https == "1" ? "s" : "") + "://" + account.fqdn + url;
+        
+        //if the new url is relative, add last known fqdn
+        let fullUrl = (url.startsWith("http://") || url.startsWith("https://")) ? url : "http" + (account.https == "1" ? "s" : "") + "://" + syncdata.fqdn + url;
 
         //manually handling redirects by re-issuing the request to the new url
         for (let i=1; i < 10; i++) { //max number of redirects
@@ -220,7 +219,9 @@ dav.tools = {
                 fullUrl = r.url;
                 tbSync.dump("Redirect #" + i, r.url);
             } else if (r && r.retry && r.retry === true) {
-                tbSync.dump("Retrying with toggled BASIC AUTH enforcement #" + i, tbSync.db.getAccountSetting(syncdata.account, "authBasic"));
+                let uri = Services.io.newURI(fullUrl);
+                tbSync.dump("NSIBUG Retry on 401", "Manually adding basic auth header for <" + account.user + "@" + uri.host + ">");
+                headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.getPassword(account));
             } else {
                 return r;
             }
@@ -238,7 +239,7 @@ dav.tools = {
         // - the username is lost during redirects...
         
         let finalUrl = fullUrl;
-        if (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") && tbSync.db.getAccountSetting(syncdata.account, "authBasic") == "0") {
+        if (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl")) {
             //inject user + password to be used with LOAD_EXPLICIT_CREDENTIALS (does not help with cookie cache)
             finalUrl = fullUrl.replace("://","://" + encodeURIComponent(account.user) + ":" + encodeURIComponent(tbSync.getPassword(account)) + "@");
         }
@@ -282,58 +283,34 @@ dav.tools = {
                             break;
                             
                         case 401: //AuthError
-                            {
+                            {                               
                                 //handle nsIHttpChannel bug (https://groups.google.com/forum/#!topic/mozilla.dev.platform/kHSfF9IWwKU)
-                                let hasAuthorizationHeader;
-                                try {
-                                    let header = request.getRequestHeader("Authorization");
-                                    hasAuthorizationHeader = true;
-                                } catch (e) {
-                                    hasAuthorizationHeader = false;
-                                }
+                                
+                                //these problematic hosts send a VALID Auth header, but TB is not able to parse it, we need to manually add a BASIC auth header
+                                //since the header cannot be parsed, TB will also not get the realm for this
+                                //currently there is no known CALDAV server, which is problematic (where we need the realm to pre-add the password so lightning does not prompt)
+                                //if this changes, we need a hardcoded list of problematic servers and their realm
+                                //I hope this bug gets fixed soon
+
+                                //should the channel have been able to authenticate (password is stored)?
+                                if (tbSync.getPassword(account) !== null) {                                    
+                                    //did the channel try to authenticate?
+                                    let triedToAuthenticate;
+                                    try {
+                                        let header = request.getRequestHeader("Authorization");
+                                        triedToAuthenticate = true;
+                                    } catch (e) {
+                                        triedToAuthenticate = false;
+                                    }
                                     
-                                let basicAuthAllowed;
-                                try {
-                                    let header = request.getResponseHeader("WWW-Authenticate").toUpperCase();
-                                    basicAuthAllowed = (header.startsWith("BASIC ") || header.includes(" BASIC ") || header.includes(",BASIC "));
-                                } catch(e) {
-                                    //no header at all (Yahoo!), try BASIC as fallback
-                                    basicAuthAllowed = true;                                    
+                                    if (!triedToAuthenticate) {
+                                        let response = {};
+                                        response.retry = true;
+                                        resolve(response);
+                                    }
                                 }
                                 
-                                let currentEnforcement = tbSync.db.getAccountSetting(syncdata.account, "authBasic");
-                                tbSync.dump("401 Status", JSON.stringify({hasAuthorizationHeader: hasAuthorizationHeader, basicAuthAllowed: basicAuthAllowed, currentEnforcement: currentEnforcement}));
-
-                                /*
-                                    We now have 3 states: hasAuthorizationHeader(H), basicAuthAllowed(B) and currentEnforcement(E) (which indicates, wether we enforced BASIC already or not)
-                                
-                                      H B E
-                                      -----
-                                    * 0 0 0  !hasAuthorizationHeader, BASIC not allowed, no BASIC enforcement : ERROR no valid AUTH METHOD
-                                      0 0 1  !hasAuthorizationHeader, BASIC not allowed, BASIC enforced       : not possible (401)
-                                    * 0 1 0  !hasAuthorizationHeader, BASIC is allowed , no BASIC enforcement : enable BASIC enforcement and RETRY -> [1 1 1]
-                                      0 1 1  !hasAuthorizationHeader, BASIC is allowed , BASIC enforced       : not possible (401)
-                                      1 0 0  hasAuthorizationHeader , BASIC not allowed, no BASIC enforcement : wrong password (401)
-                                    * 1 0 1  hasAuthorizationHeader , BASIC not allowed, BASIC enforced       : disable BASIC enforcement and RETRY -> [1 0 0] or [0 0 0]
-                                      1 1 0  hasAuthorizationHeader , BASIC is allowed , no BASIC enforcement : wrong password (401) [nsIHttpChannel picked a valid auth method by itself]
-                                      1 1 1  hasAuthorizationHeader , BASIC is allowed , BASIC enforced       : wrong password (401) [edge case: BASIC is not really allowed but WWW-Auth was missing and we just tried BASIC, so this could also be "no valid AUTH METHOD"]
-                                
-                                 */
-                                
-                                if (!hasAuthorizationHeader && !basicAuthAllowed && currentEnforcement == "0") {
-                                    reject(dav.sync.failed("401"));
-                                } else if (!hasAuthorizationHeader && basicAuthAllowed && currentEnforcement == "0") {
-                                    tbSync.db.setAccountSetting(account.account, "authBasic", "1");
-                                } else if (hasAuthorizationHeader && !basicAuthAllowed && currentEnforcement == "1") {
-                                    tbSync.db.setAccountSetting(account.account, "authBasic", "0");
-                                } else {
-                                    reject(dav.sync.failed("401"));
-                                }
-
-                                //we are still here, so we just toggled authBasic and want to retry
-                                let response = {};
-                                response.retry = true;
-                                resolve(response);
+                                reject(dav.sync.failed("401"));
                             }
                             break;
 

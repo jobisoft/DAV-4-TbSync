@@ -14,6 +14,7 @@
 var dav = {
     bundle: Services.strings.createBundle("chrome://dav4tbsync/locale/dav.strings"),
     prefSettings: Services.prefs.getBranch("extensions.dav4tbsync."),
+    listOfRealms: {},
 
     ns: {
         d: "DAV:",
@@ -89,8 +90,7 @@ var dav = {
         if (lightningIsAvail) {
             cal.getCalendarManager().addObserver(tbSync.dav.calendarManagerObserver);    
             cal.getCalendarManager().addCalendarObserver(tbSync.dav.calendarObserver);            
-        }
-        
+        }        
     }),
 
 
@@ -186,13 +186,7 @@ var dav = {
             "lastsynctime" : "0",
             "status" : "disabled", //global status: disabled, OK, syncing, notsyncronized, nolightning, ...
             "servertype": "custom",
-            "authRealm" :"",
-            //we use nsIHttpChannel, which should take care of authenticating, however there is this bug:
-            //https://groups.google.com/forum/#!topic/mozilla.dev.platform/kHSfF9IWwKU
-            //so we sometimes have to manually go for BASIC and we have to keep track of that
-            "authBasic" :"0",
-            "host" : "",
-            "fqdn" : "",
+            "host" : "",            
             "user" : "",
             "https" : "1",
             "autosync" : "0",
@@ -215,6 +209,11 @@ var dav = {
         let folder = {
             "account" : account,
             "folderID" : "",
+
+            //different folders can be stored on different servers (yahoo, icloud, gmx, ...), 
+            //so we need to store the fqdn information per folders
+            "fqdn" : "",
+
             "url" : "",
             "name" : "",
             "type" : "",
@@ -350,7 +349,7 @@ var dav = {
         
         let baseUrl = "";
         if (caltype == "caldav") {
-            baseUrl =  "http" + (accountdata.https == "1" ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getAccountSetting(account, "fqdn");
+            baseUrl =  "http" + (accountdata.https == "1" ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getFolderSetting(account, folderID, "fqdn");
         }
 
         let url = dav.tools.parseUri(baseUrl + folderID);        
@@ -366,7 +365,12 @@ var dav = {
 
         //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
         if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") && caltype == "caldav") {
-            tbSync.setLoginInfo(url.prePath, accountdata.authRealm, user, password);
+            tbSync.dump("NSIBUG Searching authRealm for", url.host);
+            let realm = (dav.listOfRealms.hasOwnProperty(url.host)) ? dav.listOfRealms[url.host] : "";
+            if (realm !== "") {
+                tbSync.dump("NSIBUG Found authRealm",  realm);
+                tbSync.setLoginInfo(url.prePath, realm, user, password);
+            }
         }
 
         //do not monitor CalDAV calendars (managed by lightning)

@@ -51,7 +51,7 @@ dav.sync = {
         let account = tbSync.db.getAccount(syncdata.account);
         let hostparts = account.host.split("/").filter(i => i != "");
         let fqdn = hostparts.splice(0,1).toString();
-        let domain = fqdn.split(".").slice(-2).join(".");
+        let domain = dav.tools.getDomainFromHost(fqdn);
         
         //Manipulate account.host, to help users setup their accounts
         switch (domain) {
@@ -64,7 +64,8 @@ dav.sync = {
             case "gmx.net":
                 tbSync.db.setAccountSetting(syncdata.account, "host", "gmx.net");
                 davjobs.card.initialURL = "carddav.gmx.net/.well-known/carddav";
-                davjobs.cal.initialURL = "caldav.gmx.net/.well-known/caldav";
+                davjobs.cal.initialURL =  "caldav.gmx.net";
+                //TODO : GMX has disabled the ./well-known redirect for the caldav server and the dav server is directly sitting there, got to check for that in general!
                 break;
             
             case "icloud.com":
@@ -95,13 +96,8 @@ dav.sync = {
             {
                 //split initialURL into host and url
                 let parts = davjobs[job].initialURL.split("/").filter(i => i != "");
-                davjobs[job].fqdn = parts.splice(0,1).toString();
+                syncdata.fqdn = parts.splice(0,1).toString();
                 let addr = "/" + parts.join("/");                
-                
-                //update FQDN (might change between jobs) // write fqdn into folder!! 
-                if (davjobs[job].fqdn != tbSync.db.getAccountSetting(syncdata.account, "fqdn")) {
-                    tbSync.db.setAccountSetting(syncdata.account, "fqdn", davjobs[job].fqdn);
-                }
                 
                 let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", addr , "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
                 if (response && response.error) continue;
@@ -168,12 +164,14 @@ dav.sync = {
                         newFolder.type = resourcetype;
                         newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
                         newFolder.selected = (r == 1) ? tbSync.db.getAccountSetting(syncdata.account, "syncdefaultfolders") : "0"; //only select the first one
-
+                        newFolder.fqdn = syncdata.fqdn;
+                
                         //if there is a cached version of this folderID, addFolder will merge all persistent settings - all other settings not defined here will be set to their defaults
                         tbSync.db.addFolder(syncdata.account, newFolder);
                     } else {
                         //Update name & color
                         tbSync.db.setFolderSetting(syncdata.account, href, "name", name);
+                        tbSync.db.setFolderSetting(syncdata.account, href, "fqdn", syncdata.fqdn);
                         deletedFolders = deletedFolders.filter(item => item !== href);
                     }
 
@@ -223,7 +221,8 @@ dav.sync = {
             //what folder are we syncing?
             syncdata.folderID = folders[0].folderID;
             syncdata.type = folders[0].type;
-
+            syncdata.fqdn = folders[0].fqdn;
+            
             try {
                 switch (syncdata.type) {
                     case "carddav":
