@@ -150,7 +150,7 @@ dav.sync = {
                     if (resourcetype == "ics") href =  dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cs","source"], ["d","href"]]).textContent;
                     
                     let name_node = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","displayname"]]);
-                    let name = (job == "cal") ? "unnamed calendar" : "unnamed address book";
+                    let name = (job == "cal") ? "default calendar" : "default address book";
                     if (name_node != null) {
                         name = name_node.textContent;
                     }
