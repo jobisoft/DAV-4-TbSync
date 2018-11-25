@@ -67,7 +67,13 @@ dav.sync = {
                 davjobs.cal.initialURL =  "caldav.gmx.net";
                 //TODO : GMX has disabled the ./well-known redirect for the caldav server and the dav server is directly sitting there, got to check for that in general!
                 break;
-            
+
+            case "gmx.com":
+                tbSync.db.setAccountSetting(syncdata.account, "host", "gmx.com");
+                davjobs.card.initialURL = "carddav.gmx.com/.well-known/carddav";
+                davjobs.cal.initialURL =  "caldav.gmx.com";
+                break;
+		
             case "icloud.com":
                 tbSync.db.setAccountSetting(syncdata.account, "host", "icloud.com");
                 davjobs.card.initialURL = "contacts.icloud.com";
