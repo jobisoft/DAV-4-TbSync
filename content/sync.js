@@ -241,11 +241,6 @@ dav.sync = {
 
                             //get sync target of this addressbook
                             syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
-                            syncdata.addressbookObj = tbSync.getAddressBookObject(syncdata.targetId);
-
-                            //promisify addressbook, so it can be used together with yield (using same interface as promisified calender)
-                            syncdata.targetObj = tbSync.promisifyAddressbook(syncdata.addressbookObj);
-
                             yield dav.sync.singleFolder(syncdata);
                         }
                         break;
