@@ -214,14 +214,22 @@ dav.tools = {
 
         //manually handling redirects by re-issuing the request to the new url
         for (let i=1; i < 10; i++) { //max number of redirects
+            let uri = Services.io.newURI(fullUrl);
+            
+            //https://groups.google.com/forum/#!topic/mozilla.dev.platform/kHSfF9IWwKU
+            if (dav.problematicHosts.includes(uri.host)) {
+                headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.getPassword(account));
+            }
             let r = yield dav.tools.sendRequestCore (requestData, fullUrl, method, syncdata, headers, aUseStreamLoader);
+            
             if (r && r.redirect && r.url) {
                 fullUrl = r.url;
                 tbSync.dump("Redirect #" + i, r.url);
             } else if (r && r.retry && r.retry === true) {
-                let uri = Services.io.newURI(fullUrl);
                 tbSync.dump("NSIBUG Retry on 401", "Manually adding basic auth header for <" + account.user + "@" + uri.host + ">");
-                headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.getPassword(account));
+                if (!dav.problematicHosts.includes(uri.host)) {
+                    dav.problematicHosts.push(uri.host)
+                }
             } else {
                 return r;
             }
