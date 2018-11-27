@@ -216,7 +216,7 @@ dav.tools = {
         for (let i=1; i < 10; i++) { //max number of redirects
             let uri = Services.io.newURI(fullUrl);
             
-            //https://groups.google.com/forum/#!topic/mozilla.dev.platform/kHSfF9IWwKU
+            //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
             if (dav.problematicHosts.includes(uri.host)) {
                 headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.getPassword(account));
             }
@@ -292,7 +292,7 @@ dav.tools = {
                             
                         case 401: //AuthError
                             {                               
-                                //handle nsIHttpChannel bug (https://groups.google.com/forum/#!topic/mozilla.dev.platform/kHSfF9IWwKU)
+                                //handle nsIHttpChannel bug (https://bugzilla.mozilla.org/show_bug.cgi?id=669675)
                                 
                                 //these problematic hosts send a VALID Auth header, but TB is not able to parse it, we need to manually add a BASIC auth header
                                 //since the header cannot be parsed, TB will also not get the realm for this

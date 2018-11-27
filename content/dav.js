@@ -25,7 +25,7 @@ var dav = {
         apple: "http://apple.com/ns/ical/"
     },
 
-    //https://groups.google.com/forum/#!topic/mozilla.dev.platform/kHSfF9IWwKU
+    //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
     //non permanent cache
     problematicHosts: [],
     
