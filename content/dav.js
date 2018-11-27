@@ -25,7 +25,10 @@ var dav = {
         apple: "http://apple.com/ns/ical/"
     },
 
-
+    //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
+    //non permanent cache
+    problematicHosts: [],
+    
     calendarManagerObserver : {
         onCalendarRegistered : function (aCalendar) { 
             

@@ -41,3 +41,6 @@
 
 <!ENTITY abCard.MiddleName "Zweiter Vorname:">
 <!ENTITY abCard.Phone "Allgemein:">
+
+<!ENTITY manager.tabs.settings "Servereinstellungen">
+<!ENTITY manager.tabs.resources "Verfügbare Resourcen">
