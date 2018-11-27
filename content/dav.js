@@ -103,12 +103,12 @@ var dav = {
      *
      * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
      */
-    unload: Task.async(function* (lightningIsAvail) {
+    unload: function (lightningIsAvail) {
         if (lightningIsAvail) {
             cal.getCalendarManager().removeObserver(tbSync.dav.calendarManagerObserver);
             cal.getCalendarManager().removeCalendarObserver(tbSync.dav.calendarObserver);                        
         }        
-    }),
+    },
     
 
 
