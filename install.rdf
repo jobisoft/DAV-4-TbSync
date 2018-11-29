@@ -17,6 +17,7 @@
         <em:translator>John Bieling (de)</em:translator>
         <em:translator>John Bieling (en-US)</em:translator>
         <em:translator>Alessandro Menti (it)</em:translator>
+        <em:translator>Alexey Sinitsyn (ru)</em:translator>
         <em:contributor>Brad2014</em:contributor>
         <em:contributor>Nathan Gauër</em:contributor>
         <em:contributor>Alexandr Heymdall (vCard parser)</em:contributor>	
@@ -40,6 +41,7 @@
             <em:translator>John Bieling (de)</em:translator>
             <em:translator>John Bieling (en-US)</em:translator>
             <em:translator>Alessandro Menti (it)</em:translator>
+            <em:translator>Alexey Sinitsyn (ru)</em:translator>
             <em:contributor>Brad2014</em:contributor>
             <em:contributor>Nathan Gauër</em:contributor>
             <em:contributor>Alexandr Heymdall (vCard parser)</em:contributor>	
@@ -56,6 +58,7 @@
             <em:translator>John Bieling (de)</em:translator>
             <em:translator>John Bieling (en-US)</em:translator>
             <em:translator>Alessandro Menti (it)</em:translator>
+            <em:translator>Alexey Sinitsyn (ru)</em:translator>
             <em:contributor>Brad2014</em:contributor>
             <em:contributor>Nathan Gauër</em:contributor>
             <em:contributor>Alexandr Heymdall (vCard parser)</em:contributor>	
@@ -66,8 +69,8 @@
          <em:localized>  <!-- Russian -->
           <Description>
             <em:locale>ru</em:locale>
-            <em:name>Провайдер CalDAV e CardDAV per TbSync</em:name>
-            <em:description>Aggiunge il supporto per gli account CalDAV e CardDAV a TbSync</em:description>
+            <em:name>Провайдер CalDAV &amp; CardDAV</em:name>
+            <em:description>Добавляет в TbSync поддержку базирующегося на http/https протокола синхронизации для учетных записей CalDAV &amp; CardDAV (контакты, задачи и календари)</em:description>
             <em:translator>Ettore Atalan (de)</em:translator>
             <em:translator>John Bieling (de)</em:translator>
             <em:translator>John Bieling (en-US)</em:translator>
@@ -78,7 +81,7 @@
             <em:contributor>Alexandr Heymdall (vCard парсер)</em:contributor>	
             <em:creator>John Bieling</em:creator>
           </Description>
-</em:localized>
+         </em:localized>
          
     </Description>
 </RDF>
