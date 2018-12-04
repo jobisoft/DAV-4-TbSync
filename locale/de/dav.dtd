@@ -4,13 +4,23 @@
 <!ENTITY add.user "Benutzername:">
 <!ENTITY add.password "Passwort:">
 <!ENTITY add.server "Serveradresse:">
+<!ENTITY add.carddavserver "CardDAV Serveradresse:">
+<!ENTITY add.caldavserver "CalDAV Serveradresse:">
 <!ENTITY add.description "Bitte wählen Sie einen Namen für das neue TbSync Konto, und tragen den Benutzername und das Passwort für das sabre/dav Konto ein, welches Sie hinzufügen möchten. ">
 <!ENTITY add.description2 "Bei den meisten Servern ist der sog. Discovery Service konfiguriert, sodass meist nur der eigentliche Host angegeben werden muss, z.B 'cloud.meinserver.de'. Sollte das nicht funktionieren, muss der Pfad zum eigentlichen DAV Server angegeben werden, z.B 'cloud.meinserver.de/SOGo/dav'.">
 
+<!ENTITY add.serverprofile "Bitte ein Serverprofil auswählen:">
+<!ENTITY add.serverprofile.discovery "Discovery Service">
+<!ENTITY add.serverprofile.discovery.description "Funktioniert mit den meisten ownCloud, Nextcloud und other sabre/dav Installationen.">
+<!ENTITY add.serverprofile.custom "Benutzerdefinierte Konfiguration">
+<!ENTITY add.serverprofile.custom.description "Die CalDAV und CardDAV Servers können separat konfiguriert werden.">
+
 <!ENTITY pref.AccountName "Kontoname">
 <!ENTITY pref.UserName "Benutzername">
-<!ENTITY pref.ServerName "Serveradresse">
-<!ENTITY pref.ServerNameDescription "z.B. cloud.meinserver.de">
+<!ENTITY pref.CardDavServer "CardDAV Serveradresse:">
+<!ENTITY pref.CardDavDescription "z.B. carddav.yourserver.de">
+<!ENTITY pref.CalDavServer "CalDAV Serveradresse:">
+<!ENTITY pref.CalDavDescription "z.B. caldav.yourserver.de">
 <!ENTITY pref.usehttps "Sichere Verbindungen verwenden (via https://)">
 
 <!ENTITY pref.generaloptions "Allgemeine Optionen">
