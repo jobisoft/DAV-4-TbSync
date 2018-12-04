@@ -5,7 +5,7 @@
 <!ENTITY add.password "Пароль:">
 <!ENTITY add.server "URL сервера:">
 <!ENTITY add.description "Введите имя для нового аккаунта TbSync и имя пользователя и пароль аккаунта sabre/dav, которую вы хотите добавить.">
-<!ENTITY add.description2 "Most servers have the discovery service enabled, and it is enough to enter just the host as server URL, for example 'cloud.myserver.com'. If this is not working for you, enter the full path to the DAV server, for example 'cloud.myserver.com/SOGo/dav'.">
+<!ENTITY add.description2 "На большинстве серверов включена служба обнаружения, и достаточно ввести только хост в качестве URL-адреса сервера, например 'cloud.myserver.com'. Если это не работает для вас, введите полный путь к серверу DAV, например 'cloud.myserver.com/SOGo/dav'.">
 
 <!ENTITY pref.EnableAccount "Enable account &amp; try to connect to server">
 <!ENTITY pref.SynchronizeAccount "Synchronize account">
