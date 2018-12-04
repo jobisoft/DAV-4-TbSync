@@ -46,7 +46,7 @@ status.info.restored=No write permissions, reverted.
 status.mailformed-xml=Response contains mailformed XML, unable to process, aborting sync.
 status.service-discovery-failed=sabre/dav service discovery failed for this server.
 
-status.OK.managedbylightning=Calendar managed by lightning.
+status.OK.managedbylightning=Календарь управляется lightning.
 
 status.security=Не удалось установить безопасное соединение. Вы используете самоподписанный или ненадежный сертификат без импорта его в Thunderbird? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[help]
 status.network=Не удалось подключиться к серверу (##replace.1##).
