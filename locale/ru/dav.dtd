@@ -27,20 +27,20 @@
 <!ENTITY pref.syncstate "Статус синхронизации">
 <!ENTITY pref.useHomeAsPrimary "Используйте электронную почту vCard типа 'HOME' (а не 'WORK') в качестве основного адреса электронной почты">
 
-<!ENTITY pref.calendaroptions "Calendar options">
-<!ENTITY pref.useCache "Offline-Support">
+<!ENTITY pref.calendaroptions "Настройки календаря">
+<!ENTITY pref.useCache "Off-лайновая поддержка">
 
-<!ENTITY pref.foldername "Folder">
-<!ENTITY pref.targetname "SyncTarget">
-<!ENTITY pref.status "Status">
+<!ENTITY pref.foldername "Папка">
+<!ENTITY pref.targetname "Цель синхронизации">
+<!ENTITY pref.status "Статус">
 
 <!ENTITY pref.switchFoldersAndConfig "Дважды щелкните, чтобы переключиться между просмотром папок и просмотром настроек.">
 
-<!ENTITY servertype.custom "Custom configuration">
+<!ENTITY servertype.custom "Пользовательская конфигурация">
 <!ENTITY servertype.unlock "Дважды щелкните, чтобы разблокировать все предопределенные настройки сервера.">
 
-<!ENTITY abCard.MiddleName "Middle:">
-<!ENTITY abCard.Phone "Main:">
+<!ENTITY abCard.MiddleName "Отчество:">
+<!ENTITY abCard.Phone "Основной телефон:">
 
 <!ENTITY manager.tabs.settings "Настройки сервера">
 <!ENTITY manager.tabs.resources "Доступные ресурсы">
