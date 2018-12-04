@@ -13,7 +13,7 @@
 <!ENTITY pref.AccountName "Account name">
 <!ENTITY pref.UserName "User name">
 <!ENTITY pref.ServerName "Server address">
-<!ENTITY pref.ServerNameDescription "e.g. mail.yourserver.com">
+<!ENTITY pref.ServerNameDescription "например: mail.yourserver.com">
 <!ENTITY pref.usehttps "Use secure connection (connect via https)">
 <!ENTITY pref.DeviceId "Device Id">
 <!ENTITY pref.contactoptions "Contact options">
