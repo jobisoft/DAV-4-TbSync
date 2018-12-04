@@ -21,12 +21,12 @@ syncstate.send.request.remotechanges=Ожидание удаленных изм�
 syncstate.eval.response.remotechanges=Обработка удаленных изменений
 
 status.notsyncronized=Аккаунт должен быть синхронизирован, по крайней мере один элемент не синхронизирован.
-status.needtorevert=Account needs to be syncronized to revert local changes (one-way sync).
+status.needtorevert=Аккаунт должен быть синхронизирован для отката локальных изменений (односторонняя синхронизация).
 status.disabled=Аккаунт не включен, синхронизация отключена.
-status.notargets=Aborting Sync, because sync targets could not be created.
-status.nouserhost=Missing username and/or server. Please provide those values.
-status.timeout=Communication timeout.
-status.networkerror=Could not connect to server.
+status.notargets=Отмена синхронизации, поскольку цели синхронизации не могут быть созданы.
+status.nouserhost=Отсутствует имя пользователя и/или сервера. Укажите эти значения.
+status.timeout=Тайм-аут связи.
+status.networkerror=Не удалось подключиться к серверу.
 status.404=HTTP Error 404 (requested resource not found).
 status.403=Server rejected connection (forbidden).
 status.401=Could not authenticate, check username and password.
