@@ -39,10 +39,10 @@ status.javascriptError=Javascript ошибка: ##replace.1##
 
 status.no-folders-found-on-server=Не удалось найти календари или адресные книги на сервере.
 status.invalid-response=Получен неверный ответ, синхронизация прервана.
-status.invalid-uri=Found invalid URI, aborting sync.
-status.unsupported_auth_method=Server requested unsuported auth method (##replace.1##).
-status.OK.caldav-calendar-already-exists=Calendar already managed by lightning (skipped).
-status.info.restored=No write permissions, reverted.
+status.invalid-uri=Получен недействительный URI, синхронизация прервана.
+status.unsupported_auth_method=Сервер запрашивал неподдерживаемый метод авторизации (##replace.1##).
+status.OK.caldav-calendar-already-exists=Календарь уже управляется lightning (пропущено).
+status.info.restored=Нет разрешений на запись, действие отменено.
 status.mailformed-xml=Response contains mailformed XML, unable to process, aborting sync.
 status.service-discovery-failed=Для этого сервера не удалось обнаружить службу sabre/dav.
 
