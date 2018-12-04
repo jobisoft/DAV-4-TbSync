@@ -7,18 +7,18 @@
 <!ENTITY add.description "Введите имя для нового аккаунта TbSync и имя пользователя и пароль аккаунта sabre/dav, которую вы хотите добавить.">
 <!ENTITY add.description2 "На большинстве серверов включена служба обнаружения, и достаточно ввести только хост в качестве URL-адреса сервера, например 'cloud.myserver.com'. Если это не работает для вас, введите полный путь к серверу DAV, например 'cloud.myserver.com/SOGo/dav'.">
 
-<!ENTITY pref.EnableAccount "Enable account &amp; try to connect to server">
-<!ENTITY pref.SynchronizeAccount "Synchronize account">
+<!ENTITY pref.EnableAccount "Разрешить аккаунт &amp; попробовать подключиться к серверу">
+<!ENTITY pref.SynchronizeAccount "Синхронизировать аккаунт">
 
-<!ENTITY pref.AccountName "Account name">
-<!ENTITY pref.UserName "User name">
-<!ENTITY pref.ServerName "Server address">
+<!ENTITY pref.AccountName "Имя аккаунта">
+<!ENTITY pref.UserName "Имя пользователя">
+<!ENTITY pref.ServerName "Адрес сервера">
 <!ENTITY pref.ServerNameDescription "например: mail.yourserver.com">
-<!ENTITY pref.usehttps "Use secure connection (connect via https)">
-<!ENTITY pref.DeviceId "Device Id">
+<!ENTITY pref.usehttps "Использовать безопасное соединение (соединение через https)">
+<!ENTITY pref.DeviceId "Идентификатор устройства">
 <!ENTITY pref.contactoptions "Contact options">
-<!ENTITY pref.downloadonly "Revert local changes (one-way sync)">
-<!ENTITY pref.generaloptions "General options">
+<!ENTITY pref.downloadonly "Отменить локальные изменения (односторонняя синхронизация)">
+<!ENTITY pref.generaloptions "Общие настройки">
 <!ENTITY pref.syncdefaultfolders "Subscribe and sync all default folders after the initial connection has been established.">
 
 <!ENTITY pref.autotime "Sync interval (minutes)">
