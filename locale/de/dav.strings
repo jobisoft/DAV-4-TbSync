@@ -1,7 +1,5 @@
 menu.name = CalDAV & CardDAV
 
-deletefolder.confirm=Möchten Sie den Ordner "##replace.1##" wirklich ENDGÜLTIG aus dem Papierkorb ENTFERNEN?
-
 subscribe.on="##replace.1##" abonnieren
 subscribe.off="##replace.1##" nicht länger abonnieren
 
@@ -33,7 +31,7 @@ status.401=Authentifizierung fehlgeschlagen, überprüfen Sie den Benutzernamen 
 status.500=Unbekannter Server Fehler (HTTP Fehler 500).
 status.503=Service nicht erreichbar.
 status.httperror=Kommunikationsfehler (HTTP Status ##replace.1##).
-status.OK=Ok
+status.OK=OK
 status.nolightning=Lightning Add-On nicht installiert, Kalender nicht nutzbar.
 status.javascriptError=Javascript Fehler: ##replace.1##
 
@@ -50,7 +48,6 @@ status.OK.managedbylightning=Kalender wird von lightning verwaltet.
 
 status.security=Fehler beim Aufbau einer sicherern Verbindung. Benutzen Sie eventuell ein selbst signiertes Zertifikat oder ein andersartiges nicht vertrauenswürdiges Zertifikat welches nicht in Thunderbird importiert ist? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[help]
 status.network=Verbindung zum Server fehlgeschlagen (##replace.1##).
-
 
 status.syncing=Synchronisierung
 status.skipped=Nicht unterstützt
