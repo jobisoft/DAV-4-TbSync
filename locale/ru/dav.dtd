@@ -1,5 +1,5 @@
-<!ENTITY add.title "Adding an sabre/dav (CalDAV &amp; CardDAV) account to TbSync">
-<!ENTITY add.ok "Add account">
+<!ENTITY add.title "Добавить sabre/dav (CalDAV &amp; CardDAV) аккаунт для TbSync">
+<!ENTITY add.ok "Добавить аккаунт">
 <!ENTITY add.name "Account name:">
 <!ENTITY add.user "User name:">
 <!ENTITY add.password "Password:">
