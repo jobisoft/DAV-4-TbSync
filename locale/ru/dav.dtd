@@ -25,7 +25,7 @@
 <!ENTITY pref.never "Установка 0 отключает периодическую синхронизацию. Push-синхронизация пока не поддерживается.">
 
 <!ENTITY pref.syncstate "Статус синхронизации">
-<!ENTITY pref.useHomeAsPrimary "Используйте электронную почту vCard типа 'HOME' (а не 'WORK') в качестве основного адреса электронной почты">
+<!ENTITY pref.useHomeAsPrimary "Используйте электронную почту vCard типа 'ДОМ' (а не 'РАБОТА') в качестве основного адреса электронной почты">
 
 <!ENTITY pref.calendaroptions "Настройки календаря">
 <!ENTITY pref.useCache "Off-лайновая поддержка">
