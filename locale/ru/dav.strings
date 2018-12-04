@@ -1,9 +1,9 @@
 menu.name = CalDAV & CardDAV
 
-deletefolder.confirm=Do you really want to PERMANENTLY PURGE folder "##replace.1##" from trash?
+deletefolder.confirm=Вы действительно хотите ПЕРМАНЕНТНО ВЫЧИСТИТЬ папку "##replace.1##" из корзины?
 
-subscribe.on=Subscribe "##replace.1##"
-subscribe.off=Unsubscribe "##replace.1##"
+subscribe.on=Подписаться "##replace.1##"
+subscribe.off=Отписаться "##replace.1##"
 
 syncstate.syncing=Initialize synchronization
 syncstate.preparing=Preparing next item for synchronization
@@ -33,9 +33,9 @@ status.401=Could not authenticate, check username and password.
 status.500=Unknown Server Error (HTTP Error 500).
 status.503=Service unavailable.
 status.httperror=Communication error (HTTP status ##replace.1##).
-status.OK=Ok
-status.nolightning=Lightning Add-On not installed, calendars are not supported.
-status.javascriptError=Javascript error: ##replace.1##
+status.OK=Готово
+status.nolightning=Lightning Add-On не установлен, календари не поддерживаются.
+status.javascriptError=Javascript ошибка: ##replace.1##
 
 status.no-folders-found-on-server=Could not find any calendars or address books on the server.
 status.invalid-response=Received invalid response, aborting sync.
