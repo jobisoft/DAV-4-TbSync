@@ -48,8 +48,8 @@ status.service-discovery-failed=sabre/dav service discovery failed for this serv
 
 status.OK.managedbylightning=Calendar managed by lightning.
 
-status.security=Could not establish a secure connection. Are you using a self-signed or otherwise untrusted certificate without importing it into Thunderbird? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[help]
-status.network=Could not connect to server (##replace.1##).
+status.security=Не удалось установить безопасное соединение. Вы используете самоподписанный или ненадежный сертификат без импорта его в Thunderbird? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[help]
+status.network=Не удалось подключиться к серверу (##replace.1##).
 
 status.syncing=Synchronizing
 status.connecting=Connecting to server
