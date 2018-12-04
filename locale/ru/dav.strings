@@ -10,17 +10,17 @@ syncstate.preparing=Подготовка следующего элемента �
 syncstate.done=Подготовка следующего элемента для синхронизации
 syncstate.accountdone=Завершенный аккаунт
 
-syncstate.send.getfolders=Requesting folder list
-syncstate.eval.folders=Updating folder list
+syncstate.send.getfolders=Запрос списка папок
+syncstate.eval.folders=Обновление списка папок
 
-syncstate.prepare.request.localchanges=Sending local changes
-syncstate.send.request.localchanges=Waiting for acknowledgement of local changes
-syncstate.eval.response.localchanges=Processing acknowledgement of local changes
+syncstate.prepare.request.localchanges=Отправка локальных изменений
+syncstate.send.request.localchanges=Ожидание подтверждения локальных изменений
+syncstate.eval.response.localchanges=Обработка подтверждения локальных изменений
 
-syncstate.send.request.remotechanges=Waiting for remote changes
-syncstate.eval.response.remotechanges=Processing remote changes
+syncstate.send.request.remotechanges=Ожидание удаленных изменений
+syncstate.eval.response.remotechanges=Обработка удаленных изменений
 
-status.notsyncronized=Account needs to be syncronized, at least one item is out of sync.
+status.notsyncronized=Аккаунт должен быть синхронизирован, по крайней мере один элемент не синхронизирован.
 status.needtorevert=Account needs to be syncronized to revert local changes (one-way sync).
 status.disabled=Account is not enabled, synchronization is disabled.
 status.notargets=Aborting Sync, because sync targets could not be created.
