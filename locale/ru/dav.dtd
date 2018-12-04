@@ -34,7 +34,7 @@
 <!ENTITY pref.targetname "SyncTarget">
 <!ENTITY pref.status "Status">
 
-<!ENTITY pref.switchFoldersAndConfig "Double click to switch between folder view and settings view.">
+<!ENTITY pref.switchFoldersAndConfig "Дважды щелкните, чтобы переключиться между просмотром папок и просмотром настроек.">
 
 <!ENTITY servertype.custom "Custom configuration">
 <!ENTITY servertype.unlock "Дважды щелкните, чтобы разблокировать все предопределенные настройки сервера.">
