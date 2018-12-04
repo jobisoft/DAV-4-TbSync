@@ -58,8 +58,8 @@ status.aborted=Не синхронизировано
 status.pending=Ожидание пока синхронизируется
 status.modified=Локальные изменения
 
-prompt.Unsubscribe=Are you sure you want to unsubscribe this item? All local modifications, which have not been synced yet, will be lost!
-prompt.UnlockSettings=Changing any of the predefined server settings could lead to synchronization errors. Are you sure you want to unlock all predefined server settings?
+prompt.Unsubscribe=Вы действительно хотите отменить подписку на этот элемент? Все локальные изменения, которые еще не синхронизированы, будут потеряны!
+prompt.UnlockSettings=Изменение любого из предопределенных параметров сервера может привести к ошибкам синхронизации. Вы действительно хотите разблокировать все предопределенные настройки сервера?
 
 button.syncthis=Синхронизировать этот аккаунт
 button.tryagain=Повторить попытку подключения к серверу
