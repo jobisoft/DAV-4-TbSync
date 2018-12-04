@@ -5,10 +5,10 @@ deletefolder.confirm=Вы действительно хотите ПЕРМАНЕ
 subscribe.on=Подписаться "##replace.1##"
 subscribe.off=Отписаться "##replace.1##"
 
-syncstate.syncing=Initialize synchronization
-syncstate.preparing=Preparing next item for synchronization
-syncstate.done=Preparing next item for synchronization
-syncstate.accountdone=Finished account
+syncstate.syncing=Инициализация синхронизации
+syncstate.preparing=Подготовка следующего элемента для синхронизации
+syncstate.done=Подготовка следующего элемента для синхронизации
+syncstate.accountdone=Завершенный аккаунт
 
 syncstate.send.getfolders=Requesting folder list
 syncstate.eval.folders=Updating folder list
