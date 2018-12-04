@@ -66,4 +66,4 @@ button.tryagain=Try again to connect to server
 button.enableAndConnect=Enable account & try to connect to server
 button.disableAndEdit=Disable account to edit settings
 
-config.custom=sabre/dav server configuration
+config.custom=sabre/dav конфигурация сервера
