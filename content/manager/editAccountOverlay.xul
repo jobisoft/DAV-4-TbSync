@@ -14,7 +14,7 @@
 
     <tabpanel id="manager.tabpanels.accountsettings" appendto="manager.tabpanels" flex="1"><!-- ACCOUNT SETTINGS -->
            <vbox flex="1">
-                <label class="header lockable" style="margin-left:0; margin-bottom:1ex;" value="" id="tbsync.accountsettings.label.config" />                
+                <label class="header lockIfConnected" style="margin-left:0; margin-bottom:1ex;" value="" id="tbsync.accountsettings.label.config" />                
                 <grid flex="1">
                    <columns>
                         <column flex="0" style="margin-right:1ex;" />
@@ -31,20 +31,26 @@
                         
                         <row>
                             <vbox pack="center">
-                                <label class="lockable" style="text-align:left" control="tbsync.accountsettings.pref.user" value="&pref.UserName;" />
+                                <label class="lockIfConnected" style="text-align:left" control="tbsync.accountsettings.pref.user" value="&pref.UserName;" />
                             </vbox>
-                            <textbox class="lockable" id="tbsync.accountsettings.pref.user" />
+                            <textbox class="lockIfConnected" id="tbsync.accountsettings.pref.user" />
                         </row>
                         
                         <row>
                             <vbox pack="center">
-                                <label class="lockable" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.ServerName;" />
+                                <label class="lockIfConnected" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CardDavServer;" />
                             </vbox>
-                            <textbox class="lockable" id="tbsync.accountsettings.pref.host" onblur="tbSyncAccountSettings.stripHost(document, tbSyncAccountSettings.account);" />
+                            <textbox class="lockIfConnected" id="tbsync.accountsettings.pref.host" onblur="tbSyncAccountSettings.stripHost(document, tbSyncAccountSettings.account);" />
+                        </row>
+                        <row>
+                            <vbox pack="center">
+                                <label class="lockIfConnected" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CalDavServer;" />
+                            </vbox>
+                            <textbox class="lockIfConnected" id="tbsync.accountsettings.pref.caldavhost"  />
                         </row>
                         <row>
                             <hbox/>
-                            <checkbox class="lockable" style="margin-bottom:1ex" id="tbsync.accountsettings.pref.https" label="&pref.usehttps;"  />
+                            <checkbox class="lockIfConnected" style="margin-bottom:1ex" id="tbsync.accountsettings.pref.https" label="&pref.usehttps;"  />
                         </row>
 
                    </rows>
@@ -63,17 +69,17 @@
 
     <tabpanel id="manager.tabpanels.syncsettings" appendto="manager.tabpanels" flex="1"><!-- SYNC SETTINGS -->
           <vbox flex="1">
-                <label style="margin-left:0; margin-bottom: 1ex;" class="header lockable" value="&pref.generaloptions;"/>
+                <label style="margin-left:0; margin-bottom: 1ex;" class="header lockIfConnected" value="&pref.generaloptions;"/>
                 <vbox>
                     <checkbox id="tbsync.accountsettings.pref.downloadonly" label="&pref.downloadonly;"  />
                 </vbox>
 
-                <label style="margin-left:0; margin-bottom: 1ex; margin-top: 3ex" class="header lockable" value="&pref.contactoptions;"/>
+                <label style="margin-left:0; margin-bottom: 1ex; margin-top: 3ex" class="header lockIfConnected" value="&pref.contactoptions;"/>
                 <vbox>                            
                     <checkbox id="tbsync.accountsettings.pref.useHomeAsPrimary" label="&pref.useHomeAsPrimary;" />
                 </vbox>
 
-                <label style="margin-left:0; margin-bottom: 1ex; margin-top: 3ex" class="header lockable" value="&pref.calendaroptions;"/>
+                <label style="margin-left:0; margin-bottom: 1ex; margin-top: 3ex" class="header lockIfConnected" value="&pref.calendaroptions;"/>
                 <vbox>                            
                     <checkbox id="tbsync.accountsettings.pref.useCache" label="&pref.useCache;" />
                 </vbox>
