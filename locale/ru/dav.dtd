@@ -1,9 +1,9 @@
 <!ENTITY add.title "Добавить sabre/dav (CalDAV &amp; CardDAV) аккаунт для TbSync">
 <!ENTITY add.ok "Добавить аккаунт">
-<!ENTITY add.name "Account name:">
-<!ENTITY add.user "User name:">
-<!ENTITY add.password "Password:">
-<!ENTITY add.server "Server URL:">
+<!ENTITY add.name "Имя аккаунта:">
+<!ENTITY add.user "Имя пользователя:">
+<!ENTITY add.password "Пароль:">
+<!ENTITY add.server "URL сервера:">
 <!ENTITY add.description "Please enter a name for the new TbSync account and the user name and password of the sabre/dav account you want to add. ">
 <!ENTITY add.description2 "Most servers have the discovery service enabled, and it is enough to enter just the host as server URL, for example 'cloud.myserver.com'. If this is not working for you, enter the full path to the DAV server, for example 'cloud.myserver.com/SOGo/dav'.">
 
