@@ -169,7 +169,7 @@ dav.sync = {
                         newFolder.name = name;
                         newFolder.type = resourcetype;
                         newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
-                        newFolder.selected = (r == 1) ? tbSync.db.getAccountSetting(syncdata.account, "syncdefaultfolders") : "0"; //only select the first one
+                        newFolder.selected = "0";
                         newFolder.fqdn = syncdata.fqdn;
                 
                         //if there is a cached version of this folderID, addFolder will merge all persistent settings - all other settings not defined here will be set to their defaults

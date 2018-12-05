@@ -1,5 +1,5 @@
 # DAV-4-TbSync
-This provider Add-On adds CalDAV & CardDAV synchronization capabilities to TbSync.
+This provider Add-on adds CalDAV & CardDAV synchronization capabilities to [TbSync](https://github.com/jobisoft/TbSync/).
 
 More information can be found in the [wiki](https://github.com/jobisoft/DAV-4-TbSync/wiki/About:-Provider-for-CalDAV-&-CardDAV) of this repository
 
