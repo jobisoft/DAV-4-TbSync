@@ -3,9 +3,9 @@
 <!ENTITY add.name "Имя аккаунта:">
 <!ENTITY add.user "Имя пользователя:">
 <!ENTITY add.password "Пароль:">
-<!ENTITY add.server "?? Server address ??:">
-<!ENTITY add.carddavserver "?? CardDAV server address: ??">
-<!ENTITY add.caldavserver "?? CalDAV server address: ??">
+<!ENTITY add.server "Адрес сервера:">
+<!ENTITY add.carddavserver "Адрес сервера CardDAV:">
+<!ENTITY add.caldavserver "Адрес сервера CardDAV:">
 <!ENTITY add.description "Введите имя для нового аккаунта TbSync и имя пользователя и пароль аккаунта sabre/dav, которую вы хотите добавить.">
 <!ENTITY add.description2 "На большинстве серверов включена служба обнаружения, и достаточно ввести только хост в качестве URL-адреса сервера, например 'cloud.myserver.com'. Если это не работает для вас, введите полный путь к серверу DAV, например 'cloud.myserver.com/SOGo/dav'.">
 
@@ -17,9 +17,9 @@
 
 <!ENTITY pref.AccountName "Имя аккаунта">
 <!ENTITY pref.UserName "Имя пользователя">
-<!ENTITY pref.CardDavServer "?? CardDAV server address: ??">
+<!ENTITY pref.CardDavServer "Адрес сервера CardDAV:">
 <!ENTITY pref.CardDavDescription "например: carddav.yourserver.com">
-<!ENTITY pref.CalDavServer "?? CalDAV server address: ??">
+<!ENTITY pref.CalDavServer "Адрес сервера CardDAV:">
 <!ENTITY pref.CalDavDescription "например: caldav.yourserver.com">
 <!ENTITY pref.usehttps "Использовать безопасное соединение (соединение через https)">
 
@@ -35,5 +35,5 @@
 <!ENTITY abCard.MiddleName "Отчество:">
 <!ENTITY abCard.Phone "Основной телефон:">
 
-<!ENTITY manager.tabs.accountsettings "?? Account settings ??">
-<!ENTITY manager.tabs.syncsettings "?? Synchronisation settings ??">
+<!ENTITY manager.tabs.accountsettings "Настройки аккаунта">
+<!ENTITY manager.tabs.syncsettings "Настройки синхронизации">
