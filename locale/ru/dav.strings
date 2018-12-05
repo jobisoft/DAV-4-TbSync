@@ -1,0 +1,58 @@
+menu.name = CalDAV & CardDAV
+
+subscribe.on=Подписаться "##replace.1##"
+subscribe.off=Отписаться "##replace.1##"
+
+syncstate.syncing=Инициализация синхронизации
+syncstate.preparing=Подготовка следующего элемента для синхронизации
+syncstate.done=Подготовка следующего элемента для синхронизации
+syncstate.accountdone=Завершенный аккаунт
+
+syncstate.send.getfolders=Запрос списка папок
+syncstate.eval.folders=Обновление списка папок
+
+syncstate.prepare.request.localchanges=Отправка локальных изменений
+syncstate.send.request.localchanges=Ожидание подтверждения локальных изменений
+syncstate.eval.response.localchanges=Обработка подтверждения локальных изменений
+
+syncstate.send.request.remotechanges=Ожидание удаленных изменений
+syncstate.eval.response.remotechanges=Обработка удаленных изменений
+
+status.notsyncronized=Аккаунт должен быть синхронизирован, по крайней мере один элемент не синхронизирован.
+status.needtorevert=Аккаунт должен быть синхронизирован для отката локальных изменений (односторонняя синхронизация).
+status.disabled=Аккаунт не включен, синхронизация отключена.
+status.notargets=Отмена синхронизации, поскольку цели синхронизации не могут быть созданы.
+status.nouserhost=Отсутствует имя пользователя и/или сервера. Укажите эти значения.
+status.timeout=Тайм-аут связи.
+status.networkerror=Не удалось подключиться к серверу.
+status.404=Запрошенный ресурс не найден (HTTP Ошибка 404).
+status.403=Сервер отклонил соединение (запрещено) (HTTP Ошибка 403).
+status.401=Не удалось аутентифицировать, проверить имя пользователя и пароль. (HTTP Ошибка 401).
+status.500=Неизвестная ошибка сервера (HTTP Ошибка 500).
+status.503=Сервис недоступен (HTTP Ошибка 503).
+status.httperror=Ошибка связи (HTTP статус ##replace.1##).
+status.OK=Готово
+status.nolightning=Lightning Add-On не установлен, календари не поддерживаются.
+status.javascriptError=Javascript ошибка: ##replace.1##
+
+status.no-folders-found-on-server=Не удалось найти календари или адресные книги на сервере.
+status.invalid-response=Получен неверный ответ, синхронизация прервана.
+status.invalid-uri=Получен недействительный URI, синхронизация прервана.
+status.unsupported_auth_method=Сервер запрашивал неподдерживаемый метод авторизации (##replace.1##).
+status.OK.caldav-calendar-already-exists=Календарь уже управляется lightning (пропущено).
+status.info.restored=Нет разрешений на запись, действие отменено.
+status.mailformed-xml=Ответ содержит бесформенные XML, обработка невозможна, синхронизация прервана.
+status.service-discovery-failed=Для этого сервера не удалось обнаружить службу sabre/dav.
+
+status.OK.managedbylightning=Календарь управляется lightning.
+
+status.security=Не удалось установить безопасное соединение. Вы используете самоподписанный или ненадежный сертификат без импорта его в Thunderbird? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[help]
+status.network=Не удалось подключиться к серверу (##replace.1##).
+
+status.syncing=Синхронизация
+status.skipped=Пока не поддерживается, пропущено
+status.aborted=Не синхронизировано
+status.pending=Ожидание пока синхронизируется
+status.modified=Локальные изменения
+
+config.custom=sabre/dav конфигурация сервера
