@@ -11,9 +11,9 @@
 
 <!ENTITY add.serverprofile "Выберите профиль сервера:">
 <!ENTITY add.serverprofile.discovery "Сервис обнаружения">
-<!ENTITY add.serverprofile.discovery.description "?? Works with most ownCloud, Nextcloud and other sabre/dav installations. ??">
+<!ENTITY add.serverprofile.discovery.description "Работает с большинством ownCloud, Nextcloud и другими sabre/dav сервисами.">
 <!ENTITY add.serverprofile.custom "Пользовательская конфигурация">
-<!ENTITY add.serverprofile.custom.description "?? Configure CalDAV and CardDAV servers separately. ??">
+<!ENTITY add.serverprofile.custom.description "Настроить серверы CalDAV и CardDAV отдельно.">
 
 <!ENTITY pref.AccountName "Имя аккаунта">
 <!ENTITY pref.UserName "Имя пользователя">
