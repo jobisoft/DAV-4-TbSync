@@ -5,21 +5,21 @@
 <!ENTITY add.password "Пароль:">
 <!ENTITY add.server "Адрес сервера:">
 <!ENTITY add.carddavserver "Адрес сервера CardDAV:">
-<!ENTITY add.caldavserver "Адрес сервера CardDAV:">
+<!ENTITY add.caldavserver "Адрес сервера CalDAV:">
 <!ENTITY add.description "Введите имя для нового аккаунта TbSync и имя пользователя и пароль аккаунта sabre/dav, которую вы хотите добавить.">
 <!ENTITY add.description2 "На большинстве серверов включена служба обнаружения, и достаточно ввести только хост в качестве URL-адреса сервера, например 'cloud.myserver.com'. Если это не работает для вас, введите полный путь к серверу DAV, например 'cloud.myserver.com/SOGo/dav'.">
 
-<!ENTITY add.serverprofile "?? Select a server profile: ??">
-<!ENTITY add.serverprofile.discovery "?? Discovery service ??">
+<!ENTITY add.serverprofile "Выберите профиль сервера:">
+<!ENTITY add.serverprofile.discovery "Сервис обнаружения">
 <!ENTITY add.serverprofile.discovery.description "?? Works with most ownCloud, Nextcloud and other sabre/dav installations. ??">
-<!ENTITY add.serverprofile.custom "?? Custom configuration ??">
+<!ENTITY add.serverprofile.custom "Пользовательская конфигурация">
 <!ENTITY add.serverprofile.custom.description "?? Configure CalDAV and CardDAV servers separately. ??">
 
 <!ENTITY pref.AccountName "Имя аккаунта">
 <!ENTITY pref.UserName "Имя пользователя">
 <!ENTITY pref.CardDavServer "Адрес сервера CardDAV:">
 <!ENTITY pref.CardDavDescription "например: carddav.yourserver.com">
-<!ENTITY pref.CalDavServer "Адрес сервера CardDAV:">
+<!ENTITY pref.CalDavServer "Адрес сервера CalDAV:">
 <!ENTITY pref.CalDavDescription "например: caldav.yourserver.com">
 <!ENTITY pref.usehttps "Использовать безопасное соединение (соединение через https)">
 
