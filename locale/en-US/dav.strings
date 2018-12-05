@@ -32,7 +32,7 @@ status.500=Unknown Server Error (HTTP Error 500).
 status.503=Service unavailable.
 status.httperror=Communication error (HTTP status ##replace.1##).
 status.OK=OK
-status.nolightning=Lightning Add-On not installed, calendars are not supported.
+status.nolightning=Lightning add-on not installed, calendars are not supported.
 status.javascriptError=Javascript error: ##replace.1##
 
 status.no-folders-found-on-server=Could not find any calendars or address books on the server.
