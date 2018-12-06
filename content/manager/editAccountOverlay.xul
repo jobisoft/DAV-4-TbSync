@@ -71,17 +71,17 @@
           <vbox flex="1">
                 <label style="margin-left:0; margin-bottom: 1ex;" class="header lockIfConnected" value="&pref.generaloptions;"/>
                 <vbox>
-                    <checkbox id="tbsync.accountsettings.pref.downloadonly" label="&pref.downloadonly;"  />
+                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.downloadonly" label="&pref.downloadonly;"  />
                 </vbox>
 
                 <label style="margin-left:0; margin-bottom: 1ex; margin-top: 3ex" class="header lockIfConnected" value="&pref.contactoptions;"/>
                 <vbox>                            
-                    <checkbox id="tbsync.accountsettings.pref.useHomeAsPrimary" label="&pref.useHomeAsPrimary;" />
+                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useHomeAsPrimary" label="&pref.useHomeAsPrimary;" />
                 </vbox>
 
                 <label style="margin-left:0; margin-bottom: 1ex; margin-top: 3ex" class="header lockIfConnected" value="&pref.calendaroptions;"/>
                 <vbox>                            
-                    <checkbox id="tbsync.accountsettings.pref.useCache" label="&pref.useCache;" />
+                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useCache" label="&pref.useCache;" />
                 </vbox>
 
                 <vbox flex="1" />
