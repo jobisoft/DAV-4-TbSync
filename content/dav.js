@@ -513,6 +513,20 @@ var dav = {
 
 
         /**
+         * Returns an array of attribute objects, which define the number of columns 
+         * and the look of the header
+         */
+        getHeader: function () {
+            return [
+                {style: "font-weight:bold;", label: "", width:"24"},
+                {style: "font-weight:bold;", label: tbSync.getLocalizedMessage("manager.resource"), width:"145"},
+                {style: "font-weight:bold;", label: tbSync.getLocalizedMessage("manager.status"), flex:"1"},
+            ]
+        },
+
+
+
+        /**
          * Returns an array of folderRowData objects, containing all information needed
          * to fill the folderlist. The content of the folderRowData object is free to choose,
          * it will be passed back to addRow() and updateRow()
@@ -600,21 +614,21 @@ var dav = {
 
 
         /**
-         * Is called to update a row of the folderlist.
+         * Is called to update a row of the folderlist (the first cell is a select checkbox inserted by TbSync)
          *
          * @param document       [in] document object of the account settings window
          * @param listItem       [in] the listitem of the row, which needs to be updated
          * @param rowData        [in] rowData object with all information needed to add the row
          */
         updateRow: function (document, listItem, rowData) {
-            tbSync.updateListItemCell(listItem.childNodes[1], ["label","tooltiptext"], rowData.name);
-            tbSync.updateListItemCell(listItem.childNodes[2], ["label","tooltiptext"], rowData.status);
+            tbSync.updateListItemCell(listItem.childNodes[2], ["label","tooltiptext"], rowData.name);
+            tbSync.updateListItemCell(listItem.childNodes[3], ["label","tooltiptext"], rowData.status);
             if (rowData.selected) {
-                tbSync.updateListItemCell(listItem.childNodes[1], ["style"], "font-style:normal;");
-                tbSync.updateListItemCell(listItem.childNodes[1], ["disabled"], "false");
+                tbSync.updateListItemCell(listItem.childNodes[2], ["style"], "font-style:normal;");
+                tbSync.updateListItemCell(listItem.childNodes[2], ["disabled"], "false");
             } else {
-                tbSync.updateListItemCell(listItem.childNodes[1], ["style"], "font-style:italic;");
-                tbSync.updateListItemCell(listItem.childNodes[1], ["disabled"], "true");
+                tbSync.updateListItemCell(listItem.childNodes[2], ["style"], "font-style:italic;");
+                tbSync.updateListItemCell(listItem.childNodes[2], ["disabled"], "true");
             }
         },
 

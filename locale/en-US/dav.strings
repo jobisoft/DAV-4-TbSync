@@ -1,7 +1,7 @@
 menu.name = CalDAV & CardDAV
 
-subscribe.on=Subscribe "##replace.1##"
-subscribe.off=Unsubscribe "##replace.1##"
+subscribe.on=Subscribe “##replace.1##”
+subscribe.off=Unsubscribe “##replace.1##”
 
 syncstate.syncing=Initialize synchronization
 syncstate.preparing=Preparing next item for synchronization
@@ -12,16 +12,16 @@ syncstate.send.getfolders=Requesting folder list
 syncstate.eval.folders=Updating folder list
 
 syncstate.prepare.request.localchanges=Sending local changes
-syncstate.send.request.localchanges=Waiting for acknowledgement of local changes
-syncstate.eval.response.localchanges=Processing acknowledgement of local changes
+syncstate.send.request.localchanges=Waiting for acknowledgment of local changes
+syncstate.eval.response.localchanges=Processing acknowledgment of local changes
 
 syncstate.send.request.remotechanges=Waiting for remote changes
 syncstate.eval.response.remotechanges=Processing remote changes
 
-status.notsyncronized=Account needs to be syncronized, at least one item is out of sync.
-status.needtorevert=Account needs to be syncronized to revert local changes (one-way sync).
+status.notsyncronized=Account needs to be synchronized, at least one item is out of sync.
+status.needtorevert=Account needs to be synchronized to revert local changes (one-way sync).
 status.disabled=Account is not enabled, synchronization is disabled.
-status.notargets=Aborting Sync, because sync targets could not be created.
+status.notargets=Aborting synchronization, because sync targets could not be created.
 status.nouserhost=Missing username and/or server. Please provide those values.
 status.timeout=Communication timeout.
 status.networkerror=Could not connect to server.
@@ -32,19 +32,19 @@ status.500=Unknown Server Error (HTTP Error 500).
 status.503=Service unavailable.
 status.httperror=Communication error (HTTP status ##replace.1##).
 status.OK=OK
-status.nolightning=Lightning Add-On not installed, calendars are not supported.
+status.nolightning=Lightning add-on not installed, calendars are not supported.
 status.javascriptError=Javascript error: ##replace.1##
 
 status.no-folders-found-on-server=Could not find any calendars or address books on the server.
-status.invalid-response=Received invalid response, aborting sync.
-status.invalid-uri=Found invalid URI, aborting sync.
-status.unsupported_auth_method=Server requested unsuported auth method (##replace.1##).
-status.OK.caldav-calendar-already-exists=Calendar already managed by lightning (skipped).
+status.invalid-response=Received invalid response, aborting synchronization.
+status.invalid-uri=Found invalid URI, aborting synchronization.
+status.unsupported_auth_method=Server requested unsupported authentication method (##replace.1##).
+status.OK.caldav-calendar-already-exists=Calendar already managed by Lightning (skipped).
 status.info.restored=No write permissions, reverted.
-status.mailformed-xml=Response contains mailformed XML, unable to process, aborting sync.
+status.mailformed-xml=Response contains malformed XML, unable to process, aborting synchronization.
 status.service-discovery-failed=sabre/dav service discovery failed for this server.
 
-status.OK.managedbylightning=Calendar managed by lightning.
+status.OK.managedbylightning=Calendar managed by Lightning.
 
 status.security=Could not establish a secure connection. Are you using a self-signed or otherwise untrusted certificate without importing it into Thunderbird? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[help]
 status.network=Could not connect to server (##replace.1##).
