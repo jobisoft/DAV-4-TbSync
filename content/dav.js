@@ -113,9 +113,13 @@ var dav = {
 
 
     /**
-     * Returns location of 16x16 pixel provider icon.
+     * Returns location of a provider icon.
+     *
+     * @param size       [in] size of requested icon
+     * @param accountId  [in] optional ID of the account related to this request
+     *
      */
-    getProviderIcon: function (size = 16) {
+    getProviderIcon: function (size, accountId = null) {
         switch (size) {
             case 16:
                 return "chrome://dav4tbsync/skin/sabredav16.png";
@@ -155,7 +159,7 @@ var dav = {
      * Returns XUL URL of the new account dialog.
      */
     getCreateAccountXulUrl: function () {
-        return "//dav4tbsync/content/manager/createAccount.xul";
+        return "chrome://dav4tbsync/content/manager/createAccount.xul";
     },
 
 
