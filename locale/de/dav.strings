@@ -55,4 +55,25 @@ status.aborted=Nicht synchronisiert
 status.pending=Warten auf Synchronisation
 status.modified=Lokale Änderungen
 
-config.custom=sabre/dav Server Konfiguration
+config.custom=CalDAV & CardDAV Server Konfiguration
+
+add.serverprofile.discovery=Discovery Service
+add.serverprofile.discovery.description=Funktioniert mit den meisten ownCloud, Nextcloud und other sabre/dav Installationen.
+add.serverprofile.discovery.details1=Wenn Ihr Server den Discovery Service unterstützt, sollte es ausreichen einfach nur den Host als Serveradresse anzugeben, z.B. “cloud.myserver.de”. Wenn das nicht funktioniert, gehen Sie bitte zurück und wählen “Benutzerdefinierte Konfiguration” aus.
+
+add.serverprofile.custom=Benutzerdefinierte Konfiguration
+add.serverprofile.custom.description=Die CalDAV und CardDAV Server können separat konfiguriert werden.
+add.serverprofile.custom.details1=Ihr CalDAV & CardDAV Serviceanbieter sollte Ihnen die notwendigen Serveradressen mitteilen. Für SOGo muss meistens “cloud.myserver.de/SOGo/dav” für beide Server angegeben werden, andere Serviceanbieter können für CalDAV und CardDAV jeweils andere Server benutzen.
+add.serverprofile.custom.details2=Wenn Sie eine der beiden Adressen leer lassen, wird der entsprechende Dienst für dieses Konto deaktiviert.
+
+add.serverprofile.icloud=iCloud
+add.serverprofile.icloud.description=https://www.icloud.com
+add.serverprofile.icloud.details1=Der angeforderte Benutzername ist Ihre Apple ID. Das angeforderte Passwort ist jedoch nicht das Passwort für Ihr Apple ID! Um mit TbSync auf Ihre Kontakte und Kalender zugreifen zu können, müssen Sie zwingend die Zwei-Faktor-Autorisierung für Ihr iCloud-Konto aktivieren und ein separates App-spezifisches Kennwort für TbSync erstellen.
+add.serverprofile.icloud.details2=Dies ist eine von Apple eingeführte zusätzliche Sicherheitsebene, sodass Drittanbieter-Clients keinen Zugriff auf Ihr Apple-Konto erhalten.
+
+add.serverprofile.yahoo=Yahoo!
+add.serverprofile.yahoo.description=https://www.yahoo.com
+add.serverprofile.gmx.net=GMX.net (Europa)
+add.serverprofile.gmx.net.description=https://www.gmx.net
+add.serverprofile.gmx.com=GMX.com (USA)
+add.serverprofile.gmx.com.description=https://www.gmx.com

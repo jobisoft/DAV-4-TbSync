@@ -1,4 +1,4 @@
-<!ENTITY add.title "Adding an sabre/dav (CalDAV &amp; CardDAV) account to TbSync">
+<!ENTITY add.title "Adding a CalDAV &amp; CardDAV account to TbSync">
 <!ENTITY add.ok "Add account">
 <!ENTITY add.name "Account name:">
 <!ENTITY add.user "User name:">
@@ -6,14 +6,16 @@
 <!ENTITY add.server "Server URL:">
 <!ENTITY add.carddavserver "CardDAV server address:">
 <!ENTITY add.caldavserver "CalDAV server address:">
-<!ENTITY add.description "Please enter a name for the new TbSync account and the user name and password of the sabre/dav account you want to add. ">
-<!ENTITY add.description2 "Most servers have the discovery service enabled, and it is enough to enter just the host as server URL, for example “cloud.myserver.com”. If this is not working for you, enter the full path to the DAV server, for example “cloud.myserver.com/SOGo/dav”.">
 
-<!ENTITY add.serverprofile "Select a server profile:">
-<!ENTITY add.serverprofile.discovery "Discovery service">
-<!ENTITY add.serverprofile.discovery.description "Works with most ownCloud, Nextcloud and other sabre/dav installations.">
-<!ENTITY add.serverprofile.custom "Custom configuration">
-<!ENTITY add.serverprofile.custom.description "Configure CalDAV and CardDAV servers separately.">
+<!ENTITY add.serverprofile.title "Select a server profile">
+<!ENTITY add.serverprofile.description "Please select one of the available server profiles:">
+<!ENTITY add.serverprofile.verifyconnection "Verifying connection to the server.">
+<!ENTITY add.serverprofile.receivederror "Received the following error while connecting to the server:">
+<!ENTITY add.serverprofile.verifydata "Please check the provided account information.">
+
+<!ENTITY add.data.title "Enter account information">
+<!ENTITY add.data.description "Please provide a friendly name for the new TbSync account and the credentials for your server:">
+<!ENTITY add.data.notes "Notes:">
 
 <!ENTITY pref.AccountName "Account name">
 <!ENTITY pref.UserName "User name">

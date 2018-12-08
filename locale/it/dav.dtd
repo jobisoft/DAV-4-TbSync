@@ -1,4 +1,4 @@
-<!ENTITY add.title "Aggiunta account Sabre/DAV (CalDAV e CardDAV) a TbSync">
+<!ENTITY add.title "Aggiunta account CalDAV e CardDAV a TbSync">
 <!ENTITY add.ok "Aggiungi account">
 <!ENTITY add.name "Nome account:">
 <!ENTITY add.user "Nome utente:">
@@ -6,14 +6,16 @@
 <!ENTITY add.server "?? Server address: ??">
 <!ENTITY add.carddavserver "?? CardDAV server address: ??">
 <!ENTITY add.caldavserver "?? CalDAV server address: ??">
-<!ENTITY add.description "Immettere un nome per il nuovo account TbSync e il nome utente e password dell'account Sabre/DAV che si desidera aggiungere.">
-<!ENTITY add.description2 "Molti server hanno il servizio di rilevamento automatico abilitato ed è sufficiente immettere solo il nome host come URL del server, ad esempio 'cloud.myserver.com'. Se ciò non funziona, immettere il percorso completo al server DAV, ad esempio 'cloud.myserver.com/SOGo/dav'.">
 
-<!ENTITY add.serverprofile "?? Select a server profile: ??">
-<!ENTITY add.serverprofile.discovery "?? Discovery service ??">
-<!ENTITY add.serverprofile.discovery.description "?? Works with most ownCloud, Nextcloud and other sabre/dav installations. ??">
-<!ENTITY add.serverprofile.custom "?? Custom configuration ??">
-<!ENTITY add.serverprofile.custom.description "?? Configure CalDAV and CardDAV servers separately. ??">
+<!ENTITY add.serverprofile.title "?? Select a server profile ??">
+<!ENTITY add.serverprofile.description "?? Please select one of the available server profiles: ??">
+<!ENTITY add.serverprofile.verifyconnection "?? Verifying connection to the server. ??">
+<!ENTITY add.serverprofile.receivederror "?? Received the following error while connecting to the server: ??">
+<!ENTITY add.serverprofile.verifydata "?? Please check the provided account information. ??">
+
+<!ENTITY add.data.title "?? Enter account information ??">
+<!ENTITY add.data.description "?? Please provide a friendly name for the new TbSync account and the credentials for your server: ??">
+<!ENTITY add.data.notes "?? Notes: ??">
 
 <!ENTITY pref.AccountName "Nome account">
 <!ENTITY pref.UserName "Nome utente">

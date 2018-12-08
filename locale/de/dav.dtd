@@ -1,4 +1,4 @@
-<!ENTITY add.title "Ein sabre/dav (CalDAV &amp; CardDAV) Konto hinzufügen">
+<!ENTITY add.title "CalDAV &amp; CardDAV Konto hinzufügen">
 <!ENTITY add.ok "Konto hinzufügen">
 <!ENTITY add.name "Kontoname:">
 <!ENTITY add.user "Benutzername:">
@@ -6,14 +6,16 @@
 <!ENTITY add.server "Serveradresse:">
 <!ENTITY add.carddavserver "CardDAV Serveradresse:">
 <!ENTITY add.caldavserver "CalDAV Serveradresse:">
-<!ENTITY add.description "Bitte wählen Sie einen Namen für das neue TbSync Konto, und tragen den Benutzername und das Passwort für das sabre/dav Konto ein, welches Sie hinzufügen möchten. ">
-<!ENTITY add.description2 "Bei den meisten Servern ist der sog. Discovery Service konfiguriert, sodass meist nur der eigentliche Host angegeben werden muss, z.B 'cloud.meinserver.de'. Sollte das nicht funktionieren, muss der Pfad zum eigentlichen DAV Server angegeben werden, z.B 'cloud.meinserver.de/SOGo/dav'.">
 
-<!ENTITY add.serverprofile "Bitte ein Serverprofil auswählen:">
-<!ENTITY add.serverprofile.discovery "Discovery Service">
-<!ENTITY add.serverprofile.discovery.description "Funktioniert mit den meisten ownCloud, Nextcloud und other sabre/dav Installationen.">
-<!ENTITY add.serverprofile.custom "Benutzerdefinierte Konfiguration">
-<!ENTITY add.serverprofile.custom.description "Die CalDAV und CardDAV Servers können separat konfiguriert werden.">
+<!ENTITY add.serverprofile.title "Serverprofil auswählen">
+<!ENTITY add.serverprofile.description "Bitte wählen Sie eines der verfügbaren Serverprofile aus:">
+<!ENTITY add.serverprofile.verifyconnection "Verbindung zum Server wird überprüft.">
+<!ENTITY add.serverprofile.receivederror "Die Verbinden zum Server wurde mit folgendem Fehler abgebrochen:">
+<!ENTITY add.serverprofile.verifydata "Bitte überprüfen Sie die angegebenen Kontoinformationen.">
+
+<!ENTITY add.data.title "Kontoinformationen angeben">
+<!ENTITY add.data.description "Bitte geben Sie einen Namen für das neue TbSync-Konto und die Anmeldeinformationen für Ihren Server an:">
+<!ENTITY add.data.notes "Hinweise:">
 
 <!ENTITY pref.AccountName "Kontoname">
 <!ENTITY pref.UserName "Benutzername">
