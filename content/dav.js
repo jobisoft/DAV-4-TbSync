@@ -25,6 +25,13 @@ var dav = {
         apple: "http://apple.com/ns/ical/"
     },
 
+    serviceproviders: {
+        "icloud" : {icon: "icloud", caldav: "https://caldav.icloud.com", carddav: "https://contacts.icloud.com"},
+        "yahoo" : {icon: "yahoo", caldav: "https://caldav.calendar.yahoo.com", carddav: "https://carddav.address.yahoo.com"},
+        "gmx.net" : {icon: "gmx", caldav: "https://caldav.gmx.net", carddav: "https://carddav.gmx.net/.well-known/carddav"},
+        "gmx.com" : {icon: "gmx", caldav: "https://caldav.gmx.com", carddav: "https://carddav.gmx.com/.well-known/carddav"},
+    },
+    
     //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
     //non permanent cache
     problematicHosts: [],
@@ -120,15 +127,25 @@ var dav = {
      *
      */
     getProviderIcon: function (size, accountId = null) {
+        let base = "sabredav";
+        if (accountId !== null) {
+            let host = tbSync.db.getAccountSetting(accountId, "host");
+            let host2 = tbSync.db.getAccountSetting(accountId, "host2");
+            for (let p in tbSync.dav.serviceproviders) {
+                if (tbSync.dav.serviceproviders[p].caldav.replace("https://","").replace("http://","") == host && tbSync.dav.serviceproviders[p].carddav.replace("https://","").replace("http://","") == host2) {
+                    base = tbSync.dav.serviceproviders[p].icon;
+                }
+            }
+        }
+        
         switch (size) {
             case 16:
-                return "chrome://dav4tbsync/skin/sabredav16.png";
+                return "chrome://dav4tbsync/skin/"+base+"16.png";
             case 32:
-                return "chrome://dav4tbsync/skin/sabredav32.png";
+                return "chrome://dav4tbsync/skin/"+base+"32.png";
             default :
-                return "chrome://dav4tbsync/skin/sabredav48.png";
+                return "chrome://dav4tbsync/skin/"+base+"48.png";
         }
-            
     },
 
 
@@ -194,6 +211,7 @@ var dav = {
             "status" : "disabled", //global status: disabled, OK, syncing, notsyncronized, nolightning, ...
             "servertype": "custom",
             "host" : "",            
+            "host2" : "",            
             "user" : "",
             "https" : "1",
             "autosync" : "0",

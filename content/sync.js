@@ -49,46 +49,12 @@ dav.sync = {
 
         //get and update FQDN from account setup
         let account = tbSync.db.getAccount(syncdata.account);
-        let hostparts = account.host.split("/").filter(i => i != "");
-        let fqdn = hostparts.splice(0,1).toString();
-        let domain = dav.tools.getDomainFromHost(fqdn);
-        
-        //Manipulate account.host, to help users setup their accounts
-        switch (domain) {
-            case "yahoo.com":
-                tbSync.db.setAccountSetting(syncdata.account, "host", "yahoo.com");
-                davjobs.card.initialURL = "carddav.address.yahoo.com/.well-known/carddav";
-                davjobs.cal.initialURL = "caldav.calendar.yahoo.com/.well-known/caldav";
-                break;
-            
-            case "gmx.net":
-                tbSync.db.setAccountSetting(syncdata.account, "host", "gmx.net");
-                davjobs.card.initialURL = "carddav.gmx.net/.well-known/carddav";
-                davjobs.cal.initialURL =  "caldav.gmx.net";
-                //TODO : GMX has disabled the ./well-known redirect for the caldav server and the dav server is directly sitting there, got to check for that in general!
-                break;
-
-            case "gmx.com":
-                tbSync.db.setAccountSetting(syncdata.account, "host", "gmx.com");
-                davjobs.card.initialURL = "carddav.gmx.com/.well-known/carddav";
-                davjobs.cal.initialURL =  "caldav.gmx.com";
-                break;
-		
-            case "icloud.com":
-                tbSync.db.setAccountSetting(syncdata.account, "host", "icloud.com");
-                davjobs.card.initialURL = "contacts.icloud.com";
-                davjobs.cal.initialURL = "caldav.icloud.com";
-                break;
-            
-            default:
-                //if host is FQDN assume .well-known approach on root, otherwise direct specification of dav server
-                davjobs.card.initialURL = fqdn + ((hostparts.length == 0) ? "/.well-known/carddav" : "/" + hostparts.join("/"));
-                davjobs.cal.initialURL = fqdn + ((hostparts.length == 0) ? "/.well-known/caldav" : "/" + hostparts.join("/"));
-        }
+        davjobs.cal.initialURL = account.host;
+        davjobs.card.initialURL = account.host2;
         
         let jobsfound = 0;
         for (let job in davjobs) {
-            if (!davjobs[job].run) continue;
+            if (!davjobs[job].run || !davjobs[job].initialURL) continue;
 
             //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncdata)
             //example state "getfolders" to get folder information from server

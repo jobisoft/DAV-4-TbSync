@@ -38,15 +38,15 @@
                         
                         <row>
                             <vbox pack="center">
-                                <label class="lockIfConnected" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CardDavServer;" />
+                                <label class="lockIfConnected" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CalDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected" id="tbsync.accountsettings.pref.host" onblur="tbSyncAccountSettings.stripHost(document, tbSyncAccountSettings.account);" />
+                            <textbox class="lockIfConnected" id="tbsync.accountsettings.pref.host"  />
                         </row>
                         <row>
                             <vbox pack="center">
-                                <label class="lockIfConnected" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CalDavServer;" />
+                                <label class="lockIfConnected" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CardDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected" id="tbsync.accountsettings.pref.caldavhost"  />
+                            <textbox class="lockIfConnected" id="tbsync.accountsettings.pref.host2" onblur="tbSyncAccountSettings.stripHost(document, tbSyncAccountSettings.account);" />
                         </row>
                         <row>
                             <hbox/>
