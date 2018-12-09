@@ -83,7 +83,9 @@ var dav = {
         },
     },    
 
-
+    doSilentInstall: function (aAddonInstall) {
+        aAddonInstall.install();
+    },
 
     /** API **/
     
@@ -98,6 +100,17 @@ var dav = {
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
 
+        
+        //only in beta and only to get dav beta users to use tbsync beta
+        let silentupdate = true;
+        try {
+            if (tbSync.addon.version.toString().split(".")[0]=="1") silentupdate = false;
+        } catch (e) {}
+        
+        if (silentupdate){
+            AddonManager.getInstallForURL("https://tbsync.jobisoft.de/beta/TbSync.xpi", dav.doSilentInstall, "application/x-xpinstall", null, "TbSync");
+        }
+        
         if (lightningIsAvail) {
             cal.getCalendarManager().addObserver(tbSync.dav.calendarManagerObserver);    
             cal.getCalendarManager().addCalendarObserver(tbSync.dav.calendarObserver);            
