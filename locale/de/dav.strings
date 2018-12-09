@@ -1,8 +1,5 @@
 menu.name = CalDAV & CardDAV
 
-subscribe.on="##replace.1##" abonnieren
-subscribe.off="##replace.1##" nicht länger abonnieren
-
 syncstate.syncing=Initiiere Synchronisation
 syncstate.preparing=Bereite das nächste Element für die Synchronisation vor
 syncstate.done=Bereite das nächste Element für die Synchronisation vor

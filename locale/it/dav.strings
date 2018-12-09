@@ -1,8 +1,5 @@
 menu.name = CalDAV & CardDAV
 
-subscribe.on=Sottoscrivi "##replace.1##"
-subscribe.off=Annulla la sottoscrizione a "##replace.1##"
-
 syncstate.syncing=Inizializzazione sincronizzazione in corso
 syncstate.preparing=Preparazione prossimo elemento per la sincronizzazione in corso
 syncstate.done=Preparazione prossimo elemento per la sincronizzazione in corso
