@@ -57,23 +57,23 @@ status.modified=Modifiche locali presenti
 
 config.custom=Configurazione server CalDAV & CardDAV
 
-add.serverprofile.discovery=?? Discovery service ??
-add.serverprofile.discovery.description=?? Works with most ownCloud, Nextcloud and other sabre/dav installations. ??
-add.serverprofile.discovery.details1=?? If your server supports the discovery service, simply enter the host as the server URL. For example “cloud.myserver.com”. If that does not work, go back and select “Custom configuration”. ??
+add.serverprofile.discovery=Servizio individuazione
+add.serverprofile.discovery.description=Funziona con la maggior parte delle installazioni di ownCloud, Nextcloud e di altri server Sabre/DAV.
+add.serverprofile.discovery.details1=Se il server supporta il servizio individuazione, immettere semplicemente il nome host come URL server. Ad esempio: cloud.myserver.com. Se non funziona, torna indietro e seleziona Configurazione personalizzata.
 
-add.serverprofile.custom=?? Custom configuration ??
-add.serverprofile.custom.description=?? Configure CalDAV and CardDAV servers separately. ??
-add.serverprofile.custom.details1=?? Your CalDAV & CardDAV service provider should provide the addresses to his servers. For SOGo it is mostly “cloud.myserver.com/SOGo/dav” for both servers, other service providers could use different servers for CalDAV and CardDAV. ??
-add.serverprofile.custom.details2=?? If you leave either address empty, the corresponding service will be disabled for this account. ??
+add.serverprofile.custom=Configurazione personalizzata
+add.serverprofile.custom.description=Configura i server CalDAV e CardDAV separatamente.
+add.serverprofile.custom.details1=Il fornitore di servizi CalDAV e CardDAV dovrebbe fornire gli indirizzi dei propri server. Per SOGo la maggior parte delle volte Ã¨ cloud.myserver.com/SOGo/dav per entrambi i server, altri fornitori di servizi potrebbero utilizzare server diversi per CalDAV e CardDAV.
+add.serverprofile.custom.details2=Se si lascia un indirizzo vuoto, il servizio corrispondente sarÃ  disabilitato per quest'account.
 
 add.serverprofile.icloud=iCloud
 add.serverprofile.icloud.description=https://www.icloud.com
-add.serverprofile.icloud.details1=?? The requested user name is your Apple-ID. Please note, that you may not use your Apple-ID passwort here. You MUST enable two-factor-authorization for your iCloud account and create a seperate app-specific password for TbSync. ??
-add.serverprofile.icloud.details2=?? This is a security layer enforced by Apple, so that 3rd party clients do not gain access to your Apple account. ??
+add.serverprofile.icloud.details1=Il nome utente richiesto Ã¨ il tuo ID Apple. Nota che non puoi utilizzare la password del tuo ID Apple qui. DEVI abilitare l'autenticazione a due fattori per il tuo account iCloud e creare una password specifica dell'app per TbSync.
+add.serverprofile.icloud.details2=Questa Ã¨ una misura di sicurezza imposta da Apple in modo che client di terze parti non ottengano l'accesso al tuo account Apple.
 
 add.serverprofile.yahoo=Yahoo!
 add.serverprofile.yahoo.description=https://www.yahoo.com
-add.serverprofile.gmx.net=?? GMX.net (Europe) ??
+add.serverprofile.gmx.net=GMX.net (Europa)
 add.serverprofile.gmx.net.description=https://www.gmx.net
-add.serverprofile.gmx.com=?? GMX.com (USA) ??
+add.serverprofile.gmx.com=GMX.com (USA)
 add.serverprofile.gmx.com.description=https://www.gmx.com
