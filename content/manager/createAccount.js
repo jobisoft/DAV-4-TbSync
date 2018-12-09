@@ -116,8 +116,8 @@ var tbSyncDavNewAccount = {
             document.getElementById("tbsync.newaccount.caldavserver.row").hidden = true;
             document.getElementById("tbsync.newaccount.carddavserver.row").hidden = true;
             document.getElementById("tbsync.newaccount.server.row").hidden = false;
-            elementCalDavServer.disabled = false;
-            elementCardDavServer.disabled = false;
+            this.elementCalDavServer.disabled = false;
+            this.elementCardDavServer.disabled = false;
         } else {
             document.getElementById("tbsync.newaccount.server.row").hidden = true;            
             if (serviceprovider == "custom") {
