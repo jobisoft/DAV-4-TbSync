@@ -186,19 +186,29 @@ dav.sync = {
 
 
 
+    getNextPendingFolder: function (accountID) {
+        //using getSortedData, to sync in the same order as shown in the list
+        let sortedFolders = dav.folderList.getSortedData(accountID);       
+        for (let i=0; i < sortedFolders.length; i++) {
+            if (sortedFolders[i].statusCode != "pending") continue;
+            return tbSync.db.getFolder(accountID, sortedFolders[i].folderID);
+        }
+        
+        return null;
+    },
 
     allPendingFolders: Task.async (function* (syncdata) {
         do {
             //any pending folders left?
-            let folders = tbSync.db.findFoldersWithSetting("status", "pending", syncdata.account);
-            if (folders.length == 0) {
+            let nextFolder = dav.sync.getNextPendingFolder(syncdata.account);
+            if (nextFolder === null) {
                 //all folders of this account have been synced
                 throw dav.sync.succeeded();
             }
             //what folder are we syncing?
-            syncdata.folderID = folders[0].folderID;
-            syncdata.type = folders[0].type;
-            syncdata.fqdn = folders[0].fqdn;
+            syncdata.folderID = nextFolder.folderID;
+            syncdata.type = nextFolder.type;
+            syncdata.fqdn = nextFolder.fqdn;
             
             try {
                 switch (syncdata.type) {

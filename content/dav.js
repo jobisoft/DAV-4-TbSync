@@ -651,7 +651,8 @@ var dav = {
             rowData.selected = (folder.selected == "1");
             rowData.type = folder.type;
             rowData.name = folder.name;
-            rowData.status = tbSync.getSyncStatusMsg(folder, syncdata, "dav");
+            rowData.statusCode = folder.status;
+            rowData.statusMsg = tbSync.getSyncStatusMsg(folder, syncdata, "dav");
 
             return rowData;
         },
@@ -693,8 +694,8 @@ var dav = {
             itemStatusCell.setAttribute("class", "label");
             itemStatusCell.setAttribute("flex", "1");
             itemStatusCell.setAttribute("crop", "end");
-            itemStatusCell.setAttribute("label", rowData.status);
-            itemStatusCell.setAttribute("tooltiptext", rowData.status);
+            itemStatusCell.setAttribute("label", rowData.statusMsg);
+            itemStatusCell.setAttribute("tooltiptext", rowData.statusMsg);
             newListItem.appendChild(itemStatusCell);
         },
 
@@ -709,7 +710,7 @@ var dav = {
          */
         updateRow: function (document, listItem, rowData) {
             tbSync.updateListItemCell(listItem.childNodes[2], ["label","tooltiptext"], rowData.name);
-            tbSync.updateListItemCell(listItem.childNodes[3], ["label","tooltiptext"], rowData.status);
+            tbSync.updateListItemCell(listItem.childNodes[3], ["label","tooltiptext"], rowData.statusMsg);
             if (rowData.selected) {
                 tbSync.updateListItemCell(listItem.childNodes[2], ["style"], "font-style:normal;");
                 tbSync.updateListItemCell(listItem.childNodes[2], ["disabled"], "false");
