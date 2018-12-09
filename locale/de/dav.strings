@@ -66,6 +66,9 @@ add.serverprofile.custom.description=Die CalDAV und CardDAV Server können separ
 add.serverprofile.custom.details1=Ihr CalDAV & CardDAV Serviceanbieter sollte Ihnen die notwendigen Serveradressen mitteilen. Für SOGo muss meistens “cloud.myserver.de/SOGo/dav” für beide Server angegeben werden, andere Serviceanbieter können für CalDAV und CardDAV jeweils andere Server benutzen.
 add.serverprofile.custom.details2=Wenn Sie eine der beiden Adressen leer lassen, wird der entsprechende Dienst für dieses Konto deaktiviert.
 
+add.serverprofile.fruux=fruux
+add.serverprofile.fruux.description=fruux ist ein Dienst, der Kontakte, Kalender und Aufgaben synchronisiert. Sie wird von der Firma hinter sabre/dav angetrieben und hat ihren Sitz in Deutschland.
+
 add.serverprofile.icloud=iCloud
 add.serverprofile.icloud.description=https://www.icloud.com
 add.serverprofile.icloud.details1=Der angeforderte Benutzername ist Ihre Apple ID. Das angeforderte Passwort ist jedoch nicht das Passwort für Ihr Apple ID! Um mit TbSync auf Ihre Kontakte und Kalender zugreifen zu können, müssen Sie zwingend die Zwei-Faktor-Autorisierung für Ihr iCloud-Konto aktivieren und ein separates App-spezifisches Kennwort für TbSync erstellen.
