@@ -140,6 +140,10 @@ var tbSyncDavNewAccount = {
     onUnload: function () {
     },
 
+    advance: function () {
+        document.getElementById("tbsync.newaccount.wizard").advance(null);
+    },
+    
     onUserTextInput: function () {
         document.documentElement.getButton("finish").disabled = (this.elementServer.value.trim() + this.elementCalDavServer.value.trim() + this.elementCardDavServer.value.trim() == "" || this.elementName.value.trim() == "" || this.elementUser.value == "" || this.elementPass.value == "");
     },

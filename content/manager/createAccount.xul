@@ -8,6 +8,7 @@
       width="500"
       height="600"
       title="&add.title;"
+      id="tbsync.newaccount.wizard"
       onload="tbSyncDavNewAccount.onLoad();"
       onunload="tbSyncDavNewAccount.onUnload();"
       onclose="return tbSyncDavNewAccount.onClose()"
@@ -19,7 +20,7 @@
   <wizardpage onFirstPage="true" label="&add.serverprofile.title;">
     <vbox flex="1">
         <description style="width: 450px; margin-top:1em;">&add.serverprofile.description;</description>
-        <richlistbox id="tbsync.newaccount.serviceproviderlist" flex="1" seltype="single" style="margin-top:1ex"/>
+        <richlistbox id="tbsync.newaccount.serviceproviderlist" flex="1" seltype="single" style="margin-top:1ex" ondblclick="tbSyncDavNewAccount.advance()"/>
     </vbox>
   </wizardpage>
 
