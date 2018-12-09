@@ -21,9 +21,9 @@ var tbSyncDavNewAccount = {
     },
 
 
-    addProviderEntry: function (icon, type) {
-        let name =  tbSync.getLocalizedMessage("add.serverprofile."+type, "dav");
-        let description =  tbSync.getLocalizedMessage("add.serverprofile."+type+".description", "dav");
+    addProviderEntry: function (icon, serviceprovider) {
+        let name =  tbSync.getLocalizedMessage("add.serverprofile."+serviceprovider, "dav");
+        let description =  tbSync.getLocalizedMessage("add.serverprofile."+serviceprovider+".description", "dav");
         
         //left column
         let image = document.createElement("image");
@@ -54,7 +54,7 @@ var tbSyncDavNewAccount = {
         //richlistitem
         let richlistitem = document.createElement("richlistitem");
         richlistitem.setAttribute("style", "padding:4px");
-        richlistitem.setAttribute("value", type);
+        richlistitem.setAttribute("value", serviceprovider);
         richlistitem.appendChild(columns);
         
         return richlistitem;
@@ -81,12 +81,12 @@ var tbSyncDavNewAccount = {
     showSecondPage: function () {
         document.documentElement.getButton("finish").disabled = true;
 
-        let type =  this.serviceproviderlist.value;        
+        let serviceprovider =  this.serviceproviderlist.value;        
         //show/hide additional descriptions (if avail)
         let dFound = 0;
         for (let i=1; i < 4; i++) {
             let dElement = document.getElementById("tbsync.newaccount.details" + i);
-            let dLocaleString = "add.serverprofile."+type+".details" + i;
+            let dLocaleString = "add.serverprofile."+serviceprovider+".details" + i;
             let dLocaleValue = tbSync.getLocalizedMessage(dLocaleString, "dav");
             
             if (dLocaleValue == dLocaleString) {
@@ -111,8 +111,8 @@ var tbSyncDavNewAccount = {
         this.elementCalDavServer.value = "";                
         this.elementCardDavServer.value = "";
 
-        //always show the two server URLs, excpet for "discovery" type
-        if (type == "discovery") {
+        //always show the two server URLs, excpet for "discovery" serviceprovider
+        if (serviceprovider == "discovery") {
             document.getElementById("tbsync.newaccount.caldavserver.row").hidden = true;
             document.getElementById("tbsync.newaccount.carddavserver.row").hidden = true;
             document.getElementById("tbsync.newaccount.server.row").hidden = false;
@@ -120,7 +120,7 @@ var tbSyncDavNewAccount = {
             elementCardDavServer.disabled = false;
         } else {
             document.getElementById("tbsync.newaccount.server.row").hidden = true;            
-            if (type == "custom") {
+            if (serviceprovider == "custom") {
                 document.getElementById("tbsync.newaccount.caldavserver.row").hidden = false;
                 document.getElementById("tbsync.newaccount.carddavserver.row").hidden = false;
                 this.elementCalDavServer.disabled = false;
@@ -130,9 +130,9 @@ var tbSyncDavNewAccount = {
                 document.getElementById("tbsync.newaccount.carddavserver.row").hidden = true;
                 this.elementCalDavServer.disabled = true;
                 this.elementCardDavServer.disabled = true;
-                this.elementName.value = tbSync.getLocalizedMessage("add.serverprofile."+type, "dav");
-                this.elementCalDavServer.value = tbSync.dav.serviceproviders[type].caldav;
-                this.elementCardDavServer.value = tbSync.dav.serviceproviders[type].carddav;
+                this.elementName.value = tbSync.getLocalizedMessage("add.serverprofile."+serviceprovider, "dav");
+                this.elementCalDavServer.value = tbSync.dav.serviceproviders[serviceprovider].caldav;
+                this.elementCardDavServer.value = tbSync.dav.serviceproviders[serviceprovider].carddav;
             }            
         }
     },
@@ -157,18 +157,20 @@ var tbSyncDavNewAccount = {
             let caldavserver = this.elementCalDavServer.value.trim();
             let carddavserver = this.elementCardDavServer.value.trim();
             let accountname = this.elementName.value.trim();
-            
-            if (server != "") {
+            let serviceprovider =  this.serviceproviderlist.value;        
+
+            if (serviceprovider == "discovery") {
+                serviceprovider = "custom";
                 caldavserver = server + "/.well-known/caldav";
                 carddavserver = server + "/.well-known/carddav";
             }
-            tbSyncDavNewAccount.addAccount(user, password, caldavserver, carddavserver, accountname);
+            tbSyncDavNewAccount.addAccount(user, password, serviceprovider, caldavserver, carddavserver, accountname);
         } else {
             return false;
         }
     },
 
-    addAccount (user, password, caldavserver, carddavserver, accountname) {
+    addAccount (user, password, serviceprovider, caldavserver, carddavserver, accountname) {
         let newAccountEntry = tbSync.dav.getDefaultAccountEntries();
         newAccountEntry.accountname = accountname;
         newAccountEntry.user = user;
@@ -179,6 +181,7 @@ var tbSyncDavNewAccount = {
         let hasHttps = (caldavserver.substring(0,5) == "https");
         newAccountEntry.https = (!hasHttps && hasHttp) ? "0" : "1";
 
+        newAccountEntry.serviceprovider = serviceprovider;
         newAccountEntry.host = caldavserver.replace("https://","").replace("http://","");
         newAccountEntry.host2 = carddavserver.replace("https://","").replace("http://","");
     

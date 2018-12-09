@@ -100,7 +100,33 @@ var dav = {
         if (lightningIsAvail) {
             cal.getCalendarManager().addObserver(tbSync.dav.calendarManagerObserver);    
             cal.getCalendarManager().addCalendarObserver(tbSync.dav.calendarObserver);            
-        }        
+        }
+        
+        //Migration - accounts without a serviceprovider setting only have a value in host
+        //is it a discovery setting (only fqdn) or a custom value?
+        let accounts = tbSync.db.getAccounts();
+        for (let i=0; i<accounts.IDs.length; i++) {
+            let accountID = accounts.IDs[i];
+            if (accounts.data[accountID].provider == "dav") {
+                
+                let serviceprovider = tbSync.db.getAccountSetting(accountID, "serviceprovider");
+                if (serviceprovider == "") {
+                    let account = tbSync.db.getAccount(accountID);
+                    let hostparts = account.host.split("/").filter(i => i != "");
+                    let fqdn = hostparts.splice(0,1).toString();
+                    if (hostparts.length == 0) {
+                        tbSync.db.setAccountSetting(accountID, "host", fqdn + "/.well-known/caldav");
+                        tbSync.db.setAccountSetting(accountID, "host2", fqdn + "/.well-known/carddav");
+                        tbSync.db.setAccountSetting(accountID, "serviceprovider", "discovery");
+                    } else {
+                        tbSync.db.setAccountSetting(accountID, "host", fqdn + "/" + hostparts.join("/"));
+                        tbSync.db.setAccountSetting(accountID, "host2", fqdn + "/" + hostparts.join("/"));
+                        tbSync.db.setAccountSetting(accountID, "serviceprovider", "custom");
+                    }
+                }
+
+            }
+        }
     }),
 
 
@@ -129,12 +155,9 @@ var dav = {
     getProviderIcon: function (size, accountId = null) {
         let base = "sabredav";
         if (accountId !== null) {
-            let host = tbSync.db.getAccountSetting(accountId, "host");
-            let host2 = tbSync.db.getAccountSetting(accountId, "host2");
-            for (let p in tbSync.dav.serviceproviders) {
-                if (tbSync.dav.serviceproviders[p].caldav.replace("https://","").replace("http://","") == host && tbSync.dav.serviceproviders[p].carddav.replace("https://","").replace("http://","") == host2) {
-                    base = tbSync.dav.serviceproviders[p].icon;
-                }
+            let serviceprovider = tbSync.db.getAccountSetting(accountId, "serviceprovider");
+            if (tbSync.dav.serviceproviders.hasOwnProperty(serviceprovider)) {
+                base =  tbSync.dav.serviceproviders[serviceprovider].icon;
             }
         }
         
@@ -191,6 +214,48 @@ var dav = {
 
 
     /**
+     * Is called after the settings overlay of this provider has been added to the main settings window
+     *
+     * @param window       [in] window object of the settings window
+     * @param accountID    [in] accountId of the selected account
+     */
+    onSettingsGUILoad: function (window, accountID) {
+        let serviceprovider = tbSync.db.getAccountSetting(accountID, "serviceprovider");
+        let isServiceProvider = tbSync.dav.serviceproviders.hasOwnProperty(serviceprovider);
+        
+        // special treatment for configuration label, which is a permanent setting and will not change by switching modes
+        let configlabel = window.document.getElementById("tbsync.accountsettings.label.config");
+        if (configlabel) {
+            let extra = "";
+            if (isServiceProvider) {
+                extra = " [" + tbSync.getLocalizedMessage("add.serverprofile." + serviceprovider, "dav") + "]";
+            }
+            configlabel.setAttribute("value", tbSync.getLocalizedMessage("config.custom", "dav") + extra);
+        }
+
+        //set certain elements as "alwaysDisable", if locked by service provider (alwaysDisabled is honored by main SettingsUpdate, so we do not have to do that in our own onSettingsGUIUpdate
+        if (isServiceProvider) {
+            let items = window.document.getElementsByClassName("lockIfServiceProvider");
+            for (let i=0; i < items.length; i++) {
+                items[i].setAttribute("alwaysDisabled", "true");
+            }
+        }
+    },
+
+
+
+    /**
+     * Is called each time after the settings window has been updated
+     *
+     * @param window       [in] window object of the settings window
+     * @param accountID    [in] accountId of the selected account
+     */
+    onSettingsGUIUpdate: function (window, accountID) {
+    },
+
+
+
+    /**
      * Returns nice string for name of provider (is used in the add account menu).
      */
     getNiceProviderName: function () {
@@ -209,9 +274,9 @@ var dav = {
             "provider": "dav",
             "lastsynctime" : "0",
             "status" : "disabled", //global status: disabled, OK, syncing, notsyncronized, nolightning, ...
-            "servertype": "custom",
             "host" : "",            
-            "host2" : "",            
+            "host2" : "",
+            "serviceprovider" : "",
             "user" : "",
             "https" : "1",
             "autosync" : "0",
@@ -513,7 +578,6 @@ var dav = {
             }
         }
     }),
-
 
 
 

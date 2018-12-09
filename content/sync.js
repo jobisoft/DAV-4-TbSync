@@ -47,11 +47,16 @@ dav.sync = {
             cal : {run: tbSync.lightningIsAvailable(), hometag: 'calendar-home-set'},        
         };
 
-        //get and update FQDN from account setup
-        let account = tbSync.db.getAccount(syncdata.account);
-        davjobs.cal.initialURL = account.host;
-        davjobs.card.initialURL = account.host2;
+        //get server urls from account setup - update urls of serviceproviders
+        let serviceprovider = tbSync.db.getAccountSetting(syncdata.account, "serviceprovider");
+        if (tbSync.dav.serviceproviders.hasOwnProperty(serviceprovider)) {
+            tbSync.db.setAccountSetting(syncdata.account, "host", tbSync.dav.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
+            tbSync.db.setAccountSetting(syncdata.account, "host2", tbSync.dav.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
+        }
+        davjobs.cal.initialURL = tbSync.db.getAccountSetting(syncdata.account, "host");
+        davjobs.card.initialURL = tbSync.db.getAccountSetting(syncdata.account, "host2");
         
+    
         let jobsfound = 0;
         for (let job in davjobs) {
             if (!davjobs[job].run || !davjobs[job].initialURL) continue;
