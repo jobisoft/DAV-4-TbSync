@@ -206,24 +206,26 @@ dav.tools = {
         return httpchannel;
     },
  
-    sendRequest: Task.async (function* (requestData, url, method, syncdata, headers, aUseStreamLoader = true) {
+    sendRequest: Task.async (function* (requestData, _url, method, syncdata, headers, aUseStreamLoader = true) {
         let account = tbSync.db.getAccount(syncdata.account);
         
-        //if the new url is relative, add last known fqdn
-        let fullUrl = (url.startsWith("http://") || url.startsWith("https://")) ? url : "http" + (account.https == "1" ? "s" : "") + "://" + syncdata.fqdn + url;
+        //do not modify parameter
+        let url = _url;
 
         //manually handling redirects by re-issuing the request to the new url
         for (let i=1; i < 10; i++) { //max number of redirects
-            let uri = Services.io.newURI(fullUrl);
-            
+            //if the new url is relative, add last known fqdn
+            let uri = Services.io.newURI((url.startsWith("http://") || url.startsWith("https://")) ? url : "http" + (account.https == "1" ? "s" : "") + "://" + syncdata.fqdn + url);
+            tbSync.dump("URL Request #" + i, uri.spec);
+
             //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
             if (dav.problematicHosts.includes(uri.host)) {
                 headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.getPassword(account));
             }
-            let r = yield dav.tools.sendRequestCore (requestData, fullUrl, method, syncdata, headers, aUseStreamLoader);
+            let r = yield dav.tools.sendRequestCore (requestData, uri.spec, method, syncdata, headers, aUseStreamLoader);
             
             if (r && r.redirect && r.url) {
-                fullUrl = r.url;
+                url = r.url;
                 tbSync.dump("Redirect #" + i, r.url);
             } else if (r && r.retry && r.retry === true) {
                 tbSync.dump("NSIBUG Retry on 401", "Manually adding basic auth header for <" + account.user + "@" + uri.host + ">");
@@ -253,7 +255,6 @@ dav.tools = {
         }
         let uri = Services.io.newURI(finalUrl);
 
-        tbSync.dump("URL", fullUrl);
         tbSync.dump("HEADERS", JSON.stringify(headers));
         tbSync.dump("REQUEST", method + " : " + requestData);
         
