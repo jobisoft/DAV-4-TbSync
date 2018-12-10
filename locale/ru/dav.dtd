@@ -8,14 +8,14 @@
 <!ENTITY add.caldavserver "Адрес сервера CalDAV:">
 
 <!ENTITY add.serverprofile.title "Выберите профиль сервера">
-<!ENTITY add.serverprofile.description "?? Please select one of the available server profiles: ??">
-<!ENTITY add.serverprofile.verifyconnection "?? Verifying connection to the server. ??">
-<!ENTITY add.serverprofile.receivederror "?? Received the following error while connecting to the server: ??">
-<!ENTITY add.serverprofile.verifydata "?? Please check the provided account information. ??">
+<!ENTITY add.serverprofile.description "Пожалуйста выберите один из доступных профилей сервера:">
+<!ENTITY add.serverprofile.verifyconnection "Проверка соединения с сервером.">
+<!ENTITY add.serverprofile.receivederror "Получена следующая ошибка при подключении к серверу:">
+<!ENTITY add.serverprofile.verifydata "Пожалуйста проверьте предоставленную информацию аккаунта.">
 
-<!ENTITY add.data.title "?? Enter account information ??">
-<!ENTITY add.data.description "?? Please provide a friendly name for the new TbSync account and the credentials for your server: ??">
-<!ENTITY add.data.notes "?? Notes: ??">
+<!ENTITY add.data.title "Введите информацию об аккаунте">
+<!ENTITY add.data.description "Пожалуйста укажите понятное имя для нового аккаунта TbSync и учетные данные для вашего сервера:">
+<!ENTITY add.data.notes "Заметки:">
 
 <!ENTITY pref.AccountName "Имя аккаунта">
 <!ENTITY pref.UserName "Имя пользователя">
