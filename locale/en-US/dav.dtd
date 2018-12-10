@@ -38,4 +38,4 @@
 <!ENTITY abCard.Phone "Main:">
 
 <!ENTITY manager.tabs.accountsettings "Account settings">
-<!ENTITY manager.tabs.syncsettings "Synchronization settings">
+<!ENTITY manager.tabs.syncsettings "Options">
