@@ -64,7 +64,7 @@ add.serverprofile.custom.details1=Ваш провайдер услуг CalDAV & 
 add.serverprofile.custom.details2=Если вы оставите любой адрес пустым, соответствующая служба будет отключена для этого аккаунта.
 
 add.serverprofile.fruux=fruux
-add.serverprofile.fruux.description=?? fruux is a service that syncs contacts, calendars and tasks. It's powered by the company behind sabre/dav and is based in Germany. ??
+add.serverprofile.fruux.description=fruux - это сервис, который синхронизирует контакты, календари и задачи. Он работает на базе компании поддерживающей протокол sabre/dav и базируется в Германии.
 
 add.serverprofile.icloud=iCloud
 add.serverprofile.icloud.description=https://www.icloud.com
