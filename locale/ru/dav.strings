@@ -73,7 +73,7 @@ add.serverprofile.icloud.details2=?? This is a security layer enforced by Apple,
 
 add.serverprofile.yahoo=Yahoo!
 add.serverprofile.yahoo.description=https://www.yahoo.com
-add.serverprofile.gmx.net=?? GMX.net (Europe) ??
+add.serverprofile.gmx.net=GMX.net (Европа)
 add.serverprofile.gmx.net.description=https://www.gmx.net
-add.serverprofile.gmx.com=?? GMX.com (USA) ??
+add.serverprofile.gmx.com=GMX.com (США)
 add.serverprofile.gmx.com.description=https://www.gmx.com
