@@ -60,7 +60,7 @@ add.serverprofile.discovery.details1=Если ваш сервер поддерж
 
 add.serverprofile.custom=Пользовательская конфигурация
 add.serverprofile.custom.description=Настроить серверы CalDAV и CardDAV отдельно.
-add.serverprofile.custom.details1=?? Your CalDAV & CardDAV service provider should provide the addresses to his servers. For SOGo it is mostly “cloud.myserver.com/SOGo/dav” for both servers, other service providers could use different servers for CalDAV and CardDAV. ??
+add.serverprofile.custom.details1=Ваш провайдер услуг CalDAV & CardDAV должен предоставить адреса своим серверам. Например, для SOGo это в основном «cloud.myserver.com/SOGo/dav» для обоих серверов, другие поставщики услуг могут использовать разные серверы для CalDAV и CardDAV.
 add.serverprofile.custom.details2=?? If you leave either address empty, the corresponding service will be disabled for this account. ??
 
 add.serverprofile.fruux=fruux
