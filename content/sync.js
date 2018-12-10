@@ -47,48 +47,19 @@ dav.sync = {
             cal : {run: tbSync.lightningIsAvailable(), hometag: 'calendar-home-set'},        
         };
 
-        //get and update FQDN from account setup
-        let account = tbSync.db.getAccount(syncdata.account);
-        let hostparts = account.host.split("/").filter(i => i != "");
-        let fqdn = hostparts.splice(0,1).toString();
-        let domain = dav.tools.getDomainFromHost(fqdn);
-        
-        //Manipulate account.host, to help users setup their accounts
-        switch (domain) {
-            case "yahoo.com":
-                tbSync.db.setAccountSetting(syncdata.account, "host", "yahoo.com");
-                davjobs.card.initialURL = "carddav.address.yahoo.com/.well-known/carddav";
-                davjobs.cal.initialURL = "caldav.calendar.yahoo.com/.well-known/caldav";
-                break;
-            
-            case "gmx.net":
-                tbSync.db.setAccountSetting(syncdata.account, "host", "gmx.net");
-                davjobs.card.initialURL = "carddav.gmx.net/.well-known/carddav";
-                davjobs.cal.initialURL =  "caldav.gmx.net";
-                //TODO : GMX has disabled the ./well-known redirect for the caldav server and the dav server is directly sitting there, got to check for that in general!
-                break;
-
-            case "gmx.com":
-                tbSync.db.setAccountSetting(syncdata.account, "host", "gmx.com");
-                davjobs.card.initialURL = "carddav.gmx.com/.well-known/carddav";
-                davjobs.cal.initialURL =  "caldav.gmx.com";
-                break;
-		
-            case "icloud.com":
-                tbSync.db.setAccountSetting(syncdata.account, "host", "icloud.com");
-                davjobs.card.initialURL = "contacts.icloud.com";
-                davjobs.cal.initialURL = "caldav.icloud.com";
-                break;
-            
-            default:
-                //if host is FQDN assume .well-known approach on root, otherwise direct specification of dav server
-                davjobs.card.initialURL = fqdn + ((hostparts.length == 0) ? "/.well-known/carddav" : "/" + hostparts.join("/"));
-                davjobs.cal.initialURL = fqdn + ((hostparts.length == 0) ? "/.well-known/caldav" : "/" + hostparts.join("/"));
+        //get server urls from account setup - update urls of serviceproviders
+        let serviceprovider = tbSync.db.getAccountSetting(syncdata.account, "serviceprovider");
+        if (tbSync.dav.serviceproviders.hasOwnProperty(serviceprovider)) {
+            tbSync.db.setAccountSetting(syncdata.account, "host", tbSync.dav.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
+            tbSync.db.setAccountSetting(syncdata.account, "host2", tbSync.dav.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
         }
+        davjobs.cal.initialURL = tbSync.db.getAccountSetting(syncdata.account, "host");
+        davjobs.card.initialURL = tbSync.db.getAccountSetting(syncdata.account, "host2");
         
+    
         let jobsfound = 0;
         for (let job in davjobs) {
-            if (!davjobs[job].run) continue;
+            if (!davjobs[job].run || !davjobs[job].initialURL) continue;
 
             //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncdata)
             //example state "getfolders" to get folder information from server
@@ -215,19 +186,29 @@ dav.sync = {
 
 
 
+    getNextPendingFolder: function (accountID) {
+        //using getSortedData, to sync in the same order as shown in the list
+        let sortedFolders = dav.folderList.getSortedData(accountID);       
+        for (let i=0; i < sortedFolders.length; i++) {
+            if (sortedFolders[i].statusCode != "pending") continue;
+            return tbSync.db.getFolder(accountID, sortedFolders[i].folderID);
+        }
+        
+        return null;
+    },
 
     allPendingFolders: Task.async (function* (syncdata) {
         do {
             //any pending folders left?
-            let folders = tbSync.db.findFoldersWithSetting("status", "pending", syncdata.account);
-            if (folders.length == 0) {
+            let nextFolder = dav.sync.getNextPendingFolder(syncdata.account);
+            if (nextFolder === null) {
                 //all folders of this account have been synced
                 throw dav.sync.succeeded();
             }
             //what folder are we syncing?
-            syncdata.folderID = folders[0].folderID;
-            syncdata.type = folders[0].type;
-            syncdata.fqdn = folders[0].fqdn;
+            syncdata.folderID = nextFolder.folderID;
+            syncdata.type = nextFolder.type;
+            syncdata.fqdn = nextFolder.fqdn;
             
             try {
                 switch (syncdata.type) {

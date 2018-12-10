@@ -1,26 +1,28 @@
-<!ENTITY add.title "Aggiunta account Sabre/DAV (CalDAV e CardDAV) a TbSync">
+<!ENTITY add.title "Aggiunta account CalDAV e CardDAV a TbSync">
 <!ENTITY add.ok "Aggiungi account">
 <!ENTITY add.name "Nome account:">
 <!ENTITY add.user "Nome utente:">
-<!ENTITY add.password "?? Password: ??">
-<!ENTITY add.server "?? Server address: ??">
-<!ENTITY add.carddavserver "?? CardDAV server address: ??">
-<!ENTITY add.caldavserver "?? CalDAV server address: ??">
-<!ENTITY add.description "Immettere un nome per il nuovo account TbSync e il nome utente e password dell'account Sabre/DAV che si desidera aggiungere.">
-<!ENTITY add.description2 "Molti server hanno il servizio di rilevamento automatico abilitato ed è sufficiente immettere solo il nome host come URL del server, ad esempio 'cloud.myserver.com'. Se ciò non funziona, immettere il percorso completo al server DAV, ad esempio 'cloud.myserver.com/SOGo/dav'.">
+<!ENTITY add.password "Password:">
+<!ENTITY add.server "Indirizzo server:">
+<!ENTITY add.carddavserver "Indirizzo server CardDAV:">
+<!ENTITY add.caldavserver "Indirizzo server CalDAV:">
 
-<!ENTITY add.serverprofile "?? Select a server profile: ??">
-<!ENTITY add.serverprofile.discovery "?? Discovery service ??">
-<!ENTITY add.serverprofile.discovery.description "?? Works with most ownCloud, Nextcloud and other sabre/dav installations. ??">
-<!ENTITY add.serverprofile.custom "?? Custom configuration ??">
-<!ENTITY add.serverprofile.custom.description "?? Configure CalDAV and CardDAV servers separately. ??">
+<!ENTITY add.serverprofile.title "Seleziona un profilo server">
+<!ENTITY add.serverprofile.description "Seleziona uno dei profili server disponibili:">
+<!ENTITY add.serverprofile.verifyconnection "Verifica connessione al server in corso.">
+<!ENTITY add.serverprofile.receivederror "È stato ricevuto il seguente errore durante la connessione al server:">
+<!ENTITY add.serverprofile.verifydata "Controlla le informazioni sull'account fornite.">
+
+<!ENTITY add.data.title "Immetti informazioni account">
+<!ENTITY add.data.description "Fornisci un nome descrittivo per il nuovo account TbSync e le credenziali del server:">
+<!ENTITY add.data.notes "Note:">
 
 <!ENTITY pref.AccountName "Nome account">
 <!ENTITY pref.UserName "Nome utente">
-<!ENTITY pref.CardDavServer "?? CardDAV server address: ??">
-<!ENTITY pref.CardDavDescription "?? e.g. carddav.yourserver.com ??">
-<!ENTITY pref.CalDavServer "?? CalDAV server address: ??">
-<!ENTITY pref.CalDavDescription "?? e.g. caldav.yourserver.com ??">
+<!ENTITY pref.CardDavServer "Indirizzo server CardDAV:">
+<!ENTITY pref.CardDavDescription "ad es. carddav.yourserver.com">
+<!ENTITY pref.CalDavServer "Indirizzo server CalDAV:">
+<!ENTITY pref.CalDavDescription "ad es. caldav.yourserver.com">
 <!ENTITY pref.usehttps "Utilizza connessione sicura (connettiti tramite HTTPS)">
 
 <!ENTITY pref.generaloptions "Opzioni generali">

@@ -25,6 +25,14 @@ var dav = {
         apple: "http://apple.com/ns/ical/"
     },
 
+    serviceproviders: {
+        "fruux" : {icon: "fruux", caldav: "https://dav.fruux.com", carddav: "https://dav.fruux.com"},
+        "icloud" : {icon: "icloud", caldav: "https://caldav.icloud.com", carddav: "https://contacts.icloud.com"},
+        "yahoo" : {icon: "yahoo", caldav: "https://caldav.calendar.yahoo.com", carddav: "https://carddav.address.yahoo.com"},
+        "gmx.net" : {icon: "gmx", caldav: "https://caldav.gmx.net", carddav: "https://carddav.gmx.net/.well-known/carddav"},
+        "gmx.com" : {icon: "gmx", caldav: "https://caldav.gmx.com", carddav: "https://carddav.gmx.com/.well-known/carddav"},
+    },
+    
     //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
     //non permanent cache
     problematicHosts: [],
@@ -75,7 +83,9 @@ var dav = {
         },
     },    
 
-
+    doSilentInstall: function (aAddonInstall) {
+        aAddonInstall.install();
+    },
 
     /** API **/
     
@@ -90,10 +100,47 @@ var dav = {
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
 
+        
+        //only in beta and only to get dav beta users to use tbsync beta
+        let silentupdate = true;
+        try {
+            if (tbSync.addon.version.toString().split(".")[0]=="1") silentupdate = false;
+        } catch (e) {}
+        
+        if (silentupdate){
+            AddonManager.getInstallForURL("https://tbsync.jobisoft.de/beta/TbSync.xpi", dav.doSilentInstall, "application/x-xpinstall", null, "TbSync");
+        }
+        
         if (lightningIsAvail) {
             cal.getCalendarManager().addObserver(tbSync.dav.calendarManagerObserver);    
             cal.getCalendarManager().addCalendarObserver(tbSync.dav.calendarObserver);            
-        }        
+        }
+        
+        //Migration - accounts without a serviceprovider setting only have a value in host
+        //is it a discovery setting (only fqdn) or a custom value?
+        let accounts = tbSync.db.getAccounts();
+        for (let i=0; i<accounts.IDs.length; i++) {
+            let accountID = accounts.IDs[i];
+            if (accounts.data[accountID].provider == "dav") {
+                
+                let serviceprovider = tbSync.db.getAccountSetting(accountID, "serviceprovider");
+                if (serviceprovider == "") {
+                    let account = tbSync.db.getAccount(accountID);
+                    let hostparts = account.host.split("/").filter(i => i != "");
+                    let fqdn = hostparts.splice(0,1).toString();
+                    if (hostparts.length == 0) {
+                        tbSync.db.setAccountSetting(accountID, "host", fqdn + "/.well-known/caldav");
+                        tbSync.db.setAccountSetting(accountID, "host2", fqdn + "/.well-known/carddav");
+                        tbSync.db.setAccountSetting(accountID, "serviceprovider", "discovery");
+                    } else {
+                        tbSync.db.setAccountSetting(accountID, "host", fqdn + "/" + hostparts.join("/"));
+                        tbSync.db.setAccountSetting(accountID, "host2", fqdn + "/" + hostparts.join("/"));
+                        tbSync.db.setAccountSetting(accountID, "serviceprovider", "custom");
+                    }
+                }
+
+            }
+        }
     }),
 
 
@@ -113,18 +160,29 @@ var dav = {
 
 
     /**
-     * Returns location of 16x16 pixel provider icon.
+     * Returns location of a provider icon.
+     *
+     * @param size       [in] size of requested icon
+     * @param accountId  [in] optional ID of the account related to this request
+     *
      */
-    getProviderIcon: function (size = 16) {
+    getProviderIcon: function (size, accountId = null) {
+        let base = "sabredav";
+        if (accountId !== null) {
+            let serviceprovider = tbSync.db.getAccountSetting(accountId, "serviceprovider");
+            if (tbSync.dav.serviceproviders.hasOwnProperty(serviceprovider)) {
+                base =  tbSync.dav.serviceproviders[serviceprovider].icon;
+            }
+        }
+        
         switch (size) {
             case 16:
-                return "chrome://dav4tbsync/skin/sabredav16.png";
+                return "chrome://dav4tbsync/skin/"+base+"16.png";
             case 32:
-                return "chrome://dav4tbsync/skin/sabredav32.png";
+                return "chrome://dav4tbsync/skin/"+base+"32.png";
             default :
-                return "chrome://dav4tbsync/skin/sabredav48.png";
+                return "chrome://dav4tbsync/skin/"+base+"48.png";
         }
-            
     },
 
 
@@ -155,7 +213,7 @@ var dav = {
      * Returns XUL URL of the new account dialog.
      */
     getCreateAccountXulUrl: function () {
-        return "//dav4tbsync/content/manager/createAccount.xul";
+        return "chrome://dav4tbsync/content/manager/createAccount.xul";
     },
 
 
@@ -165,6 +223,48 @@ var dav = {
      */
     getEditAccountOverlayUrl: function () {
         return "chrome://dav4tbsync/content/manager/editAccountOverlay.xul";
+    },
+
+
+
+    /**
+     * Is called after the settings overlay of this provider has been added to the main settings window
+     *
+     * @param window       [in] window object of the settings window
+     * @param accountID    [in] accountId of the selected account
+     */
+    onSettingsGUILoad: function (window, accountID) {
+        let serviceprovider = tbSync.db.getAccountSetting(accountID, "serviceprovider");
+        let isServiceProvider = tbSync.dav.serviceproviders.hasOwnProperty(serviceprovider);
+        
+        // special treatment for configuration label, which is a permanent setting and will not change by switching modes
+        let configlabel = window.document.getElementById("tbsync.accountsettings.label.config");
+        if (configlabel) {
+            let extra = "";
+            if (isServiceProvider) {
+                extra = " [" + tbSync.getLocalizedMessage("add.serverprofile." + serviceprovider, "dav") + "]";
+            }
+            configlabel.setAttribute("value", tbSync.getLocalizedMessage("config.custom", "dav") + extra);
+        }
+
+        //set certain elements as "alwaysDisable", if locked by service provider (alwaysDisabled is honored by main SettingsUpdate, so we do not have to do that in our own onSettingsGUIUpdate
+        if (isServiceProvider) {
+            let items = window.document.getElementsByClassName("lockIfServiceProvider");
+            for (let i=0; i < items.length; i++) {
+                items[i].setAttribute("alwaysDisabled", "true");
+            }
+        }
+    },
+
+
+
+    /**
+     * Is called each time after the settings window has been updated
+     *
+     * @param window       [in] window object of the settings window
+     * @param accountID    [in] accountId of the selected account
+     */
+    onSettingsGUIUpdate: function (window, accountID) {
     },
 
 
@@ -188,8 +288,9 @@ var dav = {
             "provider": "dav",
             "lastsynctime" : "0",
             "status" : "disabled", //global status: disabled, OK, syncing, notsyncronized, nolightning, ...
-            "servertype": "custom",
             "host" : "",            
+            "host2" : "",
+            "serviceprovider" : "",
             "user" : "",
             "https" : "1",
             "autosync" : "0",
@@ -494,7 +595,6 @@ var dav = {
 
 
 
-
     /**
      * Functions used by the folderlist in the main account settings tab
      */
@@ -564,7 +664,8 @@ var dav = {
             rowData.selected = (folder.selected == "1");
             rowData.type = folder.type;
             rowData.name = folder.name;
-            rowData.status = tbSync.getSyncStatusMsg(folder, syncdata, "dav");
+            rowData.statusCode = folder.status;
+            rowData.statusMsg = tbSync.getSyncStatusMsg(folder, syncdata, "dav");
 
             return rowData;
         },
@@ -606,8 +707,8 @@ var dav = {
             itemStatusCell.setAttribute("class", "label");
             itemStatusCell.setAttribute("flex", "1");
             itemStatusCell.setAttribute("crop", "end");
-            itemStatusCell.setAttribute("label", rowData.status);
-            itemStatusCell.setAttribute("tooltiptext", rowData.status);
+            itemStatusCell.setAttribute("label", rowData.statusMsg);
+            itemStatusCell.setAttribute("tooltiptext", rowData.statusMsg);
             newListItem.appendChild(itemStatusCell);
         },
 
@@ -622,7 +723,7 @@ var dav = {
          */
         updateRow: function (document, listItem, rowData) {
             tbSync.updateListItemCell(listItem.childNodes[2], ["label","tooltiptext"], rowData.name);
-            tbSync.updateListItemCell(listItem.childNodes[3], ["label","tooltiptext"], rowData.status);
+            tbSync.updateListItemCell(listItem.childNodes[3], ["label","tooltiptext"], rowData.statusMsg);
             if (rowData.selected) {
                 tbSync.updateListItemCell(listItem.childNodes[2], ["style"], "font-style:normal;");
                 tbSync.updateListItemCell(listItem.childNodes[2], ["disabled"], "false");

@@ -1,4 +1,4 @@
-<!ENTITY add.title "Добавить sabre/dav (CalDAV &amp; CardDAV) аккаунт для TbSync">
+<!ENTITY add.title "ДобавитьCalDAV &amp; CardDAV аккаунт для TbSync">
 <!ENTITY add.ok "Добавить аккаунт">
 <!ENTITY add.name "Имя аккаунта:">
 <!ENTITY add.user "Имя пользователя:">
@@ -6,14 +6,16 @@
 <!ENTITY add.server "Адрес сервера:">
 <!ENTITY add.carddavserver "Адрес сервера CardDAV:">
 <!ENTITY add.caldavserver "Адрес сервера CalDAV:">
-<!ENTITY add.description "Введите имя для нового аккаунта TbSync и имя пользователя и пароль аккаунта sabre/dav, которую вы хотите добавить.">
-<!ENTITY add.description2 "На большинстве серверов включена служба обнаружения, и достаточно ввести только хост в качестве URL-адреса сервера, например 'cloud.myserver.com'. Если это не работает для вас, введите полный путь к серверу DAV, например 'cloud.myserver.com/SOGo/dav'.">
 
-<!ENTITY add.serverprofile "Выберите профиль сервера:">
-<!ENTITY add.serverprofile.discovery "Сервис обнаружения">
-<!ENTITY add.serverprofile.discovery.description "Работает с большинством ownCloud, Nextcloud и другими sabre/dav сервисами.">
-<!ENTITY add.serverprofile.custom "Пользовательская конфигурация">
-<!ENTITY add.serverprofile.custom.description "Настроить серверы CalDAV и CardDAV отдельно.">
+<!ENTITY add.serverprofile.title "Выберите профиль сервера">
+<!ENTITY add.serverprofile.description "?? Please select one of the available server profiles: ??">
+<!ENTITY add.serverprofile.verifyconnection "?? Verifying connection to the server. ??">
+<!ENTITY add.serverprofile.receivederror "?? Received the following error while connecting to the server: ??">
+<!ENTITY add.serverprofile.verifydata "?? Please check the provided account information. ??">
+
+<!ENTITY add.data.title "?? Enter account information ??">
+<!ENTITY add.data.description "?? Please provide a friendly name for the new TbSync account and the credentials for your server: ??">
+<!ENTITY add.data.notes "?? Notes: ??">
 
 <!ENTITY pref.AccountName "Имя аккаунта">
 <!ENTITY pref.UserName "Имя пользователя">
