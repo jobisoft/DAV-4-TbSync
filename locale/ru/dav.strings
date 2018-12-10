@@ -69,7 +69,7 @@ add.serverprofile.fruux.description=fruux - это сервис, который 
 add.serverprofile.icloud=iCloud
 add.serverprofile.icloud.description=https://www.icloud.com
 add.serverprofile.icloud.details1=?? The requested user name is your Apple-ID. Please note, that you may not use your Apple-ID passwort here. You MUST enable two-factor-authorization for your iCloud account and create a seperate app-specific password for TbSync. ??
-add.serverprofile.icloud.details2=?? This is a security layer enforced by Apple, so that 3rd party clients do not gain access to your Apple account. ??
+add.serverprofile.icloud.details2=Это уровень безопасности, применяемый Apple, поэтому сторонние клиенты не могут получить доступ к вашей учетной записи Apple.
 
 add.serverprofile.yahoo=Yahoo!
 add.serverprofile.yahoo.description=https://www.yahoo.com
