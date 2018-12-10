@@ -10,6 +10,26 @@
 
 dav.tools = {
 
+    getPassword: function (accountdata) {
+        let hostField = (accountdata.host !== "") ? "host" : "host2";
+        let host4PasswordManager = tbSync.getHost4PasswordManager(accountdata.provider, accountdata[hostField]);
+        let logins = Services.logins.findLogins({}, host4PasswordManager, null, "TbSync");
+        for (let i = 0; i < logins.length; i++) {
+            if (logins[i].username == accountdata.user) {
+                return logins[i].password;
+            }
+        }
+        //No password found - we should ask for one - this will be triggered by the 401 response, which also catches wrong passwords
+        return null;
+    },
+
+    setPassword: function (accountdata, newPassword) {
+        let hostField = (accountdata.host !== "") ? "host" : "host2";
+        let host4PasswordManager = tbSync.getHost4PasswordManager(accountdata.provider, accountdata[hostField]);
+        tbSync.setLoginInfo(host4PasswordManager, "TbSync", accountdata.user, newPassword);
+    },
+
+    
     /**
      * Convert a byte array to a string - copied from lightning
      *
@@ -146,7 +166,7 @@ dav.tools = {
             dav.listOfRealms[aChannel.URI.host] = aAuthInfo.realm;
 
             //get the password for this account from password manager
-            let password = tbSync.getPassword(this.mAccount);
+            let password = tbSync.dav.tools.getPassword(this.mAccount);
             if (password !== null) {
                 tbSync.dump("SUCCEEDED to fetch password from password manager", this.mAccount.user + " @ " + this.mAccount.host);
                 aAuthInfo.username = this.mAccount.user;
@@ -251,7 +271,7 @@ dav.tools = {
 
             //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
             if (dav.problematicHosts.includes(uri.host)) {
-                headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.getPassword(account));
+                headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.dav.tools.getPassword(account));
             }
             let r = yield dav.tools.sendRequestCore (requestData, uri.spec, method, syncdata, headers, aUseStreamLoader);
             
@@ -282,7 +302,7 @@ dav.tools = {
         let finalUrl = fullUrl;
         if (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl")) {
             //inject user + password to be used with LOAD_EXPLICIT_CREDENTIALS (does not help with cookie cache)
-            finalUrl = fullUrl.replace("://","://" + encodeURIComponent(account.user) + ":" + encodeURIComponent(tbSync.getPassword(account)) + "@");
+            finalUrl = fullUrl.replace("://","://" + encodeURIComponent(account.user) + ":" + encodeURIComponent(tbSync.dav.tools.getPassword(account)) + "@");
         }
         let uri = Services.io.newURI(finalUrl);
 
@@ -333,7 +353,7 @@ dav.tools = {
                                 //I hope this bug gets fixed soon
 
                                 //should the channel have been able to authenticate (password is stored)?
-                                if (tbSync.getPassword(account) !== null) {                                    
+                                if (tbSync.dav.tools.getPassword(account) !== null) {                                    
                                     //did the channel try to authenticate?
                                     let triedToAuthenticate;
                                     try {

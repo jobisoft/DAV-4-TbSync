@@ -447,7 +447,7 @@ var dav = {
     createCalendar: function(newname, account, folderID) {
         let calManager = cal.getCalendarManager();
         let accountdata = tbSync.db.getAccount(account);
-        let password = tbSync.getPassword(accountdata);
+        let password = tbSync.dav.tools.getPassword(accountdata);
         let user = accountdata.user;
         let caltype = tbSync.db.getFolderSetting(account, folderID, "type");
         
