@@ -56,7 +56,7 @@ config.custom= CalDAV & CardDAV конфигурация сервера
 
 add.serverprofile.discovery=Сервис обнаружения
 add.serverprofile.discovery.description=Работает с большинством ownCloud, Nextcloud и другими sabre/dav сервисами.
-add.serverprofile.discovery.details1=?? If your server supports the discovery service, simply enter the host as the server URL. For example “cloud.myserver.com”. If that does not work, go back and select “Custom configuration”. ??
+add.serverprofile.discovery.details1=Если ваш сервер поддерживает службу обнаружения, просто введите хост в качестве URL-адреса сервера. Например: «cloud.myserver.com». Если это не работает, вернитесь назад и выберите «Пользовательская конфигурация».
 
 add.serverprofile.custom=Пользовательская конфигурация
 add.serverprofile.custom.description=Настроить серверы CalDAV и CardDAV отдельно.
