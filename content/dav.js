@@ -156,7 +156,34 @@ var dav = {
             cal.getCalendarManager().removeCalendarObserver(tbSync.dav.calendarObserver);                        
         }        
     },
-    
+
+
+
+    /**
+     * Called to get passwords of accounts of this provider
+     *
+     * @param accountdata       [in] account data structure
+     */
+    getPassword: function (accountdata) {
+        let hostField = (accountdata.host !== "") ? "host" : "host2";
+        let host4PasswordManager = tbSync.getHost4PasswordManager(accountdata.provider, accountdata[hostField]);
+        return tbSync.getLoginInfo(host4PasswordManager, "TbSync", accountdata.user);
+    },
+
+
+
+    /**
+     * Called to set passwords of accounts of this provider
+     *
+     * @param accountdata       [in] account data structure
+     * @param newPassword       [in] new password
+     */
+    setPassword: function (accountdata, newPassword) {
+        let hostField = (accountdata.host !== "") ? "host" : "host2";
+        let host4PasswordManager = tbSync.getHost4PasswordManager(accountdata.provider, accountdata[hostField]);
+        tbSync.setLoginInfo(host4PasswordManager, "TbSync", accountdata.user, newPassword);
+    },
+
 
 
     /**
@@ -447,7 +474,7 @@ var dav = {
     createCalendar: function(newname, account, folderID) {
         let calManager = cal.getCalendarManager();
         let accountdata = tbSync.db.getAccount(account);
-        let password = tbSync.getPassword(accountdata);
+        let password = tbSync.dav.getPassword(accountdata);
         let user = accountdata.user;
         let caltype = tbSync.db.getFolderSetting(account, folderID, "type");
         

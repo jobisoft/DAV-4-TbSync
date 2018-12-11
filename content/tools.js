@@ -9,7 +9,7 @@
 "use strict";
 
 dav.tools = {
-
+    
     /**
      * Convert a byte array to a string - copied from lightning
      *
@@ -33,6 +33,37 @@ dav.tools = {
         return null;
     },
     
+    /**
+     * Removes XML-invalid characters from a string.
+     * @param {string} string - a string potentially containing XML-invalid characters, such as non-UTF8 characters, STX, EOX and so on.
+     * @param {boolean} removeDiscouragedChars - a string potentially containing XML-invalid characters, such as non-UTF8 characters, STX, EOX and so on.
+     * @return : a sanitized string without all the XML-invalid characters.
+     *
+     * Source: https://www.ryadel.com/en/javascript-remove-xml-invalid-chars-characters-string-utf8-unicode-regex/
+     */
+    removeXMLInvalidChars: function (string, removeDiscouragedChars = true)
+    {
+        // remove everything forbidden by XML 1.0 specifications, plus the unicode replacement character U+FFFD
+        var regex = /((?:[\0-\x08\x0B\f\x0E-\x1F\uFFFD\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/g;
+        string = string.replace(regex, "");
+     
+        if (removeDiscouragedChars) {
+            // remove everything not suggested by XML 1.0 specifications
+            regex = new RegExp(
+                "([\\x7F-\\x84]|[\\x86-\\x9F]|[\\uFDD0-\\uFDEF]|(?:\\uD83F[\\uDFFE\\uDFFF])|(?:\\uD87F[\\uDF"+
+                "FE\\uDFFF])|(?:\\uD8BF[\\uDFFE\\uDFFF])|(?:\\uD8FF[\\uDFFE\\uDFFF])|(?:\\uD93F[\\uDFFE\\uD"+
+                "FFF])|(?:\\uD97F[\\uDFFE\\uDFFF])|(?:\\uD9BF[\\uDFFE\\uDFFF])|(?:\\uD9FF[\\uDFFE\\uDFFF])"+
+                "|(?:\\uDA3F[\\uDFFE\\uDFFF])|(?:\\uDA7F[\\uDFFE\\uDFFF])|(?:\\uDABF[\\uDFFE\\uDFFF])|(?:\\"+
+                "uDAFF[\\uDFFE\\uDFFF])|(?:\\uDB3F[\\uDFFE\\uDFFF])|(?:\\uDB7F[\\uDFFE\\uDFFF])|(?:\\uDBBF"+
+                "[\\uDFFE\\uDFFF])|(?:\\uDBFF[\\uDFFE\\uDFFF])(?:[\\0-\\t\\x0B\\f\\x0E-\\u2027\\u202A-\\uD7FF\\"+
+                "uE000-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF](?![\\uDC00-\\uDFFF])|"+
+                "(?:[^\\uD800-\\uDBFF]|^)[\\uDC00-\\uDFFF]))", "g");
+            string = string.replace(regex, "");
+        }
+     
+        return string;
+    },
+
     xmlns: function (ns) {
         let _xmlns = [];
         for (let i=0; i < ns.length; i++) {
@@ -115,7 +146,7 @@ dav.tools = {
             dav.listOfRealms[aChannel.URI.host] = aAuthInfo.realm;
 
             //get the password for this account from password manager
-            let password = tbSync.getPassword(this.mAccount);
+            let password = tbSync.dav.getPassword(this.mAccount);
             if (password !== null) {
                 tbSync.dump("SUCCEEDED to fetch password from password manager", this.mAccount.user + " @ " + this.mAccount.host);
                 aAuthInfo.username = this.mAccount.user;
@@ -220,7 +251,7 @@ dav.tools = {
 
             //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
             if (dav.problematicHosts.includes(uri.host)) {
-                headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.getPassword(account));
+                headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.dav.getPassword(account));
             }
             let r = yield dav.tools.sendRequestCore (requestData, uri.spec, method, syncdata, headers, aUseStreamLoader);
             
@@ -251,7 +282,7 @@ dav.tools = {
         let finalUrl = fullUrl;
         if (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl")) {
             //inject user + password to be used with LOAD_EXPLICIT_CREDENTIALS (does not help with cookie cache)
-            finalUrl = fullUrl.replace("://","://" + encodeURIComponent(account.user) + ":" + encodeURIComponent(tbSync.getPassword(account)) + "@");
+            finalUrl = fullUrl.replace("://","://" + encodeURIComponent(account.user) + ":" + encodeURIComponent(tbSync.dav.getPassword(account)) + "@");
         }
         let uri = Services.io.newURI(finalUrl);
 
@@ -302,7 +333,7 @@ dav.tools = {
                                 //I hope this bug gets fixed soon
 
                                 //should the channel have been able to authenticate (password is stored)?
-                                if (tbSync.getPassword(account) !== null) {                                    
+                                if (tbSync.dav.getPassword(account) !== null) {                                    
                                     //did the channel try to authenticate?
                                     let triedToAuthenticate;
                                     try {
@@ -457,7 +488,7 @@ dav.tools = {
         let xml = null;
         let oParser = (Services.vc.compare(Services.appinfo.platformVersion, "61.*") >= 0) ? new DOMParser() : Components.classes["@mozilla.org/xmlextras/domparser;1"].createInstance(Components.interfaces.nsIDOMParser);
         try {
-            xml = oParser.parseFromString(text, "application/xml");
+            xml = oParser.parseFromString(dav.tools.removeXMLInvalidChars(text), "application/xml");
         } catch (e) {
             //however, domparser does not throw an error, it returns an error document
             //https://developer.mozilla.org/de/docs/Web/API/DOMParser

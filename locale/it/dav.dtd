@@ -37,5 +37,5 @@
 <!ENTITY abCard.MiddleName "Secondo nome:">
 <!ENTITY abCard.Phone "Principale:">
 
-<!ENTITY manager.tabs.settings "Impostazioni server">
-<!ENTITY manager.tabs.resources "Risorse disponibili">
+<!ENTITY manager.tabs.accountsettings "Impostazioni dell'account">
+<!ENTITY manager.tabs.syncsettings "Opzioni">
