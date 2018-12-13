@@ -640,20 +640,6 @@ var dav = {
 
 
         /**
-         * Returns an array of attribute objects, which define the number of columns 
-         * and the look of the header
-         */
-        getHeader: function () {
-            return [
-                {style: "font-weight:bold;", label: "", width:"24"},
-                {style: "font-weight:bold;", label: tbSync.getLocalizedMessage("manager.resource"), width:"145"},
-                {style: "font-weight:bold;", label: tbSync.getLocalizedMessage("manager.status"), flex:"1"},
-            ]
-        },
-
-
-
-        /**
          * Returns an array of folderRowData objects, containing all information needed
          * to fill the folderlist. The content of the folderRowData object is free to choose,
          * it will be passed back to addRow() and updateRow()
@@ -700,44 +686,81 @@ var dav = {
 
 
         /**
-         * Is called to add a row to the folderlist.
-         *
-         * @param document       [in] document object of the account settings window
-         * @param newListItem    [in] the listitem of the row, where row items should be added to
-         * @param rowData        [in] rowData object with all information needed to add the row
+         * Returns an array of attribute objects, which define the number of columns 
+         * and the look of the header
          */
-        addRow: function (document, newListItem, rowData) {
-            //add folder type/img
-            let itemTypeCell = document.createElement("listcell");
-            itemTypeCell.setAttribute("class", "img");
-            itemTypeCell.setAttribute("width", "24");
-            itemTypeCell.setAttribute("height", "24");
-                let itemType = document.createElement("image");
-                itemType.setAttribute("src", tbSync.dav.folderList.getTypeImage(rowData.type));
-                itemType.setAttribute("style", "margin: 4px;");
-            itemTypeCell.appendChild(itemType);
-            newListItem.appendChild(itemTypeCell);
-
-            //add folder name
-            let itemLabelCell = document.createElement("listcell");
-            itemLabelCell.setAttribute("class", "label");
-            itemLabelCell.setAttribute("width", "145");
-            itemLabelCell.setAttribute("crop", "end");
-            itemLabelCell.setAttribute("label", rowData.name);
-            itemLabelCell.setAttribute("tooltiptext", rowData.name);
-            itemLabelCell.setAttribute("disabled", !rowData.selected);
-            if (!rowData.selected) itemLabelCell.setAttribute("style", "font-style:italic;");
-            newListItem.appendChild(itemLabelCell);
-
-            //add folder status
-            let itemStatusCell = document.createElement("listcell");
-            itemStatusCell.setAttribute("class", "label");
-            itemStatusCell.setAttribute("flex", "1");
-            itemStatusCell.setAttribute("crop", "end");
-            itemStatusCell.setAttribute("label", rowData.statusMsg);
-            itemStatusCell.setAttribute("tooltiptext", rowData.statusMsg);
-            newListItem.appendChild(itemStatusCell);
+        getHeader: function () {
+            return [
+                {style: "font-weight:bold;", label: "", width: "51"},
+                {style: "font-weight:bold;", label: tbSync.getLocalizedMessage("manager.resource"), width:"155"},
+                {style: "font-weight:bold;", label: tbSync.getLocalizedMessage("manager.status"), flex :"1"},
+            ]
         },
+
+
+
+        /**
+         * Is called to add a row to the folderlist. After this call, updateRow is called as well.
+         *
+         * @param document        [in] document object of the account settings window
+         * @param newListItem     [in] the listitem of the row, where row items should be added to
+         * @param rowData         [in] rowData object with all information needed to add the row
+         * @param itemSelCheckbox [in] a checkbox object which can be used to allow the user to select/deselect this resource
+         */        
+        addRow: function (document, newListItem, rowData, itemSelCheckbox) {
+            //checkbox
+            itemSelCheckbox.setAttribute("style", "margin: 3px; padding: 0;");
+
+            //icon
+            let itemType = document.createElement("image");
+            itemType.setAttribute("src", tbSync.dav.folderList.getTypeImage(rowData.type));
+            itemType.setAttribute("style", "margin: 2px 6px 3px 3px;");
+
+            //folder name
+            let itemLabel = document.createElement("description");
+            itemLabel.setAttribute("disabled", !rowData.selected);
+
+            //status
+            let itemStatus = document.createElement("description");
+            itemStatus.setAttribute("disabled", !rowData.selected);
+
+            //group1
+            let itemHGroup1 = document.createElement("hbox");
+            itemHGroup1.setAttribute("align", "center");
+            itemHGroup1.appendChild(itemSelCheckbox);
+            itemHGroup1.appendChild(itemType);
+
+            let itemVGroup1 = document.createElement("vbox");
+            itemVGroup1.setAttribute("style", "padding: 3px");
+            itemVGroup1.appendChild(itemHGroup1);
+
+            //group2
+            let itemHGroup2 = document.createElement("hbox");
+            itemHGroup2.setAttribute("align", "center");
+            itemHGroup2.setAttribute("width", "150");
+            itemHGroup2.appendChild(itemLabel);
+
+            let itemVGroup2 = document.createElement("vbox");
+            itemVGroup2.setAttribute("style", "padding: 3px");
+            itemVGroup2.appendChild(itemHGroup2);
+
+            //group3
+            let itemHGroup3 = document.createElement("hbox");
+            itemHGroup3.setAttribute("align", "center");
+            itemHGroup3.setAttribute("width", "250");
+            itemHGroup3.appendChild(itemStatus);
+
+            let itemVGroup3 = document.createElement("vbox");
+            itemVGroup3.setAttribute("style", "padding: 3px");
+            itemVGroup3.appendChild(itemHGroup3);
+
+            //final row
+            let row = document.createElement("hbox");
+            row.appendChild(itemVGroup1);
+            row.appendChild(itemVGroup2);            
+            row.appendChild(itemVGroup3);            
+            newListItem.appendChild(row);                
+        },		
 
 
 
@@ -747,17 +770,13 @@ var dav = {
          * @param document       [in] document object of the account settings window
          * @param listItem       [in] the listitem of the row, which needs to be updated
          * @param rowData        [in] rowData object with all information needed to add the row
-         */
-        updateRow: function (document, listItem, rowData) {
-            tbSync.updateListItemCell(listItem.childNodes[2], ["label","tooltiptext"], rowData.name);
-            tbSync.updateListItemCell(listItem.childNodes[3], ["label","tooltiptext"], rowData.statusMsg);
-            if (rowData.selected) {
-                tbSync.updateListItemCell(listItem.childNodes[2], ["style"], "font-style:normal;");
-                tbSync.updateListItemCell(listItem.childNodes[2], ["disabled"], "false");
-            } else {
-                tbSync.updateListItemCell(listItem.childNodes[2], ["style"], "font-style:italic;");
-                tbSync.updateListItemCell(listItem.childNodes[2], ["disabled"], "true");
-            }
+         */        
+        updateRow: function (document, item, rowData) {
+            item.childNodes[0].childNodes[1].childNodes[0].textContent = rowData.name;
+            item.childNodes[0].childNodes[1].childNodes[0].setAttribute("disabled", !rowData.selected);
+            item.childNodes[0].childNodes[1].childNodes[0].setAttribute("style", rowData.selected ? "" : "font-style:italic");
+            item.childNodes[0].childNodes[2].childNodes[0].setAttribute("style", rowData.selected ? "" : "font-style:italic");
+            item.childNodes[0].childNodes[2].childNodes[0].textContent = rowData.statusMsg;
         },
 
 
