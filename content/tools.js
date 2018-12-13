@@ -495,7 +495,7 @@ dav.tools = {
             xml = null;
         }
         //check if xml is error document
-        if (xml.documentElement.nodeName == "parsererror") {
+        if (xml && xml.documentElement.nodeName == "parsererror") {
             xml = null;
         }
 
