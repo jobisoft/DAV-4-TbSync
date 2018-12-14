@@ -286,7 +286,7 @@ dav.tools = {
         }
         let uri = Services.io.newURI(finalUrl);
 
-        tbSync.dump("HEADERS", JSON.stringify(headers));
+        //tbSync.dump("HEADERS", JSON.stringify(headers));
         tbSync.dump("REQUEST", method + " : " + requestData);
         
         return new Promise(function(resolve, reject) {                  
