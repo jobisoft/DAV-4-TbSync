@@ -286,6 +286,7 @@ dav.tools = {
         }
         let uri = Services.io.newURI(finalUrl);
 
+        //no longer log HEADERS, as it could contain an Authorization header
         //tbSync.dump("HEADERS", JSON.stringify(headers));
         tbSync.dump("REQUEST", method + " : " + requestData);
         
