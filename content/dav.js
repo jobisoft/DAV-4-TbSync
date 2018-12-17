@@ -207,6 +207,7 @@ var dav = {
             "Thoben, Marc" : {name: "Marc Thoben", description: "Zimbra", icon: "", link: "" },
             "Biebl, Michael" : {name: "Michael Biebl", description: "Nextcloud", icon: "", link: "" },
             "László, Kovács" : {name: "Kovács László", description : "Radicale", icon: "", link: "" },
+            "Lütticke, David" : {name: "David Lütticke", description : "Posteo", icon: "", link: "" },
         };
     },
 
