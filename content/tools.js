@@ -286,7 +286,8 @@ dav.tools = {
         }
         let uri = Services.io.newURI(finalUrl);
 
-        tbSync.dump("HEADERS", JSON.stringify(headers));
+        //no longer log HEADERS, as it could contain an Authorization header
+        //tbSync.dump("HEADERS", JSON.stringify(headers));
         tbSync.dump("REQUEST", method + " : " + requestData);
         
         return new Promise(function(resolve, reject) {                  
@@ -495,7 +496,7 @@ dav.tools = {
             xml = null;
         }
         //check if xml is error document
-        if (xml.documentElement.nodeName == "parsererror") {
+        if (xml && xml.documentElement.nodeName == "parsererror") {
             xml = null;
         }
 
