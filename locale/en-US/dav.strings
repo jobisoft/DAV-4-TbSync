@@ -1,0 +1,79 @@
+menu.name = CalDAV & CardDAV
+
+syncstate.syncing=Initialize synchronization
+syncstate.preparing=Preparing next item for synchronization
+syncstate.done=Preparing next item for synchronization
+syncstate.accountdone=Finished account
+
+syncstate.send.getfolders=Requesting folder list
+syncstate.eval.folders=Updating folder list
+
+syncstate.prepare.request.localchanges=Sending local changes
+syncstate.send.request.localchanges=Waiting for acknowledgment of local changes
+syncstate.eval.response.localchanges=Processing acknowledgment of local changes
+
+syncstate.send.request.remotechanges=Waiting for remote changes
+syncstate.eval.response.remotechanges=Processing remote changes
+
+status.notsyncronized=Account needs to be synchronized, at least one item is out of sync.
+status.needtorevert=Account needs to be synchronized to revert local changes (one-way sync).
+status.disabled=Account is not enabled, synchronization is disabled.
+status.notargets=Aborting synchronization, because sync targets could not be created.
+status.nouserhost=Missing username and/or server. Please provide those values.
+status.timeout=Communication timeout.
+status.networkerror=Could not connect to server.
+status.404=HTTP Error 404 (requested resource not found).
+status.403=Server rejected connection (forbidden).
+status.401=Could not authenticate, check username and password.
+status.500=Unknown Server Error (HTTP Error 500).
+status.503=Service unavailable.
+status.httperror=Communication error (HTTP status ##replace.1##).
+status.OK=OK
+status.nolightning=Lightning add-on not installed, calendars are not supported.
+status.javascriptError=Javascript error: ##replace.1##
+
+status.no-folders-found-on-server=Could not find any calendars or address books on the server.
+status.invalid-response=Received invalid response, aborting synchronization.
+status.invalid-uri=Found invalid URI, aborting synchronization.
+status.unsupported_auth_method=Server requested unsupported authentication method (##replace.1##).
+status.OK.caldav-calendar-already-exists=Calendar already managed by Lightning (skipped).
+status.info.restored=No write permissions, reverted.
+status.mailformed-xml=Response contains malformed XML, unable to process, aborting synchronization.
+status.service-discovery-failed=sabre/dav service discovery failed for this server.
+
+status.OK.managedbylightning=Calendar managed by Lightning.
+
+status.security=Could not establish a secure connection. Are you using a self-signed or otherwise untrusted certificate without importing it into Thunderbird? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[help]
+status.network=Could not connect to server (##replace.1##).
+
+status.syncing=Synchronizing
+status.skipped=Not yet supported, skipped
+status.aborted=Not synchronized
+status.pending=Waiting to be synchronized
+status.modified=Local modifications
+
+config.custom=CalDAV & CardDAV server configuration
+
+add.serverprofile.discovery=Discovery service
+add.serverprofile.discovery.description=Works with most ownCloud, Nextcloud and other sabre/dav installations.
+add.serverprofile.discovery.details1=If your server supports the discovery service, simply enter the host as the server URL. For example “cloud.myserver.com”. If that does not work, go back and select “Custom configuration”.
+
+add.serverprofile.custom=Custom configuration
+add.serverprofile.custom.description=Configure CalDAV and CardDAV servers separately.
+add.serverprofile.custom.details1=Your CalDAV & CardDAV service provider should provide the addresses to his servers. For SOGo it is mostly “cloud.myserver.com/SOGo/dav” for both servers, other service providers could use different servers for CalDAV and CardDAV.
+add.serverprofile.custom.details2=If you leave either address empty, the corresponding service will be disabled for this account.
+
+add.serverprofile.fruux=fruux
+add.serverprofile.fruux.description=fruux is a service that syncs contacts, calendars and tasks. It's powered by the company behind sabre/dav and is based in Germany.
+
+add.serverprofile.icloud=iCloud
+add.serverprofile.icloud.description=https://www.icloud.com
+add.serverprofile.icloud.details1=The requested user name is your Apple-ID. Please note, that you may not use your Apple-ID passwort here. You MUST enable two-factor-authorization for your iCloud account and create a seperate app-specific password for TbSync.
+add.serverprofile.icloud.details2=This is a security layer enforced by Apple, so that 3rd party clients do not gain access to your Apple account.
+
+add.serverprofile.yahoo=Yahoo!
+add.serverprofile.yahoo.description=https://www.yahoo.com
+add.serverprofile.gmx.net=GMX.net (Europe)
+add.serverprofile.gmx.net.description=https://www.gmx.net
+add.serverprofile.gmx.com=GMX.com (USA)
+add.serverprofile.gmx.com.description=https://www.gmx.com
