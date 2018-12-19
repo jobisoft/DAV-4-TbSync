@@ -30,7 +30,7 @@ status.503=Service unavailable.
 status.httperror=Communication error (HTTP status ##replace.1##).
 status.OK=OK
 status.nolightning=Lightning add-on not installed, calendars are not supported.
-status.javascriptError=Javascript error: ##replace.1##
+status.javascriptError=JavaScript error: ##replace.1##
 
 status.no-folders-found-on-server=Could not find any calendars or address books on the server.
 status.invalid-response=Received invalid response, aborting synchronization.
@@ -56,9 +56,9 @@ config.custom=CalDAV & CardDAV server configuration
 
 add.serverprofile.discovery=Discovery service
 add.serverprofile.discovery.description=Works with most ownCloud, Nextcloud and other sabre/dav installations.
-add.serverprofile.discovery.details1=If your server supports the discovery service, simply enter the host as the server URL. For example “cloud.myserver.com”. If that does not work, go back and select “Custom configuration”.
+add.serverprofile.discovery.details1=If your server supports the discovery service, simply enter the host as the server URL. For example “cloud.myserver.com”. If that does not work, go back and select “Manual Configuration”.
 
-add.serverprofile.custom=Custom configuration
+add.serverprofile.custom=Manual Configuration
 add.serverprofile.custom.description=Configure CalDAV and CardDAV servers separately.
 add.serverprofile.custom.details1=Your CalDAV & CardDAV service provider should provide the addresses to his servers. For SOGo it is mostly “cloud.myserver.com/SOGo/dav” for both servers, other service providers could use different servers for CalDAV and CardDAV.
 add.serverprofile.custom.details2=If you leave either address empty, the corresponding service will be disabled for this account.
@@ -68,7 +68,7 @@ add.serverprofile.fruux.description=fruux is a service that syncs contacts, cale
 
 add.serverprofile.icloud=iCloud
 add.serverprofile.icloud.description=https://www.icloud.com
-add.serverprofile.icloud.details1=The requested user name is your Apple-ID. Please note, that you may not use your Apple-ID passwort here. You MUST enable two-factor-authorization for your iCloud account and create a seperate app-specific password for TbSync.
+add.serverprofile.icloud.details1=The requested user name is your Apple ID. Please note, that you may not use your Apple ID password here. You MUST enable two-factor authentication (2FA) for your iCloud account and create a separate app-specific password for TbSync.
 add.serverprofile.icloud.details2=This is a security layer enforced by Apple, so that 3rd party clients do not gain access to your Apple account.
 
 add.serverprofile.yahoo=Yahoo!
