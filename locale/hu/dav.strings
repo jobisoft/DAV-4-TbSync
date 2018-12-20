@@ -43,7 +43,8 @@ status.service-discovery-failed=A kiszolgálónak nem sikerült a sabre/dav szol
 
 status.OK.managedbylightning=A Lightning-t által kezelt naptár.
 
-status.security=Biztonsági kapcsolat létrehozása nem sikerült. Ön aláírta vagy egyébként nem megbízható tanúsítványt importálta a Thunderbirdbe? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[help]
+status.security=Biztonsági kapcsolat létrehozása nem sikerült. Ön aláírta vagy egyébként nem megbízható tanúsítványt importálta a Thunderbirdbe? (##replace.1##)
+status.security.helplink=https://github.com/jobisoft/TbSync/wiki/How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F
 status.network=Nem tudott csatlakozni a kiszolgálóhoz (##replace.1##).
 
 status.syncing=Összehangolás folyamatban

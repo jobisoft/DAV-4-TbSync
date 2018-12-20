@@ -43,7 +43,8 @@ status.service-discovery-failed=Der sabre/dav service discovery funktioniert mit
 
 status.OK.managedbylightning=Kalender wird von lightning verwaltet.
 
-status.security=Fehler beim Aufbau einer sicherern Verbindung. Benutzen Sie eventuell ein selbst signiertes Zertifikat oder ein andersartiges nicht vertrauenswürdiges Zertifikat welches nicht in Thunderbird importiert ist? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[help]
+status.security=Fehler beim Aufbau einer sicherern Verbindung. Benutzen Sie eventuell ein selbst signiertes Zertifikat oder ein andersartiges nicht vertrauenswürdiges Zertifikat welches nicht in Thunderbird importiert ist? (##replace.1##)
+status.security.helplink=https://github.com/jobisoft/TbSync/wiki/How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F
 status.network=Verbindung zum Server fehlgeschlagen (##replace.1##).
 
 status.syncing=Synchronisierung
