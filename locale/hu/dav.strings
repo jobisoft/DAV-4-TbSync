@@ -31,6 +31,7 @@ status.httperror=Kommunikációs hiba (HTTP állapot ##replace.1##).
 status.OK=Rendben
 status.nolightning=A Lightning-t kiegészítő nincs telepítve, a naptárak nem támogatottak.
 status.javascriptError=JavaScript-hiba: ##replace.1##
+status.foldererror=Legalább egy erőforrás szinkronizálási hibát észlelt.
 
 status.no-folders-found-on-server=A kiszolgálón nem található semmilyen naptár vagy névjegyzék.
 status.invalid-response=Érvénytelen válasz érkezett, megszüntette az összehangolást.

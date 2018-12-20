@@ -31,6 +31,7 @@ status.httperror=Ошибка связи (HTTP статус ##replace.1##).
 status.OK=Готово
 status.nolightning=Lightning Add-On не установлен, календари не поддерживаются.
 status.javascriptError=Javascript ошибка: ##replace.1##
+status.foldererror=По крайней мере один ресурс обнаружил ошибку синхронизации.
 
 status.no-folders-found-on-server=Не удалось найти календари или адресные книги на сервере.
 status.invalid-response=Получен неверный ответ, синхронизация прервана.

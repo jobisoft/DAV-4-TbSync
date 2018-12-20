@@ -31,6 +31,7 @@ status.httperror=Kommunikationsfehler (HTTP Status ##replace.1##).
 status.OK=OK
 status.nolightning=Lightning Add-On nicht installiert, Kalender nicht nutzbar.
 status.javascriptError=Javascript Fehler: ##replace.1##
+status.foldererror=Bei mindestens einer Resource trat ein Synchronisationsfehler auf.
 
 status.no-folders-found-on-server=Auf dem Server wurde weder Kalender noch Adressbücher gefunden.
 status.invalid-response=Fehlerhafte Antwort erhalten, Sync angebrochen.
