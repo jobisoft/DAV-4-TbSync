@@ -30,7 +30,7 @@ status.503=Service unavailable.
 status.httperror=Communication error (HTTP status ##replace.1##).
 status.OK=OK
 status.nolightning=Lightning add-on not installed, calendars are not supported.
-status.javascriptError=JavaScript error: ##replace.1##
+status.javascriptError=JavaScript error! Check error log for details.
 status.foldererror=At least one resource encountered a synchronization error.
 
 status.no-folders-found-on-server=Could not find any calendars or address books on the server.
@@ -39,7 +39,7 @@ status.invalid-uri=Found invalid URI, aborting synchronization.
 status.unsupported_auth_method=Server requested unsupported authentication method (##replace.1##).
 status.OK.caldav-calendar-already-exists=Calendar already managed by Lightning (skipped).
 status.info.restored=No write permissions, reverted.
-status.mailformed-xml=Response contains malformed XML, unable to process, aborting synchronization.
+status.mailformed-xml=Could not parse XML. Check error log for details. 
 status.service-discovery-failed=sabre/dav service discovery failed for this server.
 
 status.OK.managedbylightning=Calendar managed by Lightning.
