@@ -246,7 +246,7 @@ dav.sync = {
                             let targetCal = calManager.getCalendarById(target);
                             targetCal.refresh();
                             tbSync.db.clearChangeLog(target);
-                            throw dav.sync.succeeded();
+                            throw dav.sync.succeeded("managed-by-lightning");
                         }
                         break;
 
