@@ -1117,7 +1117,7 @@ dav.tools = {
                     case "Birthday":
                         {
                             if ( newServerValue ) {
-                                bday = dav.tools.parseVcardDateTime( newServerValue, vCardData[vCardField.item][0].meta );
+                                let bday = dav.tools.parseVcardDateTime( newServerValue, vCardData[vCardField.item][0].meta );
                                 card.setProperty("BirthYear", bday[1]);
                                 card.setProperty("BirthMonth", bday[2]);
                                 card.setProperty("BirthDay", bday[3]);
