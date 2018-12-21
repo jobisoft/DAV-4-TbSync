@@ -30,7 +30,7 @@ status.503=Service unavailable.
 status.httperror=Communication error (HTTP status ##replace.1##).
 status.OK=OK
 status.nolightning=Lightning add-on not installed, calendars are not supported.
-status.javascriptError=JavaScript error! Check error log for details.
+status.JavaScriptError=JavaScript error! Check error log for details.
 status.foldererror=At least one resource encountered a synchronization error.
 
 status.no-folders-found-on-server=Could not find any calendars or address books on the server.

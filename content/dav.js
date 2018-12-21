@@ -600,9 +600,8 @@ var dav = {
         } catch (e) {
             if (e.type == "dav4tbsync") tbSync.finishAccountSync(syncdata, e.message);
             else {
-                Components.utils.reportError(e);
-                tbSync.errorlog(syncdata, "JavaScript Error", e.toString());
-                tbSync.finishAccountSync(syncdata, "javascriptError");    
+                tbSync.errorlog(syncdata, "JavaScriptError", e);
+                tbSync.finishAccountSync(syncdata, "JavaScriptError"); 
             }
         }
     }),

@@ -261,7 +261,7 @@ dav.sync = {
                 if (e.type == "dav4tbsync") tbSync.finishFolderSync(syncdata, e.message);
                 else {
                     //abort sync of other folders on javascript error
-                    tbSync.finishFolderSync(syncdata, "javascriptError");
+                    tbSync.finishFolderSync(syncdata, "JavaScriptError");
                     throw e;
                 }
             }
