@@ -45,7 +45,7 @@ status.service-discovery-failed=Для этого сервера не удало
 status.OK.managedbylightning=Календарь управляется lightning.
 
 status.security=Не удалось установить безопасное соединение. Вы используете самоподписанный или ненадежный сертификат без импорта его в Thunderbird? (##replace.1##)
-status.security.helplink=https://github.com/jobisoft/TbSync/wiki/How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F
+helplink.security=https://github.com/jobisoft/TbSync/wiki/How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F
 status.network=Не удалось подключиться к серверу (##replace.1##).
 
 status.syncing=Синхронизация
