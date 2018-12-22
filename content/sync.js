@@ -12,18 +12,20 @@ dav.sync = {
 
     failed: function (msg = "", details = "") {
         let e = new Error();
-        e.message = msg;
         e.type = "dav4tbsync";
+        e.message = msg;
         e.details = details;
+        e.failed = true;
         return e;
     },
 
     succeeded: function (msg = "") {
         let e = new Error();
+        e.type = "dav4tbsync";
         e.message = "OK";
         if (msg) e.message = e.message + "." + msg;
-        e.type = "dav4tbsync";
         e.details = "";
+        e.failed = false;
         return e;
     },
 
