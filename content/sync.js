@@ -260,10 +260,13 @@ dav.sync = {
 
                 }
             } catch (e) {
-                if (e.type == "dav4tbsync") tbSync.finishFolderSync(syncdata, e.message);
-                else {
+                if (e.type == "dav4tbsync") {
+                    tbSync.finishFolderSync(syncdata, e);
+                } else {
                     //abort sync of other folders on javascript error
-                    tbSync.finishFolderSync(syncdata, "JavaScriptError");
+                    e.details = e.message + "\n\nfile: " + e.fileName + "\nline: " + e.lineNumber + "\n" + e.stack;
+                    e.message = "JavaScriptError";                
+                    tbSync.finishFolderSync(syncdata, e);
                     throw e;
                 }
             }

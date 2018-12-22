@@ -598,8 +598,9 @@ var dav = {
                     break;
             }
         } catch (e) {
-            if (e.type == "dav4tbsync") tbSync.finishAccountSync(syncdata, e);
-            else {
+            if (e.type == "dav4tbsync") {
+                tbSync.finishAccountSync(syncdata, e);
+            } else {
                 //some other error
                 e.details = e.message + "\n\nfile: " + e.fileName + "\nline: " + e.lineNumber + "\n" + e.stack;
                 e.message = "JavaScriptError";                
