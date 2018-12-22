@@ -10,10 +10,11 @@
 
 dav.sync = {
 
-    failed: function (msg = "") {
+    failed: function (msg = "", details = "") {
         let e = new Error();
         e.message = msg;
         e.type = "dav4tbsync";
+        e.details = details;
         return e;
     },
 
@@ -22,6 +23,7 @@ dav.sync = {
         e.message = "OK";
         if (msg) e.message = e.message + "." + msg;
         e.type = "dav4tbsync";
+        e.details = "";
         return e;
     },
 

@@ -598,10 +598,12 @@ var dav = {
                     break;
             }
         } catch (e) {
-            if (e.type == "dav4tbsync") tbSync.finishAccountSync(syncdata, e.message);
+            if (e.type == "dav4tbsync") tbSync.finishAccountSync(syncdata, e);
             else {
-                tbSync.errorlog(syncdata, "JavaScriptError", e);
-                tbSync.finishAccountSync(syncdata, "JavaScriptError"); 
+                //some other error
+                e.details = e.message + "\n\nfile: " + e.fileName + "\nline: " + e.lineNumber + "\n" + e.stack;
+                e.message = "JavaScriptError";                
+                tbSync.finishAccountSync(syncdata, e); 
             }
         }
     }),
