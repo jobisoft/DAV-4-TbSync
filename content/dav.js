@@ -602,8 +602,7 @@ var dav = {
                 tbSync.finishAccountSync(syncdata, e);
             } else {
                 //some other error
-                e.details = e.message + "\n\nfile: " + e.fileName + "\nline: " + e.lineNumber + "\n" + e.stack;
-                e.message = "JavaScriptError";                
+                e.type = "JavaScriptError";
                 tbSync.finishAccountSync(syncdata, e); 
             }
         }
