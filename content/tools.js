@@ -300,9 +300,9 @@ dav.tools = {
                     } catch (ex) {
                         let error = tbSync.createTCPErrorFromFailedChannel(aLoader.request);
                         if (!error) {
-                            reject(dav.sync.failed("networkerror"));
+                            return reject(dav.sync.failed("networkerror")); //reject/resolve do not terminate control flow
                         } else {
-                            reject(dav.sync.failed(error));
+                            return reject(dav.sync.failed(error));
                         }
                     }
                     
@@ -319,7 +319,7 @@ dav.tools = {
                                 let response = {};
                                 response.redirect = responseStatus;
                                 response.url = request.getResponseHeader("Location");
-                                resolve(response);
+                                return resolve(response);
                             }
                             break;
                             
@@ -347,18 +347,18 @@ dav.tools = {
                                     if (!triedToAuthenticate) {
                                         let response = {};
                                         response.retry = true;
-                                        resolve(response);
+                                        return resolve(response);
                                     }
                                 }
                                 
-                                reject(dav.sync.failed("401"));
+                                return reject(dav.sync.failed("401"));
                             }
                             break;
 
                         case 207: //preprocess multiresponse
                             {
                                 let xml = dav.tools.convertToXML(text);
-                                if (xml === null) reject(dav.sync.failed("mailformed-xml"));
+                                if (xml === null) return reject(dav.sync.failed("mailformed-xml", text.split("><").join(">\n<")));
 
                                 let response = {};
                                 response.node = xml.documentElement;
@@ -391,14 +391,14 @@ dav.tools = {
                                     }
                                 }
 
-                                resolve(response);
+                                return resolve(response);
                             }
                             break;
 
                         case 200: //returned by DELETE by radicale - watch this !!!
                         case 204: //is returned by DELETE - no data
                         case 201: //is returned by CREATE - no data
-                            resolve(null);
+                            return resolve(null);
                             break;
 
                         case 400:
@@ -416,11 +416,11 @@ dav.tools = {
                                         noresponse.exception = exceptionNode.textContent;
                                     }
                                 }
-                                resolve(noresponse);
+                                return resolve(noresponse);
                             }
 
                         default:
-                            reject(dav.sync.failed(responseStatus));
+                            return reject(dav.sync.failed(responseStatus));
 
                     }
                 }
