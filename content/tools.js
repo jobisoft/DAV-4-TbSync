@@ -358,7 +358,7 @@ dav.tools = {
                         case 207: //preprocess multiresponse
                             {
                                 let xml = dav.tools.convertToXML(text);
-                                if (xml === null) return reject(dav.sync.failed("mailformed-xml", text.split("><").join(">\n<")));
+                                if (xml === null) return reject(dav.sync.failed("mailformed-xml", "[" + text.split("><").join(">\n<") + "]"));
 
                                 let response = {};
                                 response.node = xml.documentElement;
