@@ -290,7 +290,7 @@ dav.tools = {
 
         //no longer log HEADERS, as it could contain an Authorization header
         //tbSync.dump("HEADERS", JSON.stringify(headers));
-        tbSync.dump("REQUEST", method + " : " + requestData);
+        if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("REQUEST", method + " : " + requestData);
         
         return new Promise(function(resolve, reject) {                  
             let listener = {
@@ -309,6 +309,7 @@ dav.tools = {
                     }
                     
                     let text = dav.tools.convertByteArray(aResult, aResultLength);                    
+                    if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("RESPONSE", responseStatus + " : " + text);
                     syncdata.response = text.split("><").join(">\n<");
                     
                     switch(responseStatus) {
@@ -1080,7 +1081,7 @@ dav.tools = {
         let vCardData = tbSync.dav.vCard.parse(vCard);
         let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
 
-        //to much info - user userloglevel - tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
+        if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
         //if (oCardData) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
 
         card.setProperty("X-DAV-ETAG", etag);
