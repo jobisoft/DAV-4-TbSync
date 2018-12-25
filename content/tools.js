@@ -272,6 +272,8 @@ dav.tools = {
     // Promisified implementation of Components.interfaces.nsIHttpChannel
     sendRequestCore: Task.async (function* (requestData, fullUrl, method, syncdata, headers, aUseStreamLoader) {
         let account = tbSync.db.getAccount(syncdata.account);
+        syncdata.request = requestData;
+        syncdata.response = "";
         
         //Note: 
         // - by specifying a user, the system falls back to user:<none>, which will trigger a 401 which will cause the authCallbacks and lets me set a new user/pass combination
@@ -307,7 +309,8 @@ dav.tools = {
                     }
                     
                     let text = dav.tools.convertByteArray(aResult, aResultLength);                    
-                    tbSync.dump("RESPONSE", responseStatus + " : " + text);
+                    syncdata.response = text.split("><").join(">\n<");
+                    
                     switch(responseStatus) {
                         case 301:
                         case 302:
@@ -358,7 +361,7 @@ dav.tools = {
                         case 207: //preprocess multiresponse
                             {
                                 let xml = dav.tools.convertToXML(text);
-                                if (xml === null) return reject(dav.sync.failed("mailformed-xml", "[" + text.split("><").join(">\n<") + "]"));
+                                if (xml === null) return reject(dav.sync.failed("maiformed-xml", "Request:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response));
 
                                 let response = {};
                                 response.node = xml.documentElement;
@@ -420,7 +423,7 @@ dav.tools = {
                             }
 
                         default:
-                            return reject(dav.sync.failed(responseStatus));
+                            return reject(dav.sync.failed(responseStatus, "Request:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response));
 
                     }
                 }
@@ -1077,7 +1080,7 @@ dav.tools = {
         let vCardData = tbSync.dav.vCard.parse(vCard);
         let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
 
-        tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
+        //to much info - user userloglevel - tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
         //if (oCardData) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
 
         card.setProperty("X-DAV-ETAG", etag);
