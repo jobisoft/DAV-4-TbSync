@@ -327,6 +327,48 @@ dav.tools = {
                             }
                             break;
                             
+                        case 207: //preprocess multiresponse
+                            {
+                                let xml = dav.tools.convertToXML(text);
+                                if (xml === null) return reject(dav.sync.failed("maiformed-xml", "Request:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response));
+
+                                //synology returns a 207 on not authenticated (WTF?)
+                                if (xml.documentElement.getElementsByTagNameNS(dav.ns.d, "unauthenticated").length == 0) {
+                                    let response = {};
+                                    response.node = xml.documentElement;
+
+                                    let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
+                                    response.multi = [];
+                                    for (let i=0; i < multi.length; i++) {
+                                        let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
+                                        let propstats = multi[i].getElementsByTagNameNS(dav.ns.d, "propstat");
+                                        if (propstats.length > 0) {
+                                            //response contains propstats, push each as single entry
+                                            for (let p=0; p < propstats.length; p++) {
+                                                let statusNode = dav.tools.evaluateNode(propstats[p], [["d", "status"]]);
+
+                                                let resp = {};
+                                                resp.node = propstats[p];
+                                                resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
+                                                resp.href = hrefNode === null ? null : hrefNode.textContent;
+                                                response.multi.push(resp);
+                                            }
+                                        } else {
+                                            //response does not contain any propstats, push raw response
+                                            let statusNode = dav.tools.evaluateNode(multi[i], [["d", "status"]]);
+
+                                            let resp = {};
+                                            resp.node = multi[i];
+                                            resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
+                                            resp.href = hrefNode === null ? null : hrefNode.textContent;
+                                            response.multi.push(resp);
+                                        }
+                                    }
+
+                                    return resolve(response);
+                                }
+                            }
+
                         case 401: //AuthError
                             {                               
                                 //handle nsIHttpChannel bug (https://bugzilla.mozilla.org/show_bug.cgi?id=669675)
@@ -358,47 +400,7 @@ dav.tools = {
                                 return reject(dav.sync.failed("401"));
                             }
                             break;
-
-                        case 207: //preprocess multiresponse
-                            {
-                                let xml = dav.tools.convertToXML(text);
-                                if (xml === null) return reject(dav.sync.failed("maiformed-xml", "Request:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response));
-
-                                let response = {};
-                                response.node = xml.documentElement;
-
-                                let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
-                                response.multi = [];
-                                for (let i=0; i < multi.length; i++) {
-                                    let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
-                                    let propstats = multi[i].getElementsByTagNameNS(dav.ns.d, "propstat");
-                                    if (propstats.length > 0) {
-                                        //response contains propstats, push each as single entry
-                                        for (let p=0; p < propstats.length; p++) {
-                                            let statusNode = dav.tools.evaluateNode(propstats[p], [["d", "status"]]);
-
-                                            let resp = {};
-                                            resp.node = propstats[p];
-                                            resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
-                                            resp.href = hrefNode === null ? null : hrefNode.textContent;
-                                            response.multi.push(resp);
-                                        }
-                                    } else {
-                                        //response does not contain any propstats, push raw response
-                                        let statusNode = dav.tools.evaluateNode(multi[i], [["d", "status"]]);
-
-                                        let resp = {};
-                                        resp.node = multi[i];
-                                        resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
-                                        resp.href = hrefNode === null ? null : hrefNode.textContent;
-                                        response.multi.push(resp);
-                                    }
-                                }
-
-                                return resolve(response);
-                            }
-                            break;
-
+                            
                         case 200: //returned by DELETE by radicale - watch this !!!
                         case 204: //is returned by DELETE - no data
                         case 201: //is returned by CREATE - no data
