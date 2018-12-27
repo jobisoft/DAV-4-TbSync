@@ -470,9 +470,10 @@ dav.tools = {
             //manually set timout
             syncdata.timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
             let timeout = tbSync.prefSettings.getIntPref("timeout");
+            let rv = Components.results.NS_ERROR_NET_TIMEOUT;
             let event = {
                 notify: function(timer) {
-                    if (channel) channel.cancel(Components.results.NS_ERROR_NET_TIMEOUT);
+                    if (channel) channel.cancel(rv);
                 }
             }
             syncdata.timer.initWithCallback(event, timeout, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
