@@ -60,8 +60,6 @@ dav.sync = {
         davjobs.cal.initialURL = tbSync.db.getAccountSetting(syncdata.account, "host");
         davjobs.card.initialURL = tbSync.db.getAccountSetting(syncdata.account, "host2");
         
-    
-        let jobsfound = 0;
         for (let job in davjobs) {
             if (!davjobs[job].run || !davjobs[job].initialURL) continue;
 
@@ -86,14 +84,12 @@ dav.sync = {
                 tbSync.setSyncState("eval.folders", syncdata.account);
                 principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]);
             }
-            jobsfound++;
 
             //principal now contains something like "/remote.php/carddav/principals/john.bieling/"
             // -> get home/root of storage
             if (principal !== null) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
                 let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d", job])+"><d:prop><"+job+":"+davjobs[job].hometag+" /></d:prop></d:propfind>", principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
-                if (response && response.error) continue;
 
                 tbSync.setSyncState("eval.folders", syncdata.account);
                 home = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], [job, davjobs[job].hometag], ["d","href"]], principal);
@@ -108,7 +104,6 @@ dav.sync = {
                                         : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
 
                 let response = yield dav.tools.sendRequest(request, home, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
-                if (response && response.error) continue;
                 
                 for (let r=0; r < response.multi.length; r++) {
                     if (response.multi[r].status != "200") continue;
@@ -174,10 +169,6 @@ dav.sync = {
                 //home was not found - connection error? - do not delete anything
                 let deletedFolders = [];
             }
-        }
-
-        if (jobsfound == 0) {
-            throw dav.sync.failed("service-discovery-failed");
         }
 
         //remove deleted folders (no longer there)
@@ -339,7 +330,7 @@ dav.sync = {
 
         let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-        let cards = yield dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {"Content-Type": "application/xml; charset=utf-8"});
+        let cards = yield dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {"Content-Type": "application/xml; charset=utf-8"}, {hardfail: false});
 
         if (cards.error) { //Sabre\DAV\Exception\InvalidSyncToken
             //token sync failed, reset ctag and do a full sync
@@ -576,11 +567,11 @@ dav.sync = {
                             if (!permissionError) { //no need to do any other requests, if there was a permission error already
                                 let isAdding = (changes[i].status == "added_by_user");
                                 let vcard = dav.tools.getVCardFromThunderbirdCard (syncdata, addressBook, changes[i].id, isAdding);
-                                let options = {"Content-Type": "text/vcard; charset=utf-8"};
+                                let headers = {"Content-Type": "text/vcard; charset=utf-8"};
                                 //if (!isAdding) options["If-Match"] = vcard.etag;
 
                                 tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
-                                let response = yield dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, options);
+                                let response = yield dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, headers, {hardfail: false});
 
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
                                 if (response && [403,405].includes(response.error)) {
@@ -598,7 +589,7 @@ dav.sync = {
                         {
                             if (!permissionError) { //no need to do any other requests, if there was a permission error already
                                 tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
-                                let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {});
+                                let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata);
 
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
                                 if (response && [403,405].includes(response.error)) {

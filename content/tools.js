@@ -237,7 +237,7 @@ dav.tools = {
         return httpchannel;
     },
  
-    sendRequest: Task.async (function* (requestData, _url, method, syncdata, headers, aUseStreamLoader = true) {
+    sendRequest: Task.async (function* (requestData, _url, method, syncdata, headers = {}, options = {hardfail: true}, aUseStreamLoader = true) {
         let account = tbSync.db.getAccount(syncdata.account);
         
         //do not modify parameter
@@ -253,7 +253,7 @@ dav.tools = {
             if (dav.problematicHosts.includes(uri.host)) {
                 headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.dav.getPassword(account));
             }
-            let r = yield dav.tools.sendRequestCore (requestData, uri.spec, method, syncdata, headers, aUseStreamLoader);
+            let r = yield dav.tools.sendRequestCore (requestData, uri.spec, method, syncdata, headers, options, aUseStreamLoader);
             
             if (r && r.redirect && r.url) {
                 url = r.url;
@@ -270,7 +270,7 @@ dav.tools = {
     }),
     
     // Promisified implementation of Components.interfaces.nsIHttpChannel
-    sendRequestCore: Task.async (function* (requestData, fullUrl, method, syncdata, headers, aUseStreamLoader) {
+    sendRequestCore: Task.async (function* (requestData, fullUrl, method, syncdata, headers, options, aUseStreamLoader) {
         let account = tbSync.db.getAccount(syncdata.account);
         syncdata.request = requestData;
         syncdata.response = "";
@@ -302,9 +302,9 @@ dav.tools = {
                     } catch (ex) {
                         let error = tbSync.createTCPErrorFromFailedChannel(aLoader.request);
                         if (!error) {
-                            return reject(dav.sync.failed("networkerror")); //reject/resolve do not terminate control flow
+                            return reject(dav.sync.failed("networkerror"), request.URI.spec); //reject/resolve do not terminate control flow
                         } else {
-                            return reject(dav.sync.failed(error));
+                            return reject(dav.sync.failed(error, request.URI.spec));
                         }
                     }
                     
@@ -412,7 +412,9 @@ dav.tools = {
                         case 404:
                         case 405: //Not allowed
                         case 415: //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book)
-                            {
+                            if (options.hardfail) {
+                                return reject(dav.sync.failed(responseStatus, "Request:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response)); 
+                            } else {
                                 let noresponse = {};
                                 noresponse.error = responseStatus;
                                 let xml = dav.tools.convertToXML(text);
