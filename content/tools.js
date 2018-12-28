@@ -332,7 +332,7 @@ dav.tools = {
                                 let xml = dav.tools.convertToXML(text);
                                 if (xml === null) return reject(dav.sync.failed("maiformed-xml", "Request:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response));
 
-                                //synology returns a 207 on not authenticated (WTF?)
+                                //the specs allow to  return a 207 with DAV:unauthenticated if not authenticated 
                                 if (xml.documentElement.getElementsByTagNameNS(dav.ns.d, "unauthenticated").length == 0) {
                                     let response = {};
                                     response.node = xml.documentElement;
