@@ -237,7 +237,7 @@ dav.tools = {
         return httpchannel;
     },
  
-    sendRequest: Task.async (function* (requestData, _url, method, syncdata, headers = {}, options = {hardfail: true}, aUseStreamLoader = true) {
+    sendRequest: Task.async (function* (requestData, _url, method, syncdata, headers = {}, options = {softfail: []}, aUseStreamLoader = true) {
         let account = tbSync.db.getAccount(syncdata.account);
         
         //do not modify parameter
@@ -407,16 +407,10 @@ dav.tools = {
                             return resolve(null);
                             break;
 
-                        case 400:
-                        case 403:
-                        case 404:
-                        case 405: //Not allowed
-                        case 415: //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book)
-                            if (options.hardfail) {
-                                return reject(dav.sync.failed(responseStatus, "Request:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response)); 
-                            } else {
+                        default:
+                            if (options.softfail.includes(responseStatus)) {
                                 let noresponse = {};
-                                noresponse.error = responseStatus;
+                                noresponse.softerror = responseStatus;
                                 let xml = dav.tools.convertToXML(text);
                                 if (xml !== null) {
                                     let exceptionNode = dav.tools.evaluateNode(xml.documentElement, [["s","exception"]]);
@@ -425,10 +419,10 @@ dav.tools = {
                                     }
                                 }
                                 return resolve(noresponse);
-                            }
-
-                        default:
-                            return reject(dav.sync.failed(responseStatus, "Request:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response));
+                            } else {
+                                return reject(dav.sync.failed(responseStatus, "Request:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response)); 
+                            }                                
+                            break;
 
                     }
                 }

@@ -330,9 +330,11 @@ dav.sync = {
 
         let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-        let cards = yield dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {"Content-Type": "application/xml; charset=utf-8"}, {hardfail: false});
+        let cards = yield dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {"Content-Type": "application/xml; charset=utf-8"}, {softfail: [400,415]});
 
-        if (cards.error) { //Sabre\DAV\Exception\InvalidSyncToken
+        //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book)
+        //Sabre\DAV\Exception\InvalidSyncToken
+        if (cards && cards.softerror) {
             //token sync failed, reset ctag and do a full sync
             return false;
         }
@@ -571,10 +573,10 @@ dav.sync = {
                                 //if (!isAdding) options["If-Match"] = vcard.etag;
 
                                 tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
-                                let response = yield dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, headers, {hardfail: false});
+                                let response = yield dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, headers, {softfail: [403,405]});
 
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
-                                if (response && [403,405].includes(response.error)) {
+                                if (response && response.softerror) {
                                     permissionError = true;
                                 }
                             }
