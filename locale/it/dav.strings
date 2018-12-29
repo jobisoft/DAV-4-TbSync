@@ -32,6 +32,7 @@ status.OK=OK
 status.nolightning=Componente aggiuntivo Lightning non installato, i calendari non sono supportati.
 status.JavaScriptError=Errore JavaScript! Consultare il log di errore per i dettagli.
 status.foldererror=Almeno una risorsa ha riscontrato un errore di sincronizzazione.
+status.softerror=Errore saltato (##replace.1##)
 
 status.no-folders-found-on-server=Impossibile trovare calendari o rubriche sul server.
 status.invalid-response=Ricevuta risposta non valida, sincronizzazione interrotta.

@@ -32,6 +32,7 @@ status.OK=Rendben
 status.nolightning=A Lightning-t kiegészítő nincs telepítve, a naptárak nem támogatottak.
 status.JavaScriptError=JavaScript hiba! Ellenőrizze a hibakeresési naplót a részletekért.
 status.foldererror=Legalább egy erőforrás szinkronizálási hibát észlelt.
+status.softerror=Kihagyta a hibát (##replace.1##)
 
 status.no-folders-found-on-server=A kiszolgálón nem található semmilyen naptár vagy névjegyzék.
 status.invalid-response=Érvénytelen válasz érkezett, megszüntette az összehangolást.

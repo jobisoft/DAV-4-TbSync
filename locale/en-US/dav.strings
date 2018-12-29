@@ -32,6 +32,7 @@ status.OK=OK
 status.nolightning=Lightning add-on not installed, calendars are not supported.
 status.JavaScriptError=JavaScript error! Check error log for details.
 status.foldererror=At least one resource encountered a synchronization error.
+status.softerror=Non fatal error (##replace.1##)
 
 status.no-folders-found-on-server=Could not find any calendars or address books on the server.
 status.invalid-response=Received invalid response, aborting synchronization.
