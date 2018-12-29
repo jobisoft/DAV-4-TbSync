@@ -635,12 +635,39 @@ var dav = {
          * @param account        [in] account id for which the folder data should be returned
          */
         getSortedData: function (account) {
-            let folderData = [];
             let folders = tbSync.db.getFolders(account);
             let folderIDs = Object.keys(folders);
 
+            //we can only sort arrays, so we need to create an array of objects and those objects 
+            //must contain the sort key and the associated folderId
+            let toBeSorted = [];
             for (let i=0; i < folderIDs.length; i++) {
-                folderData.push(tbSync.dav.folderList.getRowData(folders[folderIDs[i]]));
+                let t = "";
+                switch (folders[folderIDs[i]].type) {
+                    case "carddav": 
+                        t="0"; 
+                        break;
+                    case "caldav": 
+                        t="1"; 
+                        break;
+                    case "ics": 
+                        t="2"; 
+                        break;
+                    default:
+                        t="9";
+                        break;
+                }
+                toBeSorted.push({"key": t + folders[folderIDs[i]].name, "id": folderIDs[i]});
+            }
+            
+            //sort
+            toBeSorted.sort(function(a,b) {
+                return  a.key > b.key;
+            });
+            
+            let folderData = [];
+            for (let sorted of toBeSorted) {
+                folderData.push(tbSync.dav.folderList.getRowData(folders[sorted.id]));
             }
             return folderData;
         },
