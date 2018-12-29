@@ -418,6 +418,8 @@ dav.tools = {
                                         noresponse.exception = exceptionNode.textContent;
                                     }
                                 }
+                                //manually log this non-fatal error
+                                tbSync.errorlog(syncdata, responseStatus, "Non-Fatal Error\n\nRequest:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response);
                                 return resolve(noresponse);
                             } else {
                                 return reject(dav.sync.failed(responseStatus, "Request:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response)); 
