@@ -34,16 +34,22 @@ dav.sync = {
 
 
     folderList: Task.async (function* (syncdata) {
-        //This is a very simple implementation of the discovery method of sabre/dav.
-        //I am not even checking if there are changes, I just pull the current list from the server and replace the local list
         //Method description: http://sabre.io/dav/building-a-caldav-client/
 
-
         //get all folders currently known
+        let folderTypes = ["caldav", "carddav", "ics"];
+        let unhandledFolders = {};
+        for (let t of folderTypes) {
+            unhandledFolders[t] = [];
+        }
+
         let folders = tbSync.db.getFolders(syncdata.account);
-        let deletedFolders = [];
         for (let f in folders) {
-            deletedFolders.push(f);
+            //just in case
+            if (!unhandledFolders.hasOwnProperty(folders[f].type)) {
+                unhandledFolders[folders[f].type] = [];
+            }
+            unhandledFolders[folders[f].type].push(f);
         }
 
         let davjobs = {
@@ -132,6 +138,9 @@ dav.sync = {
                     }
                     let color = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["apple","calendar-color"]]);
 
+                    //remove found folder from list of unhandled folders
+                    unhandledFolders[resourcetype] = unhandledFolders[resourcetype].filter(item => item !== href);
+
                     let folder = tbSync.db.getFolder(syncdata.account, href);
                     if (folder === null || folder.cached === "1") { //this is NOT called by unsubscribing/subscribing
                         let newFolder = {}
@@ -148,7 +157,6 @@ dav.sync = {
                         //Update name & color
                         tbSync.db.setFolderSetting(syncdata.account, href, "name", name);
                         tbSync.db.setFolderSetting(syncdata.account, href, "fqdn", syncdata.fqdn);
-                        deletedFolders = deletedFolders.filter(item => item !== href);
                     }
 
                     //update color from server
@@ -166,14 +174,26 @@ dav.sync = {
                 }
 
             } else {
-                //home was not found - connection error? - do not delete anything
-                let deletedFolders = [];
+                //home was not found - connection error? - do not delete unhandled folders
+                switch (job) {
+                    case "card": 
+                            unhandledFolders.carddav = [];
+                        break;
+                        
+                    case "cal":
+                            unhandledFolders.caldav = [];
+                            unhandledFolders.ics = [];
+                        break;
+                }
             }
         }
 
-        //remove deleted folders (no longer there)
-        for (let i = 0; i < deletedFolders.length; i++) {
-            tbSync.takeTargetOffline("dav", folders[deletedFolders[i]], " [deleted on server]");
+        //remove unhandled old folders, (because they no longer exist on the server)
+        for (let t of folderTypes) {
+            for (let i = 0; i < unhandledFolders[t].length; i++) {
+                tbSync.takeTargetOffline("dav", folders[unhandledFolders[t][i]], " [deleted on server]");
+                tbSync.db.deleteFolder(folders[unhandledFolders[t][i]].account, folders[unhandledFolders[t][i]].folderID);
+            }
         }
 
     }),
