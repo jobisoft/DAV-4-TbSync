@@ -259,8 +259,11 @@ dav.tools = {
                 url = r.url;
                 tbSync.dump("Redirect #" + i, r.url);
             } else if (r && r.retry && r.retry === true) {
-                tbSync.dump("NSIBUG Retry on 401", "Manually adding basic auth header for <" + account.user + "@" + uri.host + ">");
-                if (!dav.problematicHosts.includes(uri.host)) {
+                if (r.addBasicAuthHeaderOnce) {
+                    tbSync.dump("NSIBUG Retry on 401", "Manually adding basic auth header for <" + account.user + "@" + uri.host + ">");
+                    headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.dav.getPassword(account));
+                } else if (!dav.problematicHosts.includes(uri.host) ) {
+                    tbSync.dump("NSIBUG Retry on 401", "Adding <" + uri.host + "> to list of problematic hosts.");
                     dav.problematicHosts.push(uri.host)
                 }
             } else {
@@ -326,6 +329,38 @@ dav.tools = {
                                 return resolve(response);
                             }
                             break;
+
+                        case 401: //AuthError
+                            {                               
+                                //handle nsIHttpChannel bug (https://bugzilla.mozilla.org/show_bug.cgi?id=669675)
+                                
+                                //these problematic hosts send a VALID Auth header, but TB is not able to parse it, we need to manually add a BASIC auth header
+                                //since the header cannot be parsed, TB will also not get the realm for this
+                                //currently there is no known CALDAV server, which is problematic (where we need the realm to pre-add the password so lightning does not prompt)
+                                //if this changes, we need a hardcoded list of problematic servers and their realm
+                                //I hope this bug gets fixed soon
+
+                                //should the channel have been able to authenticate (password is stored)?
+                                if (tbSync.dav.getPassword(account) !== null) {                                    
+                                    //did the channel try to authenticate?
+                                    let triedToAuthenticate;
+                                    try {
+                                        let header = request.getRequestHeader("Authorization");
+                                        triedToAuthenticate = true;
+                                    } catch (e) {
+                                        triedToAuthenticate = false;
+                                    }
+                                    
+                                    if (!triedToAuthenticate) {
+                                        let response = {};
+                                        response.retry = true;
+                                        return resolve(response);
+                                    }
+                                }
+                                
+                                return reject(dav.sync.failed("401"));
+                            }
+                            break;
                             
                         case 207: //preprocess multiresponse
                             {
@@ -333,7 +368,12 @@ dav.tools = {
                                 if (xml === null) return reject(dav.sync.failed("maiformed-xml", "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response));
 
                                 //the specs allow to  return a 207 with DAV:unauthenticated if not authenticated 
-                                if (xml.documentElement.getElementsByTagNameNS(dav.ns.d, "unauthenticated").length == 0) {
+                                if (xml.documentElement.getElementsByTagNameNS(dav.ns.d, "unauthenticated").length != 0) {
+                                    let response = {};
+                                    response.retry = true;
+                                    response.addBasicAuthHeaderOnce = true;
+                                    return resolve(response);
+                                } else {
                                     let response = {};
                                     response.node = xml.documentElement;
 
@@ -369,38 +409,7 @@ dav.tools = {
                                 }
                             }
 
-                        case 401: //AuthError
-                            {                               
-                                //handle nsIHttpChannel bug (https://bugzilla.mozilla.org/show_bug.cgi?id=669675)
-                                
-                                //these problematic hosts send a VALID Auth header, but TB is not able to parse it, we need to manually add a BASIC auth header
-                                //since the header cannot be parsed, TB will also not get the realm for this
-                                //currently there is no known CALDAV server, which is problematic (where we need the realm to pre-add the password so lightning does not prompt)
-                                //if this changes, we need a hardcoded list of problematic servers and their realm
-                                //I hope this bug gets fixed soon
 
-                                //should the channel have been able to authenticate (password is stored)?
-                                if (tbSync.dav.getPassword(account) !== null) {                                    
-                                    //did the channel try to authenticate?
-                                    let triedToAuthenticate;
-                                    try {
-                                        let header = request.getRequestHeader("Authorization");
-                                        triedToAuthenticate = true;
-                                    } catch (e) {
-                                        triedToAuthenticate = false;
-                                    }
-                                    
-                                    if (!triedToAuthenticate) {
-                                        let response = {};
-                                        response.retry = true;
-                                        return resolve(response);
-                                    }
-                                }
-                                
-                                return reject(dav.sync.failed("401"));
-                            }
-                            break;
-                            
                         case 200: //returned by DELETE by radicale - watch this !!!
                         case 204: //is returned by DELETE - no data
                         case 201: //is returned by CREATE - no data
