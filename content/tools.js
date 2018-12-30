@@ -302,9 +302,9 @@ dav.tools = {
                     } catch (ex) {
                         let error = tbSync.createTCPErrorFromFailedChannel(aLoader.request);
                         if (!error) {
-                            return reject(dav.sync.failed("networkerror"), request.URI.spec); //reject/resolve do not terminate control flow
+                            return reject(dav.sync.failed("networkerror", "URL:\n" + fullUrl + " ("+method+")")); //reject/resolve do not terminate control flow
                         } else {
-                            return reject(dav.sync.failed(error, request.URI.spec));
+                            return reject(dav.sync.failed(error, "URL:\n" + fullUrl + " ("+method+")"));
                         }
                     }
                     
@@ -330,7 +330,7 @@ dav.tools = {
                         case 207: //preprocess multiresponse
                             {
                                 let xml = dav.tools.convertToXML(text);
-                                if (xml === null) return reject(dav.sync.failed("maiformed-xml", "Request:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response));
+                                if (xml === null) return reject(dav.sync.failed("maiformed-xml", "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response));
 
                                 //the specs allow to  return a 207 with DAV:unauthenticated if not authenticated 
                                 if (xml.documentElement.getElementsByTagNameNS(dav.ns.d, "unauthenticated").length == 0) {
@@ -419,10 +419,10 @@ dav.tools = {
                                     }
                                 }
                                 //manually log this non-fatal error
-                                tbSync.errorlog(syncdata, "softerror::"+responseStatus, "Request:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response);
+                                tbSync.errorlog(syncdata, "softerror::"+responseStatus, "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response);
                                 return resolve(noresponse);
                             } else {
-                                return reject(dav.sync.failed(responseStatus, "Request:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response)); 
+                                return reject(dav.sync.failed(responseStatus, "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response)); 
                             }                                
                             break;
 
