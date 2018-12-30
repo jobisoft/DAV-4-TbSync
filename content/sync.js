@@ -66,9 +66,14 @@ dav.sync = {
         davjobs.cal.initialURL = tbSync.db.getAccountSetting(syncdata.account, "host");
         davjobs.card.initialURL = tbSync.db.getAccountSetting(syncdata.account, "host2");
         
+        let authenticationManager = Components.classes["@mozilla.org/network/http-auth-manager;1"].getService(Components.interfaces.nsIHttpAuthManager); 
+
         for (let job in davjobs) {
             if (!davjobs[job].run || !davjobs[job].initialURL) continue;
 
+            //clear credential cache, so the Channel will call nsIAuthPrompt2 and expose the realm (caldav and carddav could be on the same host but use different realms, so we reset for each type)
+            authenticationManager.clearAll();
+        
             //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncdata)
             //example state "getfolders" to get folder information from server
             //if you send a request to a server and thus have to wait for answer, use a "send." syncstate, which will give visual feedback to the user,
