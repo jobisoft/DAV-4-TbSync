@@ -371,6 +371,7 @@ dav.tools = {
                                 if (xml.documentElement.getElementsByTagNameNS(dav.ns.d, "unauthenticated").length != 0) {
                                     let response = {};
                                     response.retry = true;
+                                    //we have no information at all about allowed auth methods, try basic auth
                                     response.addBasicAuthHeaderOnce = true;
                                     return resolve(response);
                                 } else {
