@@ -482,10 +482,10 @@ var dav = {
 
         //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
         if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") && caltype == "caldav") {
-            tbSync.dump("NSIBUG Searching authRealm for", url.host);
+            tbSync.dump("Searching CalDAV authRealm for", url.host);
             let realm = (dav.listOfRealms.hasOwnProperty(url.host)) ? dav.listOfRealms[url.host] : "";
             if (realm !== "") {
-                tbSync.dump("NSIBUG Found authRealm",  realm);
+                tbSync.dump("Found CalDAV authRealm",  realm);
                 tbSync.setLoginInfo(url.prePath, realm, user, password);
             }
         }

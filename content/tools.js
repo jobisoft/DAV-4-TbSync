@@ -132,9 +132,10 @@ dav.tools = {
     //* * * * * * * * * * * * *
     
     Prompt: class {
-        constructor(aAccount) {
+        constructor(aAccount, aType) {
             this.mCounts = 0;
             this.mAccount = aAccount;
+            this.mType = aType;
         }
 
         // boolean promptAuth(in nsIChannel aChannel,
@@ -142,9 +143,11 @@ dav.tools = {
         //                    in nsIAuthInformation authInfo)
         promptAuth (aChannel, aLevel, aAuthInfo) {
             //store aAuthInfo.realm, needed later to setup lightning passwords
-            tbSync.dump("NSIBUG Found authRealm for <"+aChannel.URI.host+">", aAuthInfo.realm);
-            dav.listOfRealms[aChannel.URI.host] = aAuthInfo.realm;
-
+            if (this.mType == "cal") {
+                tbSync.dump("Found CalDAV authRealm for <"+aChannel.URI.host+">", aAuthInfo.realm);
+                dav.listOfRealms[aChannel.URI.host] = aAuthInfo.realm;
+            }
+            
             //get the password for this account from password manager
             let password = tbSync.dav.getPassword(this.mAccount);
             if (password !== null) {
@@ -260,10 +263,10 @@ dav.tools = {
                 tbSync.dump("Redirect #" + i, r.url);
             } else if (r && r.retry && r.retry === true) {
                 if (r.addBasicAuthHeaderOnce) {
-                    tbSync.dump("NSIBUG Retry on 401", "Manually adding basic auth header for <" + account.user + "@" + uri.host + ">");
+                    tbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + account.user + "@" + uri.host + ">");
                     headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.dav.getPassword(account));
                 } else if (!dav.problematicHosts.includes(uri.host) ) {
-                    tbSync.dump("NSIBUG Retry on 401", "Adding <" + uri.host + "> to list of problematic hosts.");
+                    tbSync.dump("BUG 669675", "Adding <" + uri.host + "> to list of problematic hosts.");
                     dav.problematicHosts.push(uri.host)
                 }
             } else {
@@ -445,7 +448,7 @@ dav.tools = {
                     if (aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
                         tbSync.dump("GET","nsIAuthPrompt2");
                         if (!this.authPrompt) {
-                            this.authPrompt = new dav.tools.Prompt(account);
+                            this.authPrompt = new dav.tools.Prompt(account, syncdata.type);
                         }
                         return this.authPrompt;
                     } else if (aIID.equals(Components.interfaces.nsIAuthPrompt)) {
