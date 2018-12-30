@@ -93,10 +93,9 @@ dav.sync = {
                 let addr = "/" + parts.join("/");                
                 
                 let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", addr , "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
-                if (response && response.error) continue;
 
                 tbSync.setSyncState("eval.folders", syncdata.account);
-                principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]);
+                if (response && response.multi) principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]);
             }
 
             //principal now contains something like "/remote.php/carddav/principals/john.bieling/"
@@ -107,6 +106,8 @@ dav.sync = {
 
                 tbSync.setSyncState("eval.folders", syncdata.account);
                 home = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], [job, davjobs[job].hometag], ["d","href"]], principal);
+            } else {
+                throw dav.sync.failed(job+"davservernotfound", davjobs[job].initialURL)
             }
 
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
