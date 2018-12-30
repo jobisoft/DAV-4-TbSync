@@ -275,8 +275,7 @@ dav.tools = {
     // Promisified implementation of Components.interfaces.nsIHttpChannel
     sendRequestCore: Task.async (function* (requestData, fullUrl, method, syncdata, headers, options, aUseStreamLoader) {
         let account = tbSync.db.getAccount(syncdata.account);
-        syncdata.request = requestData;
-        syncdata.response = "";
+        let responseData = "";
         
         //Note: 
         // - by specifying a user, the system falls back to user:<none>, which will trigger a 401 which will cause the authCallbacks and lets me set a new user/pass combination
@@ -313,7 +312,7 @@ dav.tools = {
                     
                     let text = dav.tools.convertByteArray(aResult, aResultLength);                    
                     if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("RESPONSE", responseStatus + " : " + text);
-                    syncdata.response = text.split("><").join(">\n<");
+                    responseData = text.split("><").join(">\n<");
                     
                     switch(responseStatus) {
                         case 301:
@@ -365,7 +364,7 @@ dav.tools = {
                         case 207: //preprocess multiresponse
                             {
                                 let xml = dav.tools.convertToXML(text);
-                                if (xml === null) return reject(dav.sync.failed("maiformed-xml", "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response));
+                                if (xml === null) return reject(dav.sync.failed("maiformed-xml", "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData));
 
                                 //the specs allow to  return a 207 with DAV:unauthenticated if not authenticated 
                                 if (xml.documentElement.getElementsByTagNameNS(dav.ns.d, "unauthenticated").length != 0) {
@@ -429,10 +428,10 @@ dav.tools = {
                                     }
                                 }
                                 //manually log this non-fatal error
-                                tbSync.errorlog(syncdata, "softerror::"+responseStatus, "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response);
+                                tbSync.errorlog(syncdata, "softerror::"+responseStatus, "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
                                 return resolve(noresponse);
                             } else {
-                                return reject(dav.sync.failed(responseStatus, "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + syncdata.request + "\n\nResponse:\n" + syncdata.response)); 
+                                return reject(dav.sync.failed(responseStatus, "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
                             }                                
                             break;
 
