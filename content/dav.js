@@ -630,7 +630,7 @@ var dav = {
         /**
          * Returns an array of folderRowData objects, containing all information needed
          * to fill the folderlist. The content of the folderRowData object is free to choose,
-         * it will be passed back to addRow() and updateRow()
+         * it will be passed back to getRow() and updateRow()
          *
          * @param account        [in] account id for which the folder data should be returned
          */
@@ -677,7 +677,7 @@ var dav = {
         /**
          * Returns a folderRowData object, containing all information needed to fill one row
          * in the folderlist. The content of the folderRowData object is free to choose, it
-         * will be passed back to addRow() and updateRow()
+         * will be passed back to getRow() and updateRow()
          *
          * Use tbSync.getSyncStatusMsg(folder, syncdata, provider) to get a nice looking
          * status message, including sync progress (if folder is synced)
@@ -722,7 +722,7 @@ var dav = {
          * @param rowData         [in] rowData object with all information needed to add the row
          * @param itemSelCheckbox [in] a checkbox object which can be used to allow the user to select/deselect this resource
          */        
-        addRow: function (document, newListItem, rowData, itemSelCheckbox) {
+        getRow: function (document, rowData, itemSelCheckbox) {
             //checkbox
             itemSelCheckbox.setAttribute("style", "margin: 3px; padding: 0;");
 
@@ -775,7 +775,7 @@ var dav = {
             row.appendChild(itemVGroup1);
             row.appendChild(itemVGroup2);            
             row.appendChild(itemVGroup3);            
-            newListItem.appendChild(row);                
+            return row;               
         },		
 
 
@@ -788,11 +788,11 @@ var dav = {
          * @param rowData        [in] rowData object with all information needed to add the row
          */        
         updateRow: function (document, item, rowData) {
-            item.childNodes[0].childNodes[1].childNodes[0].textContent = rowData.name;
+            if (item.childNodes[0].childNodes[1].childNodes[0].textContent != rowData.name) item.childNodes[0].childNodes[1].childNodes[0].textContent = rowData.name;
+            if (item.childNodes[0].childNodes[2].childNodes[0].textContent != rowData.statusMsg) item.childNodes[0].childNodes[2].childNodes[0].textContent = rowData.statusMsg;
             item.childNodes[0].childNodes[1].childNodes[0].setAttribute("disabled", !rowData.selected);
             item.childNodes[0].childNodes[1].childNodes[0].setAttribute("style", rowData.selected ? "" : "font-style:italic");
             item.childNodes[0].childNodes[2].childNodes[0].setAttribute("style", rowData.selected ? "" : "font-style:italic");
-            item.childNodes[0].childNodes[2].childNodes[0].textContent = rowData.statusMsg;
         },
 
 
