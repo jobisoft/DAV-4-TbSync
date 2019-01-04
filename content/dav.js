@@ -313,10 +313,9 @@ var dav = {
             "syncdefaultfolders" : "1",
             "useHomeAsPrimary" : "0",
             "useCache" : "1",
-            };
+            }; 
         return row;
     },
-
 
 
     /**
@@ -506,15 +505,14 @@ var dav = {
      *
      * TbSync will execute this only for queries longer than 3 chars.
      *
-     * DO NOT IMPLEMENT AT ALL, IF NOT SUPPORTED
-     *
      * @param account       [in] id of the account which should be searched
      * @param currentQuery  [in] search query
+     * @param caller  [in] "autocomplete" or "search"
+    
      */
-//        abServerSearch: Task.async (function* (account, currentQuery)  {
-//        let galdata = [];
-//        return galdata;
-//    }),
+    abServerSearch: Task.async (function* (account, currentQuery, caller)  {
+        return null;
+    }),
 
 
 
