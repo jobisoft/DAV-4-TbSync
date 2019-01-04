@@ -313,6 +313,7 @@ var dav = {
             "syncdefaultfolders" : "1",
             "useHomeAsPrimary" : "0",
             "useCache" : "1",
+            "useCardBook" : "0",
             }; 
         return row;
     },

@@ -30,6 +30,7 @@
 
 <!ENTITY pref.contactoptions "Kontakt Optionen">
 <!ENTITY pref.useHomeAsPrimary "Verwende die vCard E-Mail mit Typ 'HOME' (und nicht 'WORK') als primäre E-Mail Adresse">
+<!ENTITY pref.useCardBook "Erstelle CardBook-Adressbücher anstelle der Standard-Adressbücher von Thunderbird">
 
 <!ENTITY pref.calendaroptions "Kalender Optionen">
 <!ENTITY pref.useCache "Offline-Unterstützung">

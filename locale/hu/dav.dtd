@@ -30,6 +30,7 @@
 
 <!ENTITY pref.contactoptions "Névjegyzék beállításai">
 <!ENTITY pref.useHomeAsPrimary "Használja a vCard típusú „Otthoni” (és nem a „Munkahelyi”) e-mailt elsődleges e-mail címként">
+<!ENTITY pref.useCardBook "A Thunderbird alapértelmezett címjegyzéke helyett hozzon létre CardBook címjegyzékeket">
 
 <!ENTITY pref.calendaroptions "Naptár beállításai">
 <!ENTITY pref.useCache "Kapcsolat nélküli munka">

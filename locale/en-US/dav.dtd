@@ -30,6 +30,7 @@
 
 <!ENTITY pref.contactoptions "Contact options">
 <!ENTITY pref.useHomeAsPrimary "Use vCard email of type “HOME” (and not “WORK”) as primary email address">
+<!ENTITY pref.useCardBook "Create CardBook address books instead of Thunderbird's default address books">
 
 <!ENTITY pref.calendaroptions "Calendar options">
 <!ENTITY pref.useCache "Offline Support">
