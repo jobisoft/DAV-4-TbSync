@@ -97,8 +97,8 @@ var dav = {
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
 
         if (lightningIsAvail) {
-            cal.getCalendarManager().addObserver(tbSync.dav.calendarManagerObserver);    
-            cal.getCalendarManager().addCalendarObserver(tbSync.dav.calendarObserver);            
+            cal.getCalendarManager().addObserver(this.calendarManagerObserver);    
+            cal.getCalendarManager().addCalendarObserver(this.calendarObserver);            
         }
         
         //Migration - accounts without a serviceprovider setting only have a value in host
@@ -137,8 +137,8 @@ var dav = {
      */
     unload: function (lightningIsAvail) {
         if (lightningIsAvail) {
-            cal.getCalendarManager().removeObserver(tbSync.dav.calendarManagerObserver);
-            cal.getCalendarManager().removeCalendarObserver(tbSync.dav.calendarObserver);                        
+            cal.getCalendarManager().removeObserver(this.calendarManagerObserver);
+            cal.getCalendarManager().removeCalendarObserver(this.calendarObserver);                        
         }        
     },
 
