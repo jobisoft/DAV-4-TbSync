@@ -503,6 +503,8 @@ var dav = {
      * It is used for autocompletion while typing something into the address field of the message composer and for the address book search,
      * if something is typed into the search field of the Thunderbird address book.
      *
+     * DO NOT IMPLEMENT AT ALL, IF NOT SUPPORTED
+     *
      * TbSync will execute this only for queries longer than 3 chars.
      *
      * @param account       [in] id of the account which should be searched
@@ -510,9 +512,9 @@ var dav = {
      * @param caller  [in] "autocomplete" or "search"
     
      */
-    abServerSearch: Task.async (function* (account, currentQuery, caller)  {
-        return null;
-    }),
+    //abServerSearch: Task.async (function* (account, currentQuery, caller)  {
+    //    return null;
+    //}),
 
 
 
