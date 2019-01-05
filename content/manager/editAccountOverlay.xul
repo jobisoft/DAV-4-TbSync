@@ -77,7 +77,7 @@
                 <label style="margin-left:0; margin-bottom: 1ex; margin-top: 3ex" class="header lockIfConnected" value="&pref.contactoptions;"/>
                 <vbox>                            
                     <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useHomeAsPrimary" label="&pref.useHomeAsPrimary;" />
-                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useCardBook" label="&pref.useCardBook;" />
+                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useCardBook" hidden="true" label="&pref.useCardBook;" />
                 </vbox>
 
                 <label style="margin-left:0; margin-bottom: 1ex; margin-top: 3ex" class="header lockIfConnected" value="&pref.calendaroptions;"/>
