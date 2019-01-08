@@ -604,7 +604,8 @@ var dav = {
             } else {
                 //some other error
                 e.type = "JavaScriptError";
-                tbSync.finishAccountSync(syncdata, e); 
+                tbSync.finishAccountSync(syncdata, e);
+                Components.utils.reportError(e);
             }
         }
     }),
