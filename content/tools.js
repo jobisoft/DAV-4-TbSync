@@ -557,6 +557,24 @@ dav.tools = {
         return null;
     },
 
+    getNodesTextContentFromMultiResponse: function (response, path, href = null, status = "200") {
+        //remove last element from path
+        let lastPathElement = path.pop();
+        let rv = [];
+        
+        for (let i=0; i < response.multi.length; i++) {
+            let node = dav.tools.evaluateNode(response.multi[i].node, path);
+            if (node !== null && (href === null || response.multi[i].href == href || decodeURIComponent(response.multi[i].href) == href || response.multi[i].href == decodeURIComponent(href)) && response.multi[i].status == status) {
+                //get all children
+                let children = node.getElementsByTagNameNS(dav.ns[lastPathElement[0]], lastPathElement[1]);
+                for (let c=0; c < children.length; c++) {
+                    if (children[c].textContent) rv.push(children[c].textContent);
+                }
+            }
+        }
+        return rv;
+    },
+    
     getMultiGetRequest: function(hrefs) {
         let request = "<card:addressbook-multiget "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /><card:address-data /></d:prop>";
         let counts = 0;
