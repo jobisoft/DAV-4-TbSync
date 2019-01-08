@@ -333,7 +333,9 @@ var dav = {
 
             "url" : "",
             "name" : "",
-            "type" : "",
+            "type" : "", //cladav, carddav or ics
+            "shared": "", //identify shared resources
+            "acl": "", //acl send from server
             "target" : "",
             "targetName" : "",
             "targetColor" : "",
@@ -465,7 +467,7 @@ var dav = {
         let caltype = tbSync.db.getFolderSetting(account, folderID, "type");
         
         let baseUrl = "";
-        if (caltype == "caldav") {
+        if (caltype != "ics") {
             baseUrl =  "http" + (accountdata.https == "1" ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getFolderSetting(account, folderID, "fqdn");
         }
 
@@ -481,7 +483,7 @@ var dav = {
         newCalendar.setProperty("cache.enabled", (tbSync.db.getAccountSetting(account, "useCache") == "1"));
 
         //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
-        if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") && caltype == "caldav") {
+        if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") && caltype != "ics") {
             tbSync.dump("Searching CalDAV authRealm for", url.host);
             let realm = (dav.listOfRealms.hasOwnProperty(url.host)) ? dav.listOfRealms[url.host] : "";
             if (realm !== "") {
@@ -604,7 +606,8 @@ var dav = {
             } else {
                 //some other error
                 e.type = "JavaScriptError";
-                tbSync.finishAccountSync(syncdata, e); 
+                tbSync.finishAccountSync(syncdata, e);
+                Components.utils.reportError(e);
             }
         }
     }),
@@ -643,22 +646,27 @@ var dav = {
             //must contain the sort key and the associated folderId
             let toBeSorted = [];
             for (let i=0; i < folderIDs.length; i++) {
-                let t = "";
+                let t = 100;
                 switch (folders[folderIDs[i]].type) {
                     case "carddav": 
-                        t="0"; 
+                        t+=0; 
                         break;
                     case "caldav": 
-                        t="1"; 
+                        t+=1; 
                         break;
                     case "ics": 
-                        t="2"; 
+                        t+=2; 
                         break;
                     default:
-                        t="9";
+                        t+=9;
                         break;
                 }
-                toBeSorted.push({"key": t + folders[folderIDs[i]].name, "id": folderIDs[i]});
+
+                if (folders[folderIDs[i]].shared == "1") {
+                    t+=100;
+                }
+                
+                toBeSorted.push({"key": t.toString() + folders[folderIDs[i]].name, "id": folderIDs[i]});
             }
             
             //sort
@@ -692,6 +700,7 @@ var dav = {
             rowData.folderID = folder.folderID;
             rowData.selected = (folder.selected == "1");
             rowData.type = folder.type;
+            rowData.shared = folder.shared;
             rowData.name = folder.name;
             rowData.statusCode = folder.status;
             rowData.statusMsg = tbSync.getSyncStatusMsg(folder, syncdata, "dav");
@@ -729,8 +738,8 @@ var dav = {
 
             //icon
             let itemType = document.createElement("image");
-            itemType.setAttribute("src", tbSync.dav.folderList.getTypeImage(rowData.type));
-            itemType.setAttribute("style", "margin: 2px 3px 0px 3px;");
+            itemType.setAttribute("src", tbSync.dav.folderList.getTypeImage(rowData));
+            itemType.setAttribute("style", "margin: 4px 3px 0px 3px;");
 
             //folder name
             let itemLabel = document.createElement("description");
@@ -799,17 +808,26 @@ var dav = {
 
 
         /**
-         * Return the icon used in the folderlist to represent the different folder types
+         * Return the icon used in the folderlist to represent the different folder types 
+         * Not part of API, only called by getRow
          *
-         * @param type       [in] provider folder type
+         * @param rowData       [in] rowData object
          */
-        getTypeImage: function (type) {
+        getTypeImage: function (rowData) {
             let src = "";
-            switch (type) {
+            switch (rowData.type) {
                 case "carddav":
-                    return "chrome://tbsync/skin/contacts16.png";
+                    if (rowData.shared == "1") {
+                        return "chrome://tbsync/skin/contacts16_shared.png";
+                    } else {
+                        return "chrome://tbsync/skin/contacts16.png";
+                    }
                 case "caldav":
-                    return "chrome://tbsync/skin/calendar16.png";
+                    if (rowData.shared == "1") {
+                        return "chrome://tbsync/skin/calendar16_shared.png";
+                    } else {
+                        return "chrome://tbsync/skin/calendar16.png";
+                    }
                 case "ics":
                     return "chrome://dav4tbsync/skin/ics16.png";
             }
