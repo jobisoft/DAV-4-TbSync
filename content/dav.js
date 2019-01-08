@@ -371,7 +371,7 @@ var dav = {
      * @param type       [in] provider folder type
      */
     getThunderbirdFolderType: function(type) {
-        switch (type.split("::")[0]) { //cut of ro/rw extension
+        switch (type) {
             case "carddav":
                 return "tb-contact";
             case "caldav":
@@ -474,7 +474,7 @@ var dav = {
         let url = dav.tools.parseUri(baseUrl + folderID);        
         tbSync.db.setFolderSetting(account, folderID, "url", url.spec);
 
-        let newCalendar = calManager.createCalendar(caltype.split("::")[0], url); //caldav or ics with removed ro/rw extensions for shared resources
+        let newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
         newCalendar.id = cal.getUUID();
         newCalendar.name = newname;
 
