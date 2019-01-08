@@ -369,7 +369,7 @@ var dav = {
      * @param type       [in] provider folder type
      */
     getThunderbirdFolderType: function(type) {
-        switch (type) {
+        switch (type.split("::")[0]) { //cut of ro/rw extension
             case "carddav":
                 return "tb-contact";
             case "caldav":
@@ -465,14 +465,14 @@ var dav = {
         let caltype = tbSync.db.getFolderSetting(account, folderID, "type");
         
         let baseUrl = "";
-        if (caltype == "caldav") {
+        if (caltype != "ics") {
             baseUrl =  "http" + (accountdata.https == "1" ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getFolderSetting(account, folderID, "fqdn");
         }
 
         let url = dav.tools.parseUri(baseUrl + folderID);        
         tbSync.db.setFolderSetting(account, folderID, "url", url.spec);
 
-        let newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
+        let newCalendar = calManager.createCalendar(caltype.split("::")[0], url); //caldav or ics with removed ro/rw extensions for shared resources
         newCalendar.id = cal.getUUID();
         newCalendar.name = newname;
 
@@ -481,7 +481,7 @@ var dav = {
         newCalendar.setProperty("cache.enabled", (tbSync.db.getAccountSetting(account, "useCache") == "1"));
 
         //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
-        if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") && caltype == "caldav") {
+        if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") && caltype != "ics") {
             tbSync.dump("Searching CalDAV authRealm for", url.host);
             let realm = (dav.listOfRealms.hasOwnProperty(url.host)) ? dav.listOfRealms[url.host] : "";
             if (realm !== "") {
@@ -649,10 +649,14 @@ var dav = {
                         t="0"; 
                         break;
                     case "caldav": 
+                    case "caldav::rw": 
                         t="1"; 
                         break;
-                    case "ics": 
+                    case "caldav::ro": 
                         t="2"; 
+                        break;
+                    case "ics": 
+                        t="3"; 
                         break;
                     default:
                         t="9";
@@ -809,7 +813,10 @@ var dav = {
                 case "carddav":
                     return "chrome://tbsync/skin/contacts16.png";
                 case "caldav":
+                case "caldav::rw":
                     return "chrome://tbsync/skin/calendar16.png";
+                case "caldav::ro":
+                    return "chrome://dav4tbsync/skin/calendar16_RO.png";
                 case "ics":
                     return "chrome://dav4tbsync/skin/ics16.png";
             }

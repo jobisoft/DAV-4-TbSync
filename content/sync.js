@@ -37,7 +37,7 @@ dav.sync = {
         //Method description: http://sabre.io/dav/building-a-caldav-client/
 
         //get all folders currently known
-        let folderTypes = ["caldav", "carddav", "ics"];
+        let folderTypes = ["caldav", "caldav::ro", "caldav::rw", "carddav", "ics"];
         let unhandledFolders = {};
         for (let t of folderTypes) {
             unhandledFolders[t] = [];
@@ -115,13 +115,13 @@ dav.sync = {
 
                 tbSync.setSyncState("eval.folders", syncdata.account);
                 let h = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], principal);
-                if (h) home.push(h);
+                if (h) home.push({mode: "", href: h});
 
                 if (job == "cal") {
                     let r = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["cs", "calendar-proxy-read-for" ], ["d","href"]], principal);
                     let w = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["cs", "calendar-proxy-write-for" ], ["d","href"]], principal);
-                    if (r) home.push(r);
-                    if (w) home.push(w);
+                    if (r) home.push({mode: "::ro", href: r});
+                    if (w) home.push({mode: "::rw", href: w});
                 }
                 
             } else {
@@ -137,7 +137,7 @@ dav.sync = {
                                             ? "<d:propfind "+dav.tools.xmlns(["d","apple","cs"])+"><d:prop><d:resourcetype /><d:displayname /><apple:calendar-color/><cs:source/></d:prop></d:propfind>"
                                             : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
 
-                    let response = yield dav.tools.sendRequest(request, home[h], "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
+                    let response = yield dav.tools.sendRequest(request, home[h].href, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
                     
                     for (let r=0; r < response.multi.length; r++) {
                         if (response.multi[r].status != "200") continue;
@@ -155,6 +155,9 @@ dav.sync = {
                                 break;
                         }
                         if (resourcetype === null) continue;
+                        
+                        //append rw/ro mode
+                        resourcetype = resourcetype + home[h].mode;
                         
                         let href = response.multi[r].href;
                         if (resourcetype == "ics") href =  dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cs","source"], ["d","href"]]).textContent;
@@ -210,6 +213,8 @@ dav.sync = {
                         
                     case "cal":
                             unhandledFolders.caldav = [];
+                            unhandledFolders["caldav::ro"] = [];
+                            unhandledFolders["caldav::rw"] = [];
                             unhandledFolders.ics = [];
                         break;
                 }
@@ -269,6 +274,8 @@ dav.sync = {
                         }
                         break;
 
+                    case "caldav::rw":
+                    case "caldav::ro":
                     case "caldav":
                     case "ics":
                         {
