@@ -16,7 +16,6 @@ syncstate.send.request.remotechanges=Várakozás a távoli változtatások
 syncstate.eval.response.remotechanges=A távoli változtatások feldolgozása
 
 status.notsyncronized=A fiókját összehangolni kell. Legalább egy elem összehangolatlan.
-status.needtorevert=A fiókot összehangolni kell a helyi változtatások visszaállítása érdekében (egyirányú összehangolás).
 status.disabled=A fiók nem engedélyezett, az összehangolás le van tiltva.
 status.notargets=A összehangolás abbahagyása, mert a összehangolási célokat nem lehetett létrehozni.
 status.nouserhost=A felhasználónév és/vagy kiszolgáló hiányzik. Kérjük, adja meg ezeket az értékeket.

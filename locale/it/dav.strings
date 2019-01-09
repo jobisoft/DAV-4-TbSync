@@ -16,7 +16,6 @@ syncstate.send.request.remotechanges=In attesa delle modifiche remote
 syncstate.eval.response.remotechanges=Elaborazione modifiche remote in corso
 
 status.notsyncronized=L'account deve essere sincronizzato, almeno un elemento non è sincronizzato.
-status.needtorevert=L'account deve essere sincronizzato per eliminare le modifiche locali (sincronizzazione a una via).
 status.disabled=L'account non è abilitato, la sincronizzazione è disabilitata.
 status.notargets=Interruzione sincronizzazione in corso: non è possibile creare le destinazioni sincronizzazione.
 status.nouserhost=Nome utente e/o server mancanti. Fornire tali valori.

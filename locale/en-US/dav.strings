@@ -16,7 +16,6 @@ syncstate.send.request.remotechanges=Waiting for remote changes
 syncstate.eval.response.remotechanges=Processing remote changes
 
 status.notsyncronized=Account needs to be synchronized, at least one item is out of sync.
-status.needtorevert=Account needs to be synchronized to revert local changes (one-way sync).
 status.disabled=Account is not enabled, synchronization is disabled.
 status.notargets=Aborting synchronization, because sync targets could not be created.
 status.nouserhost=Missing username and/or server. Please provide those values.
@@ -83,8 +82,8 @@ add.serverprofile.gmx.net.description=https://www.gmx.net
 add.serverprofile.gmx.com=GMX.com (USA)
 add.serverprofile.gmx.com.description=https://www.gmx.com
 
-acl.readwrite=Two-way synchronization (write permissions: ##replace.1##)
-acl.readonly=One-way synchronization (read-only)
+acl.readwrite=Two-way synchronization (server write permissions: ##replace.1##)
+acl.readonly=One-way synchronization (read-only server access, revert local changes)
 acl.modify=modify
 acl.add=add
 acl.delete=delete
