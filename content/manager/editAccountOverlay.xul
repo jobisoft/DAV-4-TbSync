@@ -69,12 +69,9 @@
 
     <tabpanel id="manager.tabpanels.syncsettings" appendto="manager.tabpanels" flex="1" orient="vertical"><!-- SYNC SETTINGS -->
           <vbox flex="1">
-                <label style="margin-left:0; margin-bottom: 1ex;" class="header lockIfConnected" value="&pref.generaloptions;"/>
-                <vbox>
-                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.downloadonly" label="&pref.downloadonly;"  />
-                </vbox>
+                <!--label style="margin-left:0; margin-bottom: 1ex;" class="header lockIfConnected" value="&pref.generaloptions;"/-->
 
-                <label style="margin-left:0; margin-bottom: 1ex; margin-top: 3ex" class="header lockIfConnected" value="&pref.contactoptions;"/>
+                <label style="margin-left:0; margin-bottom: 1ex;" class="header lockIfConnected" value="&pref.contactoptions;"/>
                 <vbox>                            
                     <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useHomeAsPrimary" label="&pref.useHomeAsPrimary;" />
                     <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useCardBook" hidden="true" label="&pref.useCardBook;" />

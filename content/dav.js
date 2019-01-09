@@ -312,10 +312,8 @@ var dav = {
             "user" : "",
             "https" : "1",
             "autosync" : "0",
-            "downloadonly" : "0",
             "createdWithProviderVersion" : "0",
-            //some example options
-            "syncdefaultfolders" : "1",
+
             "useHomeAsPrimary" : "0",
             "useCache" : "1",
             "useCardBook" : "0",
@@ -351,7 +349,7 @@ var dav = {
             "useChangeLog" : "1", //log changes into changelog
             "ctag" : "",
             "token" : "",
-            "downloadonly" : tbSync.db.getAccountSetting(account, "downloadonly"), //each folder has its own settings, the main setting is just the default,
+            "downloadonly" : "0",
             "createdWithProviderVersion" : "0",
             };
         return folder;
@@ -470,7 +468,8 @@ var dav = {
         let password = tbSync.dav.getPassword(accountdata);
         let user = accountdata.user;
         let caltype = tbSync.db.getFolderSetting(account, folderID, "type");
-        
+        let downloadonly = (tbSync.db.getFolderSetting(account, folderID, "downloadonly") == "1");
+
         let baseUrl = "";
         if (caltype != "ics") {
             baseUrl =  "http" + (accountdata.https == "1" ? "s" : "") + "://" + (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getFolderSetting(account, folderID, "fqdn");
@@ -486,6 +485,7 @@ var dav = {
         newCalendar.setProperty("color", tbSync.db.getFolderSetting(account, folderID, "targetColor"));
         newCalendar.setProperty("calendar-main-in-composite", true);
         newCalendar.setProperty("cache.enabled", (tbSync.db.getAccountSetting(account, "useCache") == "1"));
+        if (downloadonly) newCalendar.setProperty("readOnly", true);
 
         //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
         if (!tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl") && caltype != "ics") {
@@ -702,10 +702,13 @@ var dav = {
          */
         getRowData: function (folder, syncdata = null) {
             let rowData = {};
+            rowData.account = folder.account;
             rowData.folderID = folder.folderID;
             rowData.selected = (folder.selected == "1");
             rowData.type = folder.type;
             rowData.shared = folder.shared;
+            rowData.downloadonly = folder.downloadonly;
+            rowData.acl = folder.acl;
             rowData.name = folder.name;
             rowData.statusCode = folder.status;
             rowData.statusMsg = tbSync.getSyncStatusMsg(folder, syncdata, "dav");
@@ -721,14 +724,34 @@ var dav = {
          */
         getHeader: function () {
             return [
-                {style: "font-weight:bold;", label: "", width: "50"},
+                {style: "font-weight:bold;", label: "", width: "93"},
                 {style: "font-weight:bold;", label: tbSync.getLocalizedMessage("manager.resource"), width:"150"},
                 {style: "font-weight:bold;", label: tbSync.getLocalizedMessage("manager.status"), flex :"1"},
             ]
         },
 
 
-
+        //not part of API
+        updateReadOnly: function (account, folderID, value) {
+            let type = tbSync.db.getFolderSetting(account, folderID, "type");
+            tbSync.db.setFolderSetting(account, folderID, "downloadonly", value);
+            switch (type) {
+                case "carddav":
+                    break;
+                case "caldav":
+                case "ics":
+                    {
+                        let target = tbSync.db.getFolderSetting(account, folderID, "target");
+                        if (target != "") {
+                            let calManager = cal.getCalendarManager();
+                            let targetCal = calManager.getCalendarById(target); 
+                            targetCal.setProperty("readOnly", value == '1');
+                        }
+                    }
+                    break;
+            }
+        },
+        
         /**
          * Is called to add a row to the folderlist. After this call, updateRow is called as well.
          *
@@ -739,12 +762,47 @@ var dav = {
          */        
         getRow: function (document, rowData, itemSelCheckbox) {
             //checkbox
-            itemSelCheckbox.setAttribute("style", "margin: 4px 3px 0px 3px;");
+            itemSelCheckbox.setAttribute("style", "margin: 0px 0px 0px 3px;");
 
             //icon
             let itemType = document.createElement("image");
             itemType.setAttribute("src", tbSync.dav.folderList.getTypeImage(rowData));
-            itemType.setAttribute("style", "margin: 4px 3px 0px 3px;");
+            itemType.setAttribute("style", "margin: 0px 9px 0px 3px;");
+
+            //ACL                 
+            let itemACL = document.createElement("button");
+            itemACL.setAttribute("image", "chrome://tbsync/skin/acl_" + (rowData.downloadonly == "1" ? "ro" : "rw") + ".png");
+            itemACL.setAttribute("class", "plain");
+            itemACL.setAttribute("style", "width: 35px; min-width: 35px; margin: 0; height:26px");
+            itemACL.setAttribute("account", rowData.account);
+            itemACL.setAttribute("folderID", rowData.folderID);
+            itemACL.setAttribute("type", "menu");
+            let menupopup = document.createElement("menupopup");
+                let menuitem1 = document.createElement("menuitem");
+                menuitem1.setAttribute("value", "1");
+                menuitem1.setAttribute("class", "menuitem-iconic");
+                menuitem1.setAttribute("label", tbSync.getLocalizedMessage("acl.readonly", "dav"));
+                menuitem1.setAttribute("image", "chrome://tbsync/skin/acl_ro2.png");
+                menuitem1.setAttribute("oncommand", "let p = this.parentNode.parentNode; p.setAttribute('image','chrome://tbsync/skin/acl_ro.png'); tbSync.dav.folderList.updateReadOnly(p.getAttribute('account'), p.getAttribute('folderID'), '1');"  );
+
+                let acl = parseInt(rowData.acl);
+                let acls = [];
+                if (acl & 0x2) acls.push(tbSync.getLocalizedMessage("acl.modify", "dav"));
+                if (acl & 0x4) acls.push(tbSync.getLocalizedMessage("acl.add", "dav"));
+                if (acl & 0x8) acls.push(tbSync.getLocalizedMessage("acl.delete", "dav"));
+                if (acls.length == 0)  acls.push(tbSync.getLocalizedMessage("acl.none", "dav"));
+
+                let menuitem2 = document.createElement("menuitem");
+                menuitem1.setAttribute("value", "0");
+                menuitem2.setAttribute("class", "menuitem-iconic");
+                menuitem2.setAttribute("label", tbSync.getLocalizedMessage("acl.readwrite::"+acls.join(", "), "dav"));
+                menuitem2.setAttribute("image", "chrome://tbsync/skin/acl_rw2.png");
+                menuitem2.setAttribute("disabled", (acl & 0x7) != 0x7);                
+                menuitem2.setAttribute("oncommand", "let p = this.parentNode.parentNode; p.setAttribute('image','chrome://tbsync/skin/acl_rw.png');  tbSync.dav.folderList.updateReadOnly(p.getAttribute('account'), p.getAttribute('folderID'), '0');"  );
+
+                menupopup.appendChild(menuitem2);
+                menupopup.appendChild(menuitem1);
+            itemACL.appendChild(menupopup);
 
             //folder name
             let itemLabel = document.createElement("description");
@@ -759,9 +817,10 @@ var dav = {
             itemHGroup1.setAttribute("align", "center");
             itemHGroup1.appendChild(itemSelCheckbox);
             itemHGroup1.appendChild(itemType);
+            itemHGroup1.appendChild(itemACL);
 
             let itemVGroup1 = document.createElement("vbox");
-            itemVGroup1.setAttribute("width", "53");
+            itemVGroup1.setAttribute("width", "93");
             itemVGroup1.appendChild(itemHGroup1);
 
             //group2
@@ -777,7 +836,7 @@ var dav = {
             //group3
             let itemHGroup3 = document.createElement("hbox");
             itemHGroup3.setAttribute("align", "center");
-            itemHGroup3.setAttribute("width", "250");
+            itemHGroup3.setAttribute("width", "200");
             itemHGroup3.appendChild(itemStatus);
 
             let itemVGroup3 = document.createElement("vbox");
@@ -803,6 +862,16 @@ var dav = {
          * @param rowData        [in] rowData object with all information needed to add the row
          */        
         updateRow: function (document, item, rowData) {
+            //acl image
+            item.childNodes[0].childNodes[0].childNodes[0].childNodes[2].setAttribute("image", "chrome://tbsync/skin/acl_" + (rowData.downloadonly == "1" ? "ro" : "rw") + ".png");
+
+            //select checkbox
+            if (rowData.selected) {
+                item.childNodes[0].childNodes[0].childNodes[0].childNodes[0].setAttribute("checked", true);
+            } else {
+                item.childNodes[0].childNodes[0].childNodes[0].childNodes[0].removeAttribute("checked");
+            }
+            
             if (item.childNodes[0].childNodes[1].childNodes[0].textContent != rowData.name) item.childNodes[0].childNodes[1].childNodes[0].textContent = rowData.name;
             if (item.childNodes[0].childNodes[2].childNodes[0].textContent != rowData.statusMsg) item.childNodes[0].childNodes[2].childNodes[0].textContent = rowData.statusMsg;
             item.childNodes[0].childNodes[1].childNodes[0].setAttribute("disabled", !rowData.selected);

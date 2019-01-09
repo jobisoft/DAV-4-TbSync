@@ -120,16 +120,11 @@ dav.sync = {
                 home = home.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["cs", "calendar-proxy-write-for" ], ["d","href"]], principal));
 
                 //Any groups we need to find? Only diving one level at the moment, 
-                //as it looks like servers which support this are flattening the hierarchy.
-                //This saves us to handle loops.
-                let g;
-                //do {
-                    g = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["d", "group-membership" ], ["d","href"]], principal);
-                    for (let gc=0; gc < g.length; gc++) {
-                        response = yield dav.tools.sendRequest(request, g[gc], "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
-                        home = home.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], g[gc]));
-                    }
-                //} while (g.length > 0);
+                let g = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["d", "group-membership" ], ["d","href"]], principal);
+                for (let gc=0; gc < g.length; gc++) {
+                    response = yield dav.tools.sendRequest(request, g[gc], "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                    home = home.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], g[gc]));
+                }
 
                 //calendar-proxy and group-membership could have returned the same values, make the homeset unique
                 home = home.filter((v,i,a) => a.indexOf(v) == i);
@@ -211,6 +206,7 @@ dav.sync = {
                             newFolder.type = resourcetype;
                             newFolder.shared = (own.includes(home[h])) ? "0" : "1";
                             newFolder.acl = acl.toString();
+                            newFolder.downloadonly = (acl == 0x1) ? "1" : "0"; //if any write access is granted, setup as writeable
                                 
                             newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
                             newFolder.selected = "0";
@@ -223,6 +219,10 @@ dav.sync = {
                             tbSync.db.setFolderSetting(syncdata.account, href, "name", name);
                             tbSync.db.setFolderSetting(syncdata.account, href, "fqdn", syncdata.fqdn);
                             tbSync.db.setFolderSetting(syncdata.account, href, "acl", acl);
+                            //if the acl changed from RW to RO we need to update the downloadonly setting
+                            if (acl == 0x1) {
+                                tbSync.db.setFolderSetting(syncdata.account, href, "downloadonly", "1");
+                            }
                         }
 
                         //update color from server
@@ -327,6 +327,10 @@ dav.sync = {
                             let targetCal = calManager.getCalendarById(target);
                             targetCal.refresh();
                             tbSync.db.clearChangeLog(target);
+
+                            //update downloadonly
+                            if (tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "downloadonly") == "1") targetCal.setProperty("readOnly", true);
+
                             throw dav.sync.succeeded("managed-by-lightning");
                         }
                         break;
@@ -638,8 +642,14 @@ dav.sync = {
 
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
         let addressBook = abManager.getDirectory(syncdata.targetId);
-        let permissionError = syncdata.downloadonly; //start with "permissionError", if the user has set this to downloadonly
-
+        
+        let permissionErrors = 0;
+        let permissionError = { //keep track of permission errors - preset with downloadonly status to skip sync in that case
+            "added_by_user": syncdata.downloadonly, 
+            "modified_by_user": syncdata.downloadonly, 
+            "deleted_by_user": syncdata.downloadonly
+        }; 
+        
         do {
             tbSync.setSyncState("prepare.request.localchanges", syncdata.account, syncdata.folderID);
 
@@ -653,8 +663,8 @@ dav.sync = {
                     case "added_by_user":
                     case "modified_by_user":
                         {
-                            if (!permissionError) { //no need to do any other requests, if there was a permission error already
-                                let isAdding = (changes[i].status == "added_by_user");
+                            let isAdding = (changes[i].status == "added_by_user");
+                            if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
                                 let vcard = dav.tools.getVCardFromThunderbirdCard (syncdata, addressBook, changes[i].id, isAdding);
                                 let headers = {"Content-Type": "text/vcard; charset=utf-8"};
                                 //if (!isAdding) options["If-Match"] = vcard.etag;
@@ -664,30 +674,34 @@ dav.sync = {
 
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
                                 if (response && response.softerror) {
-                                    permissionError = true;
+                                    permissionError[changes[i].status] = true;
+                                    tbSync.errorlog(syncdata, "missing-permission::" + tbSync.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
                                 }
                             }
 
-                            if (permissionError) {
+                            if (permissionError[changes[i].status]) {
                                 dav.tools.invalidateThunderbirdCard(syncdata, addressBook, changes[i].id);
+                                permissionErrors--;
                             }
                         }
                         break;
 
                     case "deleted_by_user":
                         {
-                            if (!permissionError) { //no need to do any other requests, if there was a permission error already
+                            if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
                                 tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
-                                let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata);
+                                let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {}, {softfail: [403, 405]});
 
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
-                                if (response && [403,405].includes(response.error)) {
-                                    permissionError = true;
+                                if (response  && response.softerror) {
+                                    permissionError[changes[i].status] = true;
+                                    tbSync.errorlog(syncdata, "missing-permission::" + tbSync.getLocalizedMessage("acl.delete", "dav"));
                                 }
                             }
 
-                            if (permissionError) {
+                            if (permissionError[changes[i].status]) {
                                 tbSync.db.addItemToChangeLog(syncdata.targetId, changes[i].id, "deleted_by_server");
+                                permissionErrors--;                                
                             }
                         }
                         break;
@@ -700,8 +714,8 @@ dav.sync = {
 
         } while (true);
 
-        //return number of modified cards or -1 on permission error
-        return (permissionError ? -1 : syncdata.done);
+        //return number of modified cards or the number of permission errors (negativ)
+        return (permissionErrors < 0 ? permissionErrors : syncdata.done);
     }),
 
 
