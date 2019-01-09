@@ -38,20 +38,22 @@ var dav = {
     problematicHosts: [],
     
     calendarManagerObserver : {
-        onCalendarRegistered : function (aCalendar) { 
-            
-            //identify a calendar which has been deleted and is now being recreated by lightning (not TbSync) - which is probably due to changing the offline support option
-            let folders =  tbSync.db.findFoldersWithSetting(["status"], ["aborted"]); //if it is pending status, we are creating it, not someone else
-            for (let f=0; f < folders.length; f++) {
-                let provider = tbSync.db.getAccountSetting(folders[f].account, "provider");
-            
-                //only act on dav calendars which have the same uri
-                if (provider == "dav" && folders[f].selected == "1" && folders[f].url == aCalendar.uri.spec) {
-                    tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "status", "OK");
-                    //add target to re-take control
-                    tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "target", aCalendar.id);
-                    //update settings window, if open
-                    Services.obs.notifyObservers(null, "tbsync.updateSyncstate", folders[f].account);
+        onCalendarRegistered : function (aCalendar) {
+            //this observer can go stale, if something bad happens during load and the unload is never called
+            if (tbSync) {
+                //identify a calendar which has been deleted and is now being recreated by lightning (not TbSync) - which is probably due to changing the offline support option
+                let folders =  tbSync.db.findFoldersWithSetting(["status"], ["aborted"]); //if it is pending status, we are creating it, not someone else
+                for (let f=0; f < folders.length; f++) {
+                    let provider = tbSync.db.getAccountSetting(folders[f].account, "provider");
+                
+                    //only act on dav calendars which have the same uri
+                    if (provider == "dav" && folders[f].selected == "1" && folders[f].url == aCalendar.uri.spec) {
+                        tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "status", "OK");
+                        //add target to re-take control
+                        tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "target", aCalendar.id);
+                        //update settings window, if open
+                        Services.obs.notifyObservers(null, "tbsync.updateSyncstate", folders[f].account);
+                    }
                 }
             }
         },
@@ -71,13 +73,16 @@ var dav = {
 
         //Properties of the calendar itself (name, color etc.)
         onPropertyChanged : function (aCalendar, aName, aValue, aOldValue) {
-            let folders = tbSync.db.findFoldersWithSetting(["target"], [aCalendar.id]);
-            if (folders.length == 1) {
-                switch (aName) {
-                    case "color":
-                        //update stored color to recover after disable
-                        dav.tools.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folders[0].folderID, "PROPPATCH", {account: folders[0].account, fqdn: folders[0].fqdn});
-                        break;
+            //this observer can go stale, if something bad happens during load and the unload is never called
+            if (tbSync) {
+                let folders = tbSync.db.findFoldersWithSetting(["target"], [aCalendar.id]);
+                if (folders.length == 1) {
+                    switch (aName) {
+                        case "color":
+                            //update stored color to recover after disable
+                            dav.tools.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folders[0].folderID, "PROPPATCH", {account: folders[0].account, fqdn: folders[0].fqdn});
+                            break;
+                    }
                 }
             }
         },
@@ -97,8 +102,8 @@ var dav = {
         yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
 
         if (lightningIsAvail) {
-            cal.getCalendarManager().addObserver(this.calendarManagerObserver);    
-            cal.getCalendarManager().addCalendarObserver(this.calendarObserver);            
+            cal.getCalendarManager().addObserver(tbSync.dav.calendarManagerObserver);    
+            cal.getCalendarManager().addCalendarObserver(tbSync.dav.calendarObserver);            
         }
         
         //Migration - accounts without a serviceprovider setting only have a value in host
@@ -137,8 +142,8 @@ var dav = {
      */
     unload: function (lightningIsAvail) {
         if (lightningIsAvail) {
-            cal.getCalendarManager().removeObserver(this.calendarManagerObserver);
-            cal.getCalendarManager().removeCalendarObserver(this.calendarObserver);                        
+            cal.getCalendarManager().removeObserver(tbSync.dav.calendarManagerObserver);
+            cal.getCalendarManager().removeCalendarObserver(tbSync.dav.calendarObserver);                        
         }        
     },
 
