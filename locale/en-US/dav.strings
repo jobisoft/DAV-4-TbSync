@@ -40,9 +40,10 @@ status.invalid-uri=Found invalid URI, aborting synchronization.
 status.unsupported_auth_method=Server requested unsupported authentication method (##replace.1##).
 status.OK.managed-by-lightning=Lightning
 status.OK.caldav-calendar-already-exists=Calendar already exists
-status.info.restored=No write permissions, reverted.
+status.info.restored=Due to partially missing write permissions, some actions were rejected by the server and reversed locally.
 status.maiformed-xml=Could not parse XML. Check error log for details. 
 status.service-discovery-failed=sabre/dav service discovery failed for this server.
+status.missing-permission=Missing permission: ##replace.1##
 
 status.OK.managedbylightning=Calendar managed by Lightning.
 

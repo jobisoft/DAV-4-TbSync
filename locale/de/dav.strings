@@ -40,9 +40,10 @@ status.invalid-uri=Fehlerhafte URI erhalten, Sync abgebrochen.
 status.unsupported_auth_method=Server verlangt unbekannte Authentifizierungsmethode (##replace.1##).
 status.OK.managed-by-lightning=Lightning
 status.OK.caldav-calendar-already-exists=Kalender existiert bereits
-status.info.restored=Adressbuch wegen fehlender Schreibrechte zurückgesetzt.
+status.info.restored=Wegen teilweise fehlender Schreibrechte wurden einige Aktionen vom Server zurückgewiesen und lokal rückgängig gemacht.
 status.maiformed-xml=Antwort enthält fehlerhaftes XML, Sync abgebrochen. Prüfen Sie bitte den Fehlerbericht für weitere Details.
 status.service-discovery-failed=Der sabre/dav service discovery funktioniert mit diesem Server nicht.
+status.missing-permission=Fehlende Berechtigung: ##replace.1##
 
 status.OK.managedbylightning=Kalender wird von lightning verwaltet.
 

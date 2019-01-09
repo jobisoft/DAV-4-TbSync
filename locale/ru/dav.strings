@@ -40,9 +40,10 @@ status.invalid-uri=Получен недействительный URI, синх
 status.unsupported_auth_method=Сервер запрашивал неподдерживаемый метод авторизации (##replace.1##).
 status.OK.managed-by-lightning=Lightning
 status.OK.caldav-calendar-already-exists=Календарь уже существует
-status.info.restored=Нет разрешений на запись, действие отменено.
+status.info.restored=Из-за частично отсутствующих разрешений на запись некоторые действия были отклонены сервером и отменены локально.
 status.maiformed-xml=Ответ содержит бесформенные XML, обработка невозможна, синхронизация прервана.
 status.service-discovery-failed=Для этого сервера не удалось обнаружить службу sabre/dav.
+status.missing-permission=Отсутствует разрешение: ##replace.1##
 
 status.OK.managedbylightning=Календарь управляется lightning.
 

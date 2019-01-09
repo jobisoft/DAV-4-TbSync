@@ -40,9 +40,10 @@ status.invalid-uri=Megtalálható érvénytelen URI, megszüntette az összehang
 status.unsupported_auth_method=A kiszolgáló nem támogatott hitelesítési módot kér (##replace.1##).
 status.OK.managed-by-lightning=Lightning
 status.OK.caldav-calendar-already-exists=A naptár már létezik
-status.info.restored=Nincs írási engedélyt, visszaállítva.
+status.info.restored=A hiányzó írási jogosultságok miatt egyes műveleteket a szerver elutasított, és helyileg visszafordított.
 status.maiformed-xml=A válasz hibás formátumú XML-t tartalmaz, amely nem tudja feldolgozni a összehangolást.
 status.service-discovery-failed=A kiszolgálónak nem sikerült a sabre/dav szolgáltatási felderítése.
+status.missing-permission=Hiányzó engedély: ##replace.1##
 
 status.OK.managedbylightning=A Lightning-t által kezelt naptár.
 
