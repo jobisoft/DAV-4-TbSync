@@ -81,3 +81,10 @@ add.serverprofile.gmx.net=GMX.net (Europa)
 add.serverprofile.gmx.net.description=https://www.gmx.net
 add.serverprofile.gmx.com=GMX.com (USA)
 add.serverprofile.gmx.com.description=https://www.gmx.com
+
+acl.readwrite=Sincronizzazione bidirezionale (Scrivi permesso: ##replace.1##)
+acl.readonly=Sincronizzazione unidirezionale (sola lettura)
+acl.modify=modificare
+acl.add=inserisci
+acl.delete=elimina
+acl.none=nessuna

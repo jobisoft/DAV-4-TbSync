@@ -81,3 +81,10 @@ add.serverprofile.gmx.net=GMX.net (Европа)
 add.serverprofile.gmx.net.description=https://www.gmx.net
 add.serverprofile.gmx.com=GMX.com (США)
 add.serverprofile.gmx.com.description=https://www.gmx.com
+
+acl.readwrite=Двусторонняя синхронизация (Разрешение на запись: ##replace.1##)
+acl.readonly=Односторонняя синхронизация (только для чтения)
+acl.modify=модифицировать
+acl.add=добавлять
+acl.delete=удалять
+acl.none=никто
