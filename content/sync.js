@@ -670,12 +670,14 @@ dav.sync = {
                                 //if (!isAdding) options["If-Match"] = vcard.etag;
 
                                 tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
-                                let response = yield dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, headers, {softfail: [403,405]});
+                                if (isAdding || vcard.modified) {
+                                    let response = yield dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, headers, {softfail: [403,405]});
 
-                                tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
-                                if (response && response.softerror) {
-                                    permissionError[changes[i].status] = true;
-                                    tbSync.errorlog(syncdata, "missing-permission::" + tbSync.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
+                                    tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
+                                    if (response && response.softerror) {
+                                        permissionError[changes[i].status] = true;
+                                        tbSync.errorlog(syncdata, "missing-permission::" + tbSync.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
+                                    }
                                 }
                             }
 

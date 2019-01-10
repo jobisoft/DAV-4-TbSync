@@ -1197,7 +1197,8 @@ dav.tools = {
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
     getVCardFromThunderbirdCard: function(syncdata, addressBook, id, generateUID = false) {
         let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
-        let vCardData = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
+        let currentCard = card.getProperty("X-DAV-VCARD", "").trim();
+        let vCardData = tbSync.dav.vCard.parse(currentCard);
         
         if (generateUID) {
             //the UID of the vCard is never used by TbSync, it differs from the href of this card (following the specs)
@@ -1262,7 +1263,9 @@ dav.tools = {
         if (!vCardData.hasOwnProperty("fn")) vCardData["fn"] = [{"value": " "}];
         if (!vCardData.hasOwnProperty("n")) vCardData["n"] = [{"value": [" ","","","",""]}];
 
-        return {data: tbSync.dav.vCard.generate(vCardData).trim(), etag: card.getProperty("X-DAV-ETAG", "")};
+        //get new vCard
+        let newCard = tbSync.dav.vCard.generate(vCardData).trim();
+        return {data: newCard, etag: card.getProperty("X-DAV-ETAG", ""), modified: (currentCard != newCard)};
     },
 
 }
