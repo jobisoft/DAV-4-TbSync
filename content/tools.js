@@ -758,14 +758,14 @@ dav.tools = {
         "HomeZipCode" : {item: "adr", type: "HOME"},
         "HomeState" : {item: "adr", type: "HOME"},
         "HomeAddress" : {item: "adr", type: "HOME"},
-        "HomePhone" : {item: "tel", type: "HOME"},
+        "HomePhone" : {item: "tel", type: "HOME", invalidTypes: ["FAX", "PAGER", "CELL"]},
 
         "WorkCity" : {item: "adr", type: "WORK"},
         "WorkCountry" : {item: "adr", type: "WORK"},
         "WorkZipCode" : {item: "adr", type: "WORK"},
         "WorkState" : {item: "adr", type: "WORK"},
         "WorkAddress" : {item: "adr", type: "WORK"},
-        "WorkPhone" : {item: "tel", type: "WORK"},
+        "WorkPhone" : {item: "tel", type: "WORK", invalidTypes: ["FAX", "PAGER", "CELL"]},
     },
 
     //map thunderbird fields to impp vcard fields with additional x-service-types
@@ -902,6 +902,7 @@ dav.tools = {
                     } else if (dav.tools.complexMap.hasOwnProperty(property)) {
 
                         let type = dav.tools.complexMap[property].type;
+                        let invalidTypes = (dav.tools.complexMap[property].invalidTypes) ? dav.tools.complexMap[property].invalidTypes : [];
                         data.metatype.push(type);
                         data.item = dav.tools.complexMap[property].item;
 
@@ -909,7 +910,8 @@ dav.tools = {
                             let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
                             let valids = [];
                             for (let i=0; i < metaTypeData.length; i++) {
-                                if (metaTypeData[i].includes(type)) valids.push(i);
+                                //check if this includes the requested type and also none of the invalid types
+                                if (metaTypeData[i].includes(type) && metaTypeData[i].filter(value => -1 !== invalidTypes.indexOf(value)).length == 0) valids.push(i);
                             }
                             if (valids.length > 0) data.entry = valids[0];
                         }
