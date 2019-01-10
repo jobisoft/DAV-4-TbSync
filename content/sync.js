@@ -183,8 +183,8 @@ dav.sync = {
                         }
                         
                         //ignore this resource, if no read access
-                        if (acl & 0x1 == 0) continue
-                        
+                        if ((acl & 0x1) == 0) continue;
+
                         let href = response.multi[r].href;
                         if (resourcetype == "ics") href =  dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cs","source"], ["d","href"]]).textContent;
                         
