@@ -361,7 +361,7 @@ var dav = {
      * Returns an array of folder settings, that should survive unsubscribe/subscribe and disable/re-enable (caching)
      */
     getPersistentFolderSettings: function () {
-        return ["targetName", "targetColor"];
+        return ["targetName", "targetColor","downloadonly"];
     },
 
 
