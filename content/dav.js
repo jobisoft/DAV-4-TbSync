@@ -730,11 +730,26 @@ var dav = {
             ]
         },
 
-
+        
         //not part of API
-        updateReadOnly: function (account, folderID, value) {
+        updateReadOnly: function (event) {
+            let p = event.target.parentNode.parentNode;
+            let account = p.getAttribute('account');
+            let folderID = p.getAttribute('folderID');
+            let value = event.target.value;
             let type = tbSync.db.getFolderSetting(account, folderID, "type");
+
+            //update value
             tbSync.db.setFolderSetting(account, folderID, "downloadonly", value);
+
+            //update icon
+            if (value == "0") {
+                p.setAttribute('image','chrome://tbsync/skin/acl_rw.png');
+            } else {
+                p.setAttribute('image','chrome://tbsync/skin/acl_ro.png');
+            }
+                
+            //update ro flag if calendar
             switch (type) {
                 case "carddav":
                     break;
@@ -751,7 +766,7 @@ var dav = {
                     break;
             }
         },
-        
+
         /**
          * Is called to add a row to the folderlist. After this call, updateRow is called as well.
          *
@@ -783,7 +798,7 @@ var dav = {
                 menuitem1.setAttribute("class", "menuitem-iconic");
                 menuitem1.setAttribute("label", tbSync.getLocalizedMessage("acl.readonly", "dav"));
                 menuitem1.setAttribute("image", "chrome://tbsync/skin/acl_ro2.png");
-                menuitem1.setAttribute("oncommand", "let p = this.parentNode.parentNode; p.setAttribute('image','chrome://tbsync/skin/acl_ro.png'); tbSync.dav.folderList.updateReadOnly(p.getAttribute('account'), p.getAttribute('folderID'), '1');"  );
+                menuitem1.addEventListener("command", tbSync.dav.folderList.updateReadOnly);
 
                 let acl = parseInt(rowData.acl);
                 let acls = [];
@@ -793,12 +808,12 @@ var dav = {
                 if (acls.length == 0)  acls.push(tbSync.getLocalizedMessage("acl.none", "dav"));
 
                 let menuitem2 = document.createElement("menuitem");
-                menuitem1.setAttribute("value", "0");
+                menuitem2.setAttribute("value", "0");
                 menuitem2.setAttribute("class", "menuitem-iconic");
                 menuitem2.setAttribute("label", tbSync.getLocalizedMessage("acl.readwrite::"+acls.join(", "), "dav"));
                 menuitem2.setAttribute("image", "chrome://tbsync/skin/acl_rw2.png");
                 menuitem2.setAttribute("disabled", (acl & 0x7) != 0x7);                
-                menuitem2.setAttribute("oncommand", "let p = this.parentNode.parentNode; p.setAttribute('image','chrome://tbsync/skin/acl_rw.png');  tbSync.dav.folderList.updateReadOnly(p.getAttribute('account'), p.getAttribute('folderID'), '0');"  );
+                menuitem2.addEventListener("command", tbSync.dav.folderList.updateReadOnly);
 
                 menupopup.appendChild(menuitem2);
                 menupopup.appendChild(menuitem1);
