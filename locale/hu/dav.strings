@@ -82,8 +82,8 @@ add.serverprofile.gmx.net.description=https://www.gmx.net
 add.serverprofile.gmx.com=GMX.com (Amerikai egyesült államok)
 add.serverprofile.gmx.com.description=https://www.gmx.com
 
-acl.readwrite=Kétirányú szinkronizálás (írásjog: ##replace.1##)
-acl.readonly=Egyirányú szinkronizálás (csak olvasható)
+acl.readwrite=írásjog: ##replace.1##
+acl.readonly=csak olvasható
 acl.modify=módosít
 acl.add=hozzáad
 acl.delete=töröl
