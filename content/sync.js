@@ -110,7 +110,7 @@ dav.sync = {
 
                 let request = (job == "cal")
                                         ? "<d:propfind "+dav.tools.xmlns(["d", "cal", "cs"])+"><d:prop><cal:" + homeset + " /><cs:calendar-proxy-write-for /><cs:calendar-proxy-read-for /><d:group-membership /></d:prop></d:propfind>"
-                                        : "<d:propfind "+dav.tools.xmlns(["d", "card", "cs"])+"><d:prop><card:" + homeset + " /><d:group-membership /></d:prop></d:propfind>";
+                                        : "<d:propfind "+dav.tools.xmlns(["d", "card"])+"><d:prop><card:" + homeset + " /><d:group-membership /></d:prop></d:propfind>";
 
                 let response = yield dav.tools.sendRequest(request, principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
