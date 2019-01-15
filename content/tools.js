@@ -655,10 +655,7 @@ dav.tools = {
 
     //check if vCard is a mailinglist and handle it
     isMailingList: function (inputtype, addressBook, vCard, vCardData, etag, syncdata) {
-        if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-KIND") 
-            && vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER") 
-            && vCardData["X-ADDRESSBOOKSERVER-KIND"][0].value == "group") { 
-        
+        if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-KIND") && vCardData["X-ADDRESSBOOKSERVER-KIND"][0].value == "group") { 
             let name = vCardData.hasOwnProperty("fn") ? vCardData["fn"][0].value : "Unlabled Group";
 
             let card = null;
