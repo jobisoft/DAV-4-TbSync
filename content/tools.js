@@ -691,9 +691,11 @@ dav.tools = {
 
             //store all found members of this mailinglist for later processing
             syncdata.foundMailingLists[mailListDirectory.URI] = [];
-            for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
-                let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
-                syncdata.foundMailingLists[mailListDirectory.URI].push(member);
+            if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER")) {
+                for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
+                    let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
+                    syncdata.foundMailingLists[mailListDirectory.URI].push(member);
+                }
             }
             return true;
         } else {
