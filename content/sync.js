@@ -447,7 +447,7 @@ dav.sync = {
             if (id !==null) {
                 //valid
                 let status = cards.multi[c].status;
-                let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
+                let card = dav.tools.getCardFromID(addressBook, id);
                 if (status == "200") {
                     //MOD or ADD
                     let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
@@ -526,7 +526,7 @@ dav.sync = {
 
                 if (cards.multi[c].status == "200" && etag !== null && id !== null /* && ctype !== null */) { //we do not actually check the content of ctype - but why do we request it? iCloud seems to send cards without ctype
                     vCardsFoundOnServer.push(id);
-                    let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
+                    let card = dav.tools.getCardFromID(addressBook, id);
                     if (!card) {
                         //if the user deleted this card (not yet send to server), do not add it again
                         if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "deleted_by_user") {
@@ -583,6 +583,9 @@ dav.sync = {
 
 
     multiget: Task.async (function*(addressBook, vCardsChangedOnServer, syncdata) {
+        //keep track of found mailing lists and its members
+        syncdata.foundMailingLists = {};
+        
         //download all changed cards and process changes
         let cards2catch = Object.keys(vCardsChangedOnServer);
         let maxitems = tbSync.dav.prefSettings.getIntPref("maxitems");
@@ -616,6 +619,53 @@ dav.sync = {
                 }
             }
         }
+        
+        //process members of found mailinglists
+        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+        let result = abManager.getDirectory(addressBook.URI + "?(or(IsMailList,=,TRUE))").childCards;
+        while (result.hasMoreElements()) {
+            let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+            
+            //does the mailingListDirectory represented by this mailListCard matches one of the found (added/updated) mailingLists?            
+            if (syncdata.foundMailingLists.hasOwnProperty(mailListCard.mailListURI)) {                
+                let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
+                
+                //get current members to find those, which are no longer in syncdata.foundMailingLists[mailListCard.mailListURI]
+                let members = mailListDirectory.childCards;
+                let deletedMembers = [];
+                while (members.hasMoreElements()) {
+                    let memberCard = members.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+                    let uid = memberCard.getProperty("X-DAV-UID","");
+                    let uidIdx = syncdata.foundMailingLists[mailListCard.mailListURI].indexOf(uid);
+                    
+                    if (uidIdx == -1) {
+                        //mark as to-be-removed from list
+                        deletedMembers.push(memberCard.getProperty("TBSYNCID", ""));
+                    } else {
+                        //this is a know element, remove it from syncdata.foundMailingLists[mailListCard.mailListURI]
+                         syncdata.foundMailingLists[mailListCard.mailListURI].splice(uidIdx, 1);
+                    }
+                }
+      
+                //delete old members
+                for (let i=0; i < deletedMembers.length; i++) {
+                    tbSync.db.addItemToChangeLog(syncdata.targetId, deletedMembers[i], "modified_by_server");
+                    dav.tools.deleteCardWithId(mailListDirectory, deletedMembers[i]);
+                }
+                
+                //add new members
+                for (let m=0; m < syncdata.foundMailingLists[mailListCard.mailListURI].length; m++) {
+                    let card = addressBook.getCardFromProperty("X-DAV-UID", syncdata.foundMailingLists[mailListCard.mailListURI][m], true);
+                    if (card) {
+                        //by adding this card, it will get localy modified, so we precatch that again
+                        tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "modified_by_server");
+                        mailListDirectory.addressLists.appendElement(card, false);
+                    }
+                }
+                //TODO: All cards will get modified (all ADDED cards or all MEMBER cards?) Precatch as well?
+                mailListDirectory.editMailListToDatabase(mailListCard);
+            }
+        }            
     }),
 
     deleteContacts: Task.async (function*(addressBook, vCardsDeletedOnServer, syncdata) {

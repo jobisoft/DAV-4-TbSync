@@ -609,30 +609,152 @@ dav.tools = {
     },
     
     addContact: function(addressBook, id, data, etag, syncdata) {
-        //prepare new card
-        let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
-        card.setProperty("TBSYNCID", id);
+        let vCard = data.textContent.trim();
+        let vCardData = tbSync.dav.vCard.parse(vCard);
 
-        dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, data.textContent.trim(), etag.textContent);
+        //check if contact or mailinglist
+        if (!dav.tools.isMailingList ({ID:id}, addressBook, vCard, vCardData, etag, syncdata)) {
+            //prepare new contact card
+            let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
+            card.setProperty("TBSYNCID", id);
+            card.setProperty("X-DAV-ETAG", etag.textContent);
+            card.setProperty("X-DAV-VCARD", vCard);
 
-        tbSync.db.addItemToChangeLog(syncdata.targetId, id, "added_by_server");
-        addressBook.addCard(card);
+            dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, vCardData);
+
+            tbSync.db.addItemToChangeLog(syncdata.targetId, id, "added_by_server");
+            addressBook.addCard(card);
+        }
     },
 
     modifyContact: function(addressBook, id, data, etag, syncdata) {
-        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
+        let vCard = data.textContent.trim();
+        let vCardData = tbSync.dav.vCard.parse(vCard);
 
-        dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, data.textContent.trim(), etag.textContent, card.getProperty("X-DAV-VCARD", ""));
+        //get card
+        let card = dav.tools.getCardFromID(addressBook, id);
 
-        if (syncdata.revert || tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "modified_by_user") {
-            tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
-        }
-        addressBook.modifyCard(card);
+        //check if contact or mailinglist to update card
+        if (!dav.tools.isMailingList ({CARD:card}, addressBook, vCard, vCardData, etag, syncdata)) {          
+            //get original vCard data as stored by last update from server
+            let oCard = card.getProperty("X-DAV-VCARD", "")
+            let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
+
+            card.setProperty("X-DAV-ETAG", etag.textContent);
+            card.setProperty("X-DAV-VCARD", vCard);
+            
+            dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, vCardData, oCardData);
+
+            if (syncdata.revert || tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "modified_by_user") {
+                tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
+            }
+            addressBook.modifyCard(card);
+        }        
+
     },
 
+    //check if vCard is a mailinglist and handle it
+    isMailingList: function (inputtype, addressBook, vCard, vCardData, etag, syncdata) {
+        if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-KIND") 
+            && vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER") 
+            && vCardData["X-ADDRESSBOOKSERVER-KIND"][0].value == "group") { 
+        
+            let name = vCardData.hasOwnProperty("fn") ? vCardData["fn"][0].value : "Unlabled Group";
 
+            let card = null;
+            //this is called by ADD and by MOD, ADD will provide a (new) id and MOD will provide the actual card
+            if (inputtype.hasOwnProperty("ID")) {
+                //prepare new mailinglist directory
+                let mailList = Components.classes["@mozilla.org/addressbook/directoryproperty;1"].createInstance(Components.interfaces.nsIAbDirectory);
+                mailList.isMailList = true;
+                mailList.dirName = name;
+                mailList.listNickName = "";
+                mailList.description = "";                    
+                let mailListDirectory = addressBook.addMailList(mailList);
+                
+                card = dav.tools.getMailListCardFromURI (addressBook, mailListDirectory.URI);
+                card.setProperty("TBSYNCID", inputtype.ID);             
+            } else {
+                card = inputtype.CARD;
+                //if this card was created with an older version of TbSync, which did not have groups support, handle as normal card
+                if (!card.isMailList) {
+                    tbSync.errorlog(syncdata, "ignoredgroup::" + name, "dav");
+                    return false;
+                }
+            }
+            
+            // get underlying directory
+            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+            let mailListDirectory = abManager.getDirectory(card.mailListURI);
+            mailListDirectory.dirName = name ;
 
+            card.setProperty("X-DAV-ETAG", etag.textContent);
+            card.setProperty("X-DAV-VCARD", vCard);
+            mailListDirectory.editMailListToDatabase(card);
 
+            //store all found members of this mailinglist for later processing
+            syncdata.foundMailingLists[mailListDirectory.URI] = [];
+            for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
+                let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
+                syncdata.foundMailingLists[mailListDirectory.URI].push(member);
+            }
+            return true;
+        } else {
+            return false;
+        }
+    },
+        
+    getMailListCardFromURI: function(addressBook, mailListDirectoryURI) {
+        //find this mailinglist card (nsIAbCard) in the parent directory by comparing
+        //the URI of the true mailListDirectory (mailListDirectory.URI) with the 
+        //mailLIstUri of the found card (mailListCard.mailListURI)
+        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+        let result = abManager.getDirectory(addressBook.URI + "?(or(IsMailList,=,TRUE))").childCards;
+        while (result.hasMoreElements()) {
+            let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+            if (mailListCard.mailListURI == mailListDirectoryURI) {
+                    return mailListCard;
+            }
+        }
+    },
+
+    //replacement for getCardFromProperty, which does not return MailingLists 
+    getCardFromID: function (addressBook, id) {
+        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
+        if (card) {
+            return card;
+        }
+        
+        //if no card found, try as mailing list
+        return dav.tools.getMailListCardFromID(addressBook, id);
+    },
+
+    getMailListCardFromID: function (addressBook, id) {
+        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+        let result = abManager.getDirectory(addressBook.URI + "?(or(IsMailList,=,TRUE)(TBSYNCID,=,"+id+"))").childCards;
+        let rv = null;
+        while (result.hasMoreElements()) {
+            rv = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+            return rv;
+        }
+    },
+
+    //replacemant for nsIArray.indexOf + nsIMutableArray.removeElementAt which I could not get to work
+    deleteCardWithId: function(directory, id) {
+        if (id == "")
+            return;
+        
+        for (let i=0; i < directory.addressLists.length; i++) {
+            let card = directory.addressLists.queryElementAt(i, Components.interfaces.nsIAbCard);
+
+            if (card.getProperty("TBSYNCID", "") == id) {
+                directory.addressLists.removeElementAt(i);                        
+                return;
+            }
+        }
+    },
+    
+    
 
     //* * * * * * * * * * *
     //* ACTUAL SYNC MAGIC *
@@ -680,6 +802,7 @@ dav.tools = {
         {name: "FirstName", minversion: "0.4"},
         {name: "X-DAV-MiddleName", minversion: "0.8.8"},
         {name: "X-DAV-MainPhone", minversion: "0.8.8"},
+        {name: "X-DAV-UID", minversion: "0.10.36"},
         {name: "LastName", minversion: "0.4"},
         {name: "PrimaryEmail", minversion: "0.4"},
         {name: "SecondEmail", minversion: "0.4"},
@@ -726,6 +849,7 @@ dav.tools = {
 
     //map thunderbird fields to simple vcard fields without additional types
     simpleMap : {
+        "X-DAV-UID" : "uid",
         "Birthday" : "bday", //fake
         "Photo" : "photo", //fake
         "JobTitle" : "title",
@@ -1110,15 +1234,9 @@ dav.tools = {
     //MAIN FUNCTIONS FOR UP/DOWN SYNC
 
     //update send from server to client
-    setThunderbirdCardFromVCard: function(syncdata, addressBook, card, vCard, etag, oCard = null) {
-        let vCardData = tbSync.dav.vCard.parse(vCard);
-        let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
-
+    setThunderbirdCardFromVCard: function(syncdata, addressBook, card, vCardData, oCardData = null) {
         if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
         //if (oCardData) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
-
-        card.setProperty("X-DAV-ETAG", etag);
-        card.setProperty("X-DAV-VCARD", vCard);
         
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
@@ -1187,7 +1305,7 @@ dav.tools = {
     },
 
     invalidateThunderbirdCard: function(syncdata, addressBook, id) {
-        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
+        let card =dav.tools.getCardFromID(addressBook, id);
         card.setProperty("X-DAV-ETAG", "");
         card.setProperty("X-DAV-VCARD", "");
         tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
