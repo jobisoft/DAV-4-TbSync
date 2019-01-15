@@ -449,7 +449,7 @@ var dav = {
      * returns the new id
      */
     getNewCardID: function (aItem, folder) {
-        //actually use the full href of this vcard as id - the actual UID is not used by TbSync
+        //actually use the full href of this vcard as id - the actual UID is not used by TbSync (only for mailinglist, it is mapped to X-DAV-UID)
         return folder.folderID + dav.tools.generateUUID() + ".vcf";
     },
 
