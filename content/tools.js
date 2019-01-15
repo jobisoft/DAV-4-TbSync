@@ -731,12 +731,13 @@ dav.tools = {
 
     getMailListCardFromID: function (addressBook, id) {
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-        let result = abManager.getDirectory(addressBook.URI + "?(or(IsMailList,=,TRUE)(TBSYNCID,=,"+id+"))").childCards;
+        let result = abManager.getDirectory(addressBook.URI + "?(and(IsMailList,=,TRUE)(TBSYNCID,=,"+id+"))").childCards;
         let rv = null;
         while (result.hasMoreElements()) {
             rv = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-            return rv;
+            break;
         }
+        return rv;
     },
 
     //replacemant for nsIArray.indexOf + nsIMutableArray.removeElementAt which I could not get to work
