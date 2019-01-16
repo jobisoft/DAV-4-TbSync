@@ -1300,10 +1300,20 @@ dav.tools = {
 
     invalidateThunderbirdCard: function(syncdata, addressBook, id) {
         let card =dav.tools.getCardFromID(addressBook, id);
-        card.setProperty("X-DAV-ETAG", "");
-        card.setProperty("X-DAV-VCARD", "");
-        tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
-        addressBook.modifyCard(card);
+        if (card.isMailList) {
+            // get underlying directory
+            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+            let mailListDirectory = abManager.getDirectory(card.mailListURI);
+            //for mailinglist we currently use the description to store etag and vcard
+            mailListDirectory.description = "";               
+            tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
+            mailListDirectory.editMailListToDatabase(card);            
+        } else {
+            card.setProperty("X-DAV-ETAG", "");
+            card.setProperty("X-DAV-VCARD", "");
+            tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
+            addressBook.modifyCard(card);
+        }
     },
 
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
