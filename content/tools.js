@@ -707,14 +707,15 @@ dav.tools = {
     },
 
     //mailinglist aware method to get etag/vcard from card
-    getSyncInfoFromCard: function (card, type) {
+    getSyncInfoFromCard: function (card, type, fallback = "") {
         if (card.isMailList) {
             let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
             let mailListDirectory = abManager.getDirectory(card.mailListURI);
             let data = JSON.parse(mailListDirectory.description);	
-            return data[type];           
+            if (data && data.hasOwnProperty(type)) return data[type];
+            else return fallback;
         } else {
-            return card.getProperty(type ,"");
+            return card.getProperty(type, fallback);
         }
     },
 
