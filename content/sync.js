@@ -635,7 +635,7 @@ dav.sync = {
                 let deletedMembers = [];
                 while (members.hasMoreElements()) {
                     let memberCard = members.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-                    let uid = memberCard.getProperty("X-DAV-UID","");
+                    let uid = memberCard.getProperty("X-DAV-UID",""); //the refernces in the list from the server are per X-DAV-UID, not TBSYNCID
                     let uidIdx = syncdata.foundMailingLists[mailListCard.mailListURI].indexOf(uid);
                     
                     if (uidIdx == -1) {
@@ -650,7 +650,7 @@ dav.sync = {
                 //delete old members
                 for (let i=0; i < deletedMembers.length; i++) {
                     tbSync.db.addItemToChangeLog(syncdata.targetId, deletedMembers[i], "modified_by_server");
-                    dav.tools.deleteCardWithId(mailListDirectory, deletedMembers[i]);
+                    dav.tools.removeMemberFromList(mailListDirectory, deletedMembers[i]);
                 }
                 
                 //add new members

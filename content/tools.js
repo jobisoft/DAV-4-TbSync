@@ -665,12 +665,12 @@ dav.tools = {
                 let mailList = Components.classes["@mozilla.org/addressbook/directoryproperty;1"].createInstance(Components.interfaces.nsIAbDirectory);
                 mailList.isMailList = true;
                 mailList.dirName = name;
-                mailList.listNickName = "";
+                //we cannot use setProperty on the card, because the stored values vanish after time, nickname and description are the only ones that stay
+                mailList.listNickName = inputtype.ID;
                 mailList.description = "";                    
                 let mailListDirectory = addressBook.addMailList(mailList);
                 
                 card = dav.tools.getMailListCardFromURI (addressBook, mailListDirectory.URI);
-                card.setProperty("TBSYNCID", inputtype.ID);             
             } else {
                 card = inputtype.CARD;
                 //if this card was created with an older version of TbSync, which did not have groups support, handle as normal card
@@ -684,9 +684,7 @@ dav.tools = {
             let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
             let mailListDirectory = abManager.getDirectory(card.mailListURI);
             mailListDirectory.dirName = name ;
-
-            card.setProperty("X-DAV-ETAG", etag.textContent);
-            card.setProperty("X-DAV-VCARD", vCard);
+            mailListDirectory.description = JSON.stringify({etag: etag.textContent, vCard: vCard});                    
             mailListDirectory.editMailListToDatabase(card);
 
             //store all found members of this mailinglist for later processing
@@ -730,17 +728,20 @@ dav.tools = {
 
     getMailListCardFromID: function (addressBook, id) {
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-        let result = abManager.getDirectory(addressBook.URI + "?(and(IsMailList,=,TRUE)(TBSYNCID,=,"+id+"))").childCards;
-        let rv = null;
+        let result = abManager.getDirectory(addressBook.URI + "?(or(IsMailList,=,TRUE))").childCards;
         while (result.hasMoreElements()) {
-            rv = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-            break;
+            let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+            let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
+            if (mailListDirectory.listNickName == id) {
+                return mailListCard;
+            }
         }
-        return rv;
+
+        return null;
     },
 
     //replacemant for nsIArray.indexOf + nsIMutableArray.removeElementAt which I could not get to work
-    deleteCardWithId: function(directory, id) {
+    removeMemberFromList: function(directory, id) {
         if (id == "")
             return;
         
