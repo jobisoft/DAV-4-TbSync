@@ -701,6 +701,18 @@ dav.tools = {
         }
     },
         
+    getEtagFromCard: function (card) {
+        if (card.isMailList) {
+            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+            let mailListDirectory = abManager.getDirectory(card.mailListURI);
+            let data = JSON.parse(mailListDirectory.description);	
+            return data.etag;           
+        } else {
+            return card.getProperty("X-DAV-ETAG","");
+        }
+    },
+    
+    
     getMailListCardFromURI: function(addressBook, mailListDirectoryURI) {
         //find this mailinglist card (nsIAbCard) in the parent directory by comparing
         //the URI of the true mailListDirectory (mailListDirectory.URI) with the 
@@ -710,7 +722,7 @@ dav.tools = {
         while (result.hasMoreElements()) {
             let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
             if (mailListCard.mailListURI == mailListDirectoryURI) {
-                    return mailListCard;
+                return mailListCard;
             }
         }
     },
