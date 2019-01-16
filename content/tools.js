@@ -670,7 +670,7 @@ dav.tools = {
                 mailList.description = "";                    
                 let mailListDirectory = addressBook.addMailList(mailList);
 
-                card = dav.tools.getMailListCardFromID (addressBook, inputtype.ID);
+                card = dav.tools.getCardFromID (addressBook, inputtype.ID);
             } else {
                 card = inputtype.CARD;
                 //if this card was created with an older version of TbSync, which did not have groups support, handle as normal card
@@ -716,23 +716,13 @@ dav.tools = {
 
     //replacement for getCardFromProperty, which does not return MailingLists 
     getCardFromID: function (addressBook, id) {
-        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
-        if (card) {
-            return card;
-        }
-        //if no card found, try as mailing list
-        return dav.tools.getMailListCardFromID(addressBook, id);
-    },
+        let searchContact = "(and(IsMailList,=,FALSE)(TBSYNCID,=,"+id+"))";
+        let searchMailList = "(and(IsMailList,=,TRUE)(NickName,=,"+id+"))";
 
-    getMailListCardFromID: function (addressBook, id) {
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-        let result = abManager.getDirectory(addressBook.URI + "?(or(IsMailList,=,TRUE))").childCards;
+        let result = abManager.getDirectory(addressBook.URI +  "?(or"+searchContact + searchMailList +")").childCards;
         while (result.hasMoreElements()) {
-            let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-            let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
-            if (mailListDirectory.listNickName == id) {
-                return mailListCard;
-            }
+            return result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
         }
         return null;
     },
