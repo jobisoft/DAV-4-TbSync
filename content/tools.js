@@ -749,7 +749,6 @@ dav.tools = {
                 }
             }
         }
-        
         return -1;
     },
 

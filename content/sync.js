@@ -641,7 +641,7 @@ dav.sync = {
                     if (card) {
                         let idx = dav.tools.findIndexOfMemberWithProperty(mailListDirectory, "X-DAV-UID", removedMembers[i]);
                         if (idx != -1) {
-                            //tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "modified_by_server");
+                            tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
                             mailListDirectory.addressLists.removeElementAt(idx);  
                         }                                
                     }
@@ -653,13 +653,14 @@ dav.sync = {
                     if (card) {
                         let idx = dav.tools.findIndexOfMemberWithProperty(mailListDirectory, "X-DAV-UID", addedMembers[i]);
                         if (idx == -1) {
-                            //tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "modified_by_server");
+                            tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
                             mailListDirectory.addressLists.appendElement(card, false);
                         }
                     }
                 }
-
-                //TODO: All cards will get modified (all ADDED cards or all MEMBER cards?) Precatch as well?
+                
+                //this will unlock all locked cards in the changelog
+                tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardID, "locked_by_mailinglist_operations");
                 mailListDirectory.editMailListToDatabase(mailListCard);
             }
         }            
