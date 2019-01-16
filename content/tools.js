@@ -669,8 +669,8 @@ dav.tools = {
                 mailList.listNickName = inputtype.ID;
                 mailList.description = "";                    
                 let mailListDirectory = addressBook.addMailList(mailList);
-                
-                card = dav.tools.getMailListCardFromURI (addressBook, mailListDirectory.URI);
+
+                card = dav.tools.getMailListCardFromID (addressBook, inputtype.ID);
             } else {
                 card = inputtype.CARD;
                 //if this card was created with an older version of TbSync, which did not have groups support, handle as normal card
@@ -711,21 +711,6 @@ dav.tools = {
             return card.getProperty("X-DAV-ETAG","");
         }
     },
-    
-    
-    getMailListCardFromURI: function(addressBook, mailListDirectoryURI) {
-        //find this mailinglist card (nsIAbCard) in the parent directory by comparing
-        //the URI of the true mailListDirectory (mailListDirectory.URI) with the 
-        //mailLIstUri of the found card (mailListCard.mailListURI)
-        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-        let result = abManager.getDirectory(addressBook.URI + "?(or(IsMailList,=,TRUE))").childCards;
-        while (result.hasMoreElements()) {
-            let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-            if (mailListCard.mailListURI == mailListDirectoryURI) {
-                return mailListCard;
-            }
-        }
-    },
 
     //replacement for getCardFromProperty, which does not return MailingLists 
     getCardFromID: function (addressBook, id) {
@@ -748,7 +733,6 @@ dav.tools = {
                 return mailListCard;
             }
         }
-
         return null;
     },
 
@@ -766,8 +750,10 @@ dav.tools = {
             }
         }
     },
-    
-    
+
+
+
+
 
     //* * * * * * * * * * *
     //* ACTUAL SYNC MAGIC *
