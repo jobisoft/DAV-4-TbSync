@@ -457,7 +457,7 @@ dav.sync = {
                             syncdata.todo++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
-                    } else if (etag.textContent != dav.tools.getEtagFromCard(card)) {
+                    } else if (etag.textContent != dav.tools.getSyncInfoFromCard(card, "X-DAV-ETAG")) {
                         syncdata.todo++;
                         vCardsChangedOnServer[id] = "MOD"; 
                     }
@@ -533,7 +533,7 @@ dav.sync = {
                             syncdata.todo++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
-                    } else if (etag.textContent != dav.tools.getEtagFromCard(card)) {
+                    } else if (etag.textContent != dav.tools.getSyncInfoFromCard(card, "X-DAV-ETAG")) {
                         syncdata.todo++;
                         vCardsChangedOnServer[id] = "MOD"; 
                     }

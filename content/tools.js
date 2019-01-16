@@ -684,7 +684,8 @@ dav.tools = {
             let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
             let mailListDirectory = abManager.getDirectory(card.mailListURI);
             mailListDirectory.dirName = name ;
-            mailListDirectory.description = JSON.stringify({etag: etag.textContent, vCard: vCard});                    
+            //currently we need to store properties into the description field, as we cannot store properties in the card itself
+            mailListDirectory.description = JSON.stringify({"X-DAV-ETAG": etag.textContent, "X-DAV-VCARD": vCard});                    
             mailListDirectory.editMailListToDatabase(card);
 
             //store all found members of this mailinglist for later processing
@@ -700,15 +701,16 @@ dav.tools = {
             return false;
         }
     },
-        
-    getEtagFromCard: function (card) {
+
+    //mailinglist aware method to get etag/vcard from card
+    getSyncInfoFromCard: function (card, type) {
         if (card.isMailList) {
             let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
             let mailListDirectory = abManager.getDirectory(card.mailListURI);
             let data = JSON.parse(mailListDirectory.description);	
-            return data.etag;           
+            return data[type];           
         } else {
-            return card.getProperty("X-DAV-ETAG","");
+            return card.getProperty(type ,"");
         }
     },
 
@@ -718,7 +720,6 @@ dav.tools = {
         if (card) {
             return card;
         }
-        
         //if no card found, try as mailing list
         return dav.tools.getMailListCardFromID(addressBook, id);
     },
