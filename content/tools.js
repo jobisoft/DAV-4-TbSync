@@ -659,6 +659,8 @@ dav.tools = {
             let name = vCardData.hasOwnProperty("fn") ? vCardData["fn"][0].value : "Unlabled Group";
 
             let card = null;
+            let oCard = ""; //original vCard from last server contact
+            
             //this is called by ADD and by MOD, ADD will provide a (new) id and MOD will provide the actual card
             if (inputtype.hasOwnProperty("ID")) {
                 //prepare new mailinglist directory
@@ -678,6 +680,8 @@ dav.tools = {
                     tbSync.errorlog(syncdata, "ignoredgroup::" + name, "dav");
                     return false;
                 }
+                //get original vCard from last server contact, needed for "smart merge" on changes on both sides
+                oCard = dav.tools.getSyncInfoFromCard(card, "X-DAV-VCARD");
             }
             
             // get underlying directory
@@ -689,11 +693,11 @@ dav.tools = {
             mailListDirectory.editMailListToDatabase(card);
 
             //store all found members of this mailinglist for later processing
-            syncdata.foundMailingLists[mailListDirectory.URI] = [];
+            syncdata.foundMailingLists[mailListDirectory.URI] = {oCard:oCard, members:[]};
             if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER")) {
                 for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
                     let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
-                    syncdata.foundMailingLists[mailListDirectory.URI].push(member);
+                    syncdata.foundMailingLists[mailListDirectory.URI].members.push(member);
                 }
             }
             return true;

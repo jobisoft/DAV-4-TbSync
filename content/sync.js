@@ -628,22 +628,24 @@ dav.sync = {
             
             //does the mailingListDirectory represented by this mailListCard matches one of the found (added/updated) mailingLists?            
             if (syncdata.foundMailingLists.hasOwnProperty(mailListCard.mailListURI)) {                
-                let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
-                
-                //get current members to find those, which are no longer in syncdata.foundMailingLists[mailListCard.mailListURI]
-                let members = mailListDirectory.childCards;
+                //get vCard value from last server contact
+                let oCard = syncdata.foundMailingLists[mailListCard.mailListURI].oCard;
+
+                //get current members to find those, which are no longer in syncdata.foundMailingLists[mailListCard.mailListURI].members
                 let deletedMembers = [];
+                let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
+                let members = mailListDirectory.childCards;
                 while (members.hasMoreElements()) {
                     let memberCard = members.getNext().QueryInterface(Components.interfaces.nsIAbCard);
                     let uid = memberCard.getProperty("X-DAV-UID",""); //the refernces in the list from the server are per X-DAV-UID, not TBSYNCID
-                    let uidIdx = syncdata.foundMailingLists[mailListCard.mailListURI].indexOf(uid);
+                    let uidIdx = syncdata.foundMailingLists[mailListCard.mailListURI].members.indexOf(uid);
                     
                     if (uidIdx == -1) {
                         //mark as to-be-removed from list
                         deletedMembers.push(memberCard.getProperty("TBSYNCID", ""));
                     } else {
-                        //this is a know element, remove it from syncdata.foundMailingLists[mailListCard.mailListURI]
-                         syncdata.foundMailingLists[mailListCard.mailListURI].splice(uidIdx, 1);
+                        //this is a know element, remove it from syncdata.foundMailingLists[mailListCard.mailListURI].members
+                         syncdata.foundMailingLists[mailListCard.mailListURI].members.splice(uidIdx, 1);
                     }
                 }
       
@@ -654,8 +656,8 @@ dav.sync = {
                 }
                 
                 //add new members
-                for (let m=0; m < syncdata.foundMailingLists[mailListCard.mailListURI].length; m++) {
-                    let card = addressBook.getCardFromProperty("X-DAV-UID", syncdata.foundMailingLists[mailListCard.mailListURI][m], true);
+                for (let m=0; m < syncdata.foundMailingLists[mailListCard.mailListURI].members.length; m++) {
+                    let card = addressBook.getCardFromProperty("X-DAV-UID", syncdata.foundMailingLists[mailListCard.mailListURI].members[m], true);
                     if (card) {
                         //by adding this card, it will get localy modified, so we precatch that again
                         tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "modified_by_server");
