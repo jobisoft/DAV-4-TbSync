@@ -659,7 +659,7 @@ dav.tools = {
             let name = vCardData.hasOwnProperty("fn") ? vCardData["fn"][0].value : "Unlabled Group";
 
             let card = null;
-            let oCard = ""; //original vCard from last server contact
+            let oCardData = {};
             
             //this is called by ADD and by MOD, ADD will provide a (new) id and MOD will provide the actual card
             if (inputtype.hasOwnProperty("ID")) {
@@ -680,8 +680,8 @@ dav.tools = {
                     tbSync.errorlog(syncdata, "ignoredgroup::" + name, "dav");
                     return false;
                 }
-                //get original vCard from last server contact, needed for "smart merge" on changes on both sides
-                oCard = dav.tools.getSyncInfoFromCard(card, "X-DAV-VCARD");
+                //get original vCardData from last server contact, needed for "smart merge" on changes on both sides
+                oCardData = tbSync.dav.vCard.parse(dav.tools.getSyncInfoFromCard(card, "X-DAV-VCARD"));
             }
             
             // get underlying directory
@@ -692,15 +692,22 @@ dav.tools = {
             mailListDirectory.description = JSON.stringify({"X-DAV-ETAG": etag.textContent, "X-DAV-VCARD": vCard});                    
             mailListDirectory.editMailListToDatabase(card);
 
-            //store all found members of this mailinglist for later processing
-            syncdata.foundMailingLists[mailListDirectory.URI] = {oCard:oCard, members:[]};
+            //store all old and new members of this mailinglist for later processing (listNickName contains the TBSYNCID of this mailListCard)
+            syncdata.foundMailingLists[mailListDirectory.listNickName] = {oldMembers:[], newMembers:[]};
+            if (oCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER")) {
+                for (let i=0; i < oCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
+                    let member = oCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
+                    syncdata.foundMailingLists[mailListDirectory.listNickName].oldMembers.push(member);
+                }
+            }
             if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER")) {
                 for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
                     let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
-                    syncdata.foundMailingLists[mailListDirectory.URI].members.push(member);
+                    syncdata.foundMailingLists[mailListDirectory.listNickName].newMembers.push(member);
                 }
             }
             return true;
+
         } else {
             return false;
         }
@@ -732,21 +739,19 @@ dav.tools = {
         return null;
     },
 
-    //replacemant for nsIArray.indexOf + nsIMutableArray.removeElementAt which I could not get to work
-    removeMemberFromList: function(directory, id) {
-        if (id == "")
-            return;
-        
-        for (let i=0; i < directory.addressLists.length; i++) {
-            let card = directory.addressLists.queryElementAt(i, Components.interfaces.nsIAbCard);
-
-            if (card.getProperty("TBSYNCID", "") == id) {
-                directory.addressLists.removeElementAt(i);                        
-                return;
+    //replacement for nsIArray.indexOf which I could not get to work
+    findIndexOfMemberWithProperty: function(dir, prop, value) {
+        if (value != "") {
+            for (let i=0; i < dir.addressLists.length; i++) {
+                let member = dir.addressLists.queryElementAt(i, Components.interfaces.nsIAbCard);
+                if (member.getProperty(prop, "") == value) {
+                    return i;
+                }
             }
         }
+        
+        return -1;
     },
-
 
 
 
@@ -1300,7 +1305,7 @@ dav.tools = {
     },
 
     invalidateThunderbirdCard: function(syncdata, addressBook, id) {
-        let card =dav.tools.getCardFromID(addressBook, id);
+        let card = dav.tools.getCardFromID(addressBook, id);
         if (card.isMailList) {
             // get underlying directory
             let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);

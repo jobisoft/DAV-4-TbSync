@@ -622,48 +622,43 @@ dav.sync = {
         
         //process members of found mailinglists
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-        let result = abManager.getDirectory(addressBook.URI + "?(or(IsMailList,=,TRUE))").childCards;
-        while (result.hasMoreElements()) {
-            let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-            
-            //does the mailingListDirectory represented by this mailListCard matches one of the found (added/updated) mailingLists?            
-            if (syncdata.foundMailingLists.hasOwnProperty(mailListCard.mailListURI)) {                
-                //get vCard value from last server contact
-                let oCard = syncdata.foundMailingLists[mailListCard.mailListURI].oCard;
-
-                //get current members to find those, which are no longer in syncdata.foundMailingLists[mailListCard.mailListURI].members
-                let deletedMembers = [];
+        for (let mailListCardID in syncdata.foundMailingLists) {
+            if (syncdata.foundMailingLists.hasOwnProperty(mailListCardID)) {
+                let mailListCard = dav.tools.getCardFromID(addressBook, mailListCardID);
                 let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
-                let members = mailListDirectory.childCards;
-                while (members.hasMoreElements()) {
-                    let memberCard = members.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-                    let uid = memberCard.getProperty("X-DAV-UID",""); //the refernces in the list from the server are per X-DAV-UID, not TBSYNCID
-                    let uidIdx = syncdata.foundMailingLists[mailListCard.mailListURI].members.indexOf(uid);
-                    
-                    if (uidIdx == -1) {
-                        //mark as to-be-removed from list
-                        deletedMembers.push(memberCard.getProperty("TBSYNCID", ""));
-                    } else {
-                        //this is a know element, remove it from syncdata.foundMailingLists[mailListCard.mailListURI].members
-                         syncdata.foundMailingLists[mailListCard.mailListURI].members.splice(uidIdx, 1);
+                
+                //smart merge: oldMembers contains the state during last sync, newMembers is the current state
+                //by comparing we can learn, what was added on the server (in new but not in old) and what was deleted (in old but not in new)
+                //when adding, we need to check, if it is already part of local list (added by user as well)
+                //when deleting, we need to check, if it has been deleted already in the local list (deleted by user as well)
+                //all other local changes remain untouched and will be send back to the server as local changes
+                let addedMembers = syncdata.foundMailingLists[mailListCardID].newMembers.filter(e => !syncdata.foundMailingLists[mailListCardID].oldMembers.includes(e));
+                let removedMembers = syncdata.foundMailingLists[mailListCardID].oldMembers.filter(e => !syncdata.foundMailingLists[mailListCardID].newMembers.includes(e));
+                
+                //remove requested members from list (IDs stored in this array are X-DAV-UIDs)
+                for (let i=0; i < removedMembers.length; i++) {
+                    let card = addressBook.getCardFromProperty("X-DAV-UID", removedMembers[i], true);
+                    if (card) {
+                        let idx = dav.tools.findIndexOfMemberWithProperty(mailListDirectory, "X-DAV-UID", removedMembers[i]);
+                        if (idx != -1) {
+                            //tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "modified_by_server");
+                            mailListDirectory.addressLists.removeElementAt(idx);  
+                        }                                
                     }
-                }
-      
-                //delete old members
-                for (let i=0; i < deletedMembers.length; i++) {
-                    tbSync.db.addItemToChangeLog(syncdata.targetId, deletedMembers[i], "modified_by_server");
-                    dav.tools.removeMemberFromList(mailListDirectory, deletedMembers[i]);
                 }
                 
-                //add new members
-                for (let m=0; m < syncdata.foundMailingLists[mailListCard.mailListURI].members.length; m++) {
-                    let card = addressBook.getCardFromProperty("X-DAV-UID", syncdata.foundMailingLists[mailListCard.mailListURI].members[m], true);
+                //add requested members to list (IDs stored in this array are X-DAV-UIDs)
+                for (let i=0; i < addedMembers.length; i++) {
+                    let card = addressBook.getCardFromProperty("X-DAV-UID", addedMembers[i], true);
                     if (card) {
-                        //by adding this card, it will get localy modified, so we precatch that again
-                        tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "modified_by_server");
-                        mailListDirectory.addressLists.appendElement(card, false);
+                        let idx = dav.tools.findIndexOfMemberWithProperty(mailListDirectory, "X-DAV-UID", addedMembers[i]);
+                        if (idx == -1) {
+                            //tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "modified_by_server");
+                            mailListDirectory.addressLists.appendElement(card, false);
+                        }
                     }
                 }
+
                 //TODO: All cards will get modified (all ADDED cards or all MEMBER cards?) Precatch as well?
                 mailListDirectory.editMailListToDatabase(mailListCard);
             }
