@@ -447,7 +447,7 @@ dav.sync = {
             if (id !==null) {
                 //valid
                 let status = cards.multi[c].status;
-                let card = dav.tools.getCardFromID(addressBook, id);
+                let card = tbSync.getCardFromID(addressBook, id);
                 if (status == "200") {
                     //MOD or ADD
                     let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
@@ -526,7 +526,7 @@ dav.sync = {
 
                 if (cards.multi[c].status == "200" && etag !== null && id !== null /* && ctype !== null */) { //we do not actually check the content of ctype - but why do we request it? iCloud seems to send cards without ctype
                     vCardsFoundOnServer.push(id);
-                    let card = dav.tools.getCardFromID(addressBook, id);
+                    let card = tbSync.getCardFromID(addressBook, id);
                     if (!card) {
                         //if the user deleted this card (not yet send to server), do not add it again
                         if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "deleted_by_user") {
@@ -624,7 +624,7 @@ dav.sync = {
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
         for (let mailListCardID in syncdata.foundMailingLists) {
             if (syncdata.foundMailingLists.hasOwnProperty(mailListCardID)) {
-                let mailListCard = dav.tools.getCardFromID(addressBook, mailListCardID);
+                let mailListCard = tbSync.getCardFromID(addressBook, mailListCardID);
                 let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
                 
                 //smart merge: oldMembers contains the state during last sync, newMembers is the current state
@@ -639,7 +639,7 @@ dav.sync = {
                 for (let i=0; i < removedMembers.length; i++) {
                     let card = addressBook.getCardFromProperty("X-DAV-UID", removedMembers[i], true);
                     if (card) {
-                        let idx = dav.tools.findIndexOfMemberWithProperty(mailListDirectory, "X-DAV-UID", removedMembers[i]);
+                        let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-UID", removedMembers[i]);
                         if (idx != -1) {
                             tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
                             mailListDirectory.addressLists.removeElementAt(idx);  
@@ -651,7 +651,7 @@ dav.sync = {
                 for (let i=0; i < addedMembers.length; i++) {
                     let card = addressBook.getCardFromProperty("X-DAV-UID", addedMembers[i], true);
                     if (card) {
-                        let idx = dav.tools.findIndexOfMemberWithProperty(mailListDirectory, "X-DAV-UID", addedMembers[i]);
+                        let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-UID", addedMembers[i]);
                         if (idx == -1) {
                             tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
                             mailListDirectory.addressLists.appendElement(card, false);
@@ -713,7 +713,11 @@ dav.sync = {
                         {
                             let isAdding = (changes[i].status == "added_by_user");
                             if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
-                                let vcard = dav.tools.getVCardFromThunderbirdCard (syncdata, addressBook, changes[i].id, isAdding);
+                                let card = tbSync.getCardFromID(addressBook, changes[i].id);
+                                
+                                let vcard = (card.isMailList) 
+                                                    ? dav.tools.getVCardFromThunderbirdMailListCard (syncdata, addressBook, card, isAdding) 
+                                                    : dav.tools.getVCardFromThunderbirdCard (syncdata, addressBook, card, isAdding);
                                 let headers = {"Content-Type": "text/vcard; charset=utf-8"};
                                 //if (!isAdding) options["If-Match"] = vcard.etag;
 
@@ -764,6 +768,20 @@ dav.sync = {
 
         } while (true);
 
+        //ML update
+        //ADD = card is in changelog, TODO: actual construction of vCard (errors out now)
+        //MOD = ??? Members differ from oCardData - maybe DO get the card into changelog ???
+        //DEL = card is in changelog, del works
+        
+        /* either do this
+        let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
+                let members = mailListDirectory.childCards;
+                while (members.hasMoreElements()) {
+                    let memberCard = members.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+        
+        or access addressList.
+        */
+        
         //return number of modified cards or the number of permission errors (negativ)
         return (permissionErrors < 0 ? permissionErrors : syncdata.done);
     }),

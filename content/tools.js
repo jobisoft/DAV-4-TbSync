@@ -613,7 +613,7 @@ dav.tools = {
         let vCardData = tbSync.dav.vCard.parse(vCard);
 
         //check if contact or mailinglist
-        if (!dav.tools.isMailingList ({ID:id}, addressBook, vCard, vCardData, etag, syncdata)) {
+        if (!dav.tools.vCardIsMailingList ({ID:id}, addressBook, vCard, vCardData, etag, syncdata)) {
             //prepare new contact card
             let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
             card.setProperty("TBSYNCID", id);
@@ -632,12 +632,12 @@ dav.tools = {
         let vCardData = tbSync.dav.vCard.parse(vCard);
 
         //get card
-        let card = dav.tools.getCardFromID(addressBook, id);
+        let card = tbSync.getCardFromID(addressBook, id);
 
         //check if contact or mailinglist to update card
-        if (!dav.tools.isMailingList ({CARD:card}, addressBook, vCard, vCardData, etag, syncdata)) {          
+        if (!dav.tools.vCardIsMailingList ({CARD:card}, addressBook, vCard, vCardData, etag, syncdata)) {          
             //get original vCard data as stored by last update from server
-            let oCard = card.getProperty("X-DAV-VCARD", "")
+            let oCard = dav.tools.getSyncInfoFromCard(card, "X-DAV-VCARD");
             let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
 
             card.setProperty("X-DAV-ETAG", etag.textContent);
@@ -654,7 +654,7 @@ dav.tools = {
     },
 
     //check if vCard is a mailinglist and handle it
-    isMailingList: function (inputtype, addressBook, vCard, vCardData, etag, syncdata) {
+    vCardIsMailingList: function (inputtype, addressBook, vCard, vCardData, etag, syncdata) {
         if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-KIND") && vCardData["X-ADDRESSBOOKSERVER-KIND"][0].value == "group") { 
             let name = vCardData.hasOwnProperty("fn") ? vCardData["fn"][0].value : "Unlabled Group";
 
@@ -670,9 +670,10 @@ dav.tools = {
                 //we cannot use setProperty on the card, because the stored values vanish after time, nickname and description are the only ones that stay
                 mailList.listNickName = inputtype.ID;
                 mailList.description = "";                    
+                tbSync.db.addItemToChangeLog(syncdata.targetId, inputtype.ID, "added_by_server");
                 let mailListDirectory = addressBook.addMailList(mailList);
 
-                card = dav.tools.getCardFromID (addressBook, inputtype.ID);
+                card = tbSync.getCardFromID (addressBook, inputtype.ID);
             } else {
                 card = inputtype.CARD;
                 //if this card was created with an older version of TbSync, which did not have groups support, handle as normal card
@@ -726,31 +727,7 @@ dav.tools = {
         }
     },
 
-    //replacement for getCardFromProperty, which does not return MailingLists 
-    getCardFromID: function (addressBook, id) {
-        let searchContact = "(and(IsMailList,=,FALSE)(TBSYNCID,=,"+id+"))";
-        let searchMailList = "(and(IsMailList,=,TRUE)(NickName,=,"+id+"))";
 
-        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-        let result = abManager.getDirectory(addressBook.URI +  "?(or"+searchContact + searchMailList +")").childCards;
-        while (result.hasMoreElements()) {
-            return result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-        }
-        return null;
-    },
-
-    //replacement for nsIArray.indexOf which I could not get to work
-    findIndexOfMemberWithProperty: function(dir, prop, value) {
-        if (value != "") {
-            for (let i=0; i < dir.addressLists.length; i++) {
-                let member = dir.addressLists.queryElementAt(i, Components.interfaces.nsIAbCard);
-                if (member.getProperty(prop, "") == value) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    },
 
 
 
@@ -1304,7 +1281,7 @@ dav.tools = {
     },
 
     invalidateThunderbirdCard: function(syncdata, addressBook, id) {
-        let card = dav.tools.getCardFromID(addressBook, id);
+        let card = tbSync.getCardFromID(addressBook, id);
         if (card.isMailList) {
             // get underlying directory
             let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
@@ -1321,10 +1298,17 @@ dav.tools = {
         }
     },
 
+    getVCardFromThunderbirdMailListCard: function(syncdata, addressBook, card, generateUID = false) {
+        let currentCard = dav.tools.getSyncInfoFromCard(card, "X-DAV-VCARD").trim();
+        let vCardData = tbSync.dav.vCard.parse(currentCard);
+
+        let newCard = tbSync.dav.vCard.generate(vCardData).trim();
+        return {data: newCard, etag: dav.tools.getSyncInfoFromCard(card, "X-DAV-ETAG"), modified: (currentCard != newCard)};
+    },
+
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
-    getVCardFromThunderbirdCard: function(syncdata, addressBook, id, generateUID = false) {
-        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
-        let currentCard = card.getProperty("X-DAV-VCARD", "").trim();
+    getVCardFromThunderbirdCard: function(syncdata, addressBook, card, generateUID = false) {
+        let currentCard = dav.tools.getSyncInfoFromCard(card, "X-DAV-VCARD").trim();
         let vCardData = tbSync.dav.vCard.parse(currentCard);
         
         if (generateUID) {
@@ -1392,7 +1376,7 @@ dav.tools = {
 
         //get new vCard
         let newCard = tbSync.dav.vCard.generate(vCardData).trim();
-        return {data: newCard, etag: card.getProperty("X-DAV-ETAG", ""), modified: (currentCard != newCard)};
+        return {data: newCard, etag: dav.tools.getSyncInfoFromCard(card, "X-DAV-ETAG"), modified: (currentCard != newCard)};
     },
 
 }
