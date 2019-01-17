@@ -769,8 +769,8 @@ dav.sync = {
         } while (true);
 
         //ML update
-        //ADD = card is in changelog, TODO: actual construction of vCard (errors out now)
-        //MOD = ??? Members differ from oCardData - maybe DO get the card into changelog ???
+        //ADD = card is not in changelog and has no ID
+        //MOD = card is not in changelog 
         //DEL = card is in changelog, del works
         
         /* either do this
