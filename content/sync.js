@@ -447,7 +447,7 @@ dav.sync = {
             if (id !==null) {
                 //valid
                 let status = cards.multi[c].status;
-                let card = tbSync.getCardFromID(addressBook, id);
+                let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", id);
                 if (status == "200") {
                     //MOD or ADD
                     let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
@@ -457,7 +457,7 @@ dav.sync = {
                             syncdata.todo++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
-                    } else if (etag.textContent != dav.tools.getSyncInfoFromCard(card, "X-DAV-ETAG")) {
+                    } else if (etag.textContent != tbSync.getPropertyOfCard(card, "X-DAV-ETAG")) {
                         syncdata.todo++;
                         vCardsChangedOnServer[id] = "MOD"; 
                     }
@@ -526,14 +526,14 @@ dav.sync = {
 
                 if (cards.multi[c].status == "200" && etag !== null && id !== null /* && ctype !== null */) { //we do not actually check the content of ctype - but why do we request it? iCloud seems to send cards without ctype
                     vCardsFoundOnServer.push(id);
-                    let card = tbSync.getCardFromID(addressBook, id);
+                    let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", id);
                     if (!card) {
                         //if the user deleted this card (not yet send to server), do not add it again
                         if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "deleted_by_user") {
                             syncdata.todo++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
-                    } else if (etag.textContent != dav.tools.getSyncInfoFromCard(card, "X-DAV-ETAG")) {
+                    } else if (etag.textContent != tbSync.getPropertyOfCard(card, "X-DAV-ETAG")) {
                         syncdata.todo++;
                         vCardsChangedOnServer[id] = "MOD"; 
                     }
@@ -624,7 +624,7 @@ dav.sync = {
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
         for (let mailListCardID in syncdata.foundMailingLists) {
             if (syncdata.foundMailingLists.hasOwnProperty(mailListCardID)) {
-                let mailListCard = tbSync.getCardFromID(addressBook, mailListCardID);
+                let mailListCard = tbSync.getCardFromProperty(addressBook, "TBSYNCID", mailListCardID);
                 let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
                 
                 //smart merge: oldMembers contains the state during last sync, newMembers is the current state
@@ -713,11 +713,9 @@ dav.sync = {
                         {
                             let isAdding = (changes[i].status == "added_by_user");
                             if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
-                                let card = tbSync.getCardFromID(addressBook, changes[i].id);
+                                let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", changes[i].id);
                                 
-                                let vcard = (card.isMailList) 
-                                                    ? dav.tools.getVCardFromThunderbirdMailListCard (syncdata, addressBook, card, isAdding) 
-                                                    : dav.tools.getVCardFromThunderbirdCard (syncdata, addressBook, card, isAdding);
+                                let vcard = dav.tools.getVCardFromThunderbirdCard (syncdata, addressBook, card, isAdding);
                                 let headers = {"Content-Type": "text/vcard; charset=utf-8"};
                                 //if (!isAdding) options["If-Match"] = vcard.etag;
 
@@ -769,7 +767,7 @@ dav.sync = {
         } while (true);
 
         //ML update
-        //ADD = card is not in changelog and has no ID
+        //ADD = not detectable, we do not sync empty lists to the server
         //MOD = card is not in changelog 
         //DEL = card is in changelog, del works
         
