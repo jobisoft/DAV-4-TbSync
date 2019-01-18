@@ -90,7 +90,7 @@
          <em:localized>  <!-- Russian -->
           <Description>
             <em:locale>ru</em:locale>
-            <em:name>Провайдер CalDAV &amp; CardDAV</em:name>
+            <em:name>Provider for CalDAV &amp; CardDAV</em:name>
             <em:description>Добавляет в TbSync поддержку базирующегося на http/https протокола синхронизации для учетных записей CalDAV &amp; CardDAV (контакты, задачи и календари)</em:description>
             <em:translator>Ettore Atalan (de)</em:translator>
             <em:translator>John Bieling (de)</em:translator>
