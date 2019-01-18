@@ -33,7 +33,7 @@
 <!ENTITY pref.useCardBook "Создавайте адресные книги CardBook вместо стандартных адресных книг Thunderbird">
 
 <!ENTITY pref.calendaroptions "Настройки календаря">
-<!ENTITY pref.useCache "Off-line поддержка">
+<!ENTITY pref.useCache "Офлайн поддержка">
 
 <!ENTITY abCard.MiddleName "Отчество:">
 <!ENTITY abCard.Phone "Основной телефон:">
