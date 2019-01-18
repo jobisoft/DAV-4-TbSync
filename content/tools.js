@@ -701,6 +701,7 @@ dav.tools = {
             //update properties
             tbSync.setPropertyOfCard(card, "X-DAV-ETAG", etag.textContent);
             tbSync.setPropertyOfCard(card, "X-DAV-VCARD", vCard);
+            if (vCardData.hasOwnProperty("uid")) tbSync.setPropertyOfCard(card, "X-DAV-UID", vCardData["uid"][0].value);                
 
             // get underlying directory
             let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
@@ -1290,24 +1291,45 @@ dav.tools = {
         addressBook.modifyCard(card);
     },
 
-    getVCardFromThunderbirdMailListCard: function(syncdata, addressBook, card, generateUID = false) {
-        let currentCard = tbSync.getPropertyOfCard(card, "X-DAV-VCARD").trim();
+    //build group card from scratch
+    getVCardFromThunderbirdListCard: function(syncdata, addressBook, card) {
+        let currentCard = "";// build from scratch -- tbSync.getPropertyOfCard(card, "X-DAV-VCARD").trim();
         let vCardData = tbSync.dav.vCard.parse(currentCard);
 
+        let cardUID = tbSync.getPropertyOfCard (card, "X-DAV-UID");
+        if (!cardUID) {
+            //the UID of the vCard is mapped to X-DAV-UID and differs from the href/TBSYNCID (following the specs)
+            cardUID = dav.tools.generateUUID();
+            tbSync.setPropertyOfCard (card, "X-DAV-UID", cardUID);                
+        }
+
+        //get underlying directory
+        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+        let mailListDirectory = abManager.getDirectory(card.mailListURI);
+
+        //add required fields
+        vCardData["version"] = [{"value": "3.0"}];
+        vCardData["fn"] = [{"value": mailListDirectory.dirName}];
+        vCardData["n"] = [{"value": mailListDirectory.dirName}];
+        vCardData["X-ADDRESSBOOKSERVER-KIND"] = [{"value": "group"}];
+        vCardData["uid"] = [{"value": cardUID}];
+
+        let members = mailListDirectory.childCards;
+        while (members.hasMoreElements()) {
+            let memberCard = members.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+            let memberUID = tbSync.getPropertyOfCard (memberCard, "X-DAV-UID");                
+            vCardData["X-ADDRESSBOOKSERVER-MEMBER"] = [{"value": "urn:uuid:" + memberUID}];
+        }
+        
         let newCard = tbSync.dav.vCard.generate(vCardData).trim();
         return {data: newCard, etag: tbSync.getPropertyOfCard(card, "X-DAV-ETAG"), modified: (currentCard != newCard)};
     },
 
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
-    getVCardFromThunderbirdCard: function(syncdata, addressBook, card, generateUID = false) {
+    getVCardFromThunderbirdContactCard: function(syncdata, addressBook, card, generateUID = false) {
         let currentCard = tbSync.getPropertyOfCard(card, "X-DAV-VCARD").trim();
         let vCardData = tbSync.dav.vCard.parse(currentCard);
         
-        if (generateUID) {
-            //the UID of the vCard is never used by TbSync, it differs from the href of this card (following the specs)
-            vCardData["uid"] = [{"value": dav.tools.generateUUID()}];
-        }
-
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
             if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncdata.folderCreatedWithProviderVersion)> 0) continue;
@@ -1359,6 +1381,11 @@ dav.tools = {
                     }
                     break;
             }
+        }
+
+        if (generateUID) {
+            //the UID of the vCard is mapped to X-DAV-UID and differs from the href/TBSYNCID (following the specs)
+            vCardData["uid"] = [{"value": dav.tools.generateUUID()}];
         }
 
         //add required fields

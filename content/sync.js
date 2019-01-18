@@ -684,10 +684,6 @@ dav.sync = {
         //define how many entries can be send in one request
         let maxitems = tbSync.dav.prefSettings.getIntPref("maxitems");
 
-        //access changelog to get local modifications (done and todo are used for UI to display progress)
-        syncdata.done = 0;
-        syncdata.todo = db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
-
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
         let addressBook = abManager.getDirectory(syncdata.targetId);
         
@@ -698,6 +694,31 @@ dav.sync = {
             "deleted_by_user": syncdata.downloadonly
         }; 
         
+        //special handling of lists/groups
+        //ADD/MOD of the list cards itself is not detectable, we only detect the change of its member cards when membership changes
+        //we simply add all lists to the change array and upload them, if the resulting vcard changed
+        // -> ADD/MOD of empty cards is not detectable and we do not sync them to the server
+        //DEL is handled like a normal card, no special handling needed        
+        let result = abManager.getDirectory(addressBook.URI +  "?(or(IsMailList,=,TRUE))").childCards;
+        while (result.hasMoreElements()) {
+            let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+            let mailListCardId = tbSync.getPropertyOfCard(mailListCard, "TBSYNCID");
+            if (mailListCardId) {
+                //TODO: check if memberlist differs from stored vCard! also check name
+                tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardId, "modified_by_user");
+            } else {
+                //that card has no id yet (because general TbSync addressbook listener did not catch it)
+                let folder = tbSync.db.getFolder(syncdata.account, syncdata.folderID);
+                let newCardID = tbSync.dav.getNewCardID(mailListCard, folder);
+                tbSync.setPropertyOfCard (mailListCard, "TBSYNCID", newCardID);                
+                tbSync.db.addItemToChangeLog(syncdata.targetId, newCardID, "added_by_user");
+            }
+        }
+
+        //access changelog to get local modifications (done and todo are used for UI to display progress)
+        syncdata.done = 0;
+        syncdata.todo = db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
+
         do {
             tbSync.setSyncState("prepare.request.localchanges", syncdata.account, syncdata.folderID);
 
@@ -714,10 +735,11 @@ dav.sync = {
                             let isAdding = (changes[i].status == "added_by_user");
                             if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
 
-                                //only handle contact cards (also they should never show up here, since we do not add them to changelog)
                                 let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", changes[i].id);
-                                if (card && !card.isMailList) {
-                                    let vcard = dav.tools.getVCardFromThunderbirdCard (syncdata, addressBook, card, isAdding);
+                                if (card) {
+                                    let vcard = card.isMailList
+                                                        ? dav.tools.getVCardFromThunderbirdListCard(syncdata, addressBook, card, isAdding)
+                                                        : dav.tools.getVCardFromThunderbirdContactCard(syncdata, addressBook, card, isAdding);
                                     let headers = {"Content-Type": "text/vcard; charset=utf-8"};
                                     //if (!isAdding) options["If-Match"] = vcard.etag;
 
@@ -731,6 +753,8 @@ dav.sync = {
                                             tbSync.errorlog(syncdata, "missing-permission::" + tbSync.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
                                         }
                                     }
+                                } else {
+                                    tbSync.errorlog(syncdata, "cardnotfoundbutinchangelog::" + changes[i].id);
                                 }
                             }
 
@@ -768,28 +792,6 @@ dav.sync = {
 
 
         } while (true);
-
-
-        //handle lists
-        //ADD = not detectable
-        //MOD = not detectable, but all member cards get modified (thats why we are here) -> MOD of empty list not detectable  
-        //DEL = card is in changelog and is handled already
-        
-        let result = abManager.getDirectory(addressBook.URI +  "?(or(IsMailList,=,TRUE))").childCards;
-        while (result.hasMoreElements()) {
-            let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-            
-            //get original vCard
-            let oCard = tbSync.getPropertyOfCard(mailListCard, "X-DAV-VCARD")
-            let oCardData = tbSync.dav.vCard.parse(oCard);
-
-            //get all members and build vCard
-            let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
-            let members = mailListDirectory.childCards;
-            while (members.hasMoreElements()) {
-                let memberCard = members.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-            }
-        }
 
         //return number of modified cards or the number of permission errors (negativ)
         return (permissionErrors < 0 ? permissionErrors : syncdata.done);
