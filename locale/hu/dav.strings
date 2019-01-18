@@ -1,0 +1,90 @@
+menu.name = CalDAV és CardDAV
+
+syncstate.syncing=Összehangolás előkészítése
+syncstate.preparing=Az összehangolás következő elem előkészítése
+syncstate.done=Az összehangolás következő elem előkészítése
+syncstate.accountdone=Fiók befejezve
+
+syncstate.send.getfolders=Mappalisták lekérése
+syncstate.eval.folders=Mappalisták frissítése
+
+syncstate.prepare.request.localchanges=Helyi változtatások küldése
+syncstate.send.request.localchanges=Várakozás a helyi változtatások igazolásra
+syncstate.eval.response.localchanges=Helyi változtatások igazolása feldolgozása
+
+syncstate.send.request.remotechanges=Várakozás a távoli változtatások
+syncstate.eval.response.remotechanges=A távoli változtatások feldolgozása
+
+status.notsyncronized=A fiókját összehangolni kell. Legalább egy elem összehangolatlan.
+status.disabled=A fiók nem engedélyezett, az összehangolás le van tiltva.
+status.notargets=A összehangolás abbahagyása, mert a összehangolási célokat nem lehetett létrehozni.
+status.nouserhost=A felhasználónév és/vagy kiszolgáló hiányzik. Kérjük, adja meg ezeket az értékeket.
+status.timeout=Kapcsolat időtúllépés.
+status.networkerror=Nem tudott csatlakozni a kiszolgálóhoz.
+status.404=404-es HTTP hibakód (nem található).
+status.403=403-as HTTP hibakód (hozzáférés megtagadva/tiltott).
+status.401=Nem sikerült hitelesíteni, ellenőrizni a felhasználónevet és a jelszót.
+status.500=500-as hibakód (belső kiszolgálóhiba).
+status.503=503-as hibakód (a szolgáltatás nem érhető el).
+status.httperror=Kommunikációs hiba (HTTP állapot ##replace.1##).
+status.OK=Rendben
+status.nolightning=A Lightning-t kiegészítő nincs telepítve, a naptárak nem támogatottak.
+status.JavaScriptError=JavaScript hiba! Ellenőrizze a hibakeresési naplót a részletekért.
+status.foldererror=Legalább egy erőforrás szinkronizálási hibát észlelt.
+status.softerror=Kihagyta a hibát (##replace.1##)
+
+status.no-folders-found-on-server=A kiszolgálón nem található semmilyen naptár vagy névjegyzék.
+status.invalid-response=Érvénytelen válasz érkezett, megszüntette az összehangolást.
+status.invalid-uri=Megtalálható érvénytelen URI, megszüntette az összehangolást.
+status.unsupported_auth_method=A kiszolgáló nem támogatott hitelesítési módot kér (##replace.1##).
+status.OK.managed-by-lightning=Lightning
+status.OK.caldav-calendar-already-exists=A naptár már létezik
+status.info.restored=A hiányzó írási jogosultságok miatt egyes műveleteket a szerver elutasított, és helyileg visszafordított.
+status.maiformed-xml=A válasz hibás formátumú XML-t tartalmaz, amely nem tudja feldolgozni a összehangolást.
+status.service-discovery-failed=A kiszolgálónak nem sikerült a sabre/dav szolgáltatási felderítése.
+status.missing-permission=Hiányzó engedély: ##replace.1##
+
+status.OK.managedbylightning=A Lightning-t által kezelt naptár.
+
+status.security=Biztonsági kapcsolat létrehozása nem sikerült. Ön aláírta vagy egyébként nem megbízható tanúsítványt importálta a Thunderbirdbe? (##replace.1##)
+helplink.security=https://github.com/jobisoft/TbSync/wiki/How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F
+status.network=Nem tudott csatlakozni a kiszolgálóhoz (##replace.1##).
+
+status.syncing=Összehangolás folyamatban
+status.skipped=Még nem támogatott, kimarad
+status.aborted=Nincs összehangolva
+status.pending=Várakozás összehangolásra
+status.modified=Helyi módosítások
+
+config.custom=A CalDAV és CardDAV kiszolgáló beállításai
+
+add.serverprofile.discovery=Felfedezés szolgáltatás
+add.serverprofile.discovery.description=Működik a legtöbb ownCloud, Nextcloud és más sabre/dav telepítésekkel.
+add.serverprofile.discovery.details1=Ha a kiszolgáló támogatja a felfedezési szolgáltatást, adja meg a kiszolgáló URL-címét a kiszolgálónak. Például: „felhő.kiszolgálóm.hu”. Ha ez nem működik, menjen vissza, és válassza az "Kézi beállítás" lehetőséget.
+
+add.serverprofile.custom=Kézi beállítás
+add.serverprofile.custom.description=A CalDAV és CardDAV kiszolgálók külön konfigurálása.
+add.serverprofile.custom.details1=A CalDAV és CardDAV szolgáltatónak meg kell adnia a címeket a kiszolgálóinak. A SOGo esetében többnyire „felhő.kiszolgálóm.hu/SOGo/dav” mindkét kiszolgáló számára, más szolgáltatók különböző kiszolgálókat használhatnak a CalDAV és a CardDAV számára.
+add.serverprofile.custom.details2=Ha a két címet üresen hagyja, akkor a megfelelő szolgáltatás le lesz tiltva erre a fiókra.
+
+add.serverprofile.fruux=fruux
+add.serverprofile.fruux.description=A „fruux” egy szolgáltatás, amely összehangolja a névjegyzékeket, naptárakat és feladatokat. A németország cég támogatottja a sabre/dav.
+
+add.serverprofile.icloud=iCloud
+add.serverprofile.icloud.description=https://www.icloud.com
+add.serverprofile.icloud.details1=A kért felhasználónév az Ön Apple-azonosítója. Vegye figyelembe, hogy itt nem használhatja az Apple-azonosító jelszavát. A 2FA (two-factor authentication – két faktoros hitelesítés) engedélyeznie kell iCloud-fiókja számára, és különálló alkalmazásspecifikus jelszót kell létrehoznia a Thunderbird-összehangolás számára.
+add.serverprofile.icloud.details2=Ez egy olyan biztonsági réteg, amelyet az Apple hajt végre, így harmadik fél ügyfelei nem férnek hozzá az Ön Apple-fiókjához.
+
+add.serverprofile.yahoo=Yahoo!
+add.serverprofile.yahoo.description=https://www.yahoo.com
+add.serverprofile.gmx.net=GMX.net (Európa)
+add.serverprofile.gmx.net.description=https://www.gmx.net
+add.serverprofile.gmx.com=GMX.com (Amerikai egyesült államok)
+add.serverprofile.gmx.com.description=https://www.gmx.com
+
+acl.readwrite=írásjog: ##replace.1##
+acl.readonly=csak olvasható
+acl.modify=módosít
+acl.add=hozzáad
+acl.delete=töröl
+acl.none=egyik sem

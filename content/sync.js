@@ -10,18 +10,22 @@
 
 dav.sync = {
 
-    failed: function (msg = "") {
+    failed: function (msg = "", details = "") {
         let e = new Error();
-        e.message = msg;
         e.type = "dav4tbsync";
+        e.message = msg;
+        e.details = details;
+        e.failed = true;
         return e;
     },
 
     succeeded: function (msg = "") {
         let e = new Error();
+        e.type = "dav4tbsync";
         e.message = "OK";
         if (msg) e.message = e.message + "." + msg;
-        e.type = "dav4tbsync";
+        e.details = "";
+        e.failed = false;
         return e;
     },
 
@@ -30,21 +34,27 @@ dav.sync = {
 
 
     folderList: Task.async (function* (syncdata) {
-        //This is a very simple implementation of the discovery method of sabre/dav.
-        //I am not even checking if there are changes, I just pull the current list from the server and replace the local list
         //Method description: http://sabre.io/dav/building-a-caldav-client/
 
-
         //get all folders currently known
+        let folderTypes = ["caldav", "carddav", "ics"];
+        let unhandledFolders = {};
+        for (let t of folderTypes) {
+            unhandledFolders[t] = [];
+        }
+
         let folders = tbSync.db.getFolders(syncdata.account);
-        let deletedFolders = [];
         for (let f in folders) {
-            deletedFolders.push(f);
+            //just in case
+            if (!unhandledFolders.hasOwnProperty(folders[f].type)) {
+                unhandledFolders[folders[f].type] = [];
+            }
+            unhandledFolders[folders[f].type].push(f);
         }
 
         let davjobs = {
-            card : {run: true, hometag: 'addressbook-home-set'},
-            cal : {run: tbSync.lightningIsAvailable(), hometag: 'calendar-home-set'},        
+            card : {run: true},
+            cal : {run: tbSync.lightningIsAvailable()},        
         };
 
         //get server urls from account setup - update urls of serviceproviders
@@ -56,17 +66,24 @@ dav.sync = {
         davjobs.cal.initialURL = tbSync.db.getAccountSetting(syncdata.account, "host");
         davjobs.card.initialURL = tbSync.db.getAccountSetting(syncdata.account, "host2");
         
-    
-        let jobsfound = 0;
+        let authenticationManager = Components.classes["@mozilla.org/network/http-auth-manager;1"].getService(Components.interfaces.nsIHttpAuthManager); 
+
         for (let job in davjobs) {
             if (!davjobs[job].run || !davjobs[job].initialURL) continue;
 
+            //clear credential cache, so the Channel will call nsIAuthPrompt2 and expose the realm (caldav and carddav could be on the same host but use different realms, so we reset for each type)
+            authenticationManager.clearAll();
+
+            //keep track of the current job
+            syncdata.type = job;
+            
             //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncdata)
             //example state "getfolders" to get folder information from server
             //if you send a request to a server and thus have to wait for answer, use a "send." syncstate, which will give visual feedback to the user,
             //that we are waiting for an answer with timeout countdown
 
-            let home = null;
+            let home = [];
+            let own = [];
             let principal = null;
 
             tbSync.setSyncState("send.getfolders", syncdata.account);
@@ -77,108 +94,172 @@ dav.sync = {
                 let addr = "/" + parts.join("/");                
                 
                 let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", addr , "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
-                if (response && response.error) continue;
 
                 tbSync.setSyncState("eval.folders", syncdata.account);
-                principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]);
+                if (response && response.multi) principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]);
             }
-            jobsfound++;
 
             //principal now contains something like "/remote.php/carddav/principals/john.bieling/"
             // -> get home/root of storage
             if (principal !== null) {
                 tbSync.setSyncState("send.getfolders", syncdata.account);
-                let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d", job])+"><d:prop><"+job+":"+davjobs[job].hometag+" /></d:prop></d:propfind>", principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
-                if (response && response.error) continue;
+                
+                let homeset = (job == "cal")
+                                        ? "calendar-home-set"
+                                        : "addressbook-home-set";
+
+                let request = (job == "cal")
+                                        ? "<d:propfind "+dav.tools.xmlns(["d", "cal", "cs"])+"><d:prop><cal:" + homeset + " /><cs:calendar-proxy-write-for /><cs:calendar-proxy-read-for /><d:group-membership /></d:prop></d:propfind>"
+                                        : "<d:propfind "+dav.tools.xmlns(["d", "card"])+"><d:prop><card:" + homeset + " /><d:group-membership /></d:prop></d:propfind>";
+
+                let response = yield dav.tools.sendRequest(request, principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
                 tbSync.setSyncState("eval.folders", syncdata.account);
-                home = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], [job, davjobs[job].hometag], ["d","href"]], principal);
+                own = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], principal);
+                home = own.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["cs", "calendar-proxy-read-for" ], ["d","href"]], principal));
+                home = home.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["cs", "calendar-proxy-write-for" ], ["d","href"]], principal));
+
+                //Any groups we need to find? Only diving one level at the moment, 
+                let g = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["d", "group-membership" ], ["d","href"]], principal);
+                for (let gc=0; gc < g.length; gc++) {
+                    response = yield dav.tools.sendRequest(request, g[gc], "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                    home = home.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], g[gc]));
+                }
+
+                //calendar-proxy and group-membership could have returned the same values, make the homeset unique
+                home = home.filter((v,i,a) => a.indexOf(v) == i);
+            } else {
+                throw dav.sync.failed(job+"davservernotfound", davjobs[job].initialURL)
             }
 
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
-            // -> get all calendars and addressbooks
-            if (home !== null) {
-                tbSync.setSyncState("send.getfolders", syncdata.account);
-                let request = (job == "cal")
-                                        ? "<d:propfind "+dav.tools.xmlns(["d","apple","cs"])+"><d:prop><d:resourcetype /><d:displayname /><apple:calendar-color/><cs:source/></d:prop></d:propfind>"
-                                        : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
+            // -> get all resources
+            if (home.length > 0) {
+                for (let h=0; h < home.length; h++) {
+                    tbSync.setSyncState("send.getfolders", syncdata.account);
+                    let request = (job == "cal")
+                                            ? "<d:propfind "+dav.tools.xmlns(["d","apple","cs"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /><apple:calendar-color/><cs:source/></d:prop></d:propfind>"
+                                            : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
 
-                let response = yield dav.tools.sendRequest(request, home, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
-                if (response && response.error) continue;
-                
-                for (let r=0; r < response.multi.length; r++) {
-                    if (response.multi[r].status != "200") continue;
-                    
-                    let resourcetype = null;
-                    //is this a result with a valid recourcetype? (the node must be present)
-                    switch (job) {
-                        case "card": 
-                                if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["card", "addressbook"]]) !== null) resourcetype = "carddav";
-                            break;
-                            
-                        case "cal":
-                                if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["cal", "calendar"]]) !== null) resourcetype = "caldav";
-                                else if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["cs", "subscribed"]]) !== null) resourcetype = "ics";
-                            break;
+                    //some servers report to have calendar-proxy-read but return a 404 when that gets actually queried
+                    let response = yield dav.tools.sendRequest(request, home[h], "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: [404]});
+                    if (response && response.softerror) {
+                        continue;
                     }
-                    if (resourcetype === null) continue;
                     
-                    let href = response.multi[r].href;
-                    if (resourcetype == "ics") href =  dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cs","source"], ["d","href"]]).textContent;
-                    
-                    let name_node = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","displayname"]]);
-                    let name = (job == "cal") ? "Calendar" : "Contacts";
-                    if (name_node != null) {
-                        name = name_node.textContent;
-                    }
-                    let color = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["apple","calendar-color"]]);
+                    for (let r=0; r < response.multi.length; r++) {
+                        if (response.multi[r].status != "200") continue;
+                        
+                        let resourcetype = null;
+                        //is this a result with a valid recourcetype? (the node must be present)
+                        switch (job) {
+                            case "card": 
+                                    if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["card", "addressbook"]]) !== null) resourcetype = "carddav";
+                                break;
+                                
+                            case "cal":
+                                    if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["cal", "calendar"]]) !== null) resourcetype = "caldav";
+                                    else if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["cs", "subscribed"]]) !== null) resourcetype = "ics";
+                                break;
+                        }
+                        if (resourcetype === null) continue;
+                        
+                        //get ACL
+                        let acl = 0;
+                        let privilegNode = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","current-user-privilege-set"]]);
+                        if (privilegNode) {
+                            if (privilegNode.getElementsByTagNameNS(dav.ns.d, "all").length > 0) { 
+                                acl = 0xF; //read=1, mod=2, create=4, delete=8 
+                            } else if (privilegNode.getElementsByTagNameNS(dav.ns.d, "read").length > 0) { 
+                                acl = 0x1;
+                                if (privilegNode.getElementsByTagNameNS(dav.ns.d, "write").length > 0) {
+                                    acl = 0xF; 
+                                } else {
+                                    if (privilegNode.getElementsByTagNameNS(dav.ns.d, "write-content").length > 0) acl |= 0x2;
+                                    if (privilegNode.getElementsByTagNameNS(dav.ns.d, "bind").length > 0) acl |= 0x4;
+                                    if (privilegNode.getElementsByTagNameNS(dav.ns.d, "unbind").length > 0) acl |= 0x8;
+                                }
+                            }
+                        }
+                        
+                        //ignore this resource, if no read access
+                        if ((acl & 0x1) == 0) continue;
 
-                    let folder = tbSync.db.getFolder(syncdata.account, href);
-                    if (folder === null || folder.cached === "1") { //this is NOT called by unsubscribing/subscribing
-                        let newFolder = {}
-                        newFolder.folderID = href;
-                        newFolder.name = name;
-                        newFolder.type = resourcetype;
-                        newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
-                        newFolder.selected = "0";
-                        newFolder.fqdn = syncdata.fqdn;
-                
-                        //if there is a cached version of this folderID, addFolder will merge all persistent settings - all other settings not defined here will be set to their defaults
-                        tbSync.db.addFolder(syncdata.account, newFolder);
-                    } else {
-                        //Update name & color
-                        tbSync.db.setFolderSetting(syncdata.account, href, "name", name);
-                        tbSync.db.setFolderSetting(syncdata.account, href, "fqdn", syncdata.fqdn);
-                        deletedFolders = deletedFolders.filter(item => item !== href);
-                    }
+                        let href = response.multi[r].href;
+                        if (resourcetype == "ics") href =  dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cs","source"], ["d","href"]]).textContent;
+                        
+                        let name_node = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","displayname"]]);
+                        let name = (job == "cal") ? "Calendar" : "Contacts";
+                        if (name_node != null) {
+                            name = name_node.textContent;
+                        }
+                        let color = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["apple","calendar-color"]]);
 
-                    //update color from server
-                    if (color && job == "cal") {
-                        color = color.textContent.substring(0,7);
-                        tbSync.db.setFolderSetting(syncdata.account, href, "targetColor", color);
-                        //do we have to update the calendar?
-                        if (tbSync.lightningIsAvailable() && folder && folder.target) {
-                            let targetCal = cal.getCalendarManager().getCalendarById(folder.target);
-                            if (targetCal !== null) {
-                                targetCal.setProperty("color", color);
+                        //remove found folder from list of unhandled folders
+                        unhandledFolders[resourcetype] = unhandledFolders[resourcetype].filter(item => item !== href);
+
+                        let folder = tbSync.db.getFolder(syncdata.account, href);
+                        if (folder === null || folder.cached === "1") { //this is NOT called by unsubscribing/subscribing
+                            let newFolder = {}
+                            newFolder.folderID = href;
+                            newFolder.name = name;
+                            newFolder.type = resourcetype;
+                            newFolder.shared = (own.includes(home[h])) ? "0" : "1";
+                            newFolder.acl = acl.toString();
+                            newFolder.downloadonly = (acl == 0x1) ? "1" : "0"; //if any write access is granted, setup as writeable
+                                
+                            newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
+                            newFolder.selected = "0";
+                            newFolder.fqdn = syncdata.fqdn;
+                    
+                            //if there is a cached version of this folderID, addFolder will merge all persistent settings - all other settings not defined here will be set to their defaults
+                            tbSync.db.addFolder(syncdata.account, newFolder);
+                        } else {
+                            //Update name & color
+                            tbSync.db.setFolderSetting(syncdata.account, href, "name", name);
+                            tbSync.db.setFolderSetting(syncdata.account, href, "fqdn", syncdata.fqdn);
+                            tbSync.db.setFolderSetting(syncdata.account, href, "acl", acl);
+                            //if the acl changed from RW to RO we need to update the downloadonly setting
+                            if (acl == 0x1) {
+                                tbSync.db.setFolderSetting(syncdata.account, href, "downloadonly", "1");
+                            }
+                        }
+
+                        //update color from server
+                        if (color && job == "cal") {
+                            color = color.textContent.substring(0,7);
+                            tbSync.db.setFolderSetting(syncdata.account, href, "targetColor", color);
+                            //do we have to update the calendar?
+                            if (tbSync.lightningIsAvailable() && folder && folder.target) {
+                                let targetCal = cal.getCalendarManager().getCalendarById(folder.target);
+                                if (targetCal !== null) {
+                                    targetCal.setProperty("color", color);
+                                }
                             }
                         }
                     }
                 }
-
             } else {
-                //home was not found - connection error? - do not delete anything
-                let deletedFolders = [];
+                //home was not found - connection error? - do not delete unhandled folders
+                switch (job) {
+                    case "card": 
+                            unhandledFolders.carddav = [];
+                        break;
+                        
+                    case "cal":
+                            unhandledFolders.caldav = [];
+                            unhandledFolders.ics = [];
+                        break;
+                }
             }
         }
 
-        if (jobsfound == 0) {
-            throw dav.sync.failed("service-discovery-failed");
-        }
-
-        //remove deleted folders (no longer there)
-        for (let i = 0; i < deletedFolders.length; i++) {
-            tbSync.takeTargetOffline("dav", folders[deletedFolders[i]], " [deleted on server]");
+        //remove unhandled old folders, (because they no longer exist on the server)
+        for (let t of folderTypes) {
+            for (let i = 0; i < unhandledFolders[t].length; i++) {
+                tbSync.takeTargetOffline("dav", folders[unhandledFolders[t][i]], " [deleted on server]");
+                tbSync.db.deleteFolder(folders[unhandledFolders[t][i]].account, folders[unhandledFolders[t][i]].folderID);
+            }
         }
 
     }),
@@ -246,7 +327,11 @@ dav.sync = {
                             let targetCal = calManager.getCalendarById(target);
                             targetCal.refresh();
                             tbSync.db.clearChangeLog(target);
-                            throw dav.sync.succeeded();
+
+                            //update downloadonly
+                            if (tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "downloadonly") == "1") targetCal.setProperty("readOnly", true);
+
+                            throw dav.sync.succeeded("managed-by-lightning");
                         }
                         break;
 
@@ -258,10 +343,12 @@ dav.sync = {
 
                 }
             } catch (e) {
-                if (e.type == "dav4tbsync") tbSync.finishFolderSync(syncdata, e.message);
-                else {
+                if (e.type == "dav4tbsync") {
+                    tbSync.finishFolderSync(syncdata, e);
+                } else {
                     //abort sync of other folders on javascript error
-                    tbSync.finishFolderSync(syncdata, "javascriptError::" + (e.message ? e.message : e));
+                    e.type = "JavaScriptError";
+                    tbSync.finishFolderSync(syncdata, e);
                     throw e;
                 }
             }
@@ -333,9 +420,12 @@ dav.sync = {
 
         let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-        let cards = yield dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {"Content-Type": "application/xml; charset=utf-8"});
+        let cards = yield dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {"Content-Type": "application/xml; charset=utf-8"}, {softfail: [415,403]});
 
-        if (cards.error) { //Sabre\DAV\Exception\InvalidSyncToken
+        //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book), 415 & 403
+        //https://github.com/sabre-io/dav/issues/1075
+        //Sabre\DAV\Exception\InvalidSyncToken (403)
+        if (cards && cards.softerror) {
             //token sync failed, reset ctag and do a full sync
             return false;
         }
@@ -357,7 +447,7 @@ dav.sync = {
             if (id !==null) {
                 //valid
                 let status = cards.multi[c].status;
-                let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
+                let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", id);
                 if (status == "200") {
                     //MOD or ADD
                     let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
@@ -367,7 +457,7 @@ dav.sync = {
                             syncdata.todo++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
-                    } else if (etag.textContent != card.getProperty("X-DAV-ETAG","")) {
+                    } else if (etag.textContent != tbSync.getPropertyOfCard(card, "X-DAV-ETAG")) {
                         syncdata.todo++;
                         vCardsChangedOnServer[id] = "MOD"; 
                     }
@@ -436,14 +526,14 @@ dav.sync = {
 
                 if (cards.multi[c].status == "200" && etag !== null && id !== null /* && ctype !== null */) { //we do not actually check the content of ctype - but why do we request it? iCloud seems to send cards without ctype
                     vCardsFoundOnServer.push(id);
-                    let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
+                    let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", id);
                     if (!card) {
                         //if the user deleted this card (not yet send to server), do not add it again
                         if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "deleted_by_user") {
                             syncdata.todo++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
-                    } else if (etag.textContent != card.getProperty("X-DAV-ETAG","")) {
+                    } else if (etag.textContent != tbSync.getPropertyOfCard(card, "X-DAV-ETAG")) {
                         syncdata.todo++;
                         vCardsChangedOnServer[id] = "MOD"; 
                     }
@@ -493,6 +583,9 @@ dav.sync = {
 
 
     multiget: Task.async (function*(addressBook, vCardsChangedOnServer, syncdata) {
+        //keep track of found mailing lists and its members
+        syncdata.foundMailingLists = {};
+        
         //download all changed cards and process changes
         let cards2catch = Object.keys(vCardsChangedOnServer);
         let maxitems = tbSync.dav.prefSettings.getIntPref("maxitems");
@@ -526,6 +619,51 @@ dav.sync = {
                 }
             }
         }
+        
+        //process members of found mailinglists
+        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+        for (let mailListCardID in syncdata.foundMailingLists) {
+            if (syncdata.foundMailingLists.hasOwnProperty(mailListCardID)) {
+                let mailListCard = tbSync.getCardFromProperty(addressBook, "TBSYNCID", mailListCardID);
+                let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
+                
+                //smart merge: oldMembers contains the state during last sync, newMembers is the current state
+                //by comparing we can learn, what was added on the server (in new but not in old) and what was deleted (in old but not in new)
+                //when adding, we need to check, if it is already part of local list (added by user as well)
+                //when deleting, we need to check, if it has been deleted already in the local list (deleted by user as well)
+                //all other local changes remain untouched and will be send back to the server as local changes
+                let addedMembers = syncdata.foundMailingLists[mailListCardID].newMembers.filter(e => !syncdata.foundMailingLists[mailListCardID].oldMembers.includes(e));
+                let removedMembers = syncdata.foundMailingLists[mailListCardID].oldMembers.filter(e => !syncdata.foundMailingLists[mailListCardID].newMembers.includes(e));
+                
+                //remove requested members from list (IDs stored in this array are X-DAV-UIDs)
+                for (let i=0; i < removedMembers.length; i++) {
+                    let card = addressBook.getCardFromProperty("X-DAV-UID", removedMembers[i], true);
+                    if (card) {
+                        let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-UID", removedMembers[i]);
+                        if (idx != -1) {
+                            tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
+                            mailListDirectory.addressLists.removeElementAt(idx);  
+                        }                                
+                    }
+                }
+                
+                //add requested members to list (IDs stored in this array are X-DAV-UIDs)
+                for (let i=0; i < addedMembers.length; i++) {
+                    let card = addressBook.getCardFromProperty("X-DAV-UID", addedMembers[i], true);
+                    if (card) {
+                        let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-UID", addedMembers[i]);
+                        if (idx == -1) {
+                            tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
+                            mailListDirectory.addressLists.appendElement(card, false);
+                        }
+                    }
+                }
+                
+                //this will unlock all locked cards in the changelog
+                tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardID, "locked_by_mailinglist_operations");
+                mailListDirectory.editMailListToDatabase(mailListCard);
+            }
+        }            
     }),
 
     deleteContacts: Task.async (function*(addressBook, vCardsDeletedOnServer, syncdata) {
@@ -546,13 +684,40 @@ dav.sync = {
         //define how many entries can be send in one request
         let maxitems = tbSync.dav.prefSettings.getIntPref("maxitems");
 
+        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+        let addressBook = abManager.getDirectory(syncdata.targetId);
+        
+        let permissionErrors = 0;
+        let permissionError = { //keep track of permission errors - preset with downloadonly status to skip sync in that case
+            "added_by_user": syncdata.downloadonly, 
+            "modified_by_user": syncdata.downloadonly, 
+            "deleted_by_user": syncdata.downloadonly
+        }; 
+        
+        //special handling of lists/groups
+        //ADD/MOD of the list cards itself is not detectable, we only detect the change of its member cards when membership changes
+        //we simply add all lists to the change array and upload them, if the resulting vcard changed
+        // -> ADD/MOD of empty cards is not detectable and we do not sync them to the server
+        //DEL is handled like a normal card, no special handling needed        
+        let result = abManager.getDirectory(addressBook.URI +  "?(or(IsMailList,=,TRUE))").childCards;
+        while (result.hasMoreElements()) {
+            let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+            let mailListCardId = tbSync.getPropertyOfCard(mailListCard, "TBSYNCID");
+            if (mailListCardId) {
+                //TODO: check if memberlist differs from stored vCard! also check name
+                tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardId, "modified_by_user");
+            } else {
+                //that card has no id yet (because general TbSync addressbook listener did not catch it)
+                let folder = tbSync.db.getFolder(syncdata.account, syncdata.folderID);
+                let newCardID = tbSync.dav.getNewCardID(mailListCard, folder);
+                tbSync.setPropertyOfCard (mailListCard, "TBSYNCID", newCardID);                
+                tbSync.db.addItemToChangeLog(syncdata.targetId, newCardID, "added_by_user");
+            }
+        }
+
         //access changelog to get local modifications (done and todo are used for UI to display progress)
         syncdata.done = 0;
         syncdata.todo = db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
-
-        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-        let addressBook = abManager.getDirectory(syncdata.targetId);
-        let permissionError = syncdata.downloadonly; //start with "permissionError", if the user has set this to downloadonly
 
         do {
             tbSync.setSyncState("prepare.request.localchanges", syncdata.account, syncdata.folderID);
@@ -567,41 +732,55 @@ dav.sync = {
                     case "added_by_user":
                     case "modified_by_user":
                         {
-                            if (!permissionError) { //no need to do any other requests, if there was a permission error already
-                                let isAdding = (changes[i].status == "added_by_user");
-                                let vcard = dav.tools.getVCardFromThunderbirdCard (syncdata, addressBook, changes[i].id, isAdding);
-                                let options = {"Content-Type": "text/vcard; charset=utf-8"};
-                                //if (!isAdding) options["If-Match"] = vcard.etag;
+                            let isAdding = (changes[i].status == "added_by_user");
+                            if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
 
-                                tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
-                                let response = yield dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, options);
+                                let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", changes[i].id);
+                                if (card) {
+                                    let vcard = card.isMailList
+                                                        ? dav.tools.getVCardFromThunderbirdListCard(syncdata, addressBook, card, isAdding)
+                                                        : dav.tools.getVCardFromThunderbirdContactCard(syncdata, addressBook, card, isAdding);
+                                    let headers = {"Content-Type": "text/vcard; charset=utf-8"};
+                                    //if (!isAdding) options["If-Match"] = vcard.etag;
 
-                                tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
-                                if (response && [403,405].includes(response.error)) {
-                                    permissionError = true;
+                                    tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
+                                    if (isAdding || vcard.modified) {
+                                        let response = yield dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, headers, {softfail: [403,405]});
+
+                                        tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
+                                        if (response && response.softerror) {
+                                            permissionError[changes[i].status] = true;
+                                            tbSync.errorlog(syncdata, "missing-permission::" + tbSync.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
+                                        }
+                                    }
+                                } else {
+                                    tbSync.errorlog(syncdata, "cardnotfoundbutinchangelog::" + changes[i].id);
                                 }
                             }
 
-                            if (permissionError) {
+                            if (permissionError[changes[i].status]) {
                                 dav.tools.invalidateThunderbirdCard(syncdata, addressBook, changes[i].id);
+                                permissionErrors--;
                             }
                         }
                         break;
 
                     case "deleted_by_user":
                         {
-                            if (!permissionError) { //no need to do any other requests, if there was a permission error already
+                            if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
                                 tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
-                                let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {});
+                                let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {}, {softfail: [403, 405]});
 
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
-                                if (response && [403,405].includes(response.error)) {
-                                    permissionError = true;
+                                if (response  && response.softerror) {
+                                    permissionError[changes[i].status] = true;
+                                    tbSync.errorlog(syncdata, "missing-permission::" + tbSync.getLocalizedMessage("acl.delete", "dav"));
                                 }
                             }
 
-                            if (permissionError) {
+                            if (permissionError[changes[i].status]) {
                                 tbSync.db.addItemToChangeLog(syncdata.targetId, changes[i].id, "deleted_by_server");
+                                permissionErrors--;                                
                             }
                         }
                         break;
@@ -614,8 +793,8 @@ dav.sync = {
 
         } while (true);
 
-        //return number of modified cards or -1 on permission error
-        return (permissionError ? -1 : syncdata.done);
+        //return number of modified cards or the number of permission errors (negativ)
+        return (permissionErrors < 0 ? permissionErrors : syncdata.done);
     }),
 
 

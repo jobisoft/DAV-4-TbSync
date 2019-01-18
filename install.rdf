@@ -8,7 +8,7 @@
         <em:unpack>false</em:unpack>
         <em:multiprocessCompatible>true</em:multiprocessCompatible>
         <em:name>Provider for CalDAV &amp; CardDAV</em:name>
-        <em:version>0.10.17</em:version>
+        <em:version>0.10.36</em:version>
         <em:description>Add sync support for CalDAV &amp; CardDAV accounts to TbSync</em:description>
         <em:creator>John Bieling</em:creator>
         <em:homepageURL>https://github.com/jobisoft/DAV-4-TbSync</em:homepageURL>
@@ -16,6 +16,7 @@
         <em:translator>Ettore Atalan (de)</em:translator>
         <em:translator>John Bieling (de)</em:translator>
         <em:translator>John Bieling (en-US)</em:translator>
+        <em:translator>Óvári (hu)</em:translator>
         <em:translator>Alessandro Menti (it)</em:translator>
         <em:translator>Alexey Sinitsyn (ru)</em:translator>
         <em:contributor>Brad2014</em:contributor>
@@ -32,7 +33,7 @@
           </Description>
         </em:targetApplication>
 
-        <em:localized>
+        <em:localized> <!-- German -->
           <Description>
             <em:locale>de</em:locale>
             <em:name>Provider für CalDAV &amp; CardDAV</em:name>
@@ -40,6 +41,7 @@
             <em:translator>Ettore Atalan (de)</em:translator>
             <em:translator>John Bieling (de)</em:translator>
             <em:translator>John Bieling (en-US)</em:translator>
+            <em:translator>Övári (hu)</em:translator>
             <em:translator>Alessandro Menti (it)</em:translator>
             <em:translator>Alexey Sinitsyn (ru)</em:translator>
             <em:contributor>Brad2014</em:contributor>
@@ -49,7 +51,25 @@
           </Description>
         </em:localized>
 
-        <em:localized>
+        <em:localized> <!-- Hungarian -->
+          <Description>
+            <em:locale>hu</em:locale>
+            <em:name>A CalDAV és CardDAV szolgáltató</em:name>
+            <em:description>A CalDAV- és CardDAV-fiókok összehangolás támogatásának hozzáadása a Thunderbird-összehangoláshoz (TbSync) (névjegyzék, feladatok és naptárak)</em:description>
+            <em:translator>Ettore Atalan (de)</em:translator>
+            <em:translator>John Bieling (de)</em:translator>
+            <em:translator>John Bieling (en-US)</em:translator>
+            <em:translator>Övári (hu)</em:translator>
+            <em:translator>Alessandro Menti (it)</em:translator>
+            <em:translator>Alexey Sinitsyn (ru)</em:translator>
+            <em:contributor>Brad2014</em:contributor>
+            <em:contributor>Nathan Gauër</em:contributor>
+            <em:contributor>Alexandr Heymdall (vCard parser)</em:contributor>	
+            <em:creator>John Bieling</em:creator>
+          </Description>
+        </em:localized>
+
+        <em:localized> <!-- Italian -->
           <Description>
             <em:locale>it</em:locale>
             <em:name>Provider CalDAV e CardDAV</em:name>
@@ -57,6 +77,7 @@
             <em:translator>Ettore Atalan (de)</em:translator>
             <em:translator>John Bieling (de)</em:translator>
             <em:translator>John Bieling (en-US)</em:translator>
+            <em:translator>Övári (hu)</em:translator>
             <em:translator>Alessandro Menti (it)</em:translator>
             <em:translator>Alexey Sinitsyn (ru)</em:translator>
             <em:contributor>Brad2014</em:contributor>
@@ -74,6 +95,7 @@
             <em:translator>Ettore Atalan (de)</em:translator>
             <em:translator>John Bieling (de)</em:translator>
             <em:translator>John Bieling (en-US)</em:translator>
+            <em:translator>Övári (hu)</em:translator>
             <em:translator>Alessandro Menti (it)</em:translator>
             <em:translator>Alexey Sinitsyn (ru)</em:translator> 
             <em:contributor>Brad2014</em:contributor>

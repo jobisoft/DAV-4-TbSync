@@ -30,6 +30,7 @@
 
 <!ENTITY pref.contactoptions "Opzioni contatto">
 <!ENTITY pref.useHomeAsPrimary "Utilizza l'indirizzo di posta elettronica vCard di tipo &quot;Casa&quot; (e non &quot;Lavoro&quot;) come indirizzo di posta elettronica primario">
+<!ENTITY pref.useCardBook "Crea rubriche di CardBook al posto delle rubriche di default di Thunderbird">
 
 <!ENTITY pref.calendaroptions "Opzioni calendario">
 <!ENTITY pref.useCache "Supporto non in linea">
@@ -37,5 +38,5 @@
 <!ENTITY abCard.MiddleName "Secondo nome:">
 <!ENTITY abCard.Phone "Principale:">
 
-<!ENTITY manager.tabs.accountsettings "Impostazioni dell'account">
+<!ENTITY manager.tabs.accountsettings "Impostazioni account">
 <!ENTITY manager.tabs.syncsettings "Opzioni">

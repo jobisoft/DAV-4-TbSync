@@ -132,9 +132,10 @@ dav.tools = {
     //* * * * * * * * * * * * *
     
     Prompt: class {
-        constructor(aAccount) {
+        constructor(aAccount, aType) {
             this.mCounts = 0;
             this.mAccount = aAccount;
+            this.mType = aType;
         }
 
         // boolean promptAuth(in nsIChannel aChannel,
@@ -142,9 +143,11 @@ dav.tools = {
         //                    in nsIAuthInformation authInfo)
         promptAuth (aChannel, aLevel, aAuthInfo) {
             //store aAuthInfo.realm, needed later to setup lightning passwords
-            tbSync.dump("NSIBUG Found authRealm for <"+aChannel.URI.host+">", aAuthInfo.realm);
-            dav.listOfRealms[aChannel.URI.host] = aAuthInfo.realm;
-
+            if (this.mType == "cal") {
+                tbSync.dump("Found CalDAV authRealm for <"+aChannel.URI.host+">", aAuthInfo.realm);
+                dav.listOfRealms[aChannel.URI.host] = aAuthInfo.realm;
+            }
+            
             //get the password for this account from password manager
             let password = tbSync.dav.getPassword(this.mAccount);
             if (password !== null) {
@@ -237,7 +240,7 @@ dav.tools = {
         return httpchannel;
     },
  
-    sendRequest: Task.async (function* (requestData, _url, method, syncdata, headers, aUseStreamLoader = true) {
+    sendRequest: Task.async (function* (requestData, _url, method, syncdata, headers = {}, options = {softfail: []}, aUseStreamLoader = true) {
         let account = tbSync.db.getAccount(syncdata.account);
         
         //do not modify parameter
@@ -253,14 +256,17 @@ dav.tools = {
             if (dav.problematicHosts.includes(uri.host)) {
                 headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.dav.getPassword(account));
             }
-            let r = yield dav.tools.sendRequestCore (requestData, uri.spec, method, syncdata, headers, aUseStreamLoader);
+            let r = yield dav.tools.sendRequestCore (requestData, uri.spec, method, syncdata, headers, options, aUseStreamLoader);
             
             if (r && r.redirect && r.url) {
                 url = r.url;
                 tbSync.dump("Redirect #" + i, r.url);
             } else if (r && r.retry && r.retry === true) {
-                tbSync.dump("NSIBUG Retry on 401", "Manually adding basic auth header for <" + account.user + "@" + uri.host + ">");
-                if (!dav.problematicHosts.includes(uri.host)) {
+                if (r.addBasicAuthHeaderOnce) {
+                    tbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + account.user + "@" + uri.host + ">");
+                    headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.dav.getPassword(account));
+                } else if (!dav.problematicHosts.includes(uri.host) ) {
+                    tbSync.dump("BUG 669675", "Adding <" + uri.host + "> to list of problematic hosts.");
                     dav.problematicHosts.push(uri.host)
                 }
             } else {
@@ -270,8 +276,9 @@ dav.tools = {
     }),
     
     // Promisified implementation of Components.interfaces.nsIHttpChannel
-    sendRequestCore: Task.async (function* (requestData, fullUrl, method, syncdata, headers, aUseStreamLoader) {
+    sendRequestCore: Task.async (function* (requestData, fullUrl, method, syncdata, headers, options, aUseStreamLoader) {
         let account = tbSync.db.getAccount(syncdata.account);
+        let responseData = "";
         
         //Note: 
         // - by specifying a user, the system falls back to user:<none>, which will trigger a 401 which will cause the authCallbacks and lets me set a new user/pass combination
@@ -288,7 +295,7 @@ dav.tools = {
 
         //no longer log HEADERS, as it could contain an Authorization header
         //tbSync.dump("HEADERS", JSON.stringify(headers));
-        tbSync.dump("REQUEST", method + " : " + requestData);
+        if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("REQUEST", method + " : " + requestData);
         
         return new Promise(function(resolve, reject) {                  
             let listener = {
@@ -300,14 +307,16 @@ dav.tools = {
                     } catch (ex) {
                         let error = tbSync.createTCPErrorFromFailedChannel(aLoader.request);
                         if (!error) {
-                            reject(dav.sync.failed("networkerror"));
+                            return reject(dav.sync.failed("networkerror", "URL:\n" + fullUrl + " ("+method+")")); //reject/resolve do not terminate control flow
                         } else {
-                            reject(dav.sync.failed(error));
+                            return reject(dav.sync.failed(error, "URL:\n" + fullUrl + " ("+method+")"));
                         }
                     }
                     
                     let text = dav.tools.convertByteArray(aResult, aResultLength);                    
-                    tbSync.dump("RESPONSE", responseStatus + " : " + text);
+                    if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("RESPONSE", responseStatus + " : " + text);
+                    responseData = text.split("><").join(">\n<");
+                    
                     switch(responseStatus) {
                         case 301:
                         case 302:
@@ -319,10 +328,10 @@ dav.tools = {
                                 let response = {};
                                 response.redirect = responseStatus;
                                 response.url = request.getResponseHeader("Location");
-                                resolve(response);
+                                return resolve(response);
                             }
                             break;
-                            
+
                         case 401: //AuthError
                             {                               
                                 //handle nsIHttpChannel bug (https://bugzilla.mozilla.org/show_bug.cgi?id=669675)
@@ -347,68 +356,73 @@ dav.tools = {
                                     if (!triedToAuthenticate) {
                                         let response = {};
                                         response.retry = true;
-                                        resolve(response);
+                                        return resolve(response);
                                     }
                                 }
                                 
-                                reject(dav.sync.failed("401"));
+                                return reject(dav.sync.failed("401"));
                             }
                             break;
-
+                            
                         case 207: //preprocess multiresponse
                             {
                                 let xml = dav.tools.convertToXML(text);
-                                if (xml === null) reject(dav.sync.failed("mailformed-xml"));
+                                if (xml === null) return reject(dav.sync.failed("maiformed-xml", "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData));
 
-                                let response = {};
-                                response.node = xml.documentElement;
+                                //the specs allow to  return a 207 with DAV:unauthenticated if not authenticated 
+                                if (xml.documentElement.getElementsByTagNameNS(dav.ns.d, "unauthenticated").length != 0) {
+                                    let response = {};
+                                    response.retry = true;
+                                    //we have no information at all about allowed auth methods, try basic auth
+                                    response.addBasicAuthHeaderOnce = true;
+                                    return resolve(response);
+                                } else {
+                                    let response = {};
+                                    response.node = xml.documentElement;
 
-                                let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
-                                response.multi = [];
-                                for (let i=0; i < multi.length; i++) {
-                                    let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
-                                    let propstats = multi[i].getElementsByTagNameNS(dav.ns.d, "propstat");
-                                    if (propstats.length > 0) {
-                                        //response contains propstats, push each as single entry
-                                        for (let p=0; p < propstats.length; p++) {
-                                            let statusNode = dav.tools.evaluateNode(propstats[p], [["d", "status"]]);
+                                    let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
+                                    response.multi = [];
+                                    for (let i=0; i < multi.length; i++) {
+                                        let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
+                                        let propstats = multi[i].getElementsByTagNameNS(dav.ns.d, "propstat");
+                                        if (propstats.length > 0) {
+                                            //response contains propstats, push each as single entry
+                                            for (let p=0; p < propstats.length; p++) {
+                                                let statusNode = dav.tools.evaluateNode(propstats[p], [["d", "status"]]);
+
+                                                let resp = {};
+                                                resp.node = propstats[p];
+                                                resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
+                                                resp.href = hrefNode === null ? null : hrefNode.textContent;
+                                                response.multi.push(resp);
+                                            }
+                                        } else {
+                                            //response does not contain any propstats, push raw response
+                                            let statusNode = dav.tools.evaluateNode(multi[i], [["d", "status"]]);
 
                                             let resp = {};
-                                            resp.node = propstats[p];
+                                            resp.node = multi[i];
                                             resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
                                             resp.href = hrefNode === null ? null : hrefNode.textContent;
                                             response.multi.push(resp);
                                         }
-                                    } else {
-                                        //response does not contain any propstats, push raw response
-                                        let statusNode = dav.tools.evaluateNode(multi[i], [["d", "status"]]);
-
-                                        let resp = {};
-                                        resp.node = multi[i];
-                                        resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
-                                        resp.href = hrefNode === null ? null : hrefNode.textContent;
-                                        response.multi.push(resp);
                                     }
-                                }
 
-                                resolve(response);
+                                    return resolve(response);
+                                }
                             }
-                            break;
+
 
                         case 200: //returned by DELETE by radicale - watch this !!!
                         case 204: //is returned by DELETE - no data
                         case 201: //is returned by CREATE - no data
-                            resolve(null);
+                            return resolve(null);
                             break;
 
-                        case 400:
-                        case 403:
-                        case 404:
-                        case 405: //Not allowed
-                        case 415: //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book)
-                            {
+                        default:
+                            if (options.softfail.includes(responseStatus)) {
                                 let noresponse = {};
-                                noresponse.error = responseStatus;
+                                noresponse.softerror = responseStatus;
                                 let xml = dav.tools.convertToXML(text);
                                 if (xml !== null) {
                                     let exceptionNode = dav.tools.evaluateNode(xml.documentElement, [["s","exception"]]);
@@ -416,11 +430,13 @@ dav.tools = {
                                         noresponse.exception = exceptionNode.textContent;
                                     }
                                 }
-                                resolve(noresponse);
-                            }
-
-                        default:
-                            reject(dav.sync.failed(responseStatus));
+                                //manually log this non-fatal error
+                                tbSync.errorlog(syncdata, "softerror::"+responseStatus, "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
+                                return resolve(noresponse);
+                            } else {
+                                return reject(dav.sync.failed(responseStatus, "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
+                            }                                
+                            break;
 
                     }
                 }
@@ -432,7 +448,7 @@ dav.tools = {
                     if (aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
                         tbSync.dump("GET","nsIAuthPrompt2");
                         if (!this.authPrompt) {
-                            this.authPrompt = new dav.tools.Prompt(account);
+                            this.authPrompt = new dav.tools.Prompt(account, syncdata.type);
                         }
                         return this.authPrompt;
                     } else if (aIID.equals(Components.interfaces.nsIAuthPrompt)) {
@@ -464,9 +480,10 @@ dav.tools = {
             //manually set timout
             syncdata.timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
             let timeout = tbSync.prefSettings.getIntPref("timeout");
+            let rv = Components.results.NS_ERROR_NET_TIMEOUT;
             let event = {
                 notify: function(timer) {
-                    if (channel) channel.cancel(Components.results.NS_ERROR_NET_TIMEOUT);
+                    if (channel) channel.cancel(rv);
                 }
             }
             syncdata.timer.initWithCallback(event, timeout, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
@@ -540,6 +557,24 @@ dav.tools = {
         return null;
     },
 
+    getNodesTextContentFromMultiResponse: function (response, path, href = null, status = "200") {
+        //remove last element from path
+        let lastPathElement = path.pop();
+        let rv = [];
+        
+        for (let i=0; i < response.multi.length; i++) {
+            let node = dav.tools.evaluateNode(response.multi[i].node, path);
+            if (node !== null && (href === null || response.multi[i].href == href || decodeURIComponent(response.multi[i].href) == href || response.multi[i].href == decodeURIComponent(href)) && response.multi[i].status == status) {
+                //get all children
+                let children = node.getElementsByTagNameNS(dav.ns[lastPathElement[0]], lastPathElement[1]);
+                for (let c=0; c < children.length; c++) {
+                    if (children[c].textContent) rv.push(children[c].textContent);
+                }
+            }
+        }
+        return rv;
+    },
+    
     getMultiGetRequest: function(hrefs) {
         let request = "<card:addressbook-multiget "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /><card:address-data /></d:prop>";
         let counts = 0;
@@ -574,26 +609,127 @@ dav.tools = {
     },
     
     addContact: function(addressBook, id, data, etag, syncdata) {
-        //prepare new card
-        let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
-        card.setProperty("TBSYNCID", id);
+        let vCard = data.textContent.trim();
+        let vCardData = tbSync.dav.vCard.parse(vCard);
 
-        dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, data.textContent.trim(), etag.textContent);
+        //check if contact or mailinglist
+        if (!dav.tools.vCardIsMailingList (id, null, addressBook, vCard, vCardData, etag, syncdata)) {
+            //prepare new contact card
+            let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance(Components.interfaces.nsIAbCard);
+            card.setProperty("TBSYNCID", id);
+            card.setProperty("X-DAV-ETAG", etag.textContent);
+            card.setProperty("X-DAV-VCARD", vCard);
 
-        tbSync.db.addItemToChangeLog(syncdata.targetId, id, "added_by_server");
-        addressBook.addCard(card);
+            dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, vCardData);
+
+            tbSync.db.addItemToChangeLog(syncdata.targetId, id, "added_by_server");
+            addressBook.addCard(card);
+        }
     },
 
     modifyContact: function(addressBook, id, data, etag, syncdata) {
-        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
+        let vCard = data.textContent.trim();
+        let vCardData = tbSync.dav.vCard.parse(vCard);
 
-        dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, data.textContent.trim(), etag.textContent, card.getProperty("X-DAV-VCARD", ""));
+        //get card
+        let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", id);
+        if (card) {
+            //check if contact or mailinglist to update card
+            if (!dav.tools.vCardIsMailingList (id, card, addressBook, vCard, vCardData, etag, syncdata)) {          
+                //get original vCard data as stored by last update from server
+                let oCard = tbSync.getPropertyOfCard(card, "X-DAV-VCARD");
+                let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
 
-        if (syncdata.revert || tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "modified_by_user") {
-            tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
+                card.setProperty("X-DAV-ETAG", etag.textContent);
+                card.setProperty("X-DAV-VCARD", vCard);
+                
+                dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, vCardData, oCardData);
+
+                if (syncdata.revert || tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "modified_by_user") {
+                    tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
+                }
+                addressBook.modifyCard(card);
+            }        
+
+        } else {
+            //card does not exists, create it?
         }
-        addressBook.modifyCard(card);
     },
+
+    //check if vCard is a mailinglist and handle it
+    vCardIsMailingList: function (id, _card, addressBook, vCard, vCardData, etag, syncdata) {
+        if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-KIND") && vCardData["X-ADDRESSBOOKSERVER-KIND"][0].value == "group") { 
+            let name = vCardData.hasOwnProperty("fn") ? vCardData["fn"][0].value : "Unlabled Group";
+
+            let card = null;
+            let oCardData = {};
+            
+            if (_card) { //MOD mode
+                card = _card;
+                //if this card was created with an older version of TbSync, which did not have groups support, handle as normal card
+                if (!card.isMailList) {
+                    tbSync.errorlog(syncdata, "ignoredgroup::" + name, "dav");
+                    return false;
+                }
+                //get original vCardData from last server contact, needed for "smart merge" on changes on both sides
+                oCardData = tbSync.dav.vCard.parse(tbSync.getPropertyOfCard(card, "X-DAV-VCARD"));
+
+            } else { //ADD mode
+                //We should add our ID to the new list, but the curent list implementation does not allow to add custom properties.
+                //As a work around we store properties of lists in the prefs of the parent book and use wrapper functions which handle that:
+                // - setPropertyOfCard
+                // - getPropertyOfCard
+                // - getCardFromProperty
+                
+                //prepare new mailinglist directory
+                let mailList = Components.classes["@mozilla.org/addressbook/directoryproperty;1"].createInstance(Components.interfaces.nsIAbDirectory);
+                mailList.isMailList = true;
+                mailList.dirName = name;
+                let mailListDirectory = addressBook.addMailList(mailList);
+
+                //However, we do not get the list card after creating the list directory and would not be able to find the card without ID,
+                //so we add the TBSYNCID property directly to the pref of the parent book, (which is what setPropertyOfCard would do).
+                //If the list implementation is changing back to "real" card properties, this must be updated.
+                tbSync.addPropertyToParentPrefs(addressBook.dirPrefId, mailListDirectory.URI, "TBSYNCID", id);
+
+                //Furthermore, we cannot create a list with a given ID, so we can also not precatch this creation, because it would not find the entry in the changelog
+                
+                //find the list card (there is no way to get the card from the directory directly)
+                card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", id);
+            }
+            
+            //update properties
+            tbSync.setPropertyOfCard(card, "X-DAV-ETAG", etag.textContent);
+            tbSync.setPropertyOfCard(card, "X-DAV-VCARD", vCard);
+            if (vCardData.hasOwnProperty("uid")) tbSync.setPropertyOfCard(card, "X-DAV-UID", vCardData["uid"][0].value);                
+
+            // get underlying directory
+            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+            let mailListDirectory = abManager.getDirectory(card.mailListURI);
+            mailListDirectory.dirName = name ;
+            mailListDirectory.editMailListToDatabase(card);
+            
+            //store all old and new members of this mailinglist for later processing
+            syncdata.foundMailingLists[id] = {oldMembers:[], newMembers:[]};
+            if (oCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER")) {
+                for (let i=0; i < oCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
+                    let member = oCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
+                    syncdata.foundMailingLists[id].oldMembers.push(member);
+                }
+            }
+            if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER")) {
+                for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
+                    let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
+                    syncdata.foundMailingLists[id].newMembers.push(member);
+                }
+            }
+            return true;
+
+        } else {
+            return false;
+        }
+    },
+
 
 
 
@@ -645,6 +781,7 @@ dav.tools = {
         {name: "FirstName", minversion: "0.4"},
         {name: "X-DAV-MiddleName", minversion: "0.8.8"},
         {name: "X-DAV-MainPhone", minversion: "0.8.8"},
+        {name: "X-DAV-UID", minversion: "0.10.36"},
         {name: "LastName", minversion: "0.4"},
         {name: "PrimaryEmail", minversion: "0.4"},
         {name: "SecondEmail", minversion: "0.4"},
@@ -691,6 +828,7 @@ dav.tools = {
 
     //map thunderbird fields to simple vcard fields without additional types
     simpleMap : {
+        "X-DAV-UID" : "uid",
         "Birthday" : "bday", //fake
         "Photo" : "photo", //fake
         "JobTitle" : "title",
@@ -723,14 +861,14 @@ dav.tools = {
         "HomeZipCode" : {item: "adr", type: "HOME"},
         "HomeState" : {item: "adr", type: "HOME"},
         "HomeAddress" : {item: "adr", type: "HOME"},
-        "HomePhone" : {item: "tel", type: "HOME"},
+        "HomePhone" : {item: "tel", type: "HOME", invalidTypes: ["FAX", "PAGER", "CELL"]},
 
         "WorkCity" : {item: "adr", type: "WORK"},
         "WorkCountry" : {item: "adr", type: "WORK"},
         "WorkZipCode" : {item: "adr", type: "WORK"},
         "WorkState" : {item: "adr", type: "WORK"},
         "WorkAddress" : {item: "adr", type: "WORK"},
-        "WorkPhone" : {item: "tel", type: "WORK"},
+        "WorkPhone" : {item: "tel", type: "WORK", invalidTypes: ["FAX", "PAGER", "CELL"]},
     },
 
     //map thunderbird fields to impp vcard fields with additional x-service-types
@@ -867,6 +1005,7 @@ dav.tools = {
                     } else if (dav.tools.complexMap.hasOwnProperty(property)) {
 
                         let type = dav.tools.complexMap[property].type;
+                        let invalidTypes = (dav.tools.complexMap[property].invalidTypes) ? dav.tools.complexMap[property].invalidTypes : [];
                         data.metatype.push(type);
                         data.item = dav.tools.complexMap[property].item;
 
@@ -874,7 +1013,8 @@ dav.tools = {
                             let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
                             let valids = [];
                             for (let i=0; i < metaTypeData.length; i++) {
-                                if (metaTypeData[i].includes(type)) valids.push(i);
+                                //check if this includes the requested type and also none of the invalid types
+                                if (metaTypeData[i].includes(type) && metaTypeData[i].filter(value => -1 !== invalidTypes.indexOf(value)).length == 0) valids.push(i);
                             }
                             if (valids.length > 0) data.entry = valids[0];
                         }
@@ -1073,15 +1213,9 @@ dav.tools = {
     //MAIN FUNCTIONS FOR UP/DOWN SYNC
 
     //update send from server to client
-    setThunderbirdCardFromVCard: function(syncdata, addressBook, card, vCard, etag, oCard = null) {
-        let vCardData = tbSync.dav.vCard.parse(vCard);
-        let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
-
-        tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
+    setThunderbirdCardFromVCard: function(syncdata, addressBook, card, vCardData, oCardData = null) {
+        if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
         //if (oCardData) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
-
-        card.setProperty("X-DAV-ETAG", etag);
-        card.setProperty("X-DAV-VCARD", vCard);
         
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
@@ -1116,8 +1250,8 @@ dav.tools = {
 
                     case "Birthday":
                         {
-                            let bday = dav.tools.parseVcardDateTime( newServerValue, vCardData[vCardField.item][0].meta );
-                            if ( bday ) {
+                            if ( newServerValue ) {
+                                let bday = dav.tools.parseVcardDateTime( newServerValue, vCardData[vCardField.item][0].meta );
                                 card.setProperty("BirthYear", bday[1]);
                                 card.setProperty("BirthMonth", bday[2]);
                                 card.setProperty("BirthDay", bday[3]);
@@ -1150,23 +1284,52 @@ dav.tools = {
     },
 
     invalidateThunderbirdCard: function(syncdata, addressBook, id) {
-        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
-        card.setProperty("X-DAV-ETAG", "");
-        card.setProperty("X-DAV-VCARD", "");
+        let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", id);
+        tbSync.setPropertyOfCard(card, "X-DAV-ETAG", "");
+        tbSync.setPropertyOfCard(card, "X-DAV-VCARD", "");
         tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
         addressBook.modifyCard(card);
     },
 
-    //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
-    getVCardFromThunderbirdCard: function(syncdata, addressBook, id, generateUID = false) {
-        let card = addressBook.getCardFromProperty("TBSYNCID", id, true);
-        let vCardData = tbSync.dav.vCard.parse(card.getProperty("X-DAV-VCARD", ""));
-        
-        if (generateUID) {
-            //the UID of the vCard is never used by TbSync, it differs from the href of this card (following the specs)
-            vCardData["uid"] = [{"value": dav.tools.generateUUID()}];
+    //build group card from scratch
+    getVCardFromThunderbirdListCard: function(syncdata, addressBook, card) {
+        let currentCard = "";// build from scratch -- tbSync.getPropertyOfCard(card, "X-DAV-VCARD").trim();
+        let vCardData = tbSync.dav.vCard.parse(currentCard);
+
+        let cardUID = tbSync.getPropertyOfCard (card, "X-DAV-UID");
+        if (!cardUID) {
+            //the UID of the vCard is mapped to X-DAV-UID and differs from the href/TBSYNCID (following the specs)
+            cardUID = dav.tools.generateUUID();
+            tbSync.setPropertyOfCard (card, "X-DAV-UID", cardUID);                
         }
 
+        //get underlying directory
+        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+        let mailListDirectory = abManager.getDirectory(card.mailListURI);
+
+        //add required fields
+        vCardData["version"] = [{"value": "3.0"}];
+        vCardData["fn"] = [{"value": mailListDirectory.dirName}];
+        vCardData["n"] = [{"value": mailListDirectory.dirName}];
+        vCardData["X-ADDRESSBOOKSERVER-KIND"] = [{"value": "group"}];
+        vCardData["uid"] = [{"value": cardUID}];
+
+        let members = mailListDirectory.childCards;
+        while (members.hasMoreElements()) {
+            let memberCard = members.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+            let memberUID = tbSync.getPropertyOfCard (memberCard, "X-DAV-UID");                
+            vCardData["X-ADDRESSBOOKSERVER-MEMBER"] = [{"value": "urn:uuid:" + memberUID}];
+        }
+        
+        let newCard = tbSync.dav.vCard.generate(vCardData).trim();
+        return {data: newCard, etag: tbSync.getPropertyOfCard(card, "X-DAV-ETAG"), modified: (currentCard != newCard)};
+    },
+
+    //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
+    getVCardFromThunderbirdContactCard: function(syncdata, addressBook, card, generateUID = false) {
+        let currentCard = tbSync.getPropertyOfCard(card, "X-DAV-VCARD").trim();
+        let vCardData = tbSync.dav.vCard.parse(currentCard);
+        
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
             if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncdata.folderCreatedWithProviderVersion)> 0) continue;
@@ -1220,12 +1383,19 @@ dav.tools = {
             }
         }
 
+        if (generateUID) {
+            //the UID of the vCard is mapped to X-DAV-UID and differs from the href/TBSYNCID (following the specs)
+            vCardData["uid"] = [{"value": dav.tools.generateUUID()}];
+        }
+
         //add required fields
         if (!vCardData.hasOwnProperty("version")) vCardData["version"] = [{"value": "3.0"}];
         if (!vCardData.hasOwnProperty("fn")) vCardData["fn"] = [{"value": " "}];
         if (!vCardData.hasOwnProperty("n")) vCardData["n"] = [{"value": [" ","","","",""]}];
 
-        return {data: tbSync.dav.vCard.generate(vCardData).trim(), etag: card.getProperty("X-DAV-ETAG", "")};
+        //get new vCard
+        let newCard = tbSync.dav.vCard.generate(vCardData).trim();
+        return {data: newCard, etag: tbSync.getPropertyOfCard(card, "X-DAV-ETAG"), modified: (currentCard != newCard)};
     },
 
 }

@@ -16,7 +16,6 @@ syncstate.send.request.remotechanges=In attesa delle modifiche remote
 syncstate.eval.response.remotechanges=Elaborazione modifiche remote in corso
 
 status.notsyncronized=L'account deve essere sincronizzato, almeno un elemento non è sincronizzato.
-status.needtorevert=L'account deve essere sincronizzato per eliminare le modifiche locali (sincronizzazione a una via).
 status.disabled=L'account non è abilitato, la sincronizzazione è disabilitata.
 status.notargets=Interruzione sincronizzazione in corso: non è possibile creare le destinazioni sincronizzazione.
 status.nouserhost=Nome utente e/o server mancanti. Fornire tali valori.
@@ -30,20 +29,25 @@ status.503=Servizio non disponibile.
 status.httperror=Errore di comunicazione (stato HTTP ##replace.1##).
 status.OK=OK
 status.nolightning=Componente aggiuntivo Lightning non installato, i calendari non sono supportati.
-status.javascriptError=Errore JavaScript: ##replace.1##
+status.JavaScriptError=Errore JavaScript! Consultare il log di errore per i dettagli.
+status.foldererror=Almeno una risorsa ha riscontrato un errore di sincronizzazione.
+status.softerror=Errore saltato (##replace.1##)
 
 status.no-folders-found-on-server=Impossibile trovare calendari o rubriche sul server.
 status.invalid-response=Ricevuta risposta non valida, sincronizzazione interrotta.
 status.invalid-uri=Trovato URI non valido, sincronizzazione interrotta.
 status.unsupported_auth_method=Il server ha richiesto un metodo di autenticazione non supportato (##replace.1##).
-status.OK.caldav-calendar-already-exists=Calendario già gestito da Lightning (omesso).
-status.info.restored=Permessi di scrittura mancanti, elemento ripristinato.
-status.mailformed-xml=La risposta contiene XML malformato, impossibile gestirla, sincronizzazione interrotta.
+status.OK.managed-by-lightning=Lightning
+status.OK.caldav-calendar-already-exists=Il calendario esiste già
+status.info.restored=A causa della mancanza di permessi di scrittura, alcune azioni sono state respinte dal server e annullate localmente.
+status.maiformed-xml=La risposta contiene XML malformato, impossibile gestirla, sincronizzazione interrotta.
 status.service-discovery-failed=Rilevamento servizio Sabre/DAV non riuscito per questo server.
+status.missing-permission=Permesso mancante: ##replace.1##
 
 status.OK.managedbylightning=Calendario gestito da Lightning.
 
-status.security=Impossibile stabilire una connessione sicura. Si sta utilizzando un certificato autofirmato o non affidabile senza averlo importato in Thunderbird? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[Guida]
+status.security=Impossibile stabilire una connessione sicura. Si sta utilizzando un certificato autofirmato o non affidabile senza averlo importato in Thunderbird? (##replace.1##)
+helplink.security=https://github.com/jobisoft/TbSync/wiki/How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F
 status.network=Impossibile collegarsi al server (##replace.1##).
 
 status.syncing=Sincronizzazione in corso
@@ -77,3 +81,10 @@ add.serverprofile.gmx.net=GMX.net (Europa)
 add.serverprofile.gmx.net.description=https://www.gmx.net
 add.serverprofile.gmx.com=GMX.com (USA)
 add.serverprofile.gmx.com.description=https://www.gmx.com
+
+acl.readwrite=Scrivi permesso: ##replace.1##
+acl.readonly=sola lettura
+acl.modify=modificare
+acl.add=inserisci
+acl.delete=elimina
+acl.none=nessuna

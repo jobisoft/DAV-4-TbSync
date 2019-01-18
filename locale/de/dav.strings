@@ -16,7 +16,6 @@ syncstate.send.request.remotechanges=Warte auf Daten vom Server
 syncstate.eval.response.remotechanges=Verarbeite Serverdaten
 
 status.notsyncronized=Konto muss synchronisiert werden.
-status.needtorevert=Konto muss synchronisiert werden, um lokale Änderungen rückgängig zu machen (one-way sync).
 status.disabled=Konto ist deaktiviert, Synchronisation ist ausgeschaltet.
 status.notargets=Synchronisation abgebrochen da die Elemente zum Synchronisieren nicht erstellt werden konnten.
 status.nouserhost=Angabe des Benutzernamens und/oder des Servers fehlt. Bitte die korrekten Informationen eintragen.
@@ -30,20 +29,25 @@ status.503=Service nicht erreichbar.
 status.httperror=Kommunikationsfehler (HTTP Status ##replace.1##).
 status.OK=OK
 status.nolightning=Lightning Add-On nicht installiert, Kalender nicht nutzbar.
-status.javascriptError=Javascript Fehler: ##replace.1##
+status.JavaScriptError=Javascript Fehler! Prüfen Sie bitte den Fehlerbericht für weitere Details.
+status.foldererror=Bei mindestens einer Resource trat ein Synchronisationsfehler auf.
+status.softerror=Ignorierter Fehler (##replace.1##)
 
 status.no-folders-found-on-server=Auf dem Server wurde weder Kalender noch Adressbücher gefunden.
-status.invalid-response=Fehlerhafte Antwort erhalten, Sync angebrochen.
-status.invalid-uri=Fehlerhafte URI erhalten, Sync angebrochen.
+status.invalid-response=Fehlerhafte Antwort erhalten, Sync abgebrochen.
+status.invalid-uri=Fehlerhafte URI erhalten, Sync abgebrochen.
 status.unsupported_auth_method=Server verlangt unbekannte Authentifizierungsmethode (##replace.1##).
-status.OK.caldav-calendar-already-exists=Kalender wird bereits durch lightning verwaltet.
-status.info.restored=Adressbuch wegen fehlender Schreibrechte zurückgesetzt.
-status.mailformed-xml=Antwort enthält fehlerhaftes XML, Sync angebrochen.
+status.OK.managed-by-lightning=Lightning
+status.OK.caldav-calendar-already-exists=Kalender existiert bereits
+status.info.restored=Wegen teilweise fehlender Schreibrechte wurden einige Aktionen vom Server zurückgewiesen und lokal rückgängig gemacht.
+status.maiformed-xml=Antwort enthält fehlerhaftes XML, Sync abgebrochen. Prüfen Sie bitte den Fehlerbericht für weitere Details.
 status.service-discovery-failed=Der sabre/dav service discovery funktioniert mit diesem Server nicht.
+status.missing-permission=Fehlende Berechtigung: ##replace.1##
 
 status.OK.managedbylightning=Kalender wird von lightning verwaltet.
 
-status.security=Fehler beim Aufbau einer sicherern Verbindung. Benutzen Sie eventuell ein selbst signiertes Zertifikat oder ein andersartiges nicht vertrauenswürdiges Zertifikat welches nicht in Thunderbird importiert ist? (##replace.1##)||How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F||[help]
+status.security=Fehler beim Aufbau einer sicherern Verbindung. Benutzen Sie eventuell ein selbst signiertes Zertifikat oder ein andersartiges nicht vertrauenswürdiges Zertifikat welches nicht in Thunderbird importiert ist? (##replace.1##)
+helplink.security=https://github.com/jobisoft/TbSync/wiki/How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F
 status.network=Verbindung zum Server fehlgeschlagen (##replace.1##).
 
 status.syncing=Synchronisierung
@@ -77,3 +81,10 @@ add.serverprofile.gmx.net=GMX.net (Europa)
 add.serverprofile.gmx.net.description=https://www.gmx.net
 add.serverprofile.gmx.com=GMX.com (USA)
 add.serverprofile.gmx.com.description=https://www.gmx.com
+
+acl.readwrite=Schreibrechte auf Server: ##replace.1##
+acl.readonly=Serverzugriff nur lesend (verwerfe lokale Änderungen)
+acl.modify=bearbeiten
+acl.add=hinzufügen
+acl.delete=löschen
+acl.none=keine

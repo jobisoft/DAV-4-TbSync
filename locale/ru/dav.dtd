@@ -30,6 +30,7 @@
 
 <!ENTITY pref.contactoptions "Настройки контакта">
 <!ENTITY pref.useHomeAsPrimary "Используйте электронную почту vCard типа 'ДОМ' (а не 'РАБОТА') в качестве основного адреса электронной почты">
+<!ENTITY pref.useCardBook "Создавайте адресные книги CardBook вместо стандартных адресных книг Thunderbird">
 
 <!ENTITY pref.calendaroptions "Настройки календаря">
 <!ENTITY pref.useCache "Off-лайновая поддержка">
