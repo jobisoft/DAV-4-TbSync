@@ -707,7 +707,7 @@ dav.sync = {
                 //TODO: check if memberlist differs from stored vCard! also check name
                 tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardId, "modified_by_user");
             } else {
-                //that card has no id yet (because general TbSync addressbook listener did not catch it)
+                //that card has no id yet (because the general TbSync addressbook listener cannot catch it)
                 let folder = tbSync.db.getFolder(syncdata.account, syncdata.folderID);
                 let newCardID = tbSync.dav.getNewCardID(mailListCard, folder);
                 tbSync.setPropertyOfCard (mailListCard, "TBSYNCID", newCardID);                

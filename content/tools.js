@@ -675,27 +675,7 @@ dav.tools = {
                 oCardData = tbSync.dav.vCard.parse(tbSync.getPropertyOfCard(card, "X-DAV-VCARD"));
 
             } else { //ADD mode
-                //We should add our ID to the new list, but the curent list implementation does not allow to add custom properties.
-                //As a work around we store properties of lists in the prefs of the parent book and use wrapper functions which handle that:
-                // - setPropertyOfCard
-                // - getPropertyOfCard
-                // - getCardFromProperty
-                
-                //prepare new mailinglist directory
-                let mailList = Components.classes["@mozilla.org/addressbook/directoryproperty;1"].createInstance(Components.interfaces.nsIAbDirectory);
-                mailList.isMailList = true;
-                mailList.dirName = name;
-                let mailListDirectory = addressBook.addMailList(mailList);
-
-                //However, we do not get the list card after creating the list directory and would not be able to find the card without ID,
-                //so we add the TBSYNCID property directly to the pref of the parent book, (which is what setPropertyOfCard would do).
-                //If the list implementation is changing back to "real" card properties, this must be updated.
-                tbSync.addPropertyToParentPrefs(addressBook.dirPrefId, mailListDirectory.URI, "TBSYNCID", id);
-
-                //Furthermore, we cannot create a list with a given ID, so we can also not precatch this creation, because it would not find the entry in the changelog
-                
-                //find the list card (there is no way to get the card from the directory directly)
-                card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", id);
+                card = TbSync.createMailingListCard(addressBook, name, id);
             }
             
             //update properties
