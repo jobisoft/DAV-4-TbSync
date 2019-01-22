@@ -849,9 +849,9 @@ dav.tools = {
         "_Yahoo" : {item: "impp", prefix: "ymsgr:", type: "YAHOO"},
         "_QQ" : {item: "impp", prefix: "x-apple:", type: "QQ"},
         "_AimScreenName" : {item: "impp", prefix: "aim:", type: "AIM"},
-        "_MSN" : {item: "impp", prefix: "msn:", type: "MSN"},
+        "_MSN" : {item: "impp", prefix: "msnim:", type: "MSN"},
         "_Skype" : {item: "impp", prefix: "skype:", type: "SKYPE"},
-        "_ICQ" : {item: "impp", prefix: "icq:", type: "ICQ"},
+        "_ICQ" : {item: "impp", prefix: "aim:", type: "ICQ"},
         "_IRC" : {item: "impp", prefix: "irc:", type: "IRC"},
     },
 
