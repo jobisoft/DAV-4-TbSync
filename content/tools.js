@@ -656,53 +656,65 @@ dav.tools = {
         }
     },
 
+    
+    getGroupInfoFromCardData: function (vCardData) {
+        let members = [];
+        let name = vCardData.hasOwnProperty("fn") ? vCardData["fn"][0].value : "Unlabled Group";
+
+        if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER")) {
+            for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
+                let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
+                members.push(member);
+            }
+        }
+        return {members, name};
+    },
+    
     //check if vCard is a mailinglist and handle it
     vCardIsMailingList: function (id, _card, addressBook, vCard, vCardData, etag, syncdata) {
         if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-KIND") && vCardData["X-ADDRESSBOOKSERVER-KIND"][0].value == "group") { 
-            let name = vCardData.hasOwnProperty("fn") ? vCardData["fn"][0].value : "Unlabled Group";
+            let vCardInfo = dav.tools.getGroupInfoFromCardData(vCardData);
 
             let card = null;
-            let oCardData = {};
-            
+            let oCardData = {};     
             if (_card) { //MOD mode
                 card = _card;
                 //if this card was created with an older version of TbSync, which did not have groups support, handle as normal card
                 if (!card.isMailList) {
-                    tbSync.errorlog(syncdata, "ignoredgroup::" + name, "dav");
+                    tbSync.errorlog(syncdata, "ignoredgroup::" + vCardInfo.name, "dav");
                     return false;
                 }
                 //get original vCardData from last server contact, needed for "smart merge" on changes on both sides
                 oCardData = tbSync.dav.vCard.parse(tbSync.getPropertyOfCard(card, "X-DAV-VCARD"));
 
             } else { //ADD mode
-                card = TbSync.createMailingListCard(addressBook, name, id);
+                card = tbSync.createMailingListCard(addressBook, vCardInfo.name, id);
             }
             
+            //store all old and new members of this mailinglist for later processing
+            let oCardInfo = dav.tools.getGroupInfoFromCardData(oCardData);
+            syncdata.foundMailingLists[id] = {oldMembers: oCardInfo.members, newMembers: vCardInfo.members};
+
             //update properties
             tbSync.setPropertyOfCard(card, "X-DAV-ETAG", etag.textContent);
             tbSync.setPropertyOfCard(card, "X-DAV-VCARD", vCard);
             if (vCardData.hasOwnProperty("uid")) tbSync.setPropertyOfCard(card, "X-DAV-UID", vCardData["uid"][0].value);                
 
-            // get underlying directory
-            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-            let mailListDirectory = abManager.getDirectory(card.mailListURI);
-            mailListDirectory.dirName = name ;
-            mailListDirectory.editMailListToDatabase(card);
+            if (vCardInfo.name != oCardInfo.name) {
+                // get underlying directory
+                let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+                let mailListDirectory = abManager.getDirectory(card.mailListURI);
+                mailListDirectory.dirName = vCardInfo.name ;
+                //editMailListToDatabase will mod all members of this list, so we need to lock all of them
+                for (let i=0; i < vCardInfo.members.length; i++) {
+                    let memberCard = addressBook.getCardFromProperty("X-DAV-UID", vCardInfo.members[i], true);
+                    if (memberCard) {
+                        tbSync.db.addItemToChangeLog(addressBook.URI, memberCard.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
+                    }
+                }
+                mailListDirectory.editMailListToDatabase(card);
+            }
             
-            //store all old and new members of this mailinglist for later processing
-            syncdata.foundMailingLists[id] = {oldMembers:[], newMembers:[]};
-            if (oCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER")) {
-                for (let i=0; i < oCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
-                    let member = oCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
-                    syncdata.foundMailingLists[id].oldMembers.push(member);
-                }
-            }
-            if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER")) {
-                for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
-                    let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
-                    syncdata.foundMailingLists[id].newMembers.push(member);
-                }
-            }
             return true;
 
         } else {
@@ -1271,34 +1283,43 @@ dav.tools = {
         addressBook.modifyCard(card);
     },
 
-    //build group card from scratch
-    getVCardFromThunderbirdListCard: function(syncdata, addressBook, card) {
-        let currentCard = "";// build from scratch -- tbSync.getPropertyOfCard(card, "X-DAV-VCARD").trim();
-        let vCardData = tbSync.dav.vCard.parse(currentCard);
-
-        let cardUID = tbSync.getPropertyOfCard (card, "X-DAV-UID");
-        if (!cardUID) {
-            //the UID of the vCard is mapped to X-DAV-UID and differs from the href/TBSYNCID (following the specs)
-            cardUID = dav.tools.generateUUID();
-            tbSync.setPropertyOfCard (card, "X-DAV-UID", cardUID);                
-        }
-
-        //get underlying directory
+    getGroupInfoFromList: function (listUri) {
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-        let mailListDirectory = abManager.getDirectory(card.mailListURI);
+        let listDir = abManager.getDirectory(listUri);
+        let name = listDir.dirName;
+        let members = [];
+        
+        let memberCards = listDir.childCards;
+        while (memberCards.hasMoreElements()) {
+            let memberCard = memberCards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+            //If this card does not yet have a X-DAV-UID, we cannot add it to a list (TODO)
+            let memberUID = memberCard.getProperty("X-DAV-UID", ""); 
+            members.push(memberUID);
+        }
+        return {members, name};
+    },
+    
+    //build group card
+    getVCardFromThunderbirdListCard: function(syncdata, addressBook, card, generateUID = false) {
+        let cardID  = tbSync.getPropertyOfCard(card, "TBSYNCID");
+        let currentCard = tbSync.getPropertyOfCard(card, "X-DAV-VCARD").trim();
+        let vCardData = tbSync.dav.vCard.parse(currentCard);
+        
+        if (!vCardData.hasOwnProperty("version")) vCardData["version"] = [{"value": "3.0"}];
 
-        //add required fields
-        vCardData["version"] = [{"value": "3.0"}];
-        vCardData["fn"] = [{"value": mailListDirectory.dirName}];
-        vCardData["n"] = [{"value": mailListDirectory.dirName}];
+        vCardData["fn"] = [{"value": syncdata.foundMailingLists[cardID].name}];
+        vCardData["n"] = [{"value": syncdata.foundMailingLists[cardID].name}];
         vCardData["X-ADDRESSBOOKSERVER-KIND"] = [{"value": "group"}];
-        vCardData["uid"] = [{"value": cardUID}];
 
-        let members = mailListDirectory.childCards;
-        while (members.hasMoreElements()) {
-            let memberCard = members.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-            let memberUID = tbSync.getPropertyOfCard (memberCard, "X-DAV-UID");                
-            vCardData["X-ADDRESSBOOKSERVER-MEMBER"] = [{"value": "urn:uuid:" + memberUID}];
+        if (generateUID) {
+            //the UID of the vCard is mapped to X-DAV-UID and differs from the href/TBSYNCID (following the specs)
+            vCardData["uid"] = [{"value": dav.tools.generateUUID()}];
+        }
+        
+        //build memberlist from scratch  
+        vCardData["X-ADDRESSBOOKSERVER-MEMBER"]=[];
+        for (let i=0; i < syncdata.foundMailingLists[cardID].members.length; i++) {
+            vCardData["X-ADDRESSBOOKSERVER-MEMBER"].push({"value": "urn:uuid:" + syncdata.foundMailingLists[cardID].members[i]});
         }
         
         let newCard = tbSync.dav.vCard.generate(vCardData).trim();

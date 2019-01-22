@@ -624,6 +624,7 @@ dav.sync = {
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
         for (let mailListCardID in syncdata.foundMailingLists) {
             if (syncdata.foundMailingLists.hasOwnProperty(mailListCardID)) {
+                let locked = 0;
                 let mailListCard = tbSync.getCardFromProperty(addressBook, "TBSYNCID", mailListCardID);
                 let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
                 
@@ -642,6 +643,7 @@ dav.sync = {
                         let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-UID", removedMembers[i]);
                         if (idx != -1) {
                             tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
+                            locked++;
                             mailListDirectory.addressLists.removeElementAt(idx);  
                         }                                
                     }
@@ -654,14 +656,24 @@ dav.sync = {
                         let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-UID", addedMembers[i]);
                         if (idx == -1) {
                             tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
+                            locked++;
                             mailListDirectory.addressLists.appendElement(card, false);
                         }
                     }
                 }
                 
-                //this will unlock all locked cards in the changelog
-                tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardID, "locked_by_mailinglist_operations");
-                mailListDirectory.editMailListToDatabase(mailListCard);
+                //if at least one member has been changed, we need to call editMailListToDatabase to update the directory, which will unlock all locked cards
+                if (locked > 0) {
+                    tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardID, "locked_by_mailinglist_operations");
+                    //editMailListToDatabase will mod all members of this list, so we need to lock all of them
+                    for (let i=0; i < syncdata.foundMailingLists[mailListCardID].newMembers.length; i++) {
+                        let card = addressBook.getCardFromProperty("X-DAV-UID", syncdata.foundMailingLists[mailListCardID].newMembers[i], true);
+                        if (card) {
+                            tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
+                        }
+                    }
+                    mailListDirectory.editMailListToDatabase(mailListCard);
+                }
             }
         }            
     }),
@@ -681,6 +693,9 @@ dav.sync = {
 
 
     localChanges: Task.async (function* (syncdata) {
+        //keep track of found mailing lists and its members
+        syncdata.foundMailingLists = {};
+
         //define how many entries can be send in one request
         let maxitems = tbSync.dav.prefSettings.getIntPref("maxitems");
 
@@ -696,23 +711,31 @@ dav.sync = {
         
         //special handling of lists/groups
         //ADD/MOD of the list cards itself is not detectable, we only detect the change of its member cards when membership changes
-        //we simply add all lists to the change array and upload them, if the resulting vcard changed
-        // -> ADD/MOD of empty cards is not detectable and we do not sync them to the server
         //DEL is handled like a normal card, no special handling needed        
         let result = abManager.getDirectory(addressBook.URI +  "?(or(IsMailList,=,TRUE))").childCards;
         while (result.hasMoreElements()) {
             let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+            let mailListInfo = dav.tools.getGroupInfoFromList(mailListCard.mailListURI);           
+
             let mailListCardId = tbSync.getPropertyOfCard(mailListCard, "TBSYNCID");
             if (mailListCardId) {
-                //TODO: check if memberlist differs from stored vCard! also check name
-                tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardId, "modified_by_user");
+                //get old data from vCard to find changes
+                let oCardInfo = dav.tools.getGroupInfoFromCardData(tbSync.dav.vCard.parse(tbSync.getPropertyOfCard(mailListCard, "X-DAV-VCARD")));            
+                
+                let addedMembers = mailListInfo.members.filter(e => !oCardInfo.members.includes(e));
+                let removedMembers = oCardInfo.members.filter(e => !mailListInfo.members.includes(e));
+                
+                if (oCardInfo.name != mailListInfo.name || addedMembers.length > 0 || removedMembers.length > 0) {
+                    tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardId, "modified_by_user");
+                }
             } else {
                 //that card has no id yet (because the general TbSync addressbook listener cannot catch it)
                 let folder = tbSync.db.getFolder(syncdata.account, syncdata.folderID);
-                let newCardID = tbSync.dav.getNewCardID(mailListCard, folder);
-                tbSync.setPropertyOfCard (mailListCard, "TBSYNCID", newCardID);                
-                tbSync.db.addItemToChangeLog(syncdata.targetId, newCardID, "added_by_user");
+                mailListCardId = tbSync.dav.getNewCardID(mailListCard, folder);
+                tbSync.setPropertyOfCard (mailListCard, "TBSYNCID", mailListCardId);                
+                tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardId, "added_by_user");
             }
+            syncdata.foundMailingLists[mailListCardId] = mailListInfo;
         }
 
         //access changelog to get local modifications (done and todo are used for UI to display progress)
