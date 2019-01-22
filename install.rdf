@@ -112,7 +112,7 @@
          
         <em:localized> <!-- Portuguese Brazilian -->
           <Description>
-            <em:locale>it</em:locale>
+            <em:locale>pt-BR</em:locale>
             <em:name>Provedor CalDAV e CardDAV</em:name>
             <em:description>Adiciona suporte para sincronizar contas CalDAV e CardDAV com o TbSync</em:description>
             <em:translator>Ettore Atalan (de)</em:translator>
