@@ -1268,9 +1268,9 @@ dav.tools = {
         let name = listDir.dirName;
         let members = [];
         
-        let memberCards = listDir.childCards;
-        while (memberCards.hasMoreElements()) {
-            let memberCard = memberCards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+        let memberCards = listDir.addressLists;
+        for (let i=0; i < memberCards.length; i++) {
+            let memberCard = memberCards.queryElementAt(i, Components.interfaces.nsIAbCard);
             let memberUID = memberCard.getProperty("TBSYNCID", ""); 
             members.push(memberUID);
         }
