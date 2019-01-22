@@ -872,7 +872,8 @@ dav.tools = {
                 case "PrimaryEmail":
                 case "SecondEmail":
                     {
-                        let metamap = (tbSync.db.getAccountSetting(syncdata.account, "useHomeAsPrimary") == "0") ? {"PrimaryEmail": "WORK", "SecondEmail": "HOME"} : {"PrimaryEmail": "HOME", "SecondEmail": "WORK"};
+                        //the user may choose to switch default mapping via useHomeAsPrimary, but the system may also decide to switch via syncdata.emailSwapInvert
+                        let metamap = (tbSync.db.getAccountSetting(syncdata.account, "useHomeAsPrimary") == syncdata.emailSwapInvert) ? {"PrimaryEmail": "WORK", "SecondEmail": "HOME"} : {"PrimaryEmail": "HOME", "SecondEmail": "WORK"};
                         data.metatype.push(metamap[property]);
                         data.item = "email";
 
@@ -1188,6 +1189,10 @@ dav.tools = {
         if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
         //if (oCardData) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
         
+        //keep track of emails
+        syncdata.emailSwapInvert = card.getProperty("X-DAV-SWAP","0");
+        let emails = {PrimaryEmail: "", SecondEmail: ""};
+        
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
             if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncdata.folderCreatedWithProviderVersion)> 0) continue;
@@ -1199,6 +1204,9 @@ dav.tools = {
             let oCardField = dav.tools.getVCardField(syncdata, property, oCardData);
             let oldServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(syncdata, property, oCardData, oCardField);
 
+            //keep track of emails
+            if (emails.hasOwnProperty(property)) emails[property] = newServerValue;
+            
             //smart merge: only update the property, if it has changed on the server (keep local modifications)
             if (newServerValue !== oldServerValue) {
                 //some "properties" need special handling
@@ -1251,7 +1259,18 @@ dav.tools = {
                  }
             }
         }
-
+        
+        //Special handling of PrimaryEmail
+        if (!emails["PrimaryEmail"] && emails["SecondEmail"]) {
+            //adjust swap setting
+            card.setProperty("X-DAV-SWAP", syncdata.emailSwapInvert == "0" ? "1" : "0");
+            //swap
+            card.setProperty("PrimaryEmail", emails["SecondEmail"]);
+            card.setProperty("SecondEmail", "");
+            try {
+                card.deleteProperty("SecondEmail");
+            } catch (e) {} 
+        }                
     },
 
     invalidateThunderbirdCard: function(syncdata, addressBook, id) {
@@ -1318,6 +1337,8 @@ dav.tools = {
         let currentCard = tbSync.getPropertyOfCard(card, "X-DAV-VCARD").trim();
         let vCardData = tbSync.dav.vCard.parse(currentCard);
         
+        syncdata.emailSwapInvert = card.getProperty("X-DAV-SWAP","0");
+
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
             if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncdata.folderCreatedWithProviderVersion)> 0) continue;
