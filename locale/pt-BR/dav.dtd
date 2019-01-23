@@ -1,4 +1,4 @@
-<!ENTITY add.title "Adicionando uma conta CalDAV &amp; CardDAV para o TbSync">
+<!ENTITY add.title "Adicionando uma conta CalDAV e CardDAV para o TbSync">
 <!ENTITY add.ok "Adicionar conta">
 <!ENTITY add.name "Nome da conta:">
 <!ENTITY add.user "Usuário:">
@@ -29,7 +29,7 @@
 <!ENTITY pref.downloadonly "Reverter alterações locais (sincronização unidirecional)">
 
 <!ENTITY pref.contactoptions "Opções de contato">
-<!ENTITY pref.useHomeAsPrimary "Utilizar o email de contato vCard do tipo "HOME" (e não "WORK") como endereço de e-mail principal">
+<!ENTITY pref.useHomeAsPrimary "Utilizar o email de contato vCard do tipo «Residencial» e não «Trabalho» como endereço de e-mail principal">
 <!ENTITY pref.useCardBook "Criar catálogo de endereços no CardBook em vez do catálogo de endereços padrão do Thunderbird">
 
 <!ENTITY pref.calendaroptions "Opções de calendário">

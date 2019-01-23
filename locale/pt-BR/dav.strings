@@ -1,4 +1,4 @@
-menu.name = CalDAV & CardDAV
+menu.name = CalDAV e CardDAV
 
 syncstate.syncing=Inicializar sincronização
 syncstate.preparing=Preparando o próximo item para sincronização
@@ -60,11 +60,11 @@ config.custom=Configurações do servidor CalDAV & CardDAV
 
 add.serverprofile.discovery=Serviço de descoberta
 add.serverprofile.discovery.description=Funciona com a maioria das instalações ownCloud, Nextcloud e outras instalações de sabre/dav.
-add.serverprofile.discovery.details1=Se o seu servidor suportar o serviço de descoberta, basta digitar o host como o URL do servidor. Por exemplo, "cloud.myserver.com". Se isso não funcionar, volte e selecione "Configuração manual".
+add.serverprofile.discovery.details1=Se o seu servidor suportar o serviço de descoberta, basta digitar o host como o URL do servidor. Por exemplo, «cloud.myserver.com». Se isso não funcionar, volte e selecione «Configuração manual».
 
 add.serverprofile.custom=Configuração manual
 add.serverprofile.custom.description=Configure os servidores CalDAV e CardDAV separadamente.
-add.serverprofile.custom.details1=Seu provedor de serviços CalDAV e CardDAV deve fornecer os endereços para seus servidores. Para SOGo é principalmente "cloud.myserver.com/SOGo/dav" para ambos os servidores, outros provedores de serviços podem usar servidores diferentes para CalDAV e CardDAV.
+add.serverprofile.custom.details1=Seu provedor de serviços CalDAV e CardDAV deve fornecer os endereços para seus servidores. Para O SOGo geralmente é «cloud.myserver.com/SOGo/dav» para ambos os servidores, outros provedores de serviços podem usar servidores diferentes para CalDAV e CardDAV.
 add.serverprofile.custom.details2=Se você deixar o endereço vazio, o serviço correspondente será desativado para essa conta.
 
 add.serverprofile.fruux=fruux
