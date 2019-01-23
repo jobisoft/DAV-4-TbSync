@@ -29,7 +29,7 @@
 <!ENTITY pref.downloadonly "Reverter alterações locais (sincronização unidirecional)">
 
 <!ENTITY pref.contactoptions "Opções de contato">
-<!ENTITY pref.useHomeAsPrimary "Utilizar o email de contato vCard do tipo 'Residencial' e não 'Trabalho' como endereço de e-mail principal">
+<!ENTITY pref.useHomeAsPrimary "Utilizar o email de contato vCard do tipo «Residencial» e não «Trabalho» como endereço de e-mail principal">
 <!ENTITY pref.useCardBook "Criar catálogo de endereços no CardBook em vez do catálogo de endereços padrão do Thunderbird">
 
 <!ENTITY pref.calendaroptions "Opções de calendário">
