@@ -669,18 +669,20 @@ dav.sync = {
                     }
                 }
                 
-                //move all members without email to the end 
+                //if members have been added, move all members without email to the end 
                 //why? 
                 //   mailListDirectory.childCards iterator aborts when hitting a contact without email, it will not 
                 //   process/display any other contact which may be part of that list
-                let membersWithoutEmail = [];
-                for (let idx=mailListDirectory.addressLists.length-2; idx >= 0; idx--) {
-                    let memberCard = mailListDirectory.addressLists.queryElementAt(idx, Components.interfaces.nsIAbCard);
-                    if (memberCard && memberCard.getProperty("PrimaryEmail", "") == "") {
-                        tbSync.db.addItemToChangeLog(syncdata.targetId, memberCard.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
-                        locked++;
-                        mailListDirectory.addressLists.removeElementAt(idx);  
-                        mailListDirectory.addressLists.appendElement(memberCard, false);
+                if (addedMembers.length > 0) {
+                    let membersWithoutEmail = [];
+                    for (let idx=mailListDirectory.addressLists.length-2; idx >= 0; idx--) {
+                        let memberCard = mailListDirectory.addressLists.queryElementAt(idx, Components.interfaces.nsIAbCard);
+                        if (memberCard && memberCard.getProperty("PrimaryEmail", "") == "") {
+                            tbSync.db.addItemToChangeLog(syncdata.targetId, memberCard.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
+                            locked++;
+                            mailListDirectory.addressLists.removeElementAt(idx);  
+                            mailListDirectory.addressLists.appendElement(memberCard, false);
+                        }
                     }
                 }
                 
