@@ -641,27 +641,46 @@ dav.sync = {
                 
                 //remove requested members from list
                 for (let i=0; i < removedMembers.length; i++) {
+                    if (removedMembers[i]) {
                     let card = addressBook.getCardFromProperty("TBSYNCID", removedMembers[i], true);
-                    if (card) {
-                        let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", removedMembers[i]);
-                        if (idx != -1) {
-                            tbSync.db.addItemToChangeLog(syncdata.targetId, removedMembers[i], "locked_by_mailinglist_operations");
-                            locked++;
-                            mailListDirectory.addressLists.removeElementAt(idx);  
-                        }                                
+                        if (card) {
+                            let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", removedMembers[i]);
+                            if (idx != -1) {
+                                tbSync.db.addItemToChangeLog(syncdata.targetId, removedMembers[i], "locked_by_mailinglist_operations");
+                                locked++;
+                                mailListDirectory.addressLists.removeElementAt(idx);  
+                            }                                
+                        }
                     }
                 }
                 
                 //add requested members to list
                 for (let i=0; i < addedMembers.length; i++) {
-                    let card = addressBook.getCardFromProperty("TBSYNCID", addedMembers[i], true);
-                    if (card) {
-                        let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", addedMembers[i]);
-                        if (idx == -1) {
-                            tbSync.db.addItemToChangeLog(syncdata.targetId, addedMembers[i], "locked_by_mailinglist_operations");
-                            locked++;
-                            mailListDirectory.addressLists.appendElement(card, false);
+                    if (addedMembers[i]) {
+                        let card = addressBook.getCardFromProperty("TBSYNCID", addedMembers[i], true);
+                        if (card) {
+                            let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", addedMembers[i]);
+                            if (idx == -1) {
+                                tbSync.db.addItemToChangeLog(syncdata.targetId, addedMembers[i], "locked_by_mailinglist_operations");
+                                locked++;
+                                mailListDirectory.addressLists.appendElement(card, false);
+                            }
                         }
+                    }
+                }
+                
+                //move all members without email to the end 
+                //why? 
+                //   mailListDirectory.childCards iterator aborts when hitting a contact without email, it will not 
+                //   process/display any other contact which may be part of that list
+                let membersWithoutEmail = [];
+                for (let idx=mailListDirectory.addressLists.length-2; idx >= 0; idx--) {
+                    let memberCard = mailListDirectory.addressLists.queryElementAt(idx, Components.interfaces.nsIAbCard);
+                    if (memberCard && memberCard.getProperty("PrimaryEmail", "") == "") {
+                        tbSync.db.addItemToChangeLog(syncdata.targetId, memberCard.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
+                        locked++;
+                        mailListDirectory.addressLists.removeElementAt(idx);  
+                        mailListDirectory.addressLists.appendElement(memberCard, false);
                     }
                 }
                 
