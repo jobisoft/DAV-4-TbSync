@@ -619,7 +619,10 @@ dav.sync = {
                 }
             }
         }
-        
+        //Feedback from users: They want to see the final count
+        tbSync.setSyncState("eval.request.remotechanges", syncdata.account, syncdata.folderID);		
+        yield tbSync.sleep(100, false);
+    
         //mailinglists (we need to do that at the very end so all member data is avail)
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
         for (let mailListCardID in syncdata.foundMailingListsDuringDownSync) {
