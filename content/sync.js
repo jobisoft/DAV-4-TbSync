@@ -625,8 +625,10 @@ dav.sync = {
     
         //mailinglists (we need to do that at the very end so all member data is avail)
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+        let listcount = 0;
         for (let mailListCardID in syncdata.foundMailingListsDuringDownSync) {
             if (syncdata.foundMailingListsDuringDownSync.hasOwnProperty(mailListCardID)) {
+                listcount++;
                 let locked = 0;
                 let mailListCard = tbSync.getCardFromProperty(addressBook, "TBSYNCID", mailListCardID);
                 let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
@@ -657,7 +659,7 @@ dav.sync = {
                     }
                 }
                 
-                //add requested members to list
+                //add requested members to list (make sure it has an email as long that bug is not fixed in TB!)
                 for (let i=0; i < addedMembers.length; i++) {
                     if (addedMembers[i]) {
                         let card = addressBook.getCardFromProperty("TBSYNCID", addedMembers[i], true);
@@ -666,29 +668,18 @@ dav.sync = {
                             if (idx == -1) {
                                 tbSync.db.addItemToChangeLog(syncdata.targetId, addedMembers[i], "locked_by_mailinglist_operations");
                                 locked++;
+                                //fix for bug 1522453
+                                let email = card.getProperty("PrimaryEmail", "");
+                                if (!email) {
+                                    card.setProperty("PrimaryEmail", Date.now() + "." +listcount + "." + i + "@bug1522453");
+                                    addressBook.modifyCard(card);
+                                }
                                 mailListDirectory.addressLists.appendElement(card, false);
                             }
                         }
                     }
                 }
-                
-                //if members have been added, move all members without email to the end 
-                //why? 
-                //   mailListDirectory.childCards iterator aborts when hitting a contact without email, it will not 
-                //   process/display any other contact which may be part of that list
-                if (addedMembers.length > 0) {
-                    let membersWithoutEmail = [];
-                    for (let idx=mailListDirectory.addressLists.length-2; idx >= 0; idx--) {
-                        let memberCard = mailListDirectory.addressLists.queryElementAt(idx, Components.interfaces.nsIAbCard);
-                        if (memberCard && memberCard.getProperty("PrimaryEmail", "") == "") {
-                            tbSync.db.addItemToChangeLog(syncdata.targetId, memberCard.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
-                            locked++;
-                            mailListDirectory.addressLists.removeElementAt(idx);  
-                            mailListDirectory.addressLists.appendElement(memberCard, false);
-                        }
-                    }
-                }
-                
+
                 //if at least one member (or the name) has been changed, we need to call 
                 //editMailListToDatabase to update the directory, which will modify all members
                 if (locked > 0 || vCardInfo.name != oCardInfo.name) {

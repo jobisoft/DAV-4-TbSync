@@ -1386,6 +1386,10 @@ dav.tools = {
                 default:
                     {
                         let value = card.getProperty(property, "");
+                        //fix for bug 1522453
+                        if ((property == "PrimaryEmail" || property == "SecondEmail") && value.endsWith("@bug1522453")) {
+                            value = "";
+                        }
                         dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, value);
                     }
                     break;
