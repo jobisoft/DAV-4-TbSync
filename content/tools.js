@@ -299,6 +299,18 @@ dav.tools = {
         
         return new Promise(function(resolve, reject) {                  
             let listener = {
+                //nsIStreamListener (aUseStreamLoader = false)
+                onStopRequest: function(aRequest, aContext, aStatusCode) {
+                    Services.console.logStringMessage("[onStopRequest] " + aStatusCode);
+                },
+                onStartRequest: function(aRequest, aContext) {
+                    Services.console.logStringMessage("[onStartRequest] ");
+                },
+                onDataAvailable: function (aRequest, aContext, aInputStream, aOffset, aCount) {
+                    Services.console.logStringMessage("[onDataAvailable] " + aCount);
+                },
+            
+                //nsIStreamLoaderObserve (aUseStreamLoader = true)
                 onStreamComplete: function(aLoader, aContext, aStatus, aResultLength, aResult) {
                     let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
                     let responseStatus = 0;
