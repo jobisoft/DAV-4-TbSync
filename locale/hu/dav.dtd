@@ -29,6 +29,7 @@
 <!ENTITY pref.downloadonly "A helyi változások visszaállítása (egyirányú összehangolás)">
 
 <!ENTITY pref.contactoptions "Névjegyzék beállításai">
+<!ENTITY pref.syncGroups "?? Sync contact groups as Thunderbird lists. NOTE: Due to TB bug 1522453, TbSync must add dummy email addresses to all contacts, which are part of groups but do not have an email address associated. These dummy email addresses are not synced to server. ??">
 <!ENTITY pref.useHomeAsPrimary "Használja a vCard típusú „Otthoni” (és nem a „Munkahelyi”) e-mailt elsődleges e-mail címként">
 <!ENTITY pref.useCardBook "A Thunderbird alapértelmezett címjegyzéke helyett hozzon létre CardBook címjegyzékeket">
 

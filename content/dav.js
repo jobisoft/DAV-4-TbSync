@@ -315,6 +315,7 @@ var dav = {
             "autosync" : "0",
             "createdWithProviderVersion" : "0",
 
+            "syncGroups" : "0",
             "useHomeAsPrimary" : "0",
             "useCache" : "1",
             "useCardBook" : "0",
