@@ -443,7 +443,7 @@ dav.tools = {
                                     }
                                 }
                                 //manually log this non-fatal error
-                                tbSync.errorlog(syncdata, "softerror::"+responseStatus, "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
+                                tbSync.errorlog("info", syncdata, "softerror::"+responseStatus, "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
                                 return resolve(noresponse);
                             } else {
                                 return reject(dav.sync.failed(responseStatus, "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
@@ -699,7 +699,7 @@ dav.tools = {
             
             //if this card was created with an older version of TbSync, which did not have groups support, handle as normal card
             if (!card.isMailList) {
-                tbSync.errorlog(syncdata, "ignoredgroup::" + vCardInfo.name, "dav");
+                tbSync.errorlog("info", syncdata, "ignoredgroup::" + vCardInfo.name, "dav");
                 return false;
             }
                 

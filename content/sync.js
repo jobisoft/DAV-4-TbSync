@@ -800,11 +800,11 @@ dav.sync = {
                                         tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
                                         if (response && response.softerror) {
                                             permissionError[changes[i].status] = true;
-                                            tbSync.errorlog(syncdata, "missing-permission::" + tbSync.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
+                                            tbSync.errorlog("warning", syncdata, "missing-permission::" + tbSync.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
                                         }
                                     }
                                 } else {
-                                    tbSync.errorlog(syncdata, "cardnotfoundbutinchangelog::" + changes[i].id);
+                                    tbSync.errorlog("warning", syncdata, "cardnotfoundbutinchangelog::" + changes[i].id);
                                 }
                             }
 
@@ -824,7 +824,7 @@ dav.sync = {
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
                                 if (response  && response.softerror) {
                                     permissionError[changes[i].status] = true;
-                                    tbSync.errorlog(syncdata, "missing-permission::" + tbSync.getLocalizedMessage("acl.delete", "dav"));
+                                    tbSync.errorlog("warning", syncdata, "missing-permission::" + tbSync.getLocalizedMessage("acl.delete", "dav"));
                                 }
                             }
 
