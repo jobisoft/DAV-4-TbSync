@@ -29,7 +29,7 @@
 <!ENTITY pref.downloadonly "Отменить локальные изменения (односторонняя синхронизация)">
 
 <!ENTITY pref.contactoptions "Настройки контакта">
-<!ENTITY pref.syncGroups "?? Sync contact groups as Thunderbird lists. NOTE: Due to TB bug 1522453, TbSync must add dummy email addresses to all contacts, which are part of groups but do not have an email address associated. These dummy email addresses are not synced to server. ??">
+<!ENTITY pref.syncGroups "Синхронизируйте группы контактов как списки Thunderbird. ПРИМЕЧАНИЕ. В связи с ошибкой TB 1522453, TbSync должен добавить фиктивные адреса электронной почты для всех контактов, которые входят в группы, но не имеют адреса электронной почты. Эти фиктивные адреса электронной почты не синхронизируются с сервером.">
 <!ENTITY pref.useHomeAsPrimary "Используйте электронную почту vCard типа 'ДОМ' (а не 'РАБОТА') в качестве основного адреса электронной почты">
 <!ENTITY pref.useCardBook "Создавайте адресные книги CardBook вместо стандартных адресных книг Thunderbird">
 
