@@ -7,6 +7,7 @@
 ]>
 <overlay 
     id="tbSyncAccountConfig" 
+    oninject="tbSync.dav.onSettingsGUILoad(window, tbSyncAccountSettings.account);"
     xmlns:html="http://www.w3.org/1999/xhtml">
 
     <tab id="manager.tabs.accountsettings" label="&manager.tabs.accountsettings;" appendto="manager.tabs" />
@@ -40,13 +41,13 @@
                             <vbox pack="center">
                                 <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CalDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.host"  />
+                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.host"  onblur="tbSync.dav.stripHost(document, tbSyncAccountSettings.account, 'host');"/>
                         </row>
                         <row>
                             <vbox pack="center">
                                 <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CardDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.host2" onblur="tbSyncAccountSettings.stripHost(document, tbSyncAccountSettings.account);" />
+                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.host2" onblur="tbSync.dav.stripHost(document, tbSyncAccountSettings.account, 'host2');" />
                         </row>
                         <row>
                             <hbox/>
@@ -73,6 +74,7 @@
 
                 <label style="margin-left:0; margin-bottom: 1ex;" class="header lockIfConnected" value="&pref.contactoptions;"/>
                 <vbox>                            
+                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.syncGroups" label="&pref.syncGroups;" />
                     <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useHomeAsPrimary" label="&pref.useHomeAsPrimary;" />
                     <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useCardBook" hidden="true" label="&pref.useCardBook;" />
                 </vbox>

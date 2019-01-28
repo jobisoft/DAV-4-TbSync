@@ -88,6 +88,49 @@ var dav = {
         },
     },    
 
+
+    onSettingsGUILoad: function (window, accountID) {
+        let serviceprovider = tbSync.db.getAccountSetting(accountID, "serviceprovider");
+        let isServiceProvider = tbSync.dav.serviceproviders.hasOwnProperty(serviceprovider);
+        
+        // special treatment for configuration label, which is a permanent setting and will not change by switching modes
+        let configlabel = window.document.getElementById("tbsync.accountsettings.label.config");
+        if (configlabel) {
+            let extra = "";
+            if (isServiceProvider) {
+                extra = " [" + tbSync.getLocalizedMessage("add.serverprofile." + serviceprovider, "dav") + "]";
+            }
+            configlabel.setAttribute("value", tbSync.getLocalizedMessage("config.custom", "dav") + extra);
+        }
+
+        //set certain elements as "alwaysDisable", if locked by service provider (alwaysDisabled is honored by main SettingsUpdate, so we do not have to do that in our own onSettingsGUIUpdate
+        if (isServiceProvider) {
+            let items = window.document.getElementsByClassName("lockIfServiceProvider");
+            for (let i=0; i < items.length; i++) {
+                items[i].setAttribute("alwaysDisabled", "true");
+            }
+        }
+    },
+
+    stripHost: function (document, account, field) {
+        let host = document.getElementById('tbsync.accountsettings.pref.' + field).value;
+        if (host.indexOf("https://") == 0) {
+            host = host.replace("https://","");
+            document.getElementById('tbsync.accountsettings.pref.https').checked = true;
+            tbSync.db.setAccountSetting(account, "https", "1");
+        } else if (host.indexOf("http://") == 0) {
+            host = host.replace("http://","");
+            document.getElementById('tbsync.accountsettings.pref.https').checked = false;
+            tbSync.db.setAccountSetting(account, "https", "0");
+        }
+        
+        while (host.endsWith("/")) { host = host.slice(0,-1); }        
+        document.getElementById('tbsync.accountsettings.pref.' + field).value = host
+        tbSync.db.setAccountSetting(account, field, host);
+    },
+
+
+    
     /** API **/
     
     /**
@@ -246,48 +289,6 @@ var dav = {
 
 
     /**
-     * Is called after the settings overlay of this provider has been added to the main settings window
-     *
-     * @param window       [in] window object of the settings window
-     * @param accountID    [in] accountId of the selected account
-     */
-    onSettingsGUILoad: function (window, accountID) {
-        let serviceprovider = tbSync.db.getAccountSetting(accountID, "serviceprovider");
-        let isServiceProvider = tbSync.dav.serviceproviders.hasOwnProperty(serviceprovider);
-        
-        // special treatment for configuration label, which is a permanent setting and will not change by switching modes
-        let configlabel = window.document.getElementById("tbsync.accountsettings.label.config");
-        if (configlabel) {
-            let extra = "";
-            if (isServiceProvider) {
-                extra = " [" + tbSync.getLocalizedMessage("add.serverprofile." + serviceprovider, "dav") + "]";
-            }
-            configlabel.setAttribute("value", tbSync.getLocalizedMessage("config.custom", "dav") + extra);
-        }
-
-        //set certain elements as "alwaysDisable", if locked by service provider (alwaysDisabled is honored by main SettingsUpdate, so we do not have to do that in our own onSettingsGUIUpdate
-        if (isServiceProvider) {
-            let items = window.document.getElementsByClassName("lockIfServiceProvider");
-            for (let i=0; i < items.length; i++) {
-                items[i].setAttribute("alwaysDisabled", "true");
-            }
-        }
-    },
-
-
-
-    /**
-     * Is called each time after the settings window has been updated
-     *
-     * @param window       [in] window object of the settings window
-     * @param accountID    [in] accountId of the selected account
-     */
-    onSettingsGUIUpdate: function (window, accountID) {
-    },
-
-
-
-    /**
      * Returns nice string for name of provider (is used in the add account menu).
      */
     getNiceProviderName: function () {
@@ -314,6 +315,7 @@ var dav = {
             "autosync" : "0",
             "createdWithProviderVersion" : "0",
 
+            "syncGroups" : "0",
             "useHomeAsPrimary" : "0",
             "useCache" : "1",
             "useCardBook" : "0",
@@ -449,7 +451,7 @@ var dav = {
      * returns the new id
      */
     getNewCardID: function (aItem, folder) {
-        //actually use the full href of this vcard as id - the actual UID is not used by TbSync (only for mailinglist, it is mapped to X-DAV-UID)
+        //actually use the full href of this vcard as id - the actual UID is not used by TbSync (only for mailinglist members)
         return folder.folderID + dav.tools.generateUUID() + ".vcf";
     },
 

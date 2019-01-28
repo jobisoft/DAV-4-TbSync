@@ -1,4 +1,5 @@
 /*
+/*
  * This file is part of DAV-4-TbSync.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -584,7 +585,7 @@ dav.sync = {
 
     multiget: Task.async (function*(addressBook, vCardsChangedOnServer, syncdata) {
         //keep track of found mailing lists and its members
-        syncdata.foundMailingLists = {};
+        syncdata.foundMailingListsDuringDownSync = {};
         
         //download all changed cards and process changes
         let cards2catch = Object.keys(vCardsChangedOnServer);
@@ -619,49 +620,81 @@ dav.sync = {
                 }
             }
         }
-        
-        //process members of found mailinglists
-        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-        for (let mailListCardID in syncdata.foundMailingLists) {
-            if (syncdata.foundMailingLists.hasOwnProperty(mailListCardID)) {
-                let mailListCard = tbSync.getCardFromProperty(addressBook, "TBSYNCID", mailListCardID);
-                let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
-                
-                //smart merge: oldMembers contains the state during last sync, newMembers is the current state
-                //by comparing we can learn, what was added on the server (in new but not in old) and what was deleted (in old but not in new)
-                //when adding, we need to check, if it is already part of local list (added by user as well)
-                //when deleting, we need to check, if it has been deleted already in the local list (deleted by user as well)
-                //all other local changes remain untouched and will be send back to the server as local changes
-                let addedMembers = syncdata.foundMailingLists[mailListCardID].newMembers.filter(e => !syncdata.foundMailingLists[mailListCardID].oldMembers.includes(e));
-                let removedMembers = syncdata.foundMailingLists[mailListCardID].oldMembers.filter(e => !syncdata.foundMailingLists[mailListCardID].newMembers.includes(e));
-                
-                //remove requested members from list (IDs stored in this array are X-DAV-UIDs)
-                for (let i=0; i < removedMembers.length; i++) {
-                    let card = addressBook.getCardFromProperty("X-DAV-UID", removedMembers[i], true);
-                    if (card) {
-                        let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-UID", removedMembers[i]);
-                        if (idx != -1) {
-                            tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
-                            mailListDirectory.addressLists.removeElementAt(idx);  
-                        }                                
-                    }
-                }
-                
-                //add requested members to list (IDs stored in this array are X-DAV-UIDs)
-                for (let i=0; i < addedMembers.length; i++) {
-                    let card = addressBook.getCardFromProperty("X-DAV-UID", addedMembers[i], true);
-                    if (card) {
-                        let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-UID", addedMembers[i]);
-                        if (idx == -1) {
-                            tbSync.db.addItemToChangeLog(syncdata.targetId, card.getProperty("TBSYNCID", ""), "locked_by_mailinglist_operations");
-                            mailListDirectory.addressLists.appendElement(card, false);
+        //Feedback from users: They want to see the final count
+        tbSync.setSyncState("eval.request.remotechanges", syncdata.account, syncdata.folderID);		
+        yield tbSync.sleep(100, false);
+    
+        let syncGroups = (tbSync.db.getAccountSetting(syncdata.account, "syncGroups") == "1");
+        if (syncGroups) {
+            //mailinglists (we need to do that at the very end so all member data is avail)
+            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+            let listcount = 0;
+            for (let mailListCardID in syncdata.foundMailingListsDuringDownSync) {
+                if (syncdata.foundMailingListsDuringDownSync.hasOwnProperty(mailListCardID)) {
+                    listcount++;
+                    let locked = 0;
+                    let mailListCard = tbSync.getCardFromProperty(addressBook, "TBSYNCID", mailListCardID);
+                    let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
+                    
+                    //smart merge: oCardInfo contains the state during last sync, vCardInfo is the current state
+                    //by comparing we can learn, what was added on the server (in new but not in old) and what was deleted (in old but not in new)
+                    //when adding, we need to check, if it is already part of local list (added by user as well)
+                    //when deleting, we need to check, if it has been deleted already in the local list (deleted by user as well)
+                    //all other local changes remain untouched and will be send back to the server as local changes
+                     let vCardInfo = dav.tools.getGroupInfoFromCardData(syncdata.foundMailingListsDuringDownSync[mailListCardID].vCardData, addressBook);
+                     let oCardInfo = dav.tools.getGroupInfoFromCardData(syncdata.foundMailingListsDuringDownSync[mailListCardID].oCardData, addressBook);
+                    
+                    let addedMembers = vCardInfo.members.filter(e => !oCardInfo.members.includes(e));
+                    let removedMembers = oCardInfo.members.filter(e => !vCardInfo.members.includes(e));
+                    
+                    //remove requested members from list
+                    for (let i=0; i < removedMembers.length; i++) {
+                        if (removedMembers[i]) {
+                        let card = addressBook.getCardFromProperty("TBSYNCID", removedMembers[i], true);
+                            if (card) {
+                                let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", removedMembers[i]);
+                                if (idx != -1) {
+                                    tbSync.db.addItemToChangeLog(syncdata.targetId, removedMembers[i], "locked_by_mailinglist_operations");
+                                    locked++;
+                                    mailListDirectory.addressLists.removeElementAt(idx);  
+                                }                                
+                            }
                         }
                     }
+                    
+                    //add requested members to list (make sure it has an email as long that bug is not fixed in TB!)
+                    for (let i=0; i < addedMembers.length; i++) {
+                        if (addedMembers[i]) {
+                            let card = addressBook.getCardFromProperty("TBSYNCID", addedMembers[i], true);
+                            if (card) {
+                                let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", addedMembers[i]);
+                                if (idx == -1) {
+                                    tbSync.db.addItemToChangeLog(syncdata.targetId, addedMembers[i], "locked_by_mailinglist_operations");
+                                    locked++;
+                                    //fix for bug 1522453
+                                    let email = card.getProperty("PrimaryEmail", "");
+                                    if (!email) {
+                                        card.setProperty("PrimaryEmail", Date.now() + "." +listcount + "." + i + "@bug1522453");
+                                        addressBook.modifyCard(card);
+                                    }
+                                    mailListDirectory.addressLists.appendElement(card, false);
+                                }
+                            }
+                        }
+                    }
+
+                    //if at least one member (or the name) has been changed, we need to call 
+                    //editMailListToDatabase to update the directory, which will modify all members
+                    if (locked > 0 || vCardInfo.name != oCardInfo.name) {
+                        tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardID, "locked_by_mailinglist_operations");
+                        mailListDirectory.dirName = vCardInfo.name;                    
+                        //editMailListToDatabase will mod all members of this list, so we need to lock all of them
+                        for (let i=0; i < vCardInfo.members.length; i++) {
+                            tbSync.db.addItemToChangeLog(syncdata.targetId, vCardInfo.members[i], "locked_by_mailinglist_operations");
+                        }
+                        mailListDirectory.editMailListToDatabase(mailListCard);
+                    }
                 }
-                
-                //this will unlock all locked cards in the changelog
-                tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardID, "locked_by_mailinglist_operations");
-                mailListDirectory.editMailListToDatabase(mailListCard);
             }
         }            
     }),
@@ -681,6 +714,9 @@ dav.sync = {
 
 
     localChanges: Task.async (function* (syncdata) {
+        //keep track of found mailing lists and its members
+        syncdata.foundMailingListsDuringUpSync = {};
+
         //define how many entries can be send in one request
         let maxitems = tbSync.dav.prefSettings.getIntPref("maxitems");
 
@@ -694,27 +730,38 @@ dav.sync = {
             "deleted_by_user": syncdata.downloadonly
         }; 
         
-        //special handling of lists/groups
-        //ADD/MOD of the list cards itself is not detectable, we only detect the change of its member cards when membership changes
-        //we simply add all lists to the change array and upload them, if the resulting vcard changed
-        // -> ADD/MOD of empty cards is not detectable and we do not sync them to the server
-        //DEL is handled like a normal card, no special handling needed        
-        let result = abManager.getDirectory(addressBook.URI +  "?(or(IsMailList,=,TRUE))").childCards;
-        while (result.hasMoreElements()) {
-            let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-            let mailListCardId = tbSync.getPropertyOfCard(mailListCard, "TBSYNCID");
-            if (mailListCardId) {
-                //TODO: check if memberlist differs from stored vCard! also check name
-                tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardId, "modified_by_user");
-            } else {
-                //that card has no id yet (because general TbSync addressbook listener did not catch it)
-                let folder = tbSync.db.getFolder(syncdata.account, syncdata.folderID);
-                let newCardID = tbSync.dav.getNewCardID(mailListCard, folder);
-                tbSync.setPropertyOfCard (mailListCard, "TBSYNCID", newCardID);                
-                tbSync.db.addItemToChangeLog(syncdata.targetId, newCardID, "added_by_user");
+        let syncGroups = (tbSync.db.getAccountSetting(syncdata.account, "syncGroups") == "1");
+        if (syncGroups) {
+            //special handling of lists/groups
+            //ADD/MOD of the list cards itself is not detectable, we only detect the change of its member cards when membership changes
+            //DEL is handled like a normal card, no special handling needed        
+            let result = abManager.getDirectory(addressBook.URI +  "?(or(IsMailList,=,TRUE))").childCards;
+            while (result.hasMoreElements()) {
+                let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+                let mailListInfo = dav.tools.getGroupInfoFromList(mailListCard.mailListURI);           
+
+                let mailListCardId = tbSync.getPropertyOfCard(mailListCard, "TBSYNCID");
+                if (mailListCardId) {
+                    //get old data from vCard to find changes
+                    let oCardInfo = dav.tools.getGroupInfoFromCardData(tbSync.dav.vCard.parse(tbSync.getPropertyOfCard(mailListCard, "X-DAV-VCARD")), addressBook);            
+                    
+                    let addedMembers = mailListInfo.members.filter(e => !oCardInfo.members.includes(e));
+                    let removedMembers = oCardInfo.members.filter(e => !mailListInfo.members.includes(e));
+                    
+                    if (oCardInfo.name != mailListInfo.name || addedMembers.length > 0 || removedMembers.length > 0) {
+                        tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardId, "modified_by_user");
+                    }
+                } else {
+                    //that listcard has no id yet (because the general TbSync addressbook listener cannot catch it)
+                    let folder = tbSync.db.getFolder(syncdata.account, syncdata.folderID);
+                    mailListCardId = tbSync.dav.getNewCardID(mailListCard, folder);
+                    tbSync.setPropertyOfCard (mailListCard, "TBSYNCID", mailListCardId);                
+                    tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardId, "added_by_user");
+                }
+                syncdata.foundMailingListsDuringUpSync[mailListCardId] = mailListInfo;
             }
         }
-
+        
         //access changelog to get local modifications (done and todo are used for UI to display progress)
         syncdata.done = 0;
         syncdata.todo = db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
@@ -737,6 +784,9 @@ dav.sync = {
 
                                 let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", changes[i].id);
                                 if (card) {
+                                    if (card.isMailList && !syncGroups)
+                                        continue;
+                                    
                                     let vcard = card.isMailList
                                                         ? dav.tools.getVCardFromThunderbirdListCard(syncdata, addressBook, card, isAdding)
                                                         : dav.tools.getVCardFromThunderbirdContactCard(syncdata, addressBook, card, isAdding);
@@ -750,11 +800,11 @@ dav.sync = {
                                         tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
                                         if (response && response.softerror) {
                                             permissionError[changes[i].status] = true;
-                                            tbSync.errorlog(syncdata, "missing-permission::" + tbSync.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
+                                            tbSync.errorlog("warning", syncdata, "missing-permission::" + tbSync.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
                                         }
                                     }
                                 } else {
-                                    tbSync.errorlog(syncdata, "cardnotfoundbutinchangelog::" + changes[i].id);
+                                    tbSync.errorlog("warning", syncdata, "cardnotfoundbutinchangelog::" + changes[i].id);
                                 }
                             }
 
@@ -774,7 +824,7 @@ dav.sync = {
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
                                 if (response  && response.softerror) {
                                     permissionError[changes[i].status] = true;
-                                    tbSync.errorlog(syncdata, "missing-permission::" + tbSync.getLocalizedMessage("acl.delete", "dav"));
+                                    tbSync.errorlog("warning", syncdata, "missing-permission::" + tbSync.getLocalizedMessage("acl.delete", "dav"));
                                 }
                             }
 
