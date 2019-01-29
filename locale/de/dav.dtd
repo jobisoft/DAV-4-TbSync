@@ -29,7 +29,8 @@
 <!ENTITY pref.downloadonly "Lokale Änderungen verwerfen (one-way sync)">
 
 <!ENTITY pref.contactoptions "Kontakt Optionen">
-<!ENTITY pref.syncGroups "Kontaktgruppen als Thunderbird-Listen synchronisieren. Hinweis: Auf Grund von TB bug 1522453 muss TbSync allen Kontakten eine Dummy-E-Mail-Adresse hinzufügen, die Teil einer Gruppen sind, die jedoch keine E-Mail-Adresse haben. Diese Dummy-E-Mail-Adresse wird nicht mit dem Server synchronisiert.">
+<!ENTITY pref.syncGroups "Kontaktgruppen als Thunderbird-Listen synchronisieren">
+<!ENTITY pref.syncGroupsDescription "Hinweis: Auf Grund von TB bug 1522453 muss TbSync allen Kontakten eine Dummy-E-Mail-Adresse hinzufügen, die Teil einer Gruppen sind, die jedoch keine E-Mail-Adresse haben. Diese Dummy-E-Mail-Adresse wird nicht mit dem Server synchronisiert.">
 <!ENTITY pref.useHomeAsPrimary "Verwende die vCard E-Mail mit Typ 'HOME' (und nicht 'WORK') als primäre E-Mail Adresse">
 <!ENTITY pref.useCardBook "Erstelle CardBook-Adressbücher anstelle der Standard-Adressbücher von Thunderbird">
 
