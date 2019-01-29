@@ -74,14 +74,14 @@
 
                 <label style="margin-left:0; margin-bottom: 1ex;" class="header lockIfConnected" value="&pref.contactoptions;"/>
                 <vbox>                            
-                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.syncGroups" label="&pref.syncGroups;" />
-                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useHomeAsPrimary" label="&pref.useHomeAsPrimary;" />
-                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useCardBook" hidden="true" label="&pref.useCardBook;" />
+                    <hbox align="start" flex="1"><checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.syncGroups" style="margin-right:0" /><description style="margin-left:0" flex="1">&pref.syncGroups;</description></hbox>
+                    <hbox align="start" flex="1"><checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useHomeAsPrimary" style="margin-right:0" /><description style="margin-left:0" flex="1">&pref.useHomeAsPrimary;</description></hbox>
+                    <hbox align="start" flex="1" hidden="true"><checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useCardBook" style="margin-right:0" /><description style="margin-left:0" flex="1">&pref.useCardBook;</description></hbox>
                 </vbox>
 
                 <label style="margin-left:0; margin-bottom: 1ex; margin-top: 3ex" class="header lockIfConnected" value="&pref.calendaroptions;"/>
                 <vbox>                            
-                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useCache" label="&pref.useCache;" />
+                    <hbox align="start" flex="1"><checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useCache" style="margin-right:0" /><description style="margin-left:0" flex="1">&pref.useCache;</description></hbox>
                 </vbox>
 
                 <vbox flex="1" />
