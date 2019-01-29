@@ -13,8 +13,8 @@
     <tab id="manager.tabs.accountsettings" label="&manager.tabs.accountsettings;" appendto="manager.tabs" />
     <tab id="manager.tabs.syncsettings" label="&manager.tabs.syncsettings;" appendto="manager.tabs" />
 
-    <tabpanel id="manager.tabpanels.accountsettings" appendto="manager.tabpanels" flex="1" orient="vertical" style="border:1px solid blue"><!-- ACCOUNT SETTINGS -->
-           <vbox flex="1" style="border:1px solid red">
+    <tabpanel id="manager.tabpanels.accountsettings" appendto="manager.tabpanels" flex="1" orient="vertical"><!-- ACCOUNT SETTINGS -->
+           <vbox flex="1">
                 <label class="header lockIfConnected" style="margin-left:0; margin-bottom:1ex;" value="" id="tbsync.accountsettings.label.config" />                
                 <grid flex="1">
                    <columns>
