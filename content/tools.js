@@ -889,9 +889,13 @@ dav.tools = {
                 case "PrimaryEmail":
                 case "SecondEmail":
                     {
-                        //the user may choose to switch default mapping via useHomeAsPrimary, but the system may also decide to switch via syncdata.emailSwapInvert
-                        let metamap = (tbSync.db.getAccountSetting(syncdata.account, "useHomeAsPrimary") == syncdata.emailSwapInvert) ? {"PrimaryEmail": "WORK", "SecondEmail": "HOME"} : {"PrimaryEmail": "HOME", "SecondEmail": "WORK"};
-                        data.metatype.push(metamap[property]);
+                        //assign email types based on emailSwapInvert
+                        let emailMap = {"PrimaryEmail.0": "PrimaryEmail", "SecondEmail.0": "SecondEmail", "PrimaryEmail.1": "SecondEmail", "SecondEmail.1": "PrimaryEmail"};
+                        let emailSwap = syncdata.emailSwapInvert == "1" ? "1" : "0";
+                        let emailType = emailMap[property + "." + emailSwap];
+                        
+                        let metamap = (tbSync.db.getAccountSetting(syncdata.account, "useHomeAsPrimary") == "0") ? {"PrimaryEmail": "WORK", "SecondEmail": "HOME"} : {"PrimaryEmail": "HOME", "SecondEmail": "WORK"};
+                        data.metatype.push(metamap[emailType]);
                         data.item = "email";
 
                         //search the first valid entry
@@ -899,7 +903,7 @@ dav.tools = {
                             let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
 
                             //check metaTypeData to find correct entry
-                            if (property == "PrimaryEmail") {
+                            if (emailType == "PrimaryEmail") {
 
                                 let prev = [];
                                 let work =[];
