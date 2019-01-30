@@ -906,30 +906,33 @@ dav.tools = {
                             if (emailType == "PrimaryEmail") {
 
                                 let prev = [];
-                                let work =[];
-                                let workprev = [];
-                                let nothome = [];
+                                let primary = [];
+                                let primaryPrev = [];
+                                let otherButNotSecondary = [];
                                 for (let i=0; i < metaTypeData.length; i++) {
-                                    if (metaTypeData[i].includes(metamap.PrimaryEmail) && metaTypeData[i].includes("PREV")) workprev.push(i);
+                                    if (metaTypeData[i].includes(metamap.PrimaryEmail) && metaTypeData[i].includes("PREV")) primaryPrev.push(i);
                                     if (metaTypeData[i].includes("PREV") && !metaTypeData[i].includes(metamap.SecondEmail)) prev.push(i);
-                                    if (metaTypeData[i].includes(metamap.PrimaryEmail)) work.push(i);
-                                    if (!metaTypeData[i].includes(metamap.SecondEmail)) nothome.push(i);
+                                    if (metaTypeData[i].includes(metamap.PrimaryEmail)) primary.push(i);
+                                    if (!metaTypeData[i].includes(metamap.SecondEmail) && !metaTypeData[i].includes("INTERNET")) otherButNotSecondary.push(i);
                                 }
-                                if (workprev.length > 0) data.entry = workprev[0];
+                                if (primaryPrev.length > 0) data.entry = primaryPrev[0];
                                 else if (prev.length > 0) data.entry = prev[0];
-                                else if (work.length > 0) data.entry = work[0];
-                                else if (nothome.length > 0) data.entry = nothome[0];
+                                else if (primary.length > 0) data.entry = primary[0];
+                                else if (otherButNotSecondary.length > 0) data.entry = otherButNotSecondary[0];
 
                             } else {
 
-                                let homeprev = [];
-                                let home = [];
+                                let secondaryPrev = [];
+                                let secondary = [];
+                                let internet = [];
                                 for (let i=0; i < metaTypeData.length; i++) {
-                                    if (metaTypeData[i].includes(metamap.SecondEmail) && metaTypeData[i].includes("PREV")) homeprev.push(i);
-                                    if (metaTypeData[i].includes(metamap.SecondEmail)) home.push(i);
+                                    if (metaTypeData[i].includes(metamap.SecondEmail) && metaTypeData[i].includes("PREV")) secondaryPrev.push(i);
+                                    if (metaTypeData[i].includes(metamap.SecondEmail)) secondary.push(i);
+                                    if (metaTypeData[i].includes("INTERNET")) internet.push(i);
                                 }
-                                if (homeprev.length > 0) data.entry = homeprev[0];
-                                else if (home.length > 0) data.entry = home[0];
+                                if (secondaryPrev.length > 0) data.entry = secondaryPrev[0];
+                                else if (secondary.length > 0) data.entry = secondary[0];
+                                else if (internet.length > 0) data.entry = internet[0];
 
                             }
                         }
