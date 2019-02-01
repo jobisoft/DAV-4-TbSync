@@ -29,8 +29,8 @@
 <!ENTITY pref.downloadonly "Reverter alterações locais (sincronização unidirecional)">
 
 <!ENTITY pref.contactoptions "Opções de contato">
-<!ENTITY pref.syncGroups "?? Sync contact groups as Thunderbird lists ??">
-<!ENTITY pref.syncGroupsDescription "?? NOTE: Due to TB bug 1522453, TbSync must add dummy email addresses to all contacts, which are part of groups but do not have an email address associated. These dummy email addresses are not synced to server. ??">
+<!ENTITY pref.syncGroups "Sincronizar grupos de contatos como listas do Thunderbird">
+<!ENTITY pref.syncGroupsDescription "NOTA: Devido ao bug do Thunderbird 1522453, o TbSync deverá adicionar endereços de e-mail fictícios a todos os contatos, que fazem parte de grupos, mas não têm um endereço de e-mail associado. Esses endereços de email fictícios não são sincronizados com o servidor.">
 <!ENTITY pref.useHomeAsPrimary "Utilizar o email de contato vCard do tipo «Residencial» e não «Trabalho» como endereço de e-mail principal">
 <!ENTITY pref.useCardBook "Criar catálogo de endereços no CardBook em vez do catálogo de endereços padrão do Thunderbird">
 
