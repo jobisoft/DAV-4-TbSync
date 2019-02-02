@@ -53,30 +53,25 @@ dav.sync = {
             unhandledFolders[folders[f].type].push(f);
         }
 
-        let davjobs = {
-            card : {run: true},
-            cal : {run: tbSync.lightningIsAvailable()},        
-        };
-
         //get server urls from account setup - update urls of serviceproviders
         let serviceprovider = tbSync.db.getAccountSetting(syncdata.account, "serviceprovider");
         if (tbSync.dav.serviceproviders.hasOwnProperty(serviceprovider)) {
             tbSync.db.setAccountSetting(syncdata.account, "host", tbSync.dav.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
             tbSync.db.setAccountSetting(syncdata.account, "host2", tbSync.dav.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
         }
-        davjobs.cal.initialURL = tbSync.db.getAccountSetting(syncdata.account, "host");
-        davjobs.card.initialURL = tbSync.db.getAccountSetting(syncdata.account, "host2");
+
+        let davjobs = {
+            cal : {server: tbSync.db.getAccountSetting(syncdata.account, "host")},
+            card : {server: tbSync.db.getAccountSetting(syncdata.account, "host2")},
+        };
         
         let authenticationManager = Components.classes["@mozilla.org/network/http-auth-manager;1"].getService(Components.interfaces.nsIHttpAuthManager); 
 
         for (let job in davjobs) {
-            if (!davjobs[job].run || !davjobs[job].initialURL) continue;
+            if (!davjobs[job].server) continue;
 
             //clear credential cache, so the Channel will call nsIAuthPrompt2 and expose the realm (caldav and carddav could be on the same host but use different realms, so we reset for each type)
             authenticationManager.clearAll();
-
-            //keep track of the current job
-            syncdata.type = job;
             
             //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncdata)
             //example state "getfolders" to get folder information from server
@@ -89,12 +84,16 @@ dav.sync = {
 
             tbSync.setSyncState("send.getfolders", syncdata.account);
             {
-                //split initialURL into host and url
-                let parts = davjobs[job].initialURL.split("/").filter(i => i != "");
+                //split server into fqdn and path
+                let parts = davjobs[job].server.split("/").filter(i => i != "");
+
+                //add connection data to syncdata
                 syncdata.fqdn = parts.splice(0,1).toString();
-                let addr = "/" + parts.join("/");                
-                
-                let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", addr , "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                syncdata.type = job;
+                dav.tools.addAccountDataToConnectionData(syncdata);
+
+                let path = "/" + parts.join("/");                
+                let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", path , "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
                 tbSync.setSyncState("eval.folders", syncdata.account);
                 if (response && response.multi) principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]);
@@ -130,7 +129,7 @@ dav.sync = {
                 //calendar-proxy and group-membership could have returned the same values, make the homeset unique
                 home = home.filter((v,i,a) => a.indexOf(v) == i);
             } else {
-                throw dav.sync.failed(job+"davservernotfound", davjobs[job].initialURL)
+                throw dav.sync.failed(job+"davservernotfound", davjobs[job].server)
             }
 
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
@@ -211,6 +210,7 @@ dav.sync = {
                                 
                             newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
                             newFolder.selected = "0";
+                            //we assume the folder has the same fqdn as the homeset, otherwise the folderID must contain the full URL and the fqdn is ignored
                             newFolder.fqdn = syncdata.fqdn;
                     
                             //if there is a cached version of this folderID, addFolder will merge all persistent settings - all other settings not defined here will be set to their defaults
@@ -287,11 +287,15 @@ dav.sync = {
                 //all folders of this account have been synced
                 throw dav.sync.succeeded();
             }
+
             //what folder are we syncing?
             syncdata.folderID = nextFolder.folderID;
+            
+            //add connection data to syncdata
             syncdata.type = nextFolder.type;
             syncdata.fqdn = nextFolder.fqdn;
-            
+            dav.tools.addAccountDataToConnectionData(syncdata);
+
             try {
                 switch (syncdata.type) {
                     case "carddav":

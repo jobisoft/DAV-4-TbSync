@@ -79,8 +79,16 @@ var dav = {
                 if (folders.length == 1) {
                     switch (aName) {
                         case "color":
+                            //prepare connection data
+                            let connection = {};
+                            connection.account = folders[0].account;
+                            connection.folderID = folders[0].folderID;
+                            connection.type = "cal";
+                            connection.fqdn = folders[0].fqdn;
+                            dav.tools.addAccountDataToConnectionData(connection);
+
                             //update stored color to recover after disable
-                            dav.tools.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folders[0].folderID, "PROPPATCH", {account: folders[0].account, fqdn: folders[0].fqdn});
+                            dav.tools.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folders[0].folderID, "PROPPATCH", connection);
                             break;
                     }
                 }
@@ -336,7 +344,6 @@ var dav = {
             //so we need to store the fqdn information per folders
             "fqdn" : "",
 
-            "url" : "",
             "name" : "",
             "type" : "", //cladav, carddav or ics
             "shared": "", //identify shared resources

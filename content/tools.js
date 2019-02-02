@@ -131,11 +131,17 @@ dav.tools = {
     //* SERVER COMMUNICATIONS *
     //* * * * * * * * * * * * *
     
+    addAccountDataToConnectionData: function (connection) {
+        let account = tbSync.db.getAccount(connection.account);
+        connection.https = account.https;
+        connection.user = account.user;    
+        connection.password = tbSync.dav.getPassword(account);    
+    },
+    
     Prompt: class {
-        constructor(aAccount, aType) {
+        constructor(aConnection) {
             this.mCounts = 0;
-            this.mAccount = aAccount;
-            this.mType = aType;
+            this.mConnection = aConnection;
         }
 
         // boolean promptAuth(in nsIChannel aChannel,
@@ -143,48 +149,60 @@ dav.tools = {
         //                    in nsIAuthInformation authInfo)
         promptAuth (aChannel, aLevel, aAuthInfo) {
             //store aAuthInfo.realm, needed later to setup lightning passwords
-            if (this.mType == "cal") {
+            if (this.mConnection.type == "cal") {
                 tbSync.dump("Found CalDAV authRealm for <"+aChannel.URI.host+">", aAuthInfo.realm);
                 dav.listOfRealms[aChannel.URI.host] = aAuthInfo.realm;
             }
             
-            //get the password for this account from password manager
-            let password = tbSync.dav.getPassword(this.mAccount);
-            if (password !== null) {
-                tbSync.dump("SUCCEEDED to fetch password from password manager", this.mAccount.user + " @ " + this.mAccount.host);
-                aAuthInfo.username = this.mAccount.user;
-                aAuthInfo.password = password;
-            } else {
-                tbSync.dump("FAILED to fetch password from password manager", this.mAccount.user + " @ " + this.mAccount.host);
+            if (this.mConnection.password !== null) {
+                aAuthInfo.username = this.mConnection.user;
+                aAuthInfo.password = this.mConnection.password;
             }
             
             this.mCounts++
-            if (this.mCounts < 2 && password !== null) {
+            if (this.mCounts < 2 && this.mConnection.password !== null) {
                 return true;
             } else {
-                return false; //if the credentials in the password manager are wrong or not found, abort and pass on the 401 to the caller
+                return false; //if the provided credentials are wrong or not found, abort and pass on the 401 to the caller
             }
         }
     },
 
     Redirect: class {
-        constructor() {
+        constructor(aHeaders) {
+            this.mHeaders = aHeaders;
         }
 
         asyncOnChannelRedirect (aOldChannel, aNewChannel, aFlags, aCallback) {
-            //disallow redirects, we catch the new url and re-initiate the request
-            //aNewChannel.cancel(Components.results.NS_BINDING_ABORTED);
-            //aOldChannel.cancel(Components.results.NS_BINDING_ABORTED);
-            aCallback.onRedirectVerifyCallback(Components.results.NS_ERROR_FAILURE); 
+            // Make sure we can get/set headers on both channels.
+            aNewChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
+            aOldChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
+            
+            //re-add all headers
+            for (let header in this.mHeaders) {
+                if (this.mHeaders.hasOwnProperty(header)) {
+                    aNewChannel.setRequestHeader(header, this.mHeaders[header], false);
+                }
+            }
+
+            //if a user:pass info has been lost, re-add and redirect
+            let oldUserPass = aOldChannel.URI.userPass;
+            let newUserPass = aNewChannel.URI.userPass;
+            if (oldUserPass != "" && newUserPass == "") {
+                let uri = Services.io.newURI(aNewChannel.URI.spec.replace("://","://" + aOldChannel.URI.userPass + "@"));
+                aNewChannel.redirectTo(uri);
+            }
+                
+            aCallback.onRedirectVerifyCallback(Components.results.NS_OK);
         }
     },
        
-    prepHttpChannel: function(aUri, aUploadData, aHeaders, aMethod, aAccount, aNotificationCallbacks=null, aExisting=null) {
+    prepHttpChannel: function(aUploadData, aHeaders, aMethod, aConnection, aNotificationCallbacks=null, aExisting=null) {
         let channel = aExisting || Services.io.newChannelFromURI2(
-                                                                aUri,
+                                                                aConnection.uri,
                                                                 null,
                                                                 Services.scriptSecurityManager.getSystemPrincipal(),        
-                                                                //Services.scriptSecurityManager.createCodebasePrincipal(aUri, {user: aAccount.user}),
+                                                                //Services.scriptSecurityManager.createCodebasePrincipal(aConnection.uri, {user: aConnection.user}),
                                                                 null,
                                                                 Components.interfaces.nsILoadInfo.SEC_ALLOW_CROSS_ORIGIN_DATA_IS_NULL,
                                                                 Components.interfaces.nsIContentPolicy.TYPE_OTHER);
@@ -240,35 +258,47 @@ dav.tools = {
         return httpchannel;
     },
  
-    sendRequest: Task.async (function* (requestData, _url, method, syncdata, headers = {}, options = {softfail: []}, aUseStreamLoader = true) {
-        let account = tbSync.db.getAccount(syncdata.account);
-        
-        //do not modify parameter
-        let url = _url;
+    /* connection data:
+        connection.type
+        connection.fqdn
+        connection.https
+        connection.user    
+        connection.password
+    */
+    sendRequest: Task.async (function* (requestData, path, method, connection, headers = {}, options = {softfail: []}, aUseStreamLoader = true) {            
+        //path could be absolute or relative, we may need to rebuild the full url
+        let url = (path.startsWith("http://") || path.startsWith("https://")) ? path : "http" + (connection.https == "1" ? "s" : "") + "://" + connection.fqdn + path;
 
-        //manually handling redirects by re-issuing the request to the new url
-        for (let i=1; i < 10; i++) { //max number of redirects
-            //if the new url is relative, add last known fqdn
-            let uri = Services.io.newURI((url.startsWith("http://") || url.startsWith("https://")) ? url : "http" + (account.https == "1" ? "s" : "") + "://" + syncdata.fqdn + url);
-            tbSync.dump("URL Request #" + i, uri.spec);
+        //a few bugs in TB and in client implementations require to retry a connection on certain failures
+        for (let i=1; i < 5; i++) { //max number of retries
+            tbSync.dump("URL Request #" + i, url);
+            
+            //inject user + password if requested
+            if (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl")) {
+                url = url.replace("://","://" + encodeURIComponent(connection.user) + ":" + encodeURIComponent(connection.password) + "@");
+            }
+
+            connection.uri = Services.io.newURI(url);
 
             //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
-            if (dav.problematicHosts.includes(uri.host)) {
-                headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.dav.getPassword(account));
+            if (dav.problematicHosts.includes(connection.uri.host)) {
+                headers["Authorization"] = "Basic " + tbSync.b64encode(connection.user + ":" + connection.password);
             }
-            let r = yield dav.tools.sendRequestCore (requestData, uri.spec, method, syncdata, headers, options, aUseStreamLoader);
             
-            if (r && r.redirect && r.url) {
-                url = r.url;
-                tbSync.dump("Redirect #" + i, r.url);
-            } else if (r && r.retry && r.retry === true) {
+            let r = yield dav.tools.sendRequestCore (requestData, method, connection, headers, options, aUseStreamLoader);
+        
+            //connection.uri.host may no longer be the correct value, as there might have been redirects, use connection.fqdn 
+            if (r && r.retry && r.retry === true) {
                 if (r.addBasicAuthHeaderOnce) {
-                    tbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + account.user + "@" + uri.host + ">");
-                    headers["Authorization"] = "Basic " + tbSync.b64encode(account.user + ":" + tbSync.dav.getPassword(account));
-                } else if (!dav.problematicHosts.includes(uri.host) ) {
-                    tbSync.dump("BUG 669675", "Adding <" + uri.host + "> to list of problematic hosts.");
-                    dav.problematicHosts.push(uri.host)
+                    tbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + connection.user + "@" + connection.fqdn + ">");
+                    headers["Authorization"] = "Basic " + tbSync.b64encode(connection.user + ":" + connection.password);
+                } else if (!dav.problematicHosts.includes(connection.fqdn) ) {
+                    tbSync.dump("BUG 669675", "Adding <" + connection.fqdn + "> to list of problematic hosts.");
+                    dav.problematicHosts.push(connection.fqdn)
                 }
+
+                //there might have been a redirect, rebuild url
+                url = "http" + (connection.https == "1" ? "s" : "") + "://" + connection.fqdn + r.path;
             } else {
                 return r;
             }
@@ -276,24 +306,10 @@ dav.tools = {
     }),
     
     // Promisified implementation of Components.interfaces.nsIHttpChannel
-    sendRequestCore: Task.async (function* (requestData, fullUrl, method, syncdata, headers, options, aUseStreamLoader) {
-        let account = tbSync.db.getAccount(syncdata.account);
+    sendRequestCore: Task.async (function* (requestData, method, connection, headers, options, aUseStreamLoader) {
         let responseData = "";
         
-        //Note: 
-        // - by specifying a user, the system falls back to user:<none>, which will trigger a 401 which will cause the authCallbacks and lets me set a new user/pass combination
-        // - after it has recevied a new pass, it will use the cached version
-        // - this allows to switch users but will cause a 401 on each user switch, and it probably breaks digest auth
-        // - the username is lost during redirects...
-        
-        let finalUrl = fullUrl;
-        if (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl")) {
-            //inject user + password to be used with LOAD_EXPLICIT_CREDENTIALS (does not help with cookie cache)
-            finalUrl = fullUrl.replace("://","://" + encodeURIComponent(account.user) + ":" + encodeURIComponent(tbSync.dav.getPassword(account)) + "@");
-        }
-        let uri = Services.io.newURI(finalUrl);
-
-        //no longer log HEADERS, as it could contain an Authorization header
+        //do not log HEADERS, as it could contain an Authorization header
         //tbSync.dump("HEADERS", JSON.stringify(headers));
         if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("REQUEST", method + " : " + requestData);
         
@@ -319,9 +335,9 @@ dav.tools = {
                     } catch (ex) {
                         let error = tbSync.createTCPErrorFromFailedChannel(aLoader.request);
                         if (!error) {
-                            return reject(dav.sync.failed("networkerror", "URL:\n" + fullUrl + " ("+method+")")); //reject/resolve do not terminate control flow
+                            return reject(dav.sync.failed("networkerror", "URL:\n" + connection.uri.spec + " ("+method+")")); //reject/resolve do not terminate control flow
                         } else {
-                            return reject(dav.sync.failed(error, "URL:\n" + fullUrl + " ("+method+")"));
+                            return reject(dav.sync.failed(error, "URL:\n" + connection.uri.spec + " ("+method+")"));
                         }
                     }
                     
@@ -329,6 +345,17 @@ dav.tools = {
                     if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("RESPONSE", responseStatus + " : " + text);
                     responseData = text.split("><").join(">\n<");
                     
+                    //Redirected? Update connection settings from current URL
+                    let newHttps = (request.URI.scheme == "https") ? "1" : "0";
+                    if (connection.https != newHttps) {
+                        tbSync.dump("Updating HTTPS", connection.https + " -> " + newHttps);
+                        connection.https = newHttps;
+                    }
+                    if (connection.fqdn != request.URI.hostPort) {
+                        tbSync.dump("Updating FQDN", connection.fqdn + " -> " + request.URI.hostPort);
+                        connection.fqdn = request.URI.hostPort;
+                    }
+
                     switch(responseStatus) {
                         case 301:
                         case 302:
@@ -337,9 +364,11 @@ dav.tools = {
                         case 307:
                         case 308:
                             {
+                                //Since we now use the nsIChannelEventSink to handle the redirects, this should never be called.
+                                //Just in case, do a retry with the updated connection settings.
                                 let response = {};
-                                response.redirect = responseStatus;
-                                response.url = request.getResponseHeader("Location");
+                                response.retry = true;
+                                response.path = request.URI.pathQueryRef;
                                 return resolve(response);
                             }
                             break;
@@ -355,7 +384,7 @@ dav.tools = {
                                 //I hope this bug gets fixed soon
 
                                 //should the channel have been able to authenticate (password is stored)?
-                                if (tbSync.dav.getPassword(account) !== null) {                                    
+                                if (connection.password !== null) {                                    
                                     //did the channel try to authenticate?
                                     let triedToAuthenticate;
                                     try {
@@ -368,6 +397,7 @@ dav.tools = {
                                     if (!triedToAuthenticate) {
                                         let response = {};
                                         response.retry = true;
+                                        response.path = request.URI.pathQueryRef;
                                         return resolve(response);
                                     }
                                 }
@@ -379,12 +409,13 @@ dav.tools = {
                         case 207: //preprocess multiresponse
                             {
                                 let xml = dav.tools.convertToXML(text);
-                                if (xml === null) return reject(dav.sync.failed("maiformed-xml", "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData));
+                                if (xml === null) return reject(dav.sync.failed("maiformed-xml", "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData));
 
                                 //the specs allow to  return a 207 with DAV:unauthenticated if not authenticated 
                                 if (xml.documentElement.getElementsByTagNameNS(dav.ns.d, "unauthenticated").length != 0) {
                                     let response = {};
                                     response.retry = true;
+                                    response.path = request.URI.pathQueryRef;
                                     //we have no information at all about allowed auth methods, try basic auth
                                     response.addBasicAuthHeaderOnce = true;
                                     return resolve(response);
@@ -443,10 +474,10 @@ dav.tools = {
                                     }
                                 }
                                 //manually log this non-fatal error
-                                tbSync.errorlog("info", syncdata, "softerror::"+responseStatus, "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
+                                tbSync.errorlog("info", connection, "softerror::"+responseStatus, "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
                                 return resolve(noresponse);
                             } else {
-                                return reject(dav.sync.failed(responseStatus, "URL:\n" + fullUrl + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
+                                return reject(dav.sync.failed(responseStatus, "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
                             }                                
                             break;
 
@@ -460,7 +491,7 @@ dav.tools = {
                     if (aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
                         tbSync.dump("GET","nsIAuthPrompt2");
                         if (!this.authPrompt) {
-                            this.authPrompt = new dav.tools.Prompt(account, syncdata.type);
+                            this.authPrompt = new dav.tools.Prompt(connection);
                         }
                         return this.authPrompt;
                     } else if (aIID.equals(Components.interfaces.nsIAuthPrompt)) {
@@ -473,7 +504,7 @@ dav.tools = {
                         //tbSync.dump("GET","nsIProgressEventSink");
                     } else if (aIID.equals(Components.interfaces.nsIChannelEventSink)) {
                         if (!this.redirectSink) {
-                            this.redirectSink = new dav.tools.Redirect();
+                            this.redirectSink = new dav.tools.Redirect(headers);
                         }
                         return this.redirectSink;
                     }
@@ -482,7 +513,7 @@ dav.tools = {
                 },
             }
 
-            let channel = dav.tools.prepHttpChannel(uri, requestData, headers, method, account, notificationCallbacks);    
+            let channel = dav.tools.prepHttpChannel(requestData, headers, method, connection, notificationCallbacks);    
             if (aUseStreamLoader) {
                 let loader =  Components.classes["@mozilla.org/network/stream-loader;1"].createInstance(Components.interfaces.nsIStreamLoader);
                 loader.init(listener);
@@ -490,7 +521,7 @@ dav.tools = {
             }        
         
             //manually set timout
-            syncdata.timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
+            connection.timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
             let timeout = tbSync.prefSettings.getIntPref("timeout");
             let rv = Components.results.NS_ERROR_NET_TIMEOUT;
             let event = {
@@ -498,7 +529,7 @@ dav.tools = {
                     if (channel) channel.cancel(rv);
                 }
             }
-            syncdata.timer.initWithCallback(event, timeout, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+            connection.timer.initWithCallback(event, timeout, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
 
             channel.asyncOpen(listener, channel);
 
