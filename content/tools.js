@@ -186,9 +186,7 @@ dav.tools = {
             }
 
             //if a user:pass info has been lost, re-add and redirect
-            let oldUserPass = aOldChannel.URI.userPass;
-            let newUserPass = aNewChannel.URI.userPass;
-            if (oldUserPass != "" && newUserPass == "") {
+            if (aOldChannel.URI.userPass != "" && aNewChannel.URI.userPass == "") {
                 let uri = Services.io.newURI(aNewChannel.URI.spec.replace("://","://" + aOldChannel.URI.userPass + "@"));
                 aNewChannel.redirectTo(uri);
             }
