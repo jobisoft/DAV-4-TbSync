@@ -157,14 +157,14 @@ dav.tools = {
             if (this.mConnection.password !== null) {
                 aAuthInfo.username = this.mConnection.user;
                 aAuthInfo.password = this.mConnection.password;
+            } else {
+                //we have no password, request one by throwing a 401
+                return false;
             }
             
+            //even if we have a password, it could be wrong, in which case we would be here more than once
             this.mCounts++
-            if (this.mCounts < 2 && this.mConnection.password !== null) {
-                return true;
-            } else {
-                return false; //if the provided credentials are wrong or not found, abort and pass on the 401 to the caller
-            }
+            return (this.mCounts < 2);
         }
     },
 
