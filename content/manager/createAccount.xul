@@ -12,20 +12,21 @@
       onload="tbSyncDavNewAccount.onLoad();"
       onunload="tbSyncDavNewAccount.onUnload();"
       onclose="return tbSyncDavNewAccount.onClose()"
-      onwizardfinish="return tbSyncDavNewAccount.onAdd();"
+      onwizardfinish="return tbSyncDavNewAccount.onFinish()"
+      onwizardcancel="return tbSyncDavNewAccount.onCancel()"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <script type="application/javascript" src="chrome://dav4tbsync/content/manager/createAccount.js"/>
 
-  <wizardpage onFirstPage="true" label="&add.serverprofile.title;">
+  <wizardpage onFirstPage="true" label="&add.serverprofile.title;" onpageshow="tbSyncDavNewAccount.showFirstPage();">
     <vbox flex="1">
         <description style="width: 450px; margin-top:1em;">&add.serverprofile.description;</description>
-        <richlistbox id="tbsync.newaccount.serviceproviderlist" flex="1" seltype="single" style="margin-top:1ex" ondblclick="tbSyncDavNewAccount.advance()"/>
+        <richlistbox id="tbsync.newaccount.serviceproviderlist" flex="1" seltype="single" style="margin-top:1ex" onselect="tbSyncDavNewAccount.clearValues();" ondblclick="tbSyncDavNewAccount.advance()"/>
     </vbox>
   </wizardpage>
 
-  <wizardpage label="&add.data.title;" onpageshow="tbSyncDavNewAccount.showSecondPage();" >
-    <vbox>
+  <wizardpage label="&add.data.title;" onpageshow="tbSyncDavNewAccount.showSecondPage();">
+    <vbox flex="1">
         <description style="width: 450px; margin-top:1em;">&add.data.description;</description>
         <grid style="margin-top:1ex">
             <columns>
@@ -63,7 +64,17 @@
         <description id="tbsync.newaccount.details1" style="width: 450px; margin-top:1ex;"></description>
         <description id="tbsync.newaccount.details2" style="width: 450px; margin-top:1ex;"></description>
         <description id="tbsync.newaccount.details3" style="width: 450px; margin-top:1ex;"></description>
+        <vbox flex="1">
+        </vbox>
+        <hbox id="tbsync.spinner">
+            <label value="&add.verify;" />
+            <image src="chrome://tbsync/skin/spinner.gif" style="margin-left:1em" width="16" height="16"/>
+        </hbox>
+        <hbox id="tbsync.error" align="center" style="width: 450px;">
+            <description id="tbsync.error.message" flex="1" style="font-weight: bold;"></description>
+            <vbox><button id="tbsync.error.link" label="" /></vbox>
+        </hbox>    
     </vbox>
   </wizardpage>
-
+  
 </wizard>
