@@ -26,6 +26,7 @@ dav.tools = {
             resultConverter.charset = aCharset || "UTF-8";
             return resultConverter.convertFromByteArray(aResult, aResultLength);
         } catch (e) {
+            Components.utils.reportError(e);
             if (aThrow) {
                 throw e;
             }
@@ -262,6 +263,7 @@ dav.tools = {
         connection.https
         connection.user    
         connection.password
+        [connection.timeout]
     */
     sendRequest: Task.async (function* (requestData, path, method, connection, headers = {}, options = {softfail: []}, aUseStreamLoader = true) {            
         //path could be absolute or relative, we may need to rebuild the full url
@@ -283,7 +285,7 @@ dav.tools = {
                 headers["Authorization"] = "Basic " + tbSync.b64encode(connection.user + ":" + connection.password);
             }
             
-            let r = yield dav.tools.sendRequestCore (requestData, method, connection, headers, options, aUseStreamLoader);
+            let r = yield dav.tools.sendRequestCore(requestData, method, connection, headers, options, aUseStreamLoader);
         
             //connection.uri.host may no longer be the correct value, as there might have been redirects, use connection.fqdn 
             if (r && r.retry && r.retry === true) {
@@ -313,16 +315,28 @@ dav.tools = {
         
         return new Promise(function(resolve, reject) {                  
             let listener = {
+                _data: "",
+                _stream: null,
+
                 //nsIStreamListener (aUseStreamLoader = false)
                 onStopRequest: function(aRequest, aContext, aStatusCode) {
                     Services.console.logStringMessage("[onStopRequest] " + aStatusCode);
+                    tbSync.dump("STREAM DONE", this._data);
                 },
                 onStartRequest: function(aRequest, aContext) {
                     Services.console.logStringMessage("[onStartRequest] ");
+                    this.data = "";
                 },
                 onDataAvailable: function (aRequest, aContext, aInputStream, aOffset, aCount) {
                     Services.console.logStringMessage("[onDataAvailable] " + aCount);
-                },
+                    if (this._stream == null) {
+                        this._stream = Components.classes["@mozilla.org/scriptableinputstream;1"].createInstance(Components.interfaces.nsIScriptableInputStream);
+                        this._stream.init(aInputStream);
+                    }
+                    let d = this._stream.read(aCount);
+                    tbSync.dump("STREAM", d);
+                    this._data += d;
+                },        
             
                 //nsIStreamLoaderObserve (aUseStreamLoader = true)
                 onStreamComplete: function(aLoader, aContext, aStatus, aResultLength, aResult) {
