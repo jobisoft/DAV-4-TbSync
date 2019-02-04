@@ -245,7 +245,7 @@ var tbSyncDavNewAccount = {
         }
         
         if (davjobs.cal.valid && davjobs.card.valid) {
-            tbSyncDavNewAccount.addAccount(this.accountdata.user, this.accountdata.password, this.accountdata.serviceprovider, this.accountdata.caldavserver, this.accountdata.carddavserver, this.accountdata.accountname);
+            tbSyncDavNewAccount.addAccount(this.accountdata);
             this.validating = false;
             document.getElementById("tbsync.newaccount.wizard").cancel();
         } else {
@@ -292,23 +292,19 @@ var tbSyncDavNewAccount = {
     },
     
 
-    addAccount (user, password, serviceprovider, caldavserver, carddavserver, accountname) {
+    addAccount (accountdata) {
         let newAccountEntry = tbSync.dav.getDefaultAccountEntries();
-        newAccountEntry.accountname = accountname;
-        newAccountEntry.user = user;
+        newAccountEntry.accountname = accountdata.accountname;
+        newAccountEntry.user = accountdata.user;
         newAccountEntry.createdWithProviderVersion = tbSync.loadedProviders.dav.version;
 
-        //default to https, if not specified
-        let hasHttp = (caldavserver.substring(0,4) == "http");
-        let hasHttps = (caldavserver.substring(0,5) == "https");
-        newAccountEntry.https = (!hasHttps && hasHttp) ? "0" : "1";
-
-        newAccountEntry.serviceprovider = serviceprovider;
-        newAccountEntry.host = caldavserver.replace("https://","").replace("http://","");
-        newAccountEntry.host2 = carddavserver.replace("https://","").replace("http://","");
+        newAccountEntry.https = accountdata.https
+        newAccountEntry.serviceprovider = accountdata.serviceprovider;
+        newAccountEntry.host = accountdata.caldavserver;
+        newAccountEntry.host2 = accountdata.carddavserver;
     
         //also update password in PasswordManager
-        tbSync.dav.setPassword (newAccountEntry, password);
+        tbSync.dav.setPassword (newAccountEntry, accountdata.password);
 
         //create a new account and pass its id to updateAccountsList, which will select it
         //the onSelect event of the List will load the selected account
