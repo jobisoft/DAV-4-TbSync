@@ -400,7 +400,7 @@ dav.tools = {
                                     }
                                 }
                                 
-                                return reject(dav.sync.failed("401"));
+                                return reject(dav.sync.failed(responseStatus, "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
                             }
                             break;
                             
