@@ -44,8 +44,8 @@ status.info.restored=Devido à falta parcial de permissões de gravação, algum
 status.maiformed-xml=Não foi possível analisar o retorno XML. Verifique o log de erros para mais detalhes.
 status.service-discovery-failed=A descoberta do serviço sabre/dav falhou para este servidor.
 status.missing-permission=Permissão ausente: ##replace.1##
-status.caldavservernotfound=?? Could not find a CalDAV server. ??
-status.carddavservernotfound=?? Could not find a CardDAV server. ??
+status.caldavservernotfound=Não foi possível encontrar um servidor CalDAV.
+status.carddavservernotfound=Não foi possível encontrar um servidor CardDAV.
 
 status.OK.managedbylightning=Calendário gerenciado pelo Lightning.
 

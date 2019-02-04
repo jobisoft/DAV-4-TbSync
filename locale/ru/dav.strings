@@ -44,8 +44,8 @@ status.info.restored=Из-за частично отсутствующих ра�
 status.maiformed-xml=Ответ содержит бесформенные XML, обработка невозможна, синхронизация прервана.
 status.service-discovery-failed=Для этого сервера не удалось обнаружить службу sabre/dav.
 status.missing-permission=Отсутствует разрешение: ##replace.1##
-status.caldavservernotfound=?? Could not find a CalDAV server. ??
-status.carddavservernotfound=?? Could not find a CardDAV server. ??
+status.caldavservernotfound=Не удалось найти сервер CalDAV.
+status.carddavservernotfound=Не удалось найти сервер CardDAV.
 
 status.OK.managedbylightning=Календарь управляется lightning.
 

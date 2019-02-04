@@ -6,6 +6,7 @@
 <!ENTITY add.server "Server URL:">
 <!ENTITY add.carddavserver "CardDAV server address:">
 <!ENTITY add.caldavserver "CalDAV server address:">
+<!ENTITY add.verify "Verifying connection to server">
 
 <!ENTITY add.serverprofile.title "Select a server profile">
 <!ENTITY add.serverprofile.description "Please select one of the available server profiles:">

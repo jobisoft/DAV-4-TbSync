@@ -6,6 +6,7 @@
 <!ENTITY add.server "URL do servidor:">
 <!ENTITY add.carddavserver "Endereço servidor CardDAV:">
 <!ENTITY add.caldavserver "Endereço servidor CalDAV:">
+<!ENTITY add.verify "Verifique a conexão com o servidor">
 
 <!ENTITY add.serverprofile.title "Selecione um perfil do servidor">
 <!ENTITY add.serverprofile.description "Por favor, selecione um dos perfis de servidor disponíveis:">

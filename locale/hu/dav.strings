@@ -44,8 +44,8 @@ status.info.restored=A hiányzó írási jogosultságok miatt egyes műveleteket
 status.maiformed-xml=A válasz hibás formátumú XML-t tartalmaz, amely nem tudja feldolgozni a összehangolást.
 status.service-discovery-failed=A kiszolgálónak nem sikerült a sabre/dav szolgáltatási felderítése.
 status.missing-permission=Hiányzó engedély: ##replace.1##
-status.caldavservernotfound=?? Could not find a CalDAV server. ??
-status.carddavservernotfound=?? Could not find a CardDAV server. ??
+status.caldavservernotfound=Nem található CalDAV szerver.
+status.carddavservernotfound=Nem található CardDAV szerver.
 
 status.OK.managedbylightning=A Lightning-t által kezelt naptár.
 

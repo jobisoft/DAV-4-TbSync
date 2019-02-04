@@ -6,6 +6,7 @@
 <!ENTITY add.server "Indirizzo server:">
 <!ENTITY add.carddavserver "Indirizzo server CardDAV:">
 <!ENTITY add.caldavserver "Indirizzo server CalDAV:">
+<!ENTITY add.verify "Controlla la connessione al server">
 
 <!ENTITY add.serverprofile.title "Seleziona un profilo server">
 <!ENTITY add.serverprofile.description "Seleziona uno dei profili server disponibili:">
@@ -29,8 +30,8 @@
 <!ENTITY pref.downloadonly "Annulla modifiche locali (sincronizzazione a una via)">
 
 <!ENTITY pref.contactoptions "Opzioni contatto">
-<!ENTITY pref.syncGroups "?? Sync contact groups as Thunderbird lists ??">
-<!ENTITY pref.syncGroupsDescription "?? NOTE: Due to TB bug 1522453, TbSync must add dummy email addresses to all contacts, which are part of groups but do not have an email address associated. These dummy email addresses are not synced to server. ??">
+<!ENTITY pref.syncGroups "Sincronizza i gruppi di contatti come elenchi di Thunderbird">
+<!ENTITY pref.syncGroupsDescription "NOTA: a causa del bug TB 1522453, TbSync deve aggiungere indirizzi email fittizi a tutti i contatti, che fanno parte di gruppi ma non hanno un indirizzo email associato. Questi indirizzi email fittizi non sono sincronizzati con il server.">
 <!ENTITY pref.useHomeAsPrimary "Utilizza l'indirizzo di posta elettronica vCard di tipo &quot;Casa&quot; (e non &quot;Lavoro&quot;) come indirizzo di posta elettronica primario">
 <!ENTITY pref.useCardBook "Crea rubriche di CardBook al posto delle rubriche di default di Thunderbird">
 
