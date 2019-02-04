@@ -73,7 +73,6 @@ var tbSyncDavNewAccount = {
         }
         this.serviceproviderlist.selectedIndex = 0;
         this.validating = false;
-        document.getElementById("tbsync.error.link").label = tbSync.getLocalizedMessage("manager.help");
     },
     
     clearValues: function () {
@@ -238,7 +237,9 @@ var tbSyncDavNewAccount = {
             } catch (e) {
                 davjobs[job].valid = false;
                 davjobs[job].error = e.message;
-                if (e.type != "dav4tbsync") {
+                if (e.type == "dav4tbsync") {
+                    tbSync.errorlog("warning", connection, tbSync.getLocalizedMessage("status."+e.message, "dav"), e.details ? e.details : null);
+                } else {
                     Components.utils.reportError(e);
                 }
             }
@@ -264,15 +265,7 @@ var tbSyncDavNewAccount = {
                 default:
                     document.getElementById("tbsync.error.message").textContent = tbSync.getLocalizedMessage("info.error") + ": " + tbSync.getLocalizedMessage("status.networkerror", "dav");
             }
-            
-            let link =  tbSync.getLocalizedMessage("helplink."+davjobs[badjob].error, "dav");
-            if (link.startsWith("http")) {
-                document.getElementById("tbsync.error.link").hidden = false;
-                document.getElementById("tbsync.error.link").setAttribute("oncommand",  "tbSync.openLink('" + link + "')");
-            } else {
-                document.getElementById("tbsync.error.link").hidden = true;
-            }
-            
+                        
             document.getElementById("tbsync.spinner").hidden = true;
             document.getElementById("tbsync.error").hidden = false;
             document.getElementById("tbsync.newaccount.wizard").canRewind = true;

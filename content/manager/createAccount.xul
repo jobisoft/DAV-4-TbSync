@@ -1,7 +1,11 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
-<!DOCTYPE window SYSTEM "chrome://dav4tbsync/locale/dav.dtd">
-
+<!DOCTYPE window [
+  <!ENTITY % tbsyncDTD SYSTEM "chrome://tbsync/locale/tbSync.dtd">
+  %tbsyncDTD;
+  <!ENTITY % davDTD SYSTEM "chrome://dav4tbsync/locale/dav.dtd">
+  %davDTD;
+]>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
 <wizard 
@@ -70,10 +74,15 @@
             <label value="&add.verify;" />
             <image src="chrome://tbsync/skin/spinner.gif" style="margin-left:1em" width="16" height="16"/>
         </hbox>
-        <hbox id="tbsync.error" align="center" style="width: 450px;">
+        <vbox id="tbsync.error" style="width: 450px;">
             <description id="tbsync.error.message" flex="1" style="font-weight: bold;"></description>
-            <vbox><button id="tbsync.error.link" label="" /></vbox>
-        </hbox>    
+            <vbox>
+              <button 
+              id="tbsync.error.link" 
+              label="&manager.ShowErrorLog;"
+              oncommand="tbSync.openErrorLog();"/>
+            </vbox>
+        </vbox>    
     </vbox>
   </wizardpage>
   
