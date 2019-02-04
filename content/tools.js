@@ -520,7 +520,7 @@ dav.tools = {
         
             //manually set timout
             connection.timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
-            let timeout = tbSync.prefSettings.getIntPref("timeout");
+            let timeout = connection.hasOwnProperty("timeout") ? connection.timeout : tbSync.prefSettings.getIntPref("timeout");
             let rv = Components.results.NS_ERROR_NET_TIMEOUT;
             let event = {
                 notify: function(timer) {
