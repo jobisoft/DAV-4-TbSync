@@ -220,6 +220,9 @@ var tbSyncDavNewAccount = {
             connection.timeout = 15000;
             connection.type = job;
             connection.fqdn = "";
+            //only needed for proper error reporting
+            connection.provider = "dav";
+            connection.accountname = this.accountdata.accountname;
 
             //build full url, so we do not need fqdn
             let url = "http" + (connection.https == "1" ? "s" : "") + "://" + davjobs[job].server;
@@ -238,7 +241,7 @@ var tbSyncDavNewAccount = {
                 davjobs[job].valid = false;
                 davjobs[job].error = e.message;
                 if (e.type == "dav4tbsync") {
-                    tbSync.errorlog("warning", connection, tbSync.getLocalizedMessage("status."+e.message, "dav"), e.details ? e.details : null);
+                    tbSync.errorlog("warning", connection, e.message, e.details ? e.details : null);
                 } else {
                     Components.utils.reportError(e);
                 }
