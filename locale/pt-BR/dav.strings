@@ -26,6 +26,7 @@ status.403=Conexão rejeitada pelo servidor (proibida).
 status.401=Não foi possível autenticar, verifique o nome de usuário e a senha.
 status.500=Erro de servidor desconhecido (HTTP Erro 500).
 status.503=Serviço indisponível.
+helplink.503=https://github.com/jobisoft/DAV-4-TbSync/issues/41
 status.httperror=Erro de comunicação (HTTP status ##replace.1##).
 status.OK=OK
 status.nolightning=O complemento Lightning não está instalado, os calendários não serão suportados.
@@ -43,6 +44,8 @@ status.info.restored=Devido à falta parcial de permissões de gravação, algum
 status.maiformed-xml=Não foi possível analisar o retorno XML. Verifique o log de erros para mais detalhes.
 status.service-discovery-failed=A descoberta do serviço sabre/dav falhou para este servidor.
 status.missing-permission=Permissão ausente: ##replace.1##
+status.caldavservernotfound=?? Could not find a CalDAV server. ??
+status.carddavservernotfound=?? Could not find a CardDAV server. ??
 
 status.OK.managedbylightning=Calendário gerenciado pelo Lightning.
 

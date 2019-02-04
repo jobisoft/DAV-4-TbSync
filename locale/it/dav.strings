@@ -26,6 +26,7 @@ status.403=Il server ha rifiutato la connessione (vietato).
 status.401=Impossibile autenticarsi, controllare nome utente e password.
 status.500=Errore server sconosciuto (errore HTTP 500).
 status.503=Servizio non disponibile.
+helplink.503=https://github.com/jobisoft/DAV-4-TbSync/issues/41
 status.httperror=Errore di comunicazione (stato HTTP ##replace.1##).
 status.OK=OK
 status.nolightning=Componente aggiuntivo Lightning non installato, i calendari non sono supportati.
@@ -43,6 +44,8 @@ status.info.restored=A causa della mancanza di permessi di scrittura, alcune azi
 status.maiformed-xml=La risposta contiene XML malformato, impossibile gestirla, sincronizzazione interrotta.
 status.service-discovery-failed=Rilevamento servizio Sabre/DAV non riuscito per questo server.
 status.missing-permission=Permesso mancante: ##replace.1##
+status.caldavservernotfound=?? Could not find a CalDAV server. ??
+status.carddavservernotfound=?? Could not find a CardDAV server. ??
 
 status.OK.managedbylightning=Calendario gestito da Lightning.
 

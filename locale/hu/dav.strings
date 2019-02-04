@@ -26,6 +26,7 @@ status.403=403-as HTTP hibakód (hozzáférés megtagadva/tiltott).
 status.401=Nem sikerült hitelesíteni, ellenőrizni a felhasználónevet és a jelszót.
 status.500=500-as hibakód (belső kiszolgálóhiba).
 status.503=503-as hibakód (a szolgáltatás nem érhető el).
+helplink.503=https://github.com/jobisoft/DAV-4-TbSync/issues/41
 status.httperror=Kommunikációs hiba (HTTP állapot ##replace.1##).
 status.OK=Rendben
 status.nolightning=A Lightning-t kiegészítő nincs telepítve, a naptárak nem támogatottak.
@@ -43,6 +44,8 @@ status.info.restored=A hiányzó írási jogosultságok miatt egyes műveleteket
 status.maiformed-xml=A válasz hibás formátumú XML-t tartalmaz, amely nem tudja feldolgozni a összehangolást.
 status.service-discovery-failed=A kiszolgálónak nem sikerült a sabre/dav szolgáltatási felderítése.
 status.missing-permission=Hiányzó engedély: ##replace.1##
+status.caldavservernotfound=?? Could not find a CalDAV server. ??
+status.carddavservernotfound=?? Could not find a CardDAV server. ??
 
 status.OK.managedbylightning=A Lightning-t által kezelt naptár.
 
