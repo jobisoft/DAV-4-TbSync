@@ -781,12 +781,15 @@ dav.tools = {
     getMetaTypeData: function (vCardData, item, typefield) {
         let metaTypeData = [];
         for (let i=0; i < vCardData[item].length; i++) {
+            let arr = [];
             if (dav.tools.itemHasMetaType(vCardData, item, i, typefield)) {
                 //bug in vCard parser? type is always array of length 1, all values joined by ,
-                metaTypeData.push( vCardData[item][i].meta[typefield][0].split(",").map(function(x){ return x.toUpperCase().trim() }) );
-            } else {
-                metaTypeData.push([]);
+                //no, sometimes it is a true array
+                for (let d=0; d < vCardData[item][i].meta[typefield].length; d++) {
+                    arr = arr.concat( vCardData[item][i].meta[typefield][d].split(",").map(function(x){ return x.toUpperCase().trim() }) );
+                }
             }
+            metaTypeData.push( arr );
         }
         return metaTypeData;
     },
@@ -948,34 +951,19 @@ dav.tools = {
                             //check metaTypeData to find correct entry
                             if (emailType == "PrimaryEmail") {
 
-                                let prev = [];
                                 let primary = [];
-                                let primaryPrev = [];
-                                let otherButNotSecondary = [];
                                 for (let i=0; i < metaTypeData.length; i++) {
-                                    if (metaTypeData[i].includes(metamap.PrimaryEmail) && metaTypeData[i].includes("PREV")) primaryPrev.push(i);
-                                    if (metaTypeData[i].includes("PREV") && !metaTypeData[i].includes(metamap.SecondEmail)) prev.push(i);
-                                    if (metaTypeData[i].includes(metamap.PrimaryEmail)) primary.push(i);
-                                    if (!metaTypeData[i].includes(metamap.SecondEmail) && !metaTypeData[i].includes("INTERNET")) otherButNotSecondary.push(i);
+                                    if (metaTypeData[i].includes("PREF") || (!metaTypeData[i].includes(metamap.SecondEmail) && !metaTypeData[i].includes("INTERNET"))) primary.push(i);
                                 }
-                                if (primaryPrev.length > 0) data.entry = primaryPrev[0];
-                                else if (prev.length > 0) data.entry = prev[0];
-                                else if (primary.length > 0) data.entry = primary[0];
-                                else if (otherButNotSecondary.length > 0) data.entry = otherButNotSecondary[0];
+                                if (primary.length > 0) data.entry = primary[0];
 
                             } else {
 
-                                let secondaryPrev = [];
                                 let secondary = [];
-                                let internet = [];
                                 for (let i=0; i < metaTypeData.length; i++) {
-                                    if (metaTypeData[i].includes(metamap.SecondEmail) && metaTypeData[i].includes("PREV")) secondaryPrev.push(i);
-                                    if (metaTypeData[i].includes(metamap.SecondEmail)) secondary.push(i);
-                                    if (metaTypeData[i].includes("INTERNET")) internet.push(i);
+                                    if (!metaTypeData[i].includes("PREF") && (metaTypeData[i].includes(metamap.SecondEmail) || metaTypeData[i].includes("INTERNET"))) secondary.push(i);
                                 }
-                                if (secondaryPrev.length > 0) data.entry = secondaryPrev[0];
-                                else if (secondary.length > 0) data.entry = secondary[0];
-                                else if (internet.length > 0) data.entry = internet[0];
+                                if (secondary.length > 0) data.entry = secondary[0];
 
                             }
                         }
@@ -984,7 +972,7 @@ dav.tools = {
 
                 case "X-DAV-MainPhone":
                     {
-                        data.metatype.push("PREV");
+                        data.metatype.push("PREF");
                         data.item = "tel";
 
                         //search the first valid entry
@@ -992,22 +980,22 @@ dav.tools = {
                             let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
 
                             //we take everything that is not HOME, WORK, CELL, PAGER or FAX
-                            //we take PREV over MAIN (fruux) over VOICE over ?
+                            //we take PREF over MAIN (fruux) over VOICE over ?
                             let tel = {};
-                            tel.prev =[];
+                            tel.pref =[];
                             tel.main =[];
                             tel.voice =[];
                             tel.other =[];
                             for (let i=0; i < metaTypeData.length; i++) {
                                 if (!metaTypeData[i].includes("HOME") && !metaTypeData[i].includes("WORK") && !metaTypeData[i].includes("CELL") && !metaTypeData[i].includes("PAGER") && !metaTypeData[i].includes("FAX")) {
-                                    if (metaTypeData[i].includes("PREV")) tel.prev.push(i);
+                                    if (metaTypeData[i].includes("PREF")) tel.pref.push(i);
                                     else if (metaTypeData[i].includes("MAIN")) tel.main.push(i);
                                     else if (metaTypeData[i].includes("VOICE")) tel.voice.push(i);
                                     else tel.other.push(i);
                                 }
                             }
 
-                            if (tel.prev.length > 0) data.entry = tel.prev[0];
+                            if (tel.pref.length > 0) data.entry = tel.pref[0];
                             else if (tel.main.length > 0) data.entry = tel.main[0];
                             else if (tel.voice.length > 0) data.entry = tel.voice[0];
                             else if (tel.other.length > 0) data.entry = tel.other[0];
