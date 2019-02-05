@@ -393,14 +393,16 @@ dav.tools = {
                     responseData = aResult.split("><").join(">\n<");
                     
                     //Redirected? Update connection settings from current URL
-                    let newHttps = (aRequest.URI.scheme == "https") ? "1" : "0";
-                    if (connection.https != newHttps) {
-                        tbSync.dump("Updating HTTPS", connection.https + " -> " + newHttps);
-                        connection.https = newHttps;
-                    }
-                    if (connection.fqdn != aRequest.URI.hostPort) {
-                        tbSync.dump("Updating FQDN", connection.fqdn + " -> " + aRequest.URI.hostPort);
-                        connection.fqdn = aRequest.URI.hostPort;
+                    if (aRequest.URI) {
+                        let newHttps = (aRequest.URI.scheme == "https") ? "1" : "0";
+                        if (connection.https != newHttps) {
+                            tbSync.dump("Updating HTTPS", connection.https + " -> " + newHttps);
+                            connection.https = newHttps;
+                        }
+                        if (connection.fqdn != aRequest.URI.hostPort) {
+                            tbSync.dump("Updating FQDN", connection.fqdn + " -> " + aRequest.URI.hostPort);
+                            connection.fqdn = aRequest.URI.hostPort;
+                        }
                     }
 
                     switch(responseStatus) {
