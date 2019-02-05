@@ -45,6 +45,7 @@ status.OK.managed-by-lightning=Lightning
 status.OK.caldav-calendar-already-exists=Kalender existiert bereits
 status.info.restored=Wegen teilweise fehlender Schreibrechte wurden einige Aktionen vom Server zurückgewiesen und lokal rückgängig gemacht.
 status.maiformed-xml=Antwort enthält fehlerhaftes XML, Sync abgebrochen. Prüfen Sie bitte den Fehlerbericht für weitere Details.
+helplink.maiformed-xml=https://github.com/jobisoft/DAV-4-TbSync/issues/59#issuecomment-459685281
 status.service-discovery-failed=Der sabre/dav service discovery funktioniert mit diesem Server nicht.
 status.missing-permission=Fehlende Berechtigung: ##replace.1##
 status.caldavservernotfound=Es wurde kein CalDAV Server gefunden.

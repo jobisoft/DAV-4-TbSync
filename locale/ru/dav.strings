@@ -45,6 +45,7 @@ status.OK.managed-by-lightning=Lightning
 status.OK.caldav-calendar-already-exists=Календарь уже существует
 status.info.restored=Из-за частично отсутствующих разрешений на запись некоторые действия были отклонены сервером и отменены локально.
 status.maiformed-xml=Ответ содержит бесформенные XML, обработка невозможна, синхронизация прервана.
+helplink.maiformed-xml=https://github.com/jobisoft/DAV-4-TbSync/issues/59#issuecomment-459685281
 status.service-discovery-failed=Для этого сервера не удалось обнаружить службу sabre/dav.
 status.missing-permission=Отсутствует разрешение: ##replace.1##
 status.caldavservernotfound=Не удалось найти сервер CalDAV.

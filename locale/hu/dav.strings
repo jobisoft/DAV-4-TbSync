@@ -45,6 +45,7 @@ status.OK.managed-by-lightning=Lightning
 status.OK.caldav-calendar-already-exists=A naptár már létezik
 status.info.restored=A hiányzó írási jogosultságok miatt egyes műveleteket a szerver elutasított, és helyileg visszafordított.
 status.maiformed-xml=A válasz hibás formátumú XML-t tartalmaz, amely nem tudja feldolgozni a összehangolást.
+helplink.maiformed-xml=https://github.com/jobisoft/DAV-4-TbSync/issues/59#issuecomment-459685281
 status.service-discovery-failed=A kiszolgálónak nem sikerült a sabre/dav szolgáltatási felderítése.
 status.missing-permission=Hiányzó engedély: ##replace.1##
 status.caldavservernotfound=Nem található CalDAV szerver.
