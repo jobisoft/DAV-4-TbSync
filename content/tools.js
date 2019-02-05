@@ -313,6 +313,37 @@ dav.tools = {
         //tbSync.dump("HEADERS", JSON.stringify(headers));
         if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("REQUEST", method + " : " + requestData);
         
+        //testing with fetch()
+/*        if (!aUseStreamLoader) {
+            let fetchoptions = {};
+            fetchoptions.method = method;
+            fetchoptions.body = requestData;
+            fetchoptions.cache = "no-cache";
+            //do not include credentials, so we do not end up in a session, see https://github.com/owncloud/core/issues/27093
+            fetchoptions.credentials = "omit";
+            fetchoptions.redirect = "follow";// manual, *follow, error
+            fetchoptions.headers = headers;
+            fetchoptions.headers["Content-Length"] = requestData.length;
+
+            if (!fetchoptions.headers.hasOwnProperty("Content-Type"))
+                fetchoptions.headers["Content-Type"] = "application/xml; charset=utf-8";
+            
+            fetchoptions.headers["Authorization"] = "Basic " + btoa(connection.user + ':' + connection.password);
+            tbSync.dump("FETCH URL", connection.uri.spec);
+            tbSync.dump("FETCH OPTIONS", JSON.stringify(fetchoptions));
+
+            try {
+                let response = yield tbSync.window.fetch(connection.uri.spec, fetchoptions);
+                tbSync.dump("FETCH STATUS", response.status);
+                let text = yield response.text();
+                tbSync.dump("FETCH RESPONSE", response.status + " : " + text);
+            } catch (e) {
+                Components.utils.reportError(e);
+                tbSync.dump("FETCH FAILED", "");
+            }
+            return null;
+        }*/
+    
         return new Promise(function(resolve, reject) {                  
             let listener = {
                 _data: "",
