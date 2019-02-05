@@ -189,7 +189,7 @@ dav.sync = {
                         if (resourcetype == "ics") href =  dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cs","source"], ["d","href"]]).textContent;
                         
                         let name_node = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","displayname"]]);
-                        let name = (job == "cal") ? "Calendar" : "Contacts";
+                        let name = tbSync.getLocalizedMessage("defaultname." +  ((job == "cal") ? "calendar" : "contacts") , "dav");
                         if (name_node != null) {
                             name = name_node.textContent;
                         }

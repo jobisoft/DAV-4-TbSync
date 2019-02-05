@@ -1,5 +1,8 @@
 menu.name = CalDAV & CardDAV
 
+defaultname.calendar=calendario
+defaultname.contacts=contatti
+
 syncstate.syncing=Inizializzazione sincronizzazione in corso
 syncstate.preparing=Preparazione prossimo elemento per la sincronizzazione in corso
 syncstate.done=Preparazione prossimo elemento per la sincronizzazione in corso

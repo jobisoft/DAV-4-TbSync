@@ -1,5 +1,8 @@
 menu.name = CalDAV és CardDAV
 
+defaultname.calendar=naptár
+defaultname.contacts=kapcsolatok
+
 syncstate.syncing=Összehangolás előkészítése
 syncstate.preparing=Az összehangolás következő elem előkészítése
 syncstate.done=Az összehangolás következő elem előkészítése
