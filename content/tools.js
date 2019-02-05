@@ -821,8 +821,8 @@ dav.tools = {
         {name: "X-DAV-MainPhone", minversion: "0.8.8"},
         {name: "X-DAV-UID", minversion: "0.10.36"},
         {name: "LastName", minversion: "0.4"},
-        {name: "PrimaryEmail", minversion: "0.4"},
-        {name: "SecondEmail", minversion: "0.4"},
+        {name: "PrimaryEmail", minversion: "0.12.2"},
+        {name: "SecondEmail", minversion: "0.12.2"},
         {name: "NickName", minversion: "0.4"},
         {name: "Birthday", minversion: "0.4"}, //fake, will trigger special handling
         {name: "Photo", minversion: "0.4"}, //fake, will trigger special handling
