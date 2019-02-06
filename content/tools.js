@@ -972,36 +972,36 @@ dav.tools = {
                 case "PrimaryEmail":
                 case "SecondEmail":
                     {
-                        //assign email types based on emailSwapInvert
-                        let emailMap = {"PrimaryEmail.0": "PrimaryEmail", "SecondEmail.0": "SecondEmail", "PrimaryEmail.1": "SecondEmail", "SecondEmail.1": "PrimaryEmail"};
-                        let emailSwap = syncdata.emailSwapInvert == "1" ? "1" : "0";
-                        let emailType = emailMap[property + "." + emailSwap];
-                        
                         let metamap = (tbSync.db.getAccountSetting(syncdata.account, "useHomeAsPrimary") == "0") ? {"PrimaryEmail": "WORK", "SecondEmail": "HOME"} : {"PrimaryEmail": "HOME", "SecondEmail": "WORK"};
-                        data.metatype.push(metamap[emailType]);
+                        data.metatype.push(metamap[property]);
                         data.item = "email";
 
-                        //search the first valid entry
                         if (vCardData[data.item]) {
                             let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
 
-                            //check metaTypeData to find correct entry
-                            if (emailType == "PrimaryEmail") {
+                            //build array of objects, so we can sort but keep the original index
+                            let sortedMetaTypeData = [];
+                            for (let i=0; i < metaTypeData.length; i++) {
+                                let obj = {index:i, values:metaTypeData[i]};
+                                sortedMetaTypeData.push(obj);
+                            }
 
-                                let primary = [];
-                                for (let i=0; i < metaTypeData.length; i++) {
-                                    if (metaTypeData[i].includes("PREF") || (!metaTypeData[i].includes(metamap.SecondEmail) && !metaTypeData[i].includes("INTERNET"))) primary.push(i);
-                                }
-                                if (primary.length > 0) data.entry = primary[0];
-
+                            //sort metaTypeData based on metamap: pref < primary < secondary < other
+                            sortedMetaTypeData.sort(function(a, b, c=metamap){
+                                    let order = ["PREF", metamap.PrimaryEmail, metamap.SecondEmail];
+                                    let ia = order.length;
+                                    let ib = order.length;
+                                    for (let i=0; i < order.length; i++) {
+                                        if (ia == order.length && a.values.includes(order[i])) ia = i;
+                                        if (ib == order.length && b.values.includes(order[i])) ib= i;
+                                    }
+                                    return (ia-ib);
+                                });
+                                                                
+                            if (property == "PrimaryEmail") {
+                                if (sortedMetaTypeData.length > 0) data.entry = sortedMetaTypeData[0].index;
                             } else {
-
-                                let secondary = [];
-                                for (let i=0; i < metaTypeData.length; i++) {
-                                    if (!metaTypeData[i].includes("PREF") && (metaTypeData[i].includes(metamap.SecondEmail) || metaTypeData[i].includes("INTERNET"))) secondary.push(i);
-                                }
-                                if (secondary.length > 0) data.entry = secondary[0];
-
+                                if (sortedMetaTypeData.length > 1) data.entry = sortedMetaTypeData[1].index;
                             }
                         }
                     }
@@ -1280,11 +1280,7 @@ dav.tools = {
     setThunderbirdCardFromVCard: function(syncdata, addressBook, card, vCardData, oCardData = null) {
         if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
         //if (oCardData) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
-        
-        //keep track of emails
-        syncdata.emailSwapInvert = card.getProperty("X-DAV-SWAP","0");
-        let emails = {PrimaryEmail: "", SecondEmail: ""};
-        
+
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
             if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncdata.folderCreatedWithProviderVersion)> 0) continue;
@@ -1295,9 +1291,6 @@ dav.tools = {
 
             let oCardField = dav.tools.getVCardField(syncdata, property, oCardData);
             let oldServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(syncdata, property, oCardData, oCardField);
-
-            //keep track of emails
-            if (emails.hasOwnProperty(property)) emails[property] = newServerValue;
             
             //smart merge: only update the property, if it has changed on the server (keep local modifications)
             if (newServerValue !== oldServerValue) {
@@ -1351,18 +1344,6 @@ dav.tools = {
                  }
             }
         }
-        
-        //Special handling of PrimaryEmail
-        if (!emails["PrimaryEmail"] && emails["SecondEmail"]) {
-            //adjust swap setting
-            card.setProperty("X-DAV-SWAP", syncdata.emailSwapInvert == "0" ? "1" : "0");
-            //swap
-            card.setProperty("PrimaryEmail", emails["SecondEmail"]);
-            card.setProperty("SecondEmail", "");
-            try {
-                card.deleteProperty("SecondEmail");
-            } catch (e) {} 
-        }                
     },
 
     invalidateThunderbirdCard: function(syncdata, addressBook, id) {
@@ -1428,8 +1409,6 @@ dav.tools = {
     getVCardFromThunderbirdContactCard: function(syncdata, addressBook, card, generateUID = false) {
         let currentCard = tbSync.getPropertyOfCard(card, "X-DAV-VCARD").trim();
         let vCardData = tbSync.dav.vCard.parse(currentCard);
-        
-        syncdata.emailSwapInvert = card.getProperty("X-DAV-SWAP","0");
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
