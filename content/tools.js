@@ -857,6 +857,13 @@ dav.tools = {
         {name: "LastName", minversion: "0.4"},
         {name: "PrimaryEmail", minversion: "0.12.2"},
         {name: "SecondEmail", minversion: "0.12.2"},
+        {name: "OtherEmail3", minversion: "0.12.2"},
+        {name: "OtherEmail4", minversion: "0.12.2"},
+        {name: "OtherEmail5", minversion: "0.12.2"},
+        {name: "OtherEmail6", minversion: "0.12.2"},
+        {name: "OtherEmail7", minversion: "0.12.2"},
+        {name: "OtherEmail8", minversion: "0.12.2"},
+        {name: "OtherEmail9", minversion: "0.12.2"},
         {name: "NickName", minversion: "0.4"},
         {name: "Birthday", minversion: "0.4"}, //fake, will trigger special handling
         {name: "Photo", minversion: "0.4"}, //fake, will trigger special handling
@@ -966,83 +973,76 @@ dav.tools = {
     //https://tools.ietf.org/html/rfc2426#section-3.6.1
     getVCardField: function (syncdata, property, vCardData) {
         let data = {item: "", metatype: [], metatypefield: "type", entry: -1, prefix: ""};
+        let emailFields = ["PrimaryEmail", "SecondEmail", "OtherEmail3", "OtherEmail4", "OtherEmail5", "OtherEmail6", "OtherEmail7", "OtherEmail8", "OtherEmail9"]
 
         if (vCardData) {
+
             //handle special cases independently, those from *Map will be handled by default
-            switch (property) {
-                case "PrimaryEmail":
-                case "SecondEmail":
-                    {
-                        let metamap = (tbSync.db.getAccountSetting(syncdata.account, "useHomeAsPrimary") == "0") ? {"PrimaryEmail": "WORK", "SecondEmail": "HOME"} : {"PrimaryEmail": "HOME", "SecondEmail": "WORK"};
-                        data.metatype.push(metamap[property]);
-                        data.item = "email";
+            if (emailFields.includes(property)) {
 
-                        if (vCardData[data.item]) {
-                            let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
+                let metamap = (tbSync.db.getAccountSetting(syncdata.account, "useHomeAsPrimary") == "0") ? {"PrimaryEmail": "WORK", "SecondEmail": "HOME"} : {"PrimaryEmail": "HOME", "SecondEmail": "WORK"};
+                data.metatype.push(metamap.hasOwnProperty(property) ? metamap[property] : "INTERNET");
+                data.item = "email";
 
-                            //build array of objects, so we can sort but keep the original index
-                            let sortedMetaTypeData = [];
-                            for (let i=0; i < metaTypeData.length; i++) {
-                                let obj = {index:i, values:metaTypeData[i]};
-                                sortedMetaTypeData.push(obj);
+                if (vCardData[data.item]) {
+                    let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
+
+                    //build array of objects, so we can sort but keep the original index
+                    let sortedMetaTypeData = [];
+                    for (let i=0; i < metaTypeData.length; i++) {
+                        let obj = {index:i, values:metaTypeData[i]};
+                        sortedMetaTypeData.push(obj);
+                    }
+
+                    //sort metaTypeData based on metamap: pref < primary < secondary < other
+                    sortedMetaTypeData.sort(function(a, b, c=metamap){
+                            let order = ["PREF", metamap.PrimaryEmail, metamap.SecondEmail];
+                            let ia = order.length;
+                            let ib = order.length;
+                            for (let i=0; i < order.length; i++) {
+                                if (ia == order.length && a.values.includes(order[i])) ia = i;
+                                if (ib == order.length && b.values.includes(order[i])) ib= i;
                             }
+                            return (ia-ib);
+                        });
+                    
+                    //map sorted vCard fields to the TB fields
+                    let emailFieldIndex = emailFields.indexOf(property);
+                    if (sortedMetaTypeData.length > emailFieldIndex) data.entry = sortedMetaTypeData[emailFieldIndex].index;
+                }
 
-                            //sort metaTypeData based on metamap: pref < primary < secondary < other
-                            sortedMetaTypeData.sort(function(a, b, c=metamap){
-                                    let order = ["PREF", metamap.PrimaryEmail, metamap.SecondEmail];
-                                    let ia = order.length;
-                                    let ib = order.length;
-                                    for (let i=0; i < order.length; i++) {
-                                        if (ia == order.length && a.values.includes(order[i])) ia = i;
-                                        if (ib == order.length && b.values.includes(order[i])) ib= i;
-                                    }
-                                    return (ia-ib);
-                                });
-                                                                
-                            if (property == "PrimaryEmail") {
-                                if (sortedMetaTypeData.length > 0) data.entry = sortedMetaTypeData[0].index;
-                            } else {
-                                if (sortedMetaTypeData.length > 1) data.entry = sortedMetaTypeData[1].index;
-                            }
+            } else if (property == "X-DAV-MainPhone") {
+
+                data.metatype.push("PREF");
+                data.item = "tel";
+
+                //search the first valid entry
+                if (vCardData[data.item]) {
+                    let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
+
+                    //we take everything that is not HOME, WORK, CELL, PAGER or FAX
+                    //we take PREF over MAIN (fruux) over VOICE over ?
+                    let tel = {};
+                    tel.pref =[];
+                    tel.main =[];
+                    tel.voice =[];
+                    tel.other =[];
+                    for (let i=0; i < metaTypeData.length; i++) {
+                        if (!metaTypeData[i].includes("HOME") && !metaTypeData[i].includes("WORK") && !metaTypeData[i].includes("CELL") && !metaTypeData[i].includes("PAGER") && !metaTypeData[i].includes("FAX")) {
+                            if (metaTypeData[i].includes("PREF")) tel.pref.push(i);
+                            else if (metaTypeData[i].includes("MAIN")) tel.main.push(i);
+                            else if (metaTypeData[i].includes("VOICE")) tel.voice.push(i);
+                            else tel.other.push(i);
                         }
                     }
-                    break;
 
-                case "X-DAV-MainPhone":
-                    {
-                        data.metatype.push("PREF");
-                        data.item = "tel";
-
-                        //search the first valid entry
-                        if (vCardData[data.item]) {
-                            let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
-
-                            //we take everything that is not HOME, WORK, CELL, PAGER or FAX
-                            //we take PREF over MAIN (fruux) over VOICE over ?
-                            let tel = {};
-                            tel.pref =[];
-                            tel.main =[];
-                            tel.voice =[];
-                            tel.other =[];
-                            for (let i=0; i < metaTypeData.length; i++) {
-                                if (!metaTypeData[i].includes("HOME") && !metaTypeData[i].includes("WORK") && !metaTypeData[i].includes("CELL") && !metaTypeData[i].includes("PAGER") && !metaTypeData[i].includes("FAX")) {
-                                    if (metaTypeData[i].includes("PREF")) tel.pref.push(i);
-                                    else if (metaTypeData[i].includes("MAIN")) tel.main.push(i);
-                                    else if (metaTypeData[i].includes("VOICE")) tel.voice.push(i);
-                                    else tel.other.push(i);
-                                }
-                            }
-
-                            if (tel.pref.length > 0) data.entry = tel.pref[0];
-                            else if (tel.main.length > 0) data.entry = tel.main[0];
-                            else if (tel.voice.length > 0) data.entry = tel.voice[0];
-                            else if (tel.other.length > 0) data.entry = tel.other[0];
-
-                        }
-                    }
-                    break;
-
-                default:
+                    if (tel.pref.length > 0) data.entry = tel.pref[0];
+                    else if (tel.main.length > 0) data.entry = tel.main[0];
+                    else if (tel.voice.length > 0) data.entry = tel.voice[0];
+                    else if (tel.other.length > 0) data.entry = tel.other[0];
+                }
+                
+            } else {
                     //Check *Maps
                     if (dav.tools.simpleMap.hasOwnProperty(property)) {
 
