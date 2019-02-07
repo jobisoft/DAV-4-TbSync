@@ -451,9 +451,8 @@ dav.sync = {
             let id = cards.multi[c].href;
             if (id !==null) {
                 //valid
-                let status = cards.multi[c].status;
                 let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", id);
-                if (status == "200") {
+                if (cards.multi[c].status == "200") {
                     //MOD or ADD
                     let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
                     if (!card) {
@@ -466,7 +465,7 @@ dav.sync = {
                         syncdata.todo++;
                         vCardsChangedOnServer[id] = "MOD"; 
                     }
-                } else if (status == "404" && card) {
+                } else if (cards.multi[c].responsestatus == "404" && card) {
                     //DEL
                     syncdata.todo++;
                     vCardsDeletedOnServer.appendElement(card, false);
