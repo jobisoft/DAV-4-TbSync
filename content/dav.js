@@ -547,15 +547,21 @@ var dav = {
      */
     onAbResultsPaneSelectionChanged: function (window, card) {
         let cvPhMain = window.document.getElementById("cvPhMain");
+        let phoneFound = false;
+
         if (cvPhMain) {
             let cvPhMainValue = card.getProperty("X-DAV-MainPhone","");
             if (cvPhMainValue) {
                 cvPhMain.textContent = cvPhMain.getAttribute("labelprefix") + " " + cvPhMainValue;
                 cvPhMain.hidden = false;
-                window.document.getElementById("cvbPhone").collapsed = false;
-                window.document.getElementById("cvhPhone").collapsed = false;
+                phoneFound = true;
             }
         }
+        
+        if (phoneFound) {
+            window.document.getElementById("cvbPhone").collapsed = false;
+            window.document.getElementById("cvhPhone").collapsed = false;
+        }        
     },
 
 
