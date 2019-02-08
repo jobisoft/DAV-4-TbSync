@@ -239,7 +239,7 @@ var dav = {
         if (accountId !== null) {
             let serviceprovider = tbSync.db.getAccountSetting(accountId, "serviceprovider");
             if (tbSync.dav.serviceproviders.hasOwnProperty(serviceprovider)) {
-                base =  tbSync.dav.serviceproviders[serviceprovider].icon;
+                base = tbSync.dav.serviceproviders[serviceprovider].icon;
             }
         }
         
@@ -445,7 +445,17 @@ var dav = {
         //This example implementation is using the standard address book, but you may use another one
         let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
 
-        return abManager.newAddressBook(newname, "", 2);
+        let dirPrefId = abManager.newAddressBook(newname, "", 2);
+        let data = abManager.getDirectoryFromId(dirPrefId);
+        if (data instanceof Components.interfaces.nsIAbDirectory && data.dirPrefId == dirPrefId) {
+            let serviceprovider = tbSync.db.getAccountSetting(account, "serviceprovider");
+            let icon = "custom";
+            if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
+                icon = dav.serviceproviders[serviceprovider].icon;
+            }
+            data.setStringValue("tbSyncIcon", "dav" + icon);
+        }
+        return dirPrefId; //change this to data on next big change
     },
 
 

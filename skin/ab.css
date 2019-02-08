@@ -1,0 +1,26 @@
+/*  skin/toolbar-button.css  */
+
+treechildren::-moz-tree-image(DirCol, davfruux) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/skin/fruux16.png");
+}
+
+treechildren::-moz-tree-image(DirCol, davicloud) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/skin/icloud16.png");
+}
+
+treechildren::-moz-tree-image(DirCol, davyahoo) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/skin/yahoo16.png");
+}
+
+treechildren::-moz-tree-image(DirCol, davgmx) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/skin/gmx16.png");
+}
+
+treechildren::-moz-tree-image(DirCol, davcustom) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/skin/sabredav16.png");
+}

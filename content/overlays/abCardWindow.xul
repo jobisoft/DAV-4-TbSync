@@ -4,7 +4,6 @@
 <overlay 
     id="abCardWindow" 
     xmlns:html="http://www.w3.org/1999/xhtml">
-    
 
     <hbox id="DavEmailContainer" class="davContainer" insertafter="ScreenNameContainer" style="margin-top:1ex">
         <spacer flex="1"/>
