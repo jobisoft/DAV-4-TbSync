@@ -366,22 +366,21 @@ dav.tools = {
                 },        
                 onStopRequest: function(aRequest, aContext, aStatusCode) {
                     Services.console.logStringMessage("[onStopRequest] " + aStatusCode);
-                    this.processResponse(aRequest, aContext, aStatusCode,  this._data);
+                    this.processResponse(aRequest.QueryInterface(Components.interfaces.nsIHttpChannel), aContext, aStatusCode,  this._data);
                 },
             
-                //nsIStreamLoaderObserve (aUseStreamLoader = true)
+                //nsIStreamLoaderObserver (aUseStreamLoader = true)
                 onStreamComplete: function(aLoader, aContext, aStatus, aResultLength, aResult) {
-                    let request = aLoader.request.QueryInterface(Components.interfaces.nsIRequest);
                     let result = dav.tools.convertByteArray(aResult, aResultLength);  
-                    this.processResponse(request, aContext, aStatus, result);
+                    this.processResponse(aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel), aContext, aStatus, result);
                 },
                 
-                processResponse: function(aRequest, aContext, aStatus, aResult) {
+                processResponse: function(aChannel, aContext, aStatus, aResult) {
                     let responseStatus = 0;
                     try {
-                        responseStatus = aRequest.responseStatus;
+                        responseStatus = aChannel.responseStatus;
                     } catch (ex) {
-                        let error = tbSync.createTCPErrorFromFailedChannel(aRequest);
+                        let error = tbSync.createTCPErrorFromFailedChannel(aChannel);
                         if (!error) {
                             return reject(dav.sync.failed("networkerror", "URL:\n" + connection.uri.spec + " ("+method+")")); //reject/resolve do not terminate control flow
                         } else {
@@ -389,19 +388,19 @@ dav.tools = {
                         }
                     }
                     
-                    if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("RESPONSE", responseStatus + " : " + aResult);
+                    if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("RESPONSE", responseStatus + " ("+aChannel.responseStatusText+")" + " : " + aResult);
                     responseData = aResult.split("><").join(">\n<");
                     
                     //Redirected? Update connection settings from current URL
-                    if (aRequest.URI) {
-                        let newHttps = (aRequest.URI.scheme == "https") ? "1" : "0";
+                    if (aChannel.URI) {
+                        let newHttps = (aChannel.URI.scheme == "https") ? "1" : "0";
                         if (connection.https != newHttps) {
                             tbSync.dump("Updating HTTPS", connection.https + " -> " + newHttps);
                             connection.https = newHttps;
                         }
-                        if (connection.fqdn != aRequest.URI.hostPort) {
-                            tbSync.dump("Updating FQDN", connection.fqdn + " -> " + aRequest.URI.hostPort);
-                            connection.fqdn = aRequest.URI.hostPort;
+                        if (connection.fqdn != aChannel.URI.hostPort) {
+                            tbSync.dump("Updating FQDN", connection.fqdn + " -> " + aChannel.URI.hostPort);
+                            connection.fqdn = aChannel.URI.hostPort;
                         }
                     }
 
@@ -417,7 +416,7 @@ dav.tools = {
                                 //Just in case, do a retry with the updated connection settings.
                                 let response = {};
                                 response.retry = true;
-                                response.path = aRequest.URI.pathQueryRef;
+                                response.path = aChannel.URI.pathQueryRef;
                                 return resolve(response);
                             }
                             break;
@@ -437,7 +436,7 @@ dav.tools = {
                                     //did the channel try to authenticate?
                                     let triedToAuthenticate;
                                     try {
-                                        let header = aRequest.getRequestHeader("Authorization");
+                                        let header = aChannel.getRequestHeader("Authorization");
                                         triedToAuthenticate = true;
                                     } catch (e) {
                                         triedToAuthenticate = false;
@@ -446,7 +445,7 @@ dav.tools = {
                                     if (!triedToAuthenticate) {
                                         let response = {};
                                         response.retry = true;
-                                        response.path = aRequest.URI.pathQueryRef;
+                                        response.path = aChannel.URI.pathQueryRef;
                                         return resolve(response);
                                     }
                                 }
@@ -464,7 +463,7 @@ dav.tools = {
                                 if (xml.documentElement.getElementsByTagNameNS(dav.ns.d, "unauthenticated").length != 0) {
                                     let response = {};
                                     response.retry = true;
-                                    response.path = aRequest.URI.pathQueryRef;
+                                    response.path = aChannel.URI.pathQueryRef;
                                     //we have no information at all about allowed auth methods, try basic auth
                                     response.addBasicAuthHeaderOnce = true;
                                     return resolve(response);
