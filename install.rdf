@@ -8,7 +8,7 @@
         <em:unpack>false</em:unpack>
         <em:multiprocessCompatible>true</em:multiprocessCompatible>
         <em:name>Provider for CalDAV &amp; CardDAV</em:name>
-        <em:version>0.12.4</em:version>
+        <em:version>0.12.5</em:version>
         <em:description>Add sync support for CalDAV &amp; CardDAV accounts to TbSync</em:description>
         <em:creator>John Bieling</em:creator>
         <em:homepageURL>https://github.com/jobisoft/DAV-4-TbSync</em:homepageURL>
