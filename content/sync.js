@@ -425,7 +425,7 @@ dav.sync = {
 
         let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-        let cards = yield dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {"Content-Type": "application/xml; charset=utf-8"}, {softfail: [415,403]});
+        let cards = yield dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {}, {softfail: [415,403]});
 
         //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book), 415 & 403
         //https://github.com/sabre-io/dav/issues/1075
@@ -601,7 +601,7 @@ dav.sync = {
             let request = dav.tools.getMultiGetRequest(cards2catch.slice(i, i+maxitems));
             if (request) {
                 tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-                let cards = yield dav.tools.sendRequest(request, syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Content-Type": "application/xml; charset=utf-8"});
+                let cards = yield dav.tools.sendRequest(request, syncdata.folderID, "REPORT", syncdata, {"Depth": "1"});
 
                 tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
                 for (let c=0; c < cards.multi.length; c++) {
