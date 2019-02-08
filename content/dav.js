@@ -570,10 +570,17 @@ var dav = {
      *
      * @param document       [in] document obj of edit/new dialog
      * @param isOwnProvider  [in] true if the open card belongs to this provider
+     * @param aCard          [in] the card being loaded
      */
-    onAbCardLoad: function (document, isOwnProvider) {
+    onAbCardLoad: function (document, isOwnProvider, aCard = null) {
         document.getElementById("WorkAddress2Container").hidden = isOwnProvider;
         document.getElementById("abHomeTab").children[1].hidden = isOwnProvider;
+        document.getElementById("PrimaryEmailContainer").hidden = isOwnProvider;
+        document.getElementById("SecondaryEmailContainer").hidden = isOwnProvider;	  
+        if (aCard) {
+            document.getElementById('OtherEmail1').value = aCard.getProperty("PrimaryEmail","");
+            document.getElementById('OtherEmail2').value = aCard.getProperty("SecondEmail","");
+        }
     },
 
 
