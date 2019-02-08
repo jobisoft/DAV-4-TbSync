@@ -470,6 +470,9 @@ dav.sync = {
                     syncdata.todo++;
                     vCardsDeletedOnServer.appendElement(card, false);
                     tbSync.db.addItemToChangeLog(syncdata.targetId, id, "deleted_by_server");
+                } else {
+                    //We received something, that is not a DEL, MOD or ADD
+                    tbSync.errorlog("warning", syncdata, "Unknown XML", JSON.stringify(cards.multi[c]));
                 }
             }
         }
@@ -822,12 +825,14 @@ dav.sync = {
                         {
                             if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
                                 tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
-                                let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {}, {softfail: [403, 405]});
+                                let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {}, {softfail: [403, 404, 405]});
 
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
                                 if (response  && response.softerror) {
-                                    permissionError[changes[i].status] = true;
-                                    tbSync.errorlog("warning", syncdata, "missing-permission::" + tbSync.getLocalizedMessage("acl.delete", "dav"));
+                                    if (response.softerror != 404) { //we cannot do anything about a 404 on delete, the card has been deleted here and is not avail on server
+                                        permissionError[changes[i].status] = true;
+                                        tbSync.errorlog("warning", syncdata, "missing-permission::" + tbSync.getLocalizedMessage("acl.delete", "dav"));
+                                    }
                                 }
                             }
 
