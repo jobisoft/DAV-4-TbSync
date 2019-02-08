@@ -627,7 +627,7 @@ dav.sync = {
             }
         }
         //Feedback from users: They want to see the final count
-        tbSync.setSyncState("eval.request.remotechanges", syncdata.account, syncdata.folderID);		
+        tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);		
         yield tbSync.sleep(100, false);
     
         let syncGroups = (tbSync.db.getAccountSetting(syncdata.account, "syncGroups") == "1");
