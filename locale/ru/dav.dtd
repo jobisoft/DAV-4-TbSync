@@ -40,6 +40,7 @@
 
 <!ENTITY abCard.MiddleName "Отчество:">
 <!ENTITY abCard.Phone "Основной телефон:">
+<!ENTITY abCard.EmailAddresses "Адреса электронной почты:">
 
 <!ENTITY manager.tabs.accountsettings "Настройки аккаунта">
 <!ENTITY manager.tabs.syncsettings "Настройки синхронизации">

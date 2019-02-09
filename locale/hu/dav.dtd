@@ -40,6 +40,7 @@
 
 <!ENTITY abCard.MiddleName "Egyéb név:">
 <!ENTITY abCard.Phone "Fő:">
+<!ENTITY abCard.EmailAddresses "Email címek:">
 
 <!ENTITY manager.tabs.accountsettings "Fiók beállításai">
 <!ENTITY manager.tabs.syncsettings "Beállítások">

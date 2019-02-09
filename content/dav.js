@@ -556,9 +556,46 @@ var dav = {
      * @param card         [in] selected card
      */
     onAbResultsPaneSelectionChanged: function (window, card) {
+        let emailsFound = false;
+        for (let i=0; i < dav.tools.emailFields.length; i++) {
+            let nr = i+1;
+            let emailRow = window.document.getElementById("cvEmail"+nr+"Row");
+            if (emailRow) {
+                let emailValue = card.getProperty(dav.tools.emailFields[i],"");
+                let emailMetaInfo = card.getProperty(dav.tools.emailFields[i] + "MetaInfo","");
+                let emailType = tbSync.getLocalizedMessage("emailtypes.other", "dav");
+                if (emailMetaInfo) {
+                    let info = JSON.parse(emailMetaInfo);
+                    if (info.type.includes("HOME")) emailType = tbSync.getLocalizedMessage("emailtypes.home", "dav");
+                    else if (info.type.includes("WORK")) emailType = tbSync.getLocalizedMessage("emailtypes.work", "dav");
+                }
+        
+                if (emailValue) {
+                    emailRow.hidden = false;
+                    emailsFound = true;
+                    window.document.getElementById("cvEmail"+nr+"Type").textContent = emailType + ": ";
+                    window.document.getElementById("cvEmail"+nr+"Link").textContent = emailValue;
+                    window.document.getElementById("cvEmail"+nr+"Link").href = "mailto:" + emailValue;
+                } else {
+                    emailRow.hidden = true;
+                }
+            }
+        }
+        window.document.getElementById("cvbEmails").collapsed = !emailsFound;
+        window.document.getElementById("cvbEmails").hidden = !emailsFound;
+        
+        //hide primary and secondary email, but mark them as default, so they get unhidden again
+        let defaultElements = ["cvEmail1Box", "cvEmail2Box"];
+        for (let element in defaultElements) {
+            let classArray = window.document.getElementById(defaultElements[element]).getAttribute("class").split(" ");
+            if (!classArray.includes("defaultElement")) classArray.push("defaultElement");
+            window.document.getElementById(defaultElements[element]).setAttribute("class", classArray.join(" "));
+            window.document.getElementById(defaultElements[element]).hidden = true;
+        }
+
+        
         let cvPhMain = window.document.getElementById("cvPhMain");
         let phoneFound = false;
-
         if (cvPhMain) {
             let cvPhMainValue = card.getProperty("X-DAV-MainPhone","");
             if (cvPhMainValue) {
@@ -566,8 +603,7 @@ var dav = {
                 cvPhMain.hidden = false;
                 phoneFound = true;
             }
-        }
-        
+        }        
         if (phoneFound) {
             window.document.getElementById("cvbPhone").collapsed = false;
             window.document.getElementById("cvhPhone").collapsed = false;

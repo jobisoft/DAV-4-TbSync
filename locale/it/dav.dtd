@@ -40,6 +40,7 @@
 
 <!ENTITY abCard.MiddleName "Secondo nome:">
 <!ENTITY abCard.Phone "Principale:">
+<!ENTITY abCard.EmailAddresses "Indirizzi email:">
 
 <!ENTITY manager.tabs.accountsettings "Impostazioni account">
 <!ENTITY manager.tabs.syncsettings "Opzioni">
