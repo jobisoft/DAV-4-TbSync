@@ -807,26 +807,24 @@ dav.tools = {
     //* ACTUAL SYNC MAGIC *
     //* * * * * * * * * * *
 
-    //helper function: check vCardData object if it has a meta.type associated
-    itemHasMetaType: function (vCardData, item, entry, typefield) {
-        return (vCardData[item][entry].meta &&
-                vCardData[item][entry].meta[typefield] &&
-                vCardData[item][entry].meta[typefield].length > 0);
+    //helper function: extract the associated meta.type of an entry
+    getItemMetaType: function (vCardData, item, i, typefield) {
+        let arr = [];
+        if (vCardData[item][i].meta && vCardData[item][i].meta[typefield] && vCardData[item][i].meta[typefield].length > 0) {
+            //bug in vCard parser? type is always array of length 1, all values joined by ,
+            //no, sometimes it is a true array
+            for (let d=0; d < vCardData[item][i].meta[typefield].length; d++) {
+                arr = arr.concat( vCardData[item][i].meta[typefield][d].split(",").map(function(x){ return x.toUpperCase().trim() }) );
+            }
+        }
+        return arr;
     },
 
     //helper function: for each entry for the given item, extract the associated meta.type
     getMetaTypeData: function (vCardData, item, typefield) {
         let metaTypeData = [];
         for (let i=0; i < vCardData[item].length; i++) {
-            let arr = [];
-            if (dav.tools.itemHasMetaType(vCardData, item, i, typefield)) {
-                //bug in vCard parser? type is always array of length 1, all values joined by ,
-                //no, sometimes it is a true array
-                for (let d=0; d < vCardData[item][i].meta[typefield].length; d++) {
-                    arr = arr.concat( vCardData[item][i].meta[typefield][d].split(",").map(function(x){ return x.toUpperCase().trim() }) );
-                }
-            }
-            metaTypeData.push( arr );
+            metaTypeData.push( dav.tools.getItemMetaType(vCardData, item, i, typefield) );
         }
         return metaTypeData;
     },
