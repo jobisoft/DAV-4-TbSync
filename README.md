@@ -13,5 +13,5 @@ More information can be found in the [wiki](https://github.com/jobisoft/DAV-4-Tb
 * [type.internet.png] by [FatCow Web Hosting](https://www.iconfinder.com/icons/64035/)
 * [type.work.png] by [FatCow Web Hosting](https://www.iconfinder.com/icons/64176/)
 * [type.home.png] by [FatCow Web Hosting](https://www.iconfinder.com/icons/93086/)
-* [type.nopref.png] by [Yusuke Kamiyamane](https://www.iconfinder.com/icons/12422/)
+* [type.pref.png] by [Yusuke Kamiyamane](https://www.iconfinder.com/icons/12422/)
 * [type.nopref.png] by [Yusuke Kamiyamane](https://www.iconfinder.com/icons/27149/)
