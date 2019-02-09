@@ -1351,6 +1351,11 @@ dav.tools = {
                         }
                         break;
                  }
+                 
+                 if (dav.tools.emailFields.includes(property)) {
+                     card.setProperty(property+"MetaInfo", JSON.stringify({entry: vCardField.entry, type: dav.tools.getItemMetaType(vCardData, vCardField.item, vCardField.entry, "type")}));
+                 }
+                 
             }
         }
     },
