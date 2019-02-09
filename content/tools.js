@@ -845,6 +845,18 @@ dav.tools = {
         else return "";
     },
 
+    emailFields : [
+        "PrimaryEmail", 
+        "SecondEmail", 
+        "X-DAV-Email3Address", 
+        "X-DAV-Email4Address", 
+        "X-DAV-Email5Address", 
+        "X-DAV-Email6Address", 
+        "X-DAV-Email7Address", 
+        "X-DAV-Email8Address",
+        "X-DAV-Email9Address"
+    ],
+    
     supportedProperties: [
         {name: "DisplayName", minversion: "0.4"},
         {name: "FirstName", minversion: "0.4"},
@@ -852,15 +864,15 @@ dav.tools = {
         {name: "X-DAV-MainPhone", minversion: "0.12.2"},
         {name: "X-DAV-UID", minversion: "0.10.36"},
         {name: "LastName", minversion: "0.4"},
-        {name: "PrimaryEmail", minversion: "0.12.3"},
-        {name: "SecondEmail", minversion: "0.12.3"},
-        {name: "OtherEmail3", minversion: "0.12.3"},
-        {name: "OtherEmail4", minversion: "0.12.3"},
-        {name: "OtherEmail5", minversion: "0.12.3"},
-        {name: "OtherEmail6", minversion: "0.12.3"},
-        {name: "OtherEmail7", minversion: "0.12.3"},
-        {name: "OtherEmail8", minversion: "0.12.3"},
-        {name: "OtherEmail9", minversion: "0.12.3"},
+        {name: "PrimaryEmail", minversion: "0.12.7"},
+        {name: "SecondEmail", minversion: "0.12.7"},
+        {name: "X-DAV-Email3Address", minversion: "0.12.7"},
+        {name: "X-DAV-Email4Address", minversion: "0.12.7"},
+        {name: "X-DAV-Email5Address", minversion: "0.12.7"},
+        {name: "X-DAV-Email6Address", minversion: "0.12.7"},
+        {name: "X-DAV-Email7Address", minversion: "0.12.7"},
+        {name: "X-DAV-Email8Address", minversion: "0.12.7"},
+        {name: "X-DAV-Email9Address", minversion: "0.12.7"},
         {name: "NickName", minversion: "0.4"},
         {name: "Birthday", minversion: "0.4"}, //fake, will trigger special handling
         {name: "Photo", minversion: "0.4"}, //fake, will trigger special handling
@@ -970,12 +982,11 @@ dav.tools = {
     //https://tools.ietf.org/html/rfc2426#section-3.6.1
     getVCardField: function (syncdata, property, vCardData) {
         let data = {item: "", metatype: [], metatypefield: "type", entry: -1, prefix: ""};
-        let emailFields = ["PrimaryEmail", "SecondEmail", "OtherEmail3", "OtherEmail4", "OtherEmail5", "OtherEmail6", "OtherEmail7", "OtherEmail8", "OtherEmail9"]
 
         if (vCardData) {
 
             //handle special cases independently, those from *Map will be handled by default
-            if (emailFields.includes(property)) {
+            if (dav.tools.emailFields.includes(property)) {
 
                 let metamap = (tbSync.db.getAccountSetting(syncdata.account, "useHomeAsPrimary") == "0") ? {"PrimaryEmail": "WORK", "SecondEmail": "HOME"} : {"PrimaryEmail": "HOME", "SecondEmail": "WORK"};
                 data.metatype.push(metamap.hasOwnProperty(property) ? metamap[property] : "INTERNET");
@@ -1004,7 +1015,7 @@ dav.tools = {
                         });
                     
                     //map sorted vCard fields to the TB fields
-                    let emailFieldIndex = emailFields.indexOf(property);
+                    let emailFieldIndex = dav.tools.emailFields.indexOf(property);
                     if (sortedMetaTypeData.length > emailFieldIndex) data.entry = sortedMetaTypeData[emailFieldIndex].index;
                 }
 
