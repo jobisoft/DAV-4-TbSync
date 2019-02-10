@@ -32,7 +32,6 @@
 <!ENTITY pref.contactoptions "Contact options">
 <!ENTITY pref.syncGroups "Sync contact groups as Thunderbird lists">
 <!ENTITY pref.syncGroupsDescription "NOTE: Due to TB bug 1522453, TbSync must add dummy email addresses to all contacts, which are part of groups but do not have an email address associated. These dummy email addresses are not synced to server.">
-<!ENTITY pref.useHomeAsPrimary "Use vCard email of type “HOME” (and not “WORK”) as primary email address">
 <!ENTITY pref.useCardBook "Create CardBook address books instead of Thunderbird's default address books">
 
 <!ENTITY pref.calendaroptions "Calendar options">

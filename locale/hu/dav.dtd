@@ -32,7 +32,6 @@
 <!ENTITY pref.contactoptions "Névjegyzék beállításai">
 <!ENTITY pref.syncGroups "Szinkronizálja a névjegycsoportokat Thunderbird listákként">
 <!ENTITY pref.syncGroupsDescription "MEGJEGYZÉS: A 1522453-as TB-bug miatt a TbSync-nek dummy e-mail címeket kell hozzáadnia minden kapcsolathoz, amelyek csoportok részét képezik, de nem rendelkeznek e-mail címmel. Ezek a dummy e-mail címek nem szinkronizálódnak a szerverrel.">
-<!ENTITY pref.useHomeAsPrimary "Használja a vCard típusú „Otthoni” (és nem a „Munkahelyi”) e-mailt elsődleges e-mail címként">
 <!ENTITY pref.useCardBook "A Thunderbird alapértelmezett címjegyzéke helyett hozzon létre CardBook címjegyzékeket">
 
 <!ENTITY pref.calendaroptions "Naptár beállításai">

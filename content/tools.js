@@ -988,36 +988,10 @@ dav.tools = {
             //handle special cases independently, those from *Map will be handled by default
             if (dav.tools.emailFields.includes(property)) {
 
-                let metamap = (tbSync.db.getAccountSetting(syncdata.account, "useHomeAsPrimary") == "0") ? {"PrimaryEmail": "WORK", "SecondEmail": "HOME"} : {"PrimaryEmail": "HOME", "SecondEmail": "WORK"};
-                data.metatype.push(metamap.hasOwnProperty(property) ? metamap[property] : "INTERNET");
+                data.metatype.push("INTERNET"); //here we need to query the Type Property
                 data.item = "email";
-
-                if (vCardData[data.item]) {
-                    let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
-
-                    //build array of objects, so we can sort but keep the original index
-                    let sortedMetaTypeData = [];
-                    for (let i=0; i < metaTypeData.length; i++) {
-                        let obj = {index:i, values:metaTypeData[i]};
-                        sortedMetaTypeData.push(obj);
-                    }
-
-                    //sort metaTypeData based on metamap: pref < primary < secondary < other
-                    sortedMetaTypeData.sort(function(a, b, c=metamap){
-                            let order = ["PREF", metamap.PrimaryEmail, metamap.SecondEmail];
-                            let ia = order.length;
-                            let ib = order.length;
-                            for (let i=0; i < order.length; i++) {
-                                if (ia == order.length && a.values.includes(order[i])) ia = i;
-                                if (ib == order.length && b.values.includes(order[i])) ib= i;
-                            }
-                            return (ia-ib);
-                        });
-                    
-                    //map sorted vCard fields to the TB fields
-                    let emailFieldIndex = dav.tools.emailFields.indexOf(property);
-                    if (sortedMetaTypeData.length > emailFieldIndex) data.entry = sortedMetaTypeData[emailFieldIndex].index;
-                }
+                let emailFieldIndex = dav.tools.emailFields.indexOf(property);
+                if (vCardData[data.item] && vCardData[data.item].length > emailFieldIndex) data.entry = emailFieldIndex;
 
             } else if (property == "X-DAV-MainPhone") {
 
