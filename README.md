@@ -13,5 +13,4 @@ More information can be found in the [wiki](https://github.com/jobisoft/DAV-4-Tb
 * [type.internet.png] by [Steve Schoger](https://www.iconfinder.com/icons/3671671/)
 * [type.work.png] by [Steve Schoger](https://www.iconfinder.com/icons/3671695/)
 * [type.home.png] by [Steve Schoger](https://www.iconfinder.com/icons/3671775/)
-* [type.pref.png] by [Yusuke Kamiyamane](https://www.iconfinder.com/icons/12422/)
-* [type.nopref.png] by [Yusuke Kamiyamane](https://www.iconfinder.com/icons/27149/)
+* [type.pref.png] by [Steve Schoger](https://www.iconfinder.com/icons/3671863/)
