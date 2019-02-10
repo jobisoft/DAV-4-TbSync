@@ -846,8 +846,8 @@ dav.tools = {
     },
 
     emailFields : [
-        "PrimaryEmail", 
-        "SecondEmail", 
+        "X-DAV-Email1Address", 
+        "X-DAV-Email2Address", 
         "X-DAV-Email3Address", 
         "X-DAV-Email4Address", 
         "X-DAV-Email5Address", 
@@ -864,8 +864,8 @@ dav.tools = {
         {name: "X-DAV-MainPhone", minversion: "0.12.7"},
         {name: "X-DAV-UID", minversion: "0.10.36"},
         {name: "LastName", minversion: "0.4"},
-        {name: "PrimaryEmail", minversion: "0.12.7"},
-        {name: "SecondEmail", minversion: "0.12.7"},
+        {name: "X-DAV-Email1Address", minversion: "0.12.7"},
+        {name: "X-DAV-Email2Address", minversion: "0.12.7"},
         {name: "X-DAV-Email3Address", minversion: "0.12.7"},
         {name: "X-DAV-Email4Address", minversion: "0.12.7"},
         {name: "X-DAV-Email5Address", minversion: "0.12.7"},

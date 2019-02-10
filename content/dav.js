@@ -628,10 +628,6 @@ var dav = {
         document.getElementById("abHomeTab").children[1].hidden = isOwnProvider;
         document.getElementById("PrimaryEmailContainer").hidden = isOwnProvider;
         document.getElementById("SecondaryEmailContainer").hidden = isOwnProvider;	  
-        if (aCard) {
-            document.getElementById('X-DAV-Email1Address').value = aCard.getProperty("PrimaryEmail","");
-            document.getElementById('X-DAV-Email2Address').value = aCard.getProperty("SecondEmail","");
-        }
     },
 
 
