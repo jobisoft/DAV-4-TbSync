@@ -564,9 +564,9 @@ var dav = {
                 let emailMetaInfo = card.getProperty(dav.tools.emailFields[i] + "MetaInfo","");
                 let emailType = tbSync.getLocalizedMessage("emailtypes.other", "dav");
                 if (emailMetaInfo) {
-                    let info = JSON.parse(emailMetaInfo);
-                    if (info.type.includes("HOME")) emailType = tbSync.getLocalizedMessage("emailtypes.home", "dav");
-                    else if (info.type.includes("WORK")) emailType = tbSync.getLocalizedMessage("emailtypes.work", "dav");
+                    let type = JSON.parse(emailMetaInfo);
+                    if (type.includes("HOME")) emailType = tbSync.getLocalizedMessage("emailtypes.home", "dav");
+                    else if (type.includes("WORK")) emailType = tbSync.getLocalizedMessage("emailtypes.work", "dav");
                 }
         
                 if (emailValue) {
