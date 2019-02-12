@@ -5,29 +5,26 @@
     id="abCardWindow" 
     xmlns:html="http://www.w3.org/1999/xhtml">
 
-<menupopup id="DavEmailContainerClipmenu">
-  <menuitem class="menuitem-iconic" label="Home" image="chrome://dav4tbsync/skin/type.home16.png" />
-  <menuitem class="menuitem-iconic" label="Work"  image="chrome://dav4tbsync/skin/type.work16.png" />
-  <menuitem class="menuitem-iconic" label="Other" image="chrome://dav4tbsync/skin/type.internet16.png" />
-</menupopup>
-
-    <hbox id="DavEmailContainer" class="davContainer" insertafter="ScreenNameContainer" style="margin-top:1ex">
-        <spacer flex="1"/>
-        <label value="Emails:"/>
-        <hbox class="CardEditWidth">
-          <richlistbox flex="1" style="height:6em;">
-            <richlistitem><hbox flex="1" align="center"><image style="margin:2px 1ex 2px 2px" src='chrome://dav4tbsync/skin/type.work10.png' width='10' height='10' context="DavEmailContainerClipmenu"/><hbox flex="1" style="padding-bottom:1px"><textbox id="X-DAV-Email1Address" flex="1" class="plain" onchange="document.getElementById('PrimaryEmail').value=this.value" value="" /></hbox></hbox></richlistitem>
-            <richlistitem><hbox flex="1" align="center"><image style="margin:2px 1ex 2px 2px" src='chrome://dav4tbsync/skin/type.home10.png' width='10' height='10' context="DavEmailContainerClipmenu"/><hbox flex="1" style="padding-bottom:1px"><textbox id="X-DAV-Email2Address" flex="1" class="plain" onchange="document.getElementById('SecondEmail').value=this.value" value="" /></hbox></hbox></richlistitem>
-            <richlistitem><hbox flex="1" align="center"><image style="margin:2px 1ex 2px 2px" src='chrome://dav4tbsync/skin/type.internet10.png' width='10' height='10' context="DavEmailContainerClipmenu"/><hbox flex="1" style="padding-bottom:1px"><textbox id="X-DAV-Email3Address" flex="1" class="davProperty plain" value="" /></hbox></hbox></richlistitem>
-            <richlistitem><hbox flex="1" align="center"><image style="margin:2px 1ex 2px 2px" src='chrome://dav4tbsync/skin/type.internet10.png' width='10' height='10' context="DavEmailContainerClipmenu"/><hbox flex="1" style="padding-bottom:1px"><textbox id="X-DAV-Email4Address" flex="1" class="davProperty plain" value="" /></hbox></hbox></richlistitem>
-            <richlistitem><hbox flex="1" align="center"><image style="margin:2px 1ex 2px 2px" src='chrome://dav4tbsync/skin/type.internet10.png' width='10' height='10' context="DavEmailContainerClipmenu"/><hbox flex="1" style="padding-bottom:1px"><textbox id="X-DAV-Email5Address" flex="1" class="davProperty plain" value="" /></hbox></hbox></richlistitem>
-            <richlistitem><hbox flex="1" align="center"><image style="margin:2px 1ex 2px 2px" src='chrome://dav4tbsync/skin/type.internet10.png' width='10' height='10' context="DavEmailContainerClipmenu"/><hbox flex="1" style="padding-bottom:1px"><textbox id="X-DAV-Email6Address" flex="1" class="davProperty plain" value="" /></hbox></hbox></richlistitem>
-            <richlistitem><hbox flex="1" align="center"><image style="margin:2px 1ex 2px 2px" src='chrome://dav4tbsync/skin/type.internet10.png' width='10' height='10' context="DavEmailContainerClipmenu"/><hbox flex="1" style="padding-bottom:1px"><textbox id="X-DAV-Email7Address" flex="1" class="davProperty plain" value="" /></hbox></hbox></richlistitem>
-            <richlistitem><hbox flex="1" align="center"><image style="margin:2px 1ex 2px 2px" src='chrome://dav4tbsync/skin/type.internet10.png' width='10' height='10' context="DavEmailContainerClipmenu"/><hbox flex="1" style="padding-bottom:1px"><textbox id="X-DAV-Email8Address" flex="1" class="davProperty plain" value="" /></hbox></hbox></richlistitem>
-            <richlistitem><hbox flex="1" align="center"><image style="margin:2px 1ex 2px 2px" src='chrome://dav4tbsync/skin/type.internet10.png' width='10' height='10' context="DavEmailContainerClipmenu"/><hbox flex="1" style="padding-bottom:1px"><textbox id="X-DAV-Email9Address" flex="1" class="davProperty plain" value="" /></hbox></hbox></richlistitem>
-        </richlistbox>
-        </hbox>
+    <hbox id="DavEmailSpacer" class="davContainer" insertbefore="PrimaryEmailContainer" style="margin-bottom:1ex">
+        <menupopup position="start_before">
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.home;" oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'HOME')" image="chrome://dav4tbsync/skin/type.home16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.work;"  oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'WORK')" image="chrome://dav4tbsync/skin/type.work16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.other;" oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'INTERNET')" image="chrome://dav4tbsync/skin/type.internet16.png" />
+        </menupopup>
     </hbox>
+    
+    <hbox id="DavEmailContainer" class="davContainer" insertafter="PrimaryEmailContainer" style="margin-bottom:1em">
+        <spacer flex="1"/>
+        <vbox class="CardEditWidth">
+          <richlistbox flex="0" style="height:6em;" id="X-DAV-EmailAddressList" seltype="single" >            
+          </richlistbox>
+          <description>&abCard.emailtypes.description;</description>
+          <label id="X-DAV-PrimaryEmailMetaInfo" hidden="true" class="davProperty" />
+          <label id="X-DAV-SecondEmailMetaInfo" hidden="true" class="davProperty" />
+        </vbox>
+    </hbox>
+    
+    <button id="DavEmailAdd" label="+" oncommand="tbSync.dav.tools.addEmailEntry(window.document)" class="davContainer" flex="0" style="width:3em; min-width:3em" insertafter="PrimaryEmail" />
     
     <hbox id="DavMiddleNameContainer" align="center" class="davContainer" insertafter="NameField1Container" >
         <spacer flex="1" />

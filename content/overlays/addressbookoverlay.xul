@@ -16,43 +16,7 @@
 					<column flex="0"/>
 					<column flex="1"/>
 				</columns>
-				<rows>
-					<row id="cvEmail1Row">
-						<description class="CardViewText" id="cvEmail1Type"></description>
-						<description class="plain"><html:a id="cvEmail1Link" href=""></html:a></description>
-					</row>
-					<row id="cvEmail2Row">
-						<description class="CardViewText" id="cvEmail2Type"></description>
-						<description class="plain"><html:a id="cvEmail2Link" href=""></html:a></description>
-					</row>
-					<row id="cvEmail3Row">
-						<description class="CardViewText" id="cvEmail3Type"></description>
-						<description class="plain"><html:a id="cvEmail3Link" href=""></html:a></description>
-					</row>
-					<row id="cvEmail4Row">
-						<description class="CardViewText" id="cvEmail4Type"></description>
-						<description class="plain"><html:a id="cvEmail4Link" href=""></html:a></description>
-					</row>
-					<row id="cvEmail5Row">
-						<description class="CardViewText" id="cvEmail5Type"></description>
-						<description class="plain"><html:a id="cvEmail5Link" href=""></html:a></description>
-					</row>
-					<row id="cvEmail6Row">
-						<description class="CardViewText" id="cvEmail6Type"></description>
-						<description class="plain"><html:a id="cvEmail6Link" href=""></html:a></description>
-					</row>
-					<row id="cvEmail7Row">
-						<description class="CardViewText" id="cvEmail7Type"></description>
-						<description class="plain"><html:a id="cvEmail7Link" href=""></html:a></description>
-					</row>
-					<row id="cvEmail8Row">
-						<description class="CardViewText" id="cvEmail8Type"></description>
-						<description class="plain"><html:a id="cvEmail8Link" href=""></html:a></description>
-					</row>
-					<row id="cvEmail9Row">
-						<description class="CardViewText" id="cvEmail9Type"></description>
-						<description class="plain"><html:a id="cvEmail9Link" href=""></html:a></description>
-					</row>
+				<rows id="cvbEmailRows">
 				</rows>
 			</grid>			
 		</vbox>
