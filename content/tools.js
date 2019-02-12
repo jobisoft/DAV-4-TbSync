@@ -10,6 +10,251 @@
 
 dav.tools = {
     
+    //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    //* Functions to handle multiple email addresses in AB (UI)
+    //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+    getEmailsFromCard: function (aCard) {
+        let emails = [];
+        
+        let secondEmail = aCard.getProperty("SecondEmail","").trim();
+        if (secondEmail) {
+            emails = secondEmail.split(";").map(x => Object({value: x.trim(), meta: []}));
+            let secondMeta = [];
+            let secondMetaRaw = aCard.getProperty("X-DAV-SecondEmailMetaInfo","");
+            if (secondMetaRaw) {
+                try {
+                    secondMeta = JSON.parse(secondMetaRaw); //array of arrars of types
+                } catch (e) {}
+            }
+            
+            //add each meta info to its email
+            for (let i=0; i < emails.length && i < secondMeta.length; i++) {
+                emails[i].meta = secondMeta[i];
+            }
+        }
+        
+        //now prepend the primary
+        let primaryEmail = aCard.getProperty("PrimaryEmail","").trim();
+        if (primaryEmail) {
+            emails.unshift({value: primaryEmail, meta: []});
+            let primaryMeta = [];
+            let primaryMetaRaw = aCard.getProperty("X-DAV-PrimaryEmailMetaInfo","");
+            if (primaryMetaRaw) {
+                try {
+                    primaryMeta = JSON.parse(primaryMetaRaw); //array of types
+                } catch (e) {}
+            }
+            emails[0].meta = primaryMeta;
+        }
+        
+        return emails;
+    },
+
+
+    getNewEmailDetailsRow: function (aWindow, aItemData) {
+        //first column
+        let vbox = aWindow.document.createElement("vbox");
+        vbox.setAttribute("class","CardViewText");
+        vbox.setAttribute("style","margin-right:1ex; margin-bottom:2px;");
+            let image = aWindow.document.createElement("image");
+            image.setAttribute("width","10");
+            image.setAttribute("height","10");
+            image.setAttribute("src", aItemData.src);
+        vbox.appendChild(image);
+
+        //second column
+        let description = aWindow.document.createElement("description");
+        description.setAttribute("class","plain");
+            let namespace = aWindow.document.lookupNamespaceURI("html");
+            let a = aWindow.document.createElementNS(namespace, "a");
+            a.setAttribute("href", "mailto:" + aItemData.href);    
+            a.textContent = aItemData.href;
+
+            let pref = aWindow.document.createElement("image");
+            pref.setAttribute("style", "margin-left:1ex;");
+            pref.setAttribute("width", "11");
+            pref.setAttribute("height", "10");
+            pref.setAttribute("src", "chrome://dav4tbsync/skin/type.nopref.png");
+
+        description.appendChild(a);
+        if (aItemData.pref) description.appendChild(pref);
+        
+        //row
+        let row = aWindow.document.createElement("row");
+        row.setAttribute("align","end");        
+        row.appendChild(vbox);
+        row.appendChild(description);
+        return row;
+    },
+    
+    getNewEmailListItem: function (aDocument, aItemData) {
+        //hbox
+        let outerhbox = aDocument.createElement("hbox");
+        outerhbox.setAttribute("flex", "1");
+        outerhbox.setAttribute("align", "center");
+        
+            //button
+            let button = aDocument.createElement("button");
+            button.value = aItemData.meta;
+            button.setAttribute("type", "menu");
+            button.setAttribute("class", "plain");
+            button.setAttribute("style", "width: 35px; min-width: 35px; margin: 0;");
+            button.appendChild(aDocument.getElementById("DavEmailSpacer").children[0].cloneNode(true));
+            outerhbox.appendChild(button);
+
+            //email box
+            let emailbox = aDocument.createElement("hbox");
+            emailbox.setAttribute("flex", "1");
+            emailbox.setAttribute("style", "padding-bottom:1px");
+            let email = aDocument.createElement("textbox");
+            email.setAttribute("flex", "1");
+            email.setAttribute("class", "plain");
+            email.setAttribute("value", aItemData.value);
+            email.addEventListener("change", function(e) {tbSync.dav.tools.updateEmails(aDocument)});
+            emailbox.appendChild(email);        
+            outerhbox.appendChild(emailbox);
+        
+            //image
+            let image = aDocument.createElement("image");
+            image.setAttribute("name","prefstar");
+            image.setAttribute("width", "11");
+            image.setAttribute("height", "10");
+            image.setAttribute("style", "margin:2px 2px 2px 1ex");
+            outerhbox.appendChild(image);
+        
+        //richlistitem
+        let richlistitem = aDocument.createElement("richlistitem");
+        richlistitem.addEventListener("click", function(e) {if (e.target.getAttribute("name") == "prefstar") tbSync.dav.tools.updateEmailPref(aDocument, e.currentTarget, true)});
+        richlistitem.appendChild(outerhbox);
+        
+        return richlistitem;
+    },
+    
+    getEmailListItemElement: function(item, element) {
+        switch (element) {
+            case "button": 
+                return item.children[0].children[0];
+            case "email":
+                return item.children[0].children[1].children[0];
+            case "star":
+                return item.children[0].children[2];
+            default:
+                return null;
+        }
+    },
+    
+    addEmailEntry: function(aDocument) {
+        let list = aDocument.getElementById("X-DAV-EmailAddressList");
+        let data = {value: "", meta: ["HOME"]};
+        let item = dav.tools.getNewEmailListItem(aDocument, data);
+        list.ensureElementIsVisible(list.appendChild(item));
+        let button = dav.tools.getEmailListItemElement(item, "button");
+        dav.tools.updateEmailType(aDocument, button);
+        dav.tools.updateEmailPref(aDocument, item);        
+    },
+    
+    //if the PREF setting or the emails itself have changed, we need to update Primary and Secondary Email Fields
+    updateEmails: function(aDocument) {
+        let list = aDocument.getElementById("X-DAV-EmailAddressList");
+        
+        let primary = "";
+        let primaryMeta = [];
+        let primaryIdx = 0;
+        for (let i=0; i < list.children.length; i++) {
+            let item = list.children[i];
+            let email = dav.tools.getEmailListItemElement(item, "email").value.trim();
+            if (email != "") {
+                primary = email;
+                primaryMeta = dav.tools.getEmailListItemElement(item, "button").value;
+                primaryIdx = i;
+                break;
+            } 
+        }
+        aDocument.getElementById("PrimaryEmail").value = primary; //could be empty
+        aDocument.getElementById("X-DAV-PrimaryEmailMetaInfo").value = JSON.stringify(primaryMeta);
+        
+        //all other emails are put in SecondEmail
+        let secondary = [];
+        let secondaryMeta = [];
+        //if there was no primary, we do not need to search for others
+        if (primary) {
+            for (let i=0; i < list.children.length; i++) {
+                if (i != primaryIdx) {
+                    let item = list.children[i];
+                    let email = dav.tools.getEmailListItemElement(item, "email").value.trim();                
+                    if (email != "") {
+                        secondary.push(email);
+                        secondaryMeta.push(dav.tools.getEmailListItemElement(item, "button").value);
+                    }
+                }
+            }
+        }
+        aDocument.getElementById("SecondEmail").value = secondary.join("; ");
+        aDocument.getElementById("X-DAV-SecondEmailMetaInfo").value = JSON.stringify(secondaryMeta);  
+        
+    },
+    
+    updateEmailPref: function(aDocument, item, toggle = false) {
+        let icon = dav.tools.getEmailListItemElement(item, "star");
+        let email = dav.tools.getEmailListItemElement(item, "email");
+        let button = dav.tools.getEmailListItemElement(item, "button");
+
+        let currentValue = button.value ? button.value : [];        
+        if (toggle) {
+            let toggeled = true;
+            if (currentValue.includes("PREF")) currentValue = currentValue.filter(e => e != "PREF");
+            else if (email.value.trim() != "") currentValue.push("PREF");
+            else toggeled = false;
+
+            if (toggeled) {
+                button.value = currentValue;
+            }
+        }
+        
+        if (currentValue.includes("PREF")) {
+            icon.setAttribute("src", "chrome://dav4tbsync/skin/type.pref.png");
+        } else {
+            icon.setAttribute("src", "chrome://dav4tbsync/skin/type.nopref.png");
+        }
+    },
+        
+    //a new email type has been selected
+    updateEmailType: function(aDocument, button, newvalue = null) {
+        let currentValue = button.value ? button.value : [];
+        
+        let invertOf = {"HOME": "WORK", "WORK": "HOME"}
+        let homework = ["HOME", "WORK"];
+        if (newvalue) {
+            switch (newvalue) {
+                case "HOME":
+                case "WORK":
+                    {
+                        let idx = currentValue.indexOf(invertOf[newvalue]);
+                        if (idx != -1) currentValue[idx] = newvalue;
+                        else currentValue.push(newvalue);
+                    }
+                    break;
+
+                default:
+                    currentValue = currentValue.filter(e => !homework.includes(e));
+                    if (!currentValue.includes(newvalue)) currentValue.push(newvalue);
+            }
+            button.value = currentValue;
+        }
+        
+        let emailType = "internet";
+        if (currentValue.includes("HOME")) emailType = "home";
+        else if (currentValue.includes("WORK")) emailType = "work";
+        button.setAttribute("image","chrome://dav4tbsync/skin/type."+emailType+"10.png");
+    },
+
+
+
+    //* * * * * * * * * * * * *
+    //* UTILS
+    //* * * * * * * * * * * * *
+
     /**
      * Convert a byte array to a string - copied from lightning
      *
@@ -844,35 +1089,18 @@ dav.tools = {
         } else if (index == 0) return vCardValue;
         else return "";
     },
-
-    emailFields : [
-        "X-DAV-Email1Address", 
-        "X-DAV-Email2Address", 
-        "X-DAV-Email3Address", 
-        "X-DAV-Email4Address", 
-        "X-DAV-Email5Address", 
-        "X-DAV-Email6Address", 
-        "X-DAV-Email7Address", 
-        "X-DAV-Email8Address",
-        "X-DAV-Email9Address"
-    ],
-    
+   
     supportedProperties: [
         {name: "DisplayName", minversion: "0.4"},
         {name: "FirstName", minversion: "0.4"},
         {name: "X-DAV-MiddleName", minversion: "0.8.8"},
-        {name: "X-DAV-MainPhone", minversion: "0.12.7"},
+        {name: "X-DAV-MainPhone", minversion: "0.4"},
         {name: "X-DAV-UID", minversion: "0.10.36"},
         {name: "LastName", minversion: "0.4"},
-        {name: "X-DAV-Email1Address", minversion: "0.12.7"},
-        {name: "X-DAV-Email2Address", minversion: "0.12.7"},
-        {name: "X-DAV-Email3Address", minversion: "0.12.7"},
-        {name: "X-DAV-Email4Address", minversion: "0.12.7"},
-        {name: "X-DAV-Email5Address", minversion: "0.12.7"},
-        {name: "X-DAV-Email6Address", minversion: "0.12.7"},
-        {name: "X-DAV-Email7Address", minversion: "0.12.7"},
-        {name: "X-DAV-Email8Address", minversion: "0.12.7"},
-        {name: "X-DAV-Email9Address", minversion: "0.12.7"},
+        {name: "PrimaryEmail", minversion: "0.4"},
+        {name: "SecondEmail", minversion: "0.4"},
+        {name: "X-DAV-PrimaryEmailMetaInfo", minversion: "0.4"},
+        {name: "X-DAV-SecondEmailMetaInfo", minversion: "0.4"},
         {name: "NickName", minversion: "0.4"},
         {name: "Birthday", minversion: "0.4"}, //fake, will trigger special handling
         {name: "Photo", minversion: "0.4"}, //fake, will trigger special handling
@@ -881,22 +1109,22 @@ dav.tools = {
         {name: "HomeZipCode", minversion: "0.4"},
         {name: "HomeState", minversion: "0.4"},
         {name: "HomeAddress", minversion: "0.4"},
-        {name: "HomePhone", minversion: "0.12.7"},
+        {name: "HomePhone", minversion: "0.4"},
         {name: "WorkCity", minversion: "0.4"},
         {name: "WorkCountry", minversion: "0.4"},
         {name: "WorkZipCode", minversion: "0.4"},
         {name: "WorkState", minversion: "0.4"},
         {name: "WorkAddress", minversion: "0.4"},
-        {name: "WorkPhone", minversion: "0.12.7"},
+        {name: "WorkPhone", minversion: "0.4"},
         {name: "Categories", minversion: "0.4"},
         {name: "JobTitle", minversion: "0.4"},
         {name: "Department", minversion: "0.4"},
         {name: "Company", minversion: "0.4"},
         {name: "WebPage1", minversion: "0.4"},
         {name: "WebPage2", minversion: "0.4"},
-        {name: "CellularNumber", minversion: "0.12.7"},
-        {name: "PagerNumber", minversion: "0.12.7"},
-        {name: "FaxNumber", minversion: "0.12.7"},
+        {name: "CellularNumber", minversion: "0.4"},
+        {name: "PagerNumber", minversion: "0.4"},
+        {name: "FaxNumber", minversion: "0.4"},
         {name: "Notes", minversion: "0.4"},
         {name: "PreferMailFormat", minversion: "0.4"},
         {name: "Custom1", minversion: "0.4"},
@@ -986,45 +1214,59 @@ dav.tools = {
         if (vCardData) {
 
             //handle special cases independently, those from *Map will be handled by default
-            if (dav.tools.emailFields.includes(property)) {
-
-                data.metatype.push("INTERNET"); //here we need to query the Type Property
-                data.item = "email";
-                let emailFieldIndex = dav.tools.emailFields.indexOf(property);
-                if (vCardData[data.item] && vCardData[data.item].length > emailFieldIndex) data.entry = emailFieldIndex;
-
-            } else if (property == "X-DAV-MainPhone") {
-
-                data.metatype.push("PREF");
-                data.item = "tel";
-
-                //search the first valid entry
-                if (vCardData[data.item]) {
-                    let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
-
-                    //we take everything that is not HOME, WORK, CELL, PAGER or FAX
-                    //we take PREF over MAIN (fruux) over VOICE over ?
-                    let tel = {};
-                    tel.pref =[];
-                    tel.main =[];
-                    tel.voice =[];
-                    tel.other =[];
-                    for (let i=0; i < metaTypeData.length; i++) {
-                        if (!metaTypeData[i].includes("HOME") && !metaTypeData[i].includes("WORK") && !metaTypeData[i].includes("CELL") && !metaTypeData[i].includes("PAGER") && !metaTypeData[i].includes("FAX")) {
-                            if (metaTypeData[i].includes("PREF")) tel.pref.push(i);
-                            else if (metaTypeData[i].includes("MAIN")) tel.main.push(i);
-                            else if (metaTypeData[i].includes("VOICE")) tel.voice.push(i);
-                            else tel.other.push(i);
-                        }
+            switch (property) {
+                case "PrimaryEmail":
+                case "SecondEmail":
+                case "X-DAV-PrimaryEmailMetaInfo":
+                case "X-DAV-SecondEmailMetaInfo":
+                {
+                    data.metatype.push("INTERNET"); //here we need to query the Type Property TODO
+                    data.item = "email";
+                    
+                    if (vCardData[data.item] && vCardData[data.item].length > 0) {
+                        //we return the primary index for BOTH email fields and 
+                        //getThunderbirdPropertyValueFromVCard will take care of that
+                        //based on the property, it will return the given one, or all but the given one
+                        data.entry = 0;
                     }
-
-                    if (tel.pref.length > 0) data.entry = tel.pref[0];
-                    else if (tel.main.length > 0) data.entry = tel.main[0];
-                    else if (tel.voice.length > 0) data.entry = tel.voice[0];
-                    else if (tel.other.length > 0) data.entry = tel.other[0];
                 }
+                break;
                 
-            } else {
+                case "X-DAV-MainPhone":
+                {
+                    let PREF = (Services.vc.compare(syncdata.folderCreatedWithProviderVersion, "0.11")> 0)  ? "PREF" : "PREV"; //up to version 0.11 we used the wrong value "PREV"
+                    data.metatype.push(PREF);
+                    data.item = "tel";
+
+                    //search the first valid entry
+                    if (vCardData[data.item]) {
+                        let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
+
+                        //we take everything that is not HOME, WORK, CELL, PAGER or FAX
+                        //we take PREF over MAIN (fruux) over VOICE over ?
+                        let tel = {};
+                        tel.pref =[];
+                        tel.main =[];
+                        tel.voice =[];
+                        tel.other =[];
+                        for (let i=0; i < metaTypeData.length; i++) {
+                            if (!metaTypeData[i].includes("HOME") && !metaTypeData[i].includes("WORK") && !metaTypeData[i].includes("CELL") && !metaTypeData[i].includes("PAGER") && !metaTypeData[i].includes("FAX")) {
+                                if (metaTypeData[i].includes(PREF)) tel.pref.push(i);
+                                else if (metaTypeData[i].includes("MAIN")) tel.main.push(i);
+                                else if (metaTypeData[i].includes("VOICE")) tel.voice.push(i);
+                                else tel.other.push(i);
+                            }
+                        }
+
+                        if (tel.pref.length > 0) data.entry = tel.pref[0];
+                        else if (tel.main.length > 0) data.entry = tel.main[0];
+                        else if (tel.voice.length > 0) data.entry = tel.voice[0];
+                        else if (tel.other.length > 0) data.entry = tel.other[0];
+                    }
+                }
+                break;
+                
+                default:
                     //Check *Maps
                     if (dav.tools.simpleMap.hasOwnProperty(property)) {
 
@@ -1069,7 +1311,6 @@ dav.tools = {
                     } else throw "Unknown TB property <"+property+">";
             }
         }
-
         return data;
     },
 
@@ -1140,10 +1381,40 @@ dav.tools = {
                 return 0;
                 break;
 
-            default: //should be a single string
-                let v = (Array.isArray(vCardValue)) ? vCardValue.join(" ") : vCardValue;
-                if (vCardField.prefix.length > 0 && v.startsWith(vCardField.prefix)) return v.substring(vCardField.prefix.length);
-                else return v;
+            case "X-DAV-PrimaryEmailMetaInfo": 
+                {
+                    //this is special, we need to return the meta info of the entry
+                    let metaTypeData = dav.tools.getMetaTypeData(vCardData, vCardField.item, vCardField.metatypefield);
+                    return JSON.stringify(metaTypeData[vCardField.entry]);
+                }
+                break;
+                
+            case "X-DAV-SecondEmailMetaInfo": 
+                {
+                    //this is special, we need to return the meta info of all entries except the indexed one
+                    let metaTypeData = dav.tools.getMetaTypeData(vCardData, vCardField.item, vCardField.metatypefield).filter((e,i) => i != vCardField.entry);
+                    return JSON.stringify(metaTypeData);
+                }
+                break;
+            
+            case "SecondEmail": 
+                {
+                    //this is special, we need to return a list of all emails joined by ; but not the indexed one
+                    let secondEmail = [];
+                    for (let i=0; i < vCardData[vCardField.item].length; i++) {
+                        if (i != vCardField.entry) secondEmail.push(vCardData[vCardField.item][i].value);
+                    }
+                    return secondEmail.join("; ");
+                }
+                break;
+
+            default: 
+                {
+                    //should be a single string
+                    let v = (Array.isArray(vCardValue)) ? vCardValue.join(" ") : vCardValue;
+                    if (vCardField.prefix.length > 0 && v.startsWith(vCardField.prefix)) return v.substring(vCardField.prefix.length);
+                    else return v;
+                }
         }
     },
 
@@ -1325,11 +1596,6 @@ dav.tools = {
                         }
                         break;
                  }
-                 
-                 if (dav.tools.emailFields.includes(property)) {
-                     card.setProperty(property+"MetaInfo", JSON.stringify(dav.tools.getItemMetaType(vCardData, vCardField.item, vCardField.entry, "type")));
-                 }
-                 
             }
         }
     },
@@ -1442,13 +1708,35 @@ dav.tools = {
                     }
                     break;
 
+                case "X-DAV-PrimaryEmailMetaInfo": 
+                    {
+                        //this is special, we need to return the meta info of the entry
+                        let metaTypeData = dav.tools.getMetaTypeData(vCardData, vCardField.item, vCardField.metatypefield);
+                        return JSON.stringify(metaTypeData[vCardField.entry]);
+                    }
+                    break;
+                    
+                case "X-DAV-SecondEmailMetaInfo": 
+                    {
+                        //this is special, we need to return the meta info of all entries except the indexed one
+                        let metaTypeData = dav.tools.getMetaTypeData(vCardData, vCardField.item, vCardField.metatypefield).filter((e,i) => i != vCardField.entry);
+                        return JSON.stringify(metaTypeData);
+                    }
+                    break;
+            
+                case "SecondEmail":     
+                case "PrimaryEmail":
+                    let value = card.getProperty(property, "");
+                    //fix for bug 1522453
+                    if (value.endsWith("@bug1522453")) {
+                        value = "";
+                    }
+                    dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, value);
+                    break;
+                    
                 default:
                     {
                         let value = card.getProperty(property, "");
-                        //fix for bug 1522453
-                        if ((property == "PrimaryEmail" || property == "SecondEmail") && value.endsWith("@bug1522453")) {
-                            value = "";
-                        }
                         dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, value);
                     }
                     break;
