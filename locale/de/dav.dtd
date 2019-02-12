@@ -43,3 +43,8 @@
 
 <!ENTITY manager.tabs.accountsettings "Kontoeinstellungen">
 <!ENTITY manager.tabs.syncsettings "Optionen">
+
+<!ENTITY abCard.emailtypes.home "Privat">
+<!ENTITY abCard.emailtypes.work "Dienstlich">
+<!ENTITY abCard.emailtypes.other "Sonstige">
+<!ENTITY abCard.emailtypes.description "Die erste E-Mailadresse in der Liste wird als primäre E-Mailadresse verwendet.">

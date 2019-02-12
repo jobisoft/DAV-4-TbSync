@@ -3,11 +3,6 @@ menu.name = CalDAV & CardDAV
 defaultname.calendar=календарь
 defaultname.contacts=контакты
 
-emailtypes.home=дома
-emailtypes.work=бизнес
-emailtypes.other=другой
-emailtypes.preferred=популярный
-
 syncstate.syncing=Инициализация синхронизации
 syncstate.preparing=Подготовка следующего элемента для синхронизации
 syncstate.done=Подготовка следующего элемента для синхронизации

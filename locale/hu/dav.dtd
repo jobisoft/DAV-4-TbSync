@@ -43,3 +43,8 @@
 
 <!ENTITY manager.tabs.accountsettings "Fiók beállításai">
 <!ENTITY manager.tabs.syncsettings "Beállítások">
+
+<!ENTITY abCard.emailtypes.home "itthon">
+<!ENTITY abCard.emailtypes.work "üzleti">
+<!ENTITY abCard.emailtypes.other "más">
+<!ENTITY abCard.emailtypes.description "A lista első e-mail címe az elsődleges e-mail cím.">

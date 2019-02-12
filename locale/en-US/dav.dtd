@@ -31,7 +31,7 @@
 
 <!ENTITY pref.contactoptions "Contact options">
 <!ENTITY pref.syncGroups "Sync contact groups as Thunderbird lists">
-<!ENTITY pref.syncGroupsDescription "NOTE: Due to TB bug 1522453, TbSync must add dummy email addresses to all contacts, which are part of groups but do not have an email address associated. These dummy email addresses are not synced to server.">
+<!ENTITY pref.syncGroupsDescription "NOTE: Due to TB bug 1522453, TbSync must add dummy e-mail addresses to all contacts, which are part of groups but do not have an e-mail address associated. These dummy e-mail addresses are not synced to server.">
 <!ENTITY pref.useCardBook "Create CardBook address books instead of Thunderbird's default address books">
 
 <!ENTITY pref.calendaroptions "Calendar options">
@@ -39,7 +39,12 @@
 
 <!ENTITY abCard.MiddleName "Middle:">
 <!ENTITY abCard.Phone "Main:">
-<!ENTITY abCard.EmailAddresses "Email addresses:">
+<!ENTITY abCard.EmailAddresses "E-mail addresses:">
 
 <!ENTITY manager.tabs.accountsettings "Account settings">
 <!ENTITY manager.tabs.syncsettings "Options">
+
+<!ENTITY abCard.emailtypes.home "Home">
+<!ENTITY abCard.emailtypes.work "Work">
+<!ENTITY abCard.emailtypes.other "Other">
+<!ENTITY abCard.emailtypes.description "The first e-mail address in the list will be used as the primary e-mail address.">

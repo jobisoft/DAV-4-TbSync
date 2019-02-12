@@ -43,3 +43,8 @@
 
 <!ENTITY manager.tabs.accountsettings "Настройки аккаунта">
 <!ENTITY manager.tabs.syncsettings "Настройки синхронизации">
+
+<!ENTITY abCard.emailtypes.home "дома">
+<!ENTITY abCard.emailtypes.work "бизнес">
+<!ENTITY abCard.emailtypes.other "другой">
+<!ENTITY abCard.emailtypes.description "Первый адрес электронной почты в списке используется в качестве основного адреса электронной почты.">

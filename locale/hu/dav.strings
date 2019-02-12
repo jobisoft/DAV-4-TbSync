@@ -3,11 +3,6 @@ menu.name = CalDAV és CardDAV
 defaultname.calendar=naptár
 defaultname.contacts=kapcsolatok
 
-emailtypes.home=itthon
-emailtypes.work=üzleti
-emailtypes.other=más
-emailtypes.preferred=népszerű
-
 syncstate.syncing=Összehangolás előkészítése
 syncstate.preparing=Az összehangolás következő elem előkészítése
 syncstate.done=Az összehangolás következő elem előkészítése
