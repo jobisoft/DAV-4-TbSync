@@ -610,17 +610,35 @@ var dav = {
      * the edit/new dialog beyond toggeling the elements of
      * class  "<provider>Container"
      *
-     * @param document       [in] document obj of edit/new dialog
+     * @param aDocument      [in] document obj of edit/new dialog
      * @param isOwnProvider  [in] true if the open card belongs to this provider
      * @param aCard          [in] the card being loaded
      */
-    onAbCardLoad: function (document, isOwnProvider, aCard = null) {
-        document.getElementById("WorkAddress2Container").hidden = isOwnProvider;
-        document.getElementById("abHomeTab").children[1].hidden = isOwnProvider;
-        document.getElementById("PrimaryEmailContainer").hidden = isOwnProvider;
-        document.getElementById("SecondaryEmailContainer").hidden = isOwnProvider;	  
-    },
+    onAbCardLoad: function (aDocument, isOwnProvider, aCard = null) {        
+        aDocument.getElementById("WorkAddress2Container").hidden = isOwnProvider;
+        aDocument.getElementById("abHomeTab").children[1].hidden = isOwnProvider;
+        
+        if (isOwnProvider) {
 
+            //get all emails with metadata from card
+            let emails = dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
+            
+            //add emails to list
+            let list = aDocument.getElementById("X-DAV-EmailAddressList");
+            for (let i=0; i < emails.length; i++) {
+                let item = dav.tools.getNewEmailListItem(aDocument, emails[i]);
+                list.appendChild(item);
+
+                let button = dav.tools.getEmailListItemElement(item, "button");
+                dav.tools.updateEmailType(aDocument, button);
+                dav.tools.updateEmailPref(aDocument, item);
+            }
+        }
+        
+        aDocument.getElementById("PrimaryEmail").disabled = isOwnProvider;
+        aDocument.getElementById("SecondaryEmailContainer").hidden = isOwnProvider;	  
+        aDocument.getElementById("ScreenNameContainer").hidden = isOwnProvider;
+    },
 
 
     /**
