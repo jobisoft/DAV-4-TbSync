@@ -368,6 +368,44 @@ dav.sync = {
         syncdata.downloadonly = (tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "downloadonly") == "1");
         syncdata.folderCreatedWithProviderVersion = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "createdWithProviderVersion");
 
+        //migration
+        if (Services.vc.compare(syncdata.folderCreatedWithProviderVersion, "0.13") < 0) {
+            //run through all contacts and check if we have X-DAV-PrimaryEmailMetaInfo or X-DAV-SecondEmailMetaInfo
+            //if not, these cards have been created with an older mapping, replace the local emails with those from the stored vCard
+            //and create the missing entries
+            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+            let addressBook = abManager.getDirectory(syncdata.targetId);
+            let cards = addressBook.childCards;
+            while (true) {
+                let more = false;
+                try { more = cards.hasMoreElements() } catch (ex) {}
+                if (!more) break;
+
+                let card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+                let primaryMetaInfo = card.getProperty("X-DAV-PrimaryEmailMetaInfo","");
+                let storedCard = tbSync.getPropertyOfCard(card, "X-DAV-VCARD").trim();
+                let sCardData = tbSync.dav.vCard.parse(storedCard);
+                let sCardField = dav.tools.getVCardField(syncdata, "PrimaryEmail", sCardData);        
+                if (sCardField.entry != -1 && primaryMetaInfo == "") {
+                    let secondEmail = [];
+                    let secondMeta = [];
+                    let metaTypeData = dav.tools.getMetaTypeData(sCardData, sCardField.item, sCardField.metatypefield);
+                    
+                    for (let i=0; i < sCardData[sCardField.item].length; i++) {
+                        if (i != sCardField.entry) {
+                            secondEmail.push(sCardData[sCardField.item][i].value);
+                            secondMeta.push(metaTypeData[i]);
+                        }
+                    }
+                    card.setProperty("PrimaryEmail", sCardData[sCardField.item][sCardField.entry].value);
+                    card.setProperty("SecondEmail", secondEmail.join("; "));
+                    card.setProperty("X-DAV-PrimaryEmailMetaInfo", JSON.stringify(metaTypeData[sCardField.entry]));
+                    card.setProperty("X-DAV-SecondEmailMetaInfo", JSON.stringify(secondMeta));
+                    addressBook.modifyCard(card);
+                }
+            }
+        }
+        
         yield dav.sync.remoteChanges(syncdata);
         let numOfLocalChanges = yield dav.sync.localChanges(syncdata);
 
