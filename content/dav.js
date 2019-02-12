@@ -535,7 +535,7 @@ var dav = {
      *
      * @param account       [in] id of the account which should be searched
      * @param currentQuery  [in] search query
-     * @param caller  [in] "autocomplete" or "search"
+     * @param caller        [in] "autocomplete" or "search"
     
      */
     //abServerSearch: Task.async (function* (account, currentQuery, caller)  {
@@ -552,37 +552,29 @@ var dav = {
      * address book
      *
      * @param window       [in] window obj of address book
-     * @param card         [in] selected card
+     * @param aCard        [in] selected card
      */
-    onAbResultsPaneSelectionChanged: function (window, card) {
-        let emailsFound = false;
-        for (let i=0; i < dav.tools.emailFields.length; i++) {
-            let nr = i+1;
-            let emailRow = window.document.getElementById("cvEmail"+nr+"Row");
-            if (emailRow) {
-                let emailValue = card.getProperty(dav.tools.emailFields[i],"");
-                let emailMetaInfo = card.getProperty(dav.tools.emailFields[i] + "MetaInfo","");
-                let emailType = tbSync.getLocalizedMessage("emailtypes.other", "dav");
-                if (emailMetaInfo) {
-                    let type = JSON.parse(emailMetaInfo);
-                    if (type.includes("HOME")) emailType = tbSync.getLocalizedMessage("emailtypes.home", "dav");
-                    else if (type.includes("WORK")) emailType = tbSync.getLocalizedMessage("emailtypes.work", "dav");
-                }
-        
-                if (emailValue) {
-                    emailRow.hidden = false;
-                    emailsFound = true;
-                    window.document.getElementById("cvEmail"+nr+"Type").textContent = emailType + ": ";
-                    window.document.getElementById("cvEmail"+nr+"Link").textContent = emailValue;
-                    window.document.getElementById("cvEmail"+nr+"Link").href = "mailto:" + emailValue;
-                } else {
-                    emailRow.hidden = true;
-                }
-            }
+    onAbResultsPaneSelectionChanged: function (window, aCard) {
+        //get all emails with metadata from card
+        let emails = dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
+        let details = window.document.getElementById("cvbEmailRows");        
+        //remove all rows
+        while (details.firstChild) {
+            details.removeChild(details.firstChild);
         }
-        window.document.getElementById("cvbEmails").collapsed = !emailsFound;
-        window.document.getElementById("cvbEmails").hidden = !emailsFound;
+
+        for (let i=0; i < emails.length; i++) {
+            let emailType = "internet";
+            if (emails[i].meta.includes("HOME")) emailType = "home";
+            else if (emails[i].meta.includes("WORK")) emailType = "work";            
+            details.appendChild(dav.tools.getNewEmailDetailsRow(window, {pref: emails[i].meta.includes("PREF"), src: "chrome://dav4tbsync/skin/type."+emailType+"10.png", href: emails[i].value}));
+        }
         
+        if (window.document.getElementById("cvbEmails")) {
+            window.document.getElementById("cvbEmails").collapsed = (emails.length == 0);
+            window.document.getElementById("cvbEmails").hidden = (emails.length == 0);
+        }
+    
         //hide primary and secondary email, but mark them as default, so they get unhidden again
         let defaultElements = ["cvEmail1Box", "cvEmail2Box"];
         for (let element in defaultElements) {
@@ -591,12 +583,11 @@ var dav = {
             window.document.getElementById(defaultElements[element]).setAttribute("class", classArray.join(" "));
             window.document.getElementById(defaultElements[element]).hidden = true;
         }
-
         
         let cvPhMain = window.document.getElementById("cvPhMain");
         let phoneFound = false;
         if (cvPhMain) {
-            let cvPhMainValue = card.getProperty("X-DAV-MainPhone","");
+            let cvPhMainValue = aCard.getProperty("X-DAV-MainPhone","");
             if (cvPhMainValue) {
                 cvPhMain.textContent = cvPhMain.getAttribute("labelprefix") + " " + cvPhMainValue;
                 cvPhMain.hidden = false;
@@ -606,7 +597,7 @@ var dav = {
         if (phoneFound) {
             window.document.getElementById("cvbPhone").collapsed = false;
             window.document.getElementById("cvhPhone").collapsed = false;
-        }        
+        } 
     },
 
 
