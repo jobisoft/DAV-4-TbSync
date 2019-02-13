@@ -1524,7 +1524,10 @@ dav.tools = {
             case "Email": //also update meta
                 if (store) {
                     vCardData[vCardField.item][vCardField.entry].value = vCardField.prefix + value;
-                    vCardData[vCardField.item][vCardField.entry].meta[vCardField.metatypefield] = vCardField.metatype
+                    if (!vCardData[vCardField.item][vCardField.entry].hasOwnProperty("meta")) {
+                        vCardData[vCardField.item][vCardField.entry].meta = {};
+                    }
+                    vCardData[vCardField.item][vCardField.entry].meta[vCardField.metatypefield] = vCardField.metatype;
                 } else if (remove) vCardData[vCardField.item][vCardField.entry].value = "";
                 break;
 
