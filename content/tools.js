@@ -1727,6 +1727,10 @@ dav.tools = {
                         //this gets us all emails, not just the primary one
                         let emails = dav.tools.getEmailsFromCard(card);
                         let idx = 0;
+            
+                        //store default meta type
+                        let defaultMeta = vCardField.metatype;
+
                         for (let i=0; i < emails.length || idx < vCardData[vCardField.item].length; i++) {
                             //get value or or empty if entry is to be deleted
                             let value = (i < emails.length) ? emails[i].value : "";
@@ -1738,6 +1742,8 @@ dav.tools = {
                             //do we have a meta type? otherwise stick to default
                             if (i < emails.length && emails[i].meta.length > 0) {
                                 vCardField.metatype = emails[i].meta;
+                            } else {
+                                vCardField.metatype= defaultMeta;
                             }
                             
                             //remove: value == "" and index != -1
