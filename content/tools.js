@@ -209,6 +209,7 @@ dav.tools = {
 
             if (toggeled) {
                 button.value = currentValue;
+                dav.tools.updateEmails (aDocument);
             }
         }
         
@@ -241,6 +242,7 @@ dav.tools = {
                     if (!currentValue.includes(newvalue)) currentValue.push(newvalue);
             }
             button.value = currentValue;
+            dav.tools.updateEmails (aDocument);
         }
         
         let emailType = "internet";
@@ -1220,7 +1222,7 @@ dav.tools = {
                 case "X-DAV-PrimaryEmailMetaInfo":
                 case "X-DAV-SecondEmailMetaInfo":
                 {
-                    data.metatype.push("INTERNET"); //here we need to query the Type Property TODO
+                    data.metatype.push("INTERNET"); //default for new entries
                     data.item = "email";
                     
                     if (vCardData[data.item] && vCardData[data.item].length > 0) {
@@ -1519,6 +1521,13 @@ dav.tools = {
                 }
                 break;
 
+            case "Email": //also update meta
+                if (store) {
+                    vCardData[vCardField.item][vCardField.entry].value = vCardField.prefix + value;
+                    vCardData[vCardField.item][vCardField.entry].meta[vCardField.metatypefield] = vCardField.metatype
+                } else if (remove) vCardData[vCardField.item][vCardField.entry].value = "";
+                break;
+
             default: //should be a string
                 if (store) vCardData[vCardField.item][vCardField.entry].value = vCardField.prefix + value;
                 else if (remove) vCardData[vCardField.item][vCardField.entry].value = "";
@@ -1709,29 +1718,36 @@ dav.tools = {
                     break;
 
                 case "X-DAV-PrimaryEmailMetaInfo": 
-                    {
-                        //this is special, we need to return the meta info of the entry
-                        let metaTypeData = dav.tools.getMetaTypeData(vCardData, vCardField.item, vCardField.metatypefield);
-                        return JSON.stringify(metaTypeData[vCardField.entry]);
-                    }
-                    break;
-                    
                 case "X-DAV-SecondEmailMetaInfo": 
-                    {
-                        //this is special, we need to return the meta info of all entries except the indexed one
-                        let metaTypeData = dav.tools.getMetaTypeData(vCardData, vCardField.item, vCardField.metatypefield).filter((e,i) => i != vCardField.entry);
-                        return JSON.stringify(metaTypeData);
-                    }
+                case "SecondEmail":
                     break;
-            
-                case "SecondEmail":     
+                
                 case "PrimaryEmail":
-                    let value = card.getProperty(property, "");
-                    //fix for bug 1522453
-                    if (value.endsWith("@bug1522453")) {
-                        value = "";
+                    {
+                        //this gets us all emails, not just the primary one
+                        let emails = dav.tools.getEmailsFromCard(card);
+                        let idx = 0;
+                        for (let i=0; i < emails.length || idx < vCardData[vCardField.item].length; i++) {
+                            //get value or or empty if entry is to be deleted
+                            let value = (i < emails.length) ? emails[i].value : "";
+                            
+                            //fix for bug 1522453 - ignore these
+                            if (value.endsWith("@bug1522453")) 
+                                continue;
+
+                            //do we have a meta type? otherwise stick to default
+                            if (i < emails.length && emails[i].meta.length > 0) {
+                                vCardField.metatype = emails[i].meta;
+                            }
+                            
+                            //remove: value == "" and index != -1
+                            //add        value != "" and index == -1                           
+                            vCardField.entry = idx++;
+                            if (!(vCardField.entry < vCardData[vCardField.item].length)) vCardField.entry = -1; //need to add a new one
+                            
+                            dav.tools.updateValueOfVCard(syncdata, "Email", vCardData, vCardField, value);
+                        }
                     }
-                    dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, value);
                     break;
                     
                 default:
