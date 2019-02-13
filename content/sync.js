@@ -142,7 +142,7 @@ dav.sync = {
                                             : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
 
                     //some servers report to have calendar-proxy-read but return a 404 when that gets actually queried
-                    let response = yield dav.tools.sendRequest(request, home[h], "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: [404]});
+                    let response = yield dav.tools.sendRequest(request, home[h], "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: [403, 404]});
                     if (response && response.softerror) {
                         continue;
                     }
