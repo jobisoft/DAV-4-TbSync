@@ -122,7 +122,11 @@ dav.sync = {
                 //Any groups we need to find? Only diving one level at the moment, 
                 let g = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["d", "group-membership" ], ["d","href"]], principal);
                 for (let gc=0; gc < g.length; gc++) {
-                    response = yield dav.tools.sendRequest(request, g[gc], "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                    //SOGo reports a 403 if I request the provided resource, also since we do not dive, remove the request for group-membership                    
+                    response = yield dav.tools.sendRequest(request.replace("<d:group-membership />",""), g[gc], "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"}, {softfail: [403, 404]});
+                    if (response && response.softerror) {
+                        continue;
+                    }		    
                     home = home.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], g[gc]));
                 }
 
