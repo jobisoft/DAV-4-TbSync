@@ -245,7 +245,7 @@ dav.tools = {
             dav.tools.updateEmails (aDocument);
         }
         
-        let emailType = "internet";
+        let emailType = "other";
         if (currentValue.includes("HOME")) emailType = "home";
         else if (currentValue.includes("WORK")) emailType = "work";
         button.setAttribute("image","chrome://dav4tbsync/skin/type."+emailType+"10.png");
@@ -1222,7 +1222,7 @@ dav.tools = {
                 case "X-DAV-PrimaryEmailMetaInfo":
                 case "X-DAV-SecondEmailMetaInfo":
                 {
-                    data.metatype.push("INTERNET"); //default for new entries
+                    data.metatype.push("OTHER"); //default for new entries
                     data.item = "email";
                     
                     if (vCardData[data.item] && vCardData[data.item].length > 0) {

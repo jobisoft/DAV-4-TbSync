@@ -564,7 +564,7 @@ var dav = {
         }
 
         for (let i=0; i < emails.length; i++) {
-            let emailType = "internet";
+            let emailType = "other";
             if (emails[i].meta.includes("HOME")) emailType = "home";
             else if (emails[i].meta.includes("WORK")) emailType = "work";            
             details.appendChild(dav.tools.getNewEmailDetailsRow(window, {pref: emails[i].meta.includes("PREF"), src: "chrome://dav4tbsync/skin/type."+emailType+"10.png", href: emails[i].value}));

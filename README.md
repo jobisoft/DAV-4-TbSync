@@ -10,7 +10,7 @@ More information can be found in the [wiki](https://github.com/jobisoft/DAV-4-Tb
 * [icloud16.png] by [Five Icons](https://www.iconfinder.com/icons/252111/apple_icon)
 * [yahoo16.png] by [Five Icons](https://www.iconfinder.com/icons/252070/yahoo_icon)
 * [gmx16.png] by [CloudSponge](https://www.iconfinder.com/icons/1175604/address_book_contact_contacts_email_gmx_square_icon)
-* [type.internet.png] by [Steve Schoger](https://www.iconfinder.com/icons/3671671/)
+* [type.other.png] by [Steve Schoger](https://www.iconfinder.com/icons/3671671/)
 * [type.work.png] by [Steve Schoger](https://www.iconfinder.com/icons/3671695/)
 * [type.home.png] by [Steve Schoger](https://www.iconfinder.com/icons/3671775/)
 * [type.pref.png] by [Steve Schoger](https://www.iconfinder.com/icons/3671863/)

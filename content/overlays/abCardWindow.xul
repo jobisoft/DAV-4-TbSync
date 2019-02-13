@@ -9,7 +9,7 @@
         <menupopup position="start_before">
           <menuitem class="menuitem-iconic" label="&abCard.emailtypes.home;" oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'HOME')" image="chrome://dav4tbsync/skin/type.home16.png" />
           <menuitem class="menuitem-iconic" label="&abCard.emailtypes.work;"  oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'WORK')" image="chrome://dav4tbsync/skin/type.work16.png" />
-          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.other;" oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'INTERNET')" image="chrome://dav4tbsync/skin/type.internet16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.other;" oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'OTHER')" image="chrome://dav4tbsync/skin/type.other16.png" />
         </menupopup>
     </hbox>
     
