@@ -618,7 +618,7 @@ var dav = {
         aDocument.getElementById("WorkAddress2Container").hidden = isOwnProvider;
         aDocument.getElementById("abHomeTab").children[1].hidden = isOwnProvider;
         
-        if (isOwnProvider) {
+        if (isOwnProvider && aCard) {
 
             //get all emails with metadata from card
             let emails = dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
