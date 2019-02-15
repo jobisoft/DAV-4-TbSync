@@ -56,7 +56,7 @@
             <spacer flex="1" />            
             <button id="DavPhoneAdd" label="+" oncommand="tbSync.dav.tools.addPhoneEntry(window.document)" flex="0" style="width:3em; min-width:3em" />          
           </hbox>
-          <richlistbox flex="0" style="height:8em;" id="X-DAV-PhoneNumberList" seltype="single" >            
+          <richlistbox flex="0" style="height:13ex;" id="X-DAV-PhoneNumberList" seltype="single" >            
           </richlistbox>
           <!--label id="X-DAV-HomePhoneMetaInfo" collapsed="true" class="davProperty" />
           <label id="X-DAV-WorkPhoneMetaInfo" collapsed="true" class="davProperty" /-->
@@ -71,7 +71,7 @@
             <spacer flex="1" />            
             <button id="DavEmailAdd" label="+" oncommand="tbSync.dav.tools.addEmailEntry(window.document)" flex="0" style="width:3em; min-width:3em" />          
           </hbox>
-          <richlistbox flex="0" style="height:8em;" id="X-DAV-EmailAddressList" seltype="single" >            
+          <richlistbox flex="0" style="height:13ex;" id="X-DAV-EmailAddressList" seltype="single" >            
           </richlistbox>
 
           <description>&abCard.emailtypes.description;</description>

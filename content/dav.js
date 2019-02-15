@@ -618,6 +618,13 @@ var dav = {
         elementsToHide.push(aDocument.getElementById("SecondaryEmailContainer"));
         elementsToHide.push(aDocument.getElementById("PhoneNumbers"));
 
+        //do we need to resize?
+        if (aCard == null) {
+            let width = aDocument.defaultView.outerWidth;
+            let height = aDocument.defaultView.outerHeight;
+            if (width < 750 || height < 500) aDocument.defaultView.resizeTo(Math.max(750,width), Math.max(500,height));
+        }
+        
         //hide stuff from gContactSync *grrrr* - I cannot hide all because he adds them via javascript :-(
         elementsToHide.push(aDocument.getElementById("gContactSyncTab"));
         
