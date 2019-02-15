@@ -6,10 +6,10 @@
 	id="abOverlay" 
 	xmlns:html="http://www.w3.org/1999/xhtml">
 
-    <description class="CardViewText davContainer" id="cvPhMain" labelprefix="&abCard.Phone;" insertbefore="cvPhWork" >
+    <description class="CardViewText tbsyncContainer" id="cvPhMain" labelprefix="&abCard.Phone;" insertbefore="cvPhWork" >
     </description>
 
-		<vbox id="cvbEmails" class="cardViewGroup davContainer" insertafter="cvbContact">
+		<vbox id="cvbEmails" class="cardViewGroup tbsyncContainer" insertafter="cvbContact">
 			<description class="CardViewHeading" id="cvhEmails">&abCard.EmailAddresses;</description>
 			<grid>
 				<columns>

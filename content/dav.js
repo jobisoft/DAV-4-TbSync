@@ -572,16 +572,15 @@ var dav = {
         
         if (window.document.getElementById("cvbEmails")) {
             window.document.getElementById("cvbEmails").collapsed = (emails.length == 0);
-            window.document.getElementById("cvbEmails").hidden = (emails.length == 0);
         }
     
-        //hide primary and secondary email, but mark them as default, so they get unhidden again
-        let defaultElements = ["cvEmail1Box", "cvEmail2Box"];
-        for (let element in defaultElements) {
-            let classArray = window.document.getElementById(defaultElements[element]).getAttribute("class").split(" ");
-            if (!classArray.includes("defaultElement")) classArray.push("defaultElement");
-            window.document.getElementById(defaultElements[element]).setAttribute("class", classArray.join(" "));
-            window.document.getElementById(defaultElements[element]).hidden = true;
+        //hide primary and secondary email, but mark them as hidden by tbsync, so they get unhidden again
+        let hiddenElements = ["cvEmail1Box", "cvEmail2Box"];
+        for (let element in hiddenElements) {
+            let classArray = window.document.getElementById(hiddenElements[element]).getAttribute("class").split(" ");
+            if (!classArray.includes("tbsyncHidden")) classArray.push("tbsyncHidden");
+            window.document.getElementById(hiddenElements[element]).setAttribute("class", classArray.join(" "));
+            window.document.getElementById(hiddenElements[element]).collapsed = true;
         }
         
         let cvPhMain = window.document.getElementById("cvPhMain");
@@ -590,7 +589,7 @@ var dav = {
             let cvPhMainValue = aCard.getProperty("X-DAV-MainPhone","");
             if (cvPhMainValue) {
                 cvPhMain.textContent = cvPhMain.getAttribute("labelprefix") + " " + cvPhMainValue;
-                cvPhMain.hidden = false;
+                cvPhMain.collapsed = false;
                 phoneFound = true;
             }
         }        
