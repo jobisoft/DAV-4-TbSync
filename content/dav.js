@@ -604,21 +604,25 @@ var dav = {
 
     /**
      * Is called if a card is loaded in the edit dialog to show/hide elements
-    *  besides those of class type "<provider>Container"
-     *
-     * OPTIONAL, do not implement, if this provider is not manipulating
-     * the edit/new dialog beyond toggeling the elements of
-     * class  "<provider>Container"
      *
      * @param aDocument      [in] document obj of edit/new dialog
-     * @param isOwnProvider  [in] true if the open card belongs to this provider
      * @param aCard          [in] the card being loaded
      */
-    onAbCardLoad: function (aDocument, isOwnProvider, aCard = null) {        
-        aDocument.getElementById("WorkAddress2Container").hidden = isOwnProvider;
-        aDocument.getElementById("abHomeTab").children[1].hidden = isOwnProvider;
+    onAbCardLoad: function (aDocument, aCard = null) {        
+        let elementsToHide = [];
+        let elementsToDisable = [];
         
-        if (isOwnProvider && aCard) {
+        elementsToHide.push(aDocument.getElementById("WorkAddress2Container"));
+        elementsToHide.push(aDocument.getElementById("abHomeTab").children[1]);
+        elementsToHide.push(aDocument.getElementById("SecondaryEmailContainer"));
+        elementsToHide.push(aDocument.getElementById("ScreenNameContainer"));
+        
+        //hide stuff from gContactSync *grrrr* - I cannot hide all because he adds them via javascript :-(
+        elementsToHide.push(aDocument.getElementById("gContactSyncTab"));
+
+        elementsToDisable.push(aDocument.getElementById("PrimaryEmail"));
+        
+        if (aCard) {
 
             //get all emails with metadata from card
             let emails = dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
@@ -635,9 +639,27 @@ var dav = {
             }
         }
         
-        aDocument.getElementById("PrimaryEmail").disabled = isOwnProvider;
-        aDocument.getElementById("SecondaryEmailContainer").hidden = isOwnProvider;	  
-        aDocument.getElementById("ScreenNameContainer").hidden = isOwnProvider;
+        //store hide action in DOM
+        for (let i=0; i < elementsToHide.length; i++) {
+            if (elementsToHide[i]) {
+                elementsToHide[i].hidden = true;
+                let classStr = elementsToHide[i].getAttribute("class");
+                let classArr = (classStr) ? classStr.split(" ") : [];
+                classArr.push("davHidden");
+                elementsToHide[i].setAttribute("class", classArr.join(" "));
+            }
+        }
+
+        //store disable action in DOM
+        for (let i=0; i < elementsToDisable.length; i++) {
+            if (elementsToDisable[i]) {
+                elementsToDisable[i].disabled = true;
+                let classStr = elementsToDisable[i].getAttribute("class");
+                let classArr = (classStr) ? classStr.split(" ") : [];
+                classArr.push("davDisabled");
+                elementsToDisable[i].setAttribute("class", classArr.join(" "));
+            }
+        }
     },
 
 

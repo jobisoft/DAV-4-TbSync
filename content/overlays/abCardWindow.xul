@@ -5,7 +5,7 @@
     id="abCardWindow" 
     xmlns:html="http://www.w3.org/1999/xhtml">
 
-    <hbox id="DavEmailSpacer" class="davContainer" insertbefore="PrimaryEmailContainer" style="margin-bottom:1ex">
+    <hbox id="DavEmailSpacer" hidden="true" class="davContainer" insertbefore="PrimaryEmailContainer" style="margin-bottom:1ex">
         <menupopup position="start_before">
           <menuitem class="menuitem-iconic" label="&abCard.emailtypes.home;" oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'HOME')" image="chrome://dav4tbsync/skin/type.home16.png" />
           <menuitem class="menuitem-iconic" label="&abCard.emailtypes.work;"  oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'WORK')" image="chrome://dav4tbsync/skin/type.work16.png" />
@@ -13,7 +13,7 @@
         </menupopup>
     </hbox>
     
-    <hbox id="DavEmailContainer" class="davContainer" insertafter="PrimaryEmailContainer" style="margin-bottom:1em">
+    <hbox id="DavEmailContainer" hidden="true" class="davContainer" insertafter="PrimaryEmailContainer" style="margin-bottom:1em">
         <spacer flex="1"/>
         <vbox class="CardEditWidth">
           <richlistbox flex="0" style="height:6em;" id="X-DAV-EmailAddressList" seltype="single" >            
@@ -24,9 +24,9 @@
         </vbox>
     </hbox>
     
-    <button id="DavEmailAdd" label="+" oncommand="tbSync.dav.tools.addEmailEntry(window.document)" class="davContainer" flex="0" style="width:3em; min-width:3em" insertafter="PrimaryEmail" />
+    <button id="DavEmailAdd" label="+" oncommand="tbSync.dav.tools.addEmailEntry(window.document)" hidden="true" class="davContainer" flex="0" style="width:3em; min-width:3em" insertafter="PrimaryEmail" />
     
-    <hbox id="DavMiddleNameContainer" align="center" class="davContainer" insertafter="NameField1Container" >
+    <hbox id="DavMiddleNameContainer" align="center" hidden="true" class="davContainer" insertafter="NameField1Container" >
         <spacer flex="1" />
         <label control="X-DAV-MiddleName" value="&abCard.MiddleName;" />
         <hbox class="CardEditWidth" >
@@ -34,7 +34,7 @@
         </hbox>
     </hbox>
 
-    <hbox id="DavMainPhoneContainer" align="center" class="davContainer" insertbefore="WorkPhoneContainer" >
+    <hbox id="DavMainPhoneContainer" align="center" hidden="true" class="davContainer" insertbefore="WorkPhoneContainer" >
         <spacer flex="1" />
         <label control="X-DAV-MainPhone" value="&abCard.Phone;" />
         <textbox id="X-DAV-MainPhone" class="davProperty PhoneEditWidth" />
