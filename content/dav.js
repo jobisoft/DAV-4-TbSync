@@ -558,29 +558,31 @@ var dav = {
         //get all emails with metadata from card
         let emails = dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
         let details = window.document.getElementById("cvbEmailRows");        
-        //remove all rows
-        while (details.firstChild) {
-            details.removeChild(details.firstChild);
-        }
+        if (details) {
+            //remove all rows
+            while (details.firstChild) {
+                details.removeChild(details.firstChild);
+            }
 
-        for (let i=0; i < emails.length; i++) {
-            let emailType = "other";
-            if (emails[i].meta.includes("HOME")) emailType = "home";
-            else if (emails[i].meta.includes("WORK")) emailType = "work";            
-            details.appendChild(dav.tools.getNewEmailDetailsRow(window, {pref: emails[i].meta.includes("PREF"), src: "chrome://dav4tbsync/skin/type."+emailType+"10.png", href: emails[i].value}));
-        }
+            for (let i=0; i < emails.length; i++) {
+                let emailType = "other";
+                if (emails[i].meta.includes("HOME")) emailType = "home";
+                else if (emails[i].meta.includes("WORK")) emailType = "work";            
+                details.appendChild(dav.tools.getNewEmailDetailsRow(window, {pref: emails[i].meta.includes("PREF"), src: "chrome://dav4tbsync/skin/type."+emailType+"10.png", href: emails[i].value}));
+            }
+            
+            if (window.document.getElementById("cvbEmails")) {
+                window.document.getElementById("cvbEmails").collapsed = (emails.length == 0);
+            }
         
-        if (window.document.getElementById("cvbEmails")) {
-            window.document.getElementById("cvbEmails").collapsed = (emails.length == 0);
-        }
-    
-        //hide primary and secondary email, but mark them as hidden by tbsync, so they get unhidden again
-        let hiddenElements = ["cvEmail1Box", "cvEmail2Box"];
-        for (let element in hiddenElements) {
-            let classArray = window.document.getElementById(hiddenElements[element]).getAttribute("class").split(" ");
-            if (!classArray.includes("tbsyncHidden")) classArray.push("tbsyncHidden");
-            window.document.getElementById(hiddenElements[element]).setAttribute("class", classArray.join(" "));
-            window.document.getElementById(hiddenElements[element]).collapsed = true;
+            //hide primary and secondary email, but mark them as hidden by tbsync, so they get unhidden again
+            let hiddenElements = ["cvEmail1Box", "cvEmail2Box"];
+            for (let element in hiddenElements) {
+                let classArray = window.document.getElementById(hiddenElements[element]).getAttribute("class").split(" ");
+                if (!classArray.includes("tbsyncHidden")) classArray.push("tbsyncHidden");
+                window.document.getElementById(hiddenElements[element]).setAttribute("class", classArray.join(" "));
+                window.document.getElementById(hiddenElements[element]).collapsed = true;
+            }
         }
         
         let cvPhMain = window.document.getElementById("cvPhMain");
