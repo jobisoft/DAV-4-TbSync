@@ -614,16 +614,14 @@ var dav = {
         
         elementsToHide.push(aDocument.getElementById("WorkAddress2Container"));
         elementsToHide.push(aDocument.getElementById("abHomeTab").children[1]);
+        elementsToHide.push(aDocument.getElementById("PrimaryEmailContainer"));
         elementsToHide.push(aDocument.getElementById("SecondaryEmailContainer"));
-        elementsToHide.push(aDocument.getElementById("ScreenNameContainer"));
-        
+        elementsToHide.push(aDocument.getElementById("PhoneNumbers"));
+
         //hide stuff from gContactSync *grrrr* - I cannot hide all because he adds them via javascript :-(
         elementsToHide.push(aDocument.getElementById("gContactSyncTab"));
-
-        elementsToDisable.push(aDocument.getElementById("PrimaryEmail"));
         
         if (aCard) {
-
             //get all emails with metadata from card
             let emails = dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
             

@@ -5,28 +5,24 @@
     id="abCardWindow" 
     xmlns:html="http://www.w3.org/1999/xhtml">
 
-    <hbox id="DavEmailSpacer" hidden="true" class="davContainer" insertbefore="PrimaryEmailContainer" style="margin-bottom:1ex">
+    <hbox id="DavEmailSpacer" hidden="true" class="davContainer" insertbefore="NickNameContainer" style="margin-bottom:2ex">
         <menupopup position="start_before">
           <menuitem class="menuitem-iconic" label="&abCard.emailtypes.home;" oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'HOME')" image="chrome://dav4tbsync/skin/type.home16.png" />
           <menuitem class="menuitem-iconic" label="&abCard.emailtypes.work;"  oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'WORK')" image="chrome://dav4tbsync/skin/type.work16.png" />
           <menuitem class="menuitem-iconic" label="&abCard.emailtypes.other;" oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'OTHER')" image="chrome://dav4tbsync/skin/type.other16.png" />
         </menupopup>
     </hbox>
+       
     
-    <hbox id="DavEmailContainer" hidden="true" class="davContainer" insertafter="PrimaryEmailContainer" style="margin-bottom:1em">
-        <spacer flex="1"/>
-        <vbox class="CardEditWidth">
-          <richlistbox flex="0" style="height:6em;" id="X-DAV-EmailAddressList" seltype="single" >            
-          </richlistbox>
-          <description>&abCard.emailtypes.description;</description>
-          <label id="X-DAV-PrimaryEmailMetaInfo" hidden="true" class="davProperty" />
-          <label id="X-DAV-SecondEmailMetaInfo" hidden="true" class="davProperty" />
-        </vbox>
+    <hbox id="DavTopSpacer" align="center" hidden="true" class="davContainer" insertbefore="NameField1Container" >
+        <spacer flex="1" />
+        <hbox style="visibility:hidden" class="CardEditWidth" >
+            <button label="+" flex="0" style="width:3em; min-width:3em" />          
+        </hbox>
+        <label value="Contact Details" />
     </hbox>
-    
-    <button id="DavEmailAdd" label="+" oncommand="tbSync.dav.tools.addEmailEntry(window.document)" hidden="true" class="davContainer" flex="0" style="width:3em; min-width:3em" insertafter="PrimaryEmail" />
-    
-    <hbox id="DavMiddleNameContainer" align="center" hidden="true" class="davContainer" insertafter="NameField1Container" >
+
+<hbox id="DavMiddleNameContainer" align="center" hidden="true" class="davContainer" insertafter="NameField1Container" >
         <spacer flex="1" />
         <label control="X-DAV-MiddleName" value="&abCard.MiddleName;" />
         <hbox class="CardEditWidth" >
@@ -34,12 +30,41 @@
         </hbox>
     </hbox>
 
-    <hbox id="DavMainPhoneContainer" align="center" hidden="true" class="davContainer" insertbefore="WorkPhoneContainer" >
-        <spacer flex="1" />
-        <label control="X-DAV-MainPhone" value="&abCard.Phone;" />
-        <textbox id="X-DAV-MainPhone" class="davProperty PhoneEditWidth" />
-    </hbox>
+    <vbox id="DavFieldsContainer" hidden="true" class="davContainer" insertafter="PhoneNumbers">
 
+      <hbox flex="1">
+        <spacer style="width:3em;" />
+        <vbox class="CardEditWidth">
+          <hbox align="center">
+            <label value="&abCard.Phone;" />
+            <spacer flex="1" />            
+            <button id="DavPhoneAdd" label="+" oncommand="tbSync.dav.tools.addPhoneEntry(window.document)" flex="0" style="width:3em; min-width:3em" />          
+          </hbox>
+          <richlistbox flex="0" style="height:8em;" id="X-DAV-PhoneNumberList" seltype="single" >            
+          </richlistbox>
+          <!--label id="X-DAV-HomePhoneMetaInfo" hidden="true" class="davProperty" />
+          <label id="X-DAV-WorkPhoneMetaInfo" hidden="true" class="davProperty" /-->
+        </vbox>
+      </hbox>
+      
+      <hbox flex="1" style="margin-top:1em">
+        <spacer style="width:3em;" />
+        <vbox class="CardEditWidth">
+          <hbox align="center">
+            <label value="&abCard.EmailAddresses;" />
+            <spacer flex="1" />            
+            <button id="DavEmailAdd" label="+" oncommand="tbSync.dav.tools.addEmailEntry(window.document)" flex="0" style="width:3em; min-width:3em" />          
+          </hbox>
+          <richlistbox flex="0" style="height:8em;" id="X-DAV-EmailAddressList" seltype="single" >            
+          </richlistbox>
+
+          <description>&abCard.emailtypes.description;</description>
+          <label id="X-DAV-PrimaryEmailMetaInfo" hidden="true" class="davProperty" />
+          <label id="X-DAV-SecondEmailMetaInfo" hidden="true" class="davProperty" />
+        </vbox>
+      </hbox>
+
+    </vbox>
 </overlay>
 
 
