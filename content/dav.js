@@ -640,7 +640,7 @@ var dav = {
         //store hide action in DOM
         for (let i=0; i < elementsToHide.length; i++) {
             if (elementsToHide[i]) {
-                elementsToHide[i].hidden = true;
+                elementsToHide[i].collapsed = true;
                 let classStr = elementsToHide[i].getAttribute("class");
                 let classArr = (classStr) ? classStr.split(" ") : [];
                 classArr.push("davHidden");
