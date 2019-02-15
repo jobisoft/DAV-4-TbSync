@@ -38,7 +38,10 @@
 <!ENTITY pref.useCache "Офлайн поддержка">
 
 <!ENTITY abCard.MiddleName "Отчество:">
-<!ENTITY abCard.Phone "Основной телефон:">
+<!ENTITY abCard.PrefixName "Префикс:">
+<!ENTITY abCard.SuffixName "Суффикс:">
+<!ENTITY abCard.Phone "Телефонные номера">
+<!ENTITY abCard.ContactDetails "Контакты свойства">
 <!ENTITY abCard.EmailAddresses "Адреса электронной почты:">
 
 <!ENTITY manager.tabs.accountsettings "Настройки аккаунта">

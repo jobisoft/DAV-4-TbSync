@@ -38,7 +38,10 @@
 <!ENTITY pref.useCache "Kapcsolat nélküli munka">
 
 <!ENTITY abCard.MiddleName "Egyéb név:">
-<!ENTITY abCard.Phone "Fő:">
+<!ENTITY abCard.PrefixName "előtagja:">
+<!ENTITY abCard.SuffixName "képző:">
+<!ENTITY abCard.Phone "Telefonszámok">
+<!ENTITY abCard.ContactDetails "Kapcsolati tulajdonságok">
 <!ENTITY abCard.EmailAddresses "Email címek:">
 
 <!ENTITY manager.tabs.accountsettings "Fiók beállításai">

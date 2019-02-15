@@ -38,7 +38,10 @@
 <!ENTITY pref.useCache "Offline Support">
 
 <!ENTITY abCard.MiddleName "Middle:">
+<!ENTITY abCard.PrefixName "Prefix:">
+<!ENTITY abCard.SuffixName "Suffix:">
 <!ENTITY abCard.Phone "Phone numbers">
+<!ENTITY abCard.ContactDetails "Contact properties">
 <!ENTITY abCard.EmailAddresses "E-mail addresses">
 
 <!ENTITY manager.tabs.accountsettings "Account settings">
