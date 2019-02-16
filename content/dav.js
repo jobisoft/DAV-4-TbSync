@@ -148,7 +148,7 @@ var dav = {
      */
     load: Task.async (function* (lightningIsAvail) {
         //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
-        dav.overlayManager = new OverlayManager({verbose: 5});
+        dav.overlayManager = new OverlayManager({verbose: 0});
         yield dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         yield dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         yield dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
