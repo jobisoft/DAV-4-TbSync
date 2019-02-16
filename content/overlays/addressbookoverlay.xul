@@ -3,8 +3,8 @@
 <!DOCTYPE window SYSTEM "chrome://dav4tbsync/locale/dav.dtd">
 
 <overlay 
+	id="TbSyncAbDavOverlay" 
 	xmlns:html="http://www.w3.org/1999/xhtml">
-    id="abDavOverlay" 
 
     <description class="CardViewText tbsyncContainer" id="cvPhMain" labelprefix="&abCard.Phone;" insertbefore="cvPhWork" >
     </description>

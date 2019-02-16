@@ -2,7 +2,7 @@
 <!DOCTYPE window SYSTEM "chrome://dav4tbsync/locale/dav.dtd">
 
 <overlay 
-    id="abDavCardWindow" 
+    id="TbSyncAbDavCardWindow" 
     xmlns:html="http://www.w3.org/1999/xhtml">
 
     <hbox id="DavEmailSpacer" collapsed="true" class="davContainer" insertbefore="NickNameContainer" style="margin-bottom:2ex">

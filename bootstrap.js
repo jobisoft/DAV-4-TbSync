@@ -45,16 +45,11 @@ function startup(data, reason) {
     //during app startup, the load of the provider will be triggered by a "tbsync.init.done" notification, 
     //if load happens later, we need load manually 
     if (reason != APP_STARTUP) {
-        //OLD API - REMOVE AFTER SWITCH
-        Services.obs.notifyObservers(null, "tbsync.addProvider", "dav");
         onInitDoneObserver.observe();
     }
 }
 
 function shutdown(data, reason) {
-    //OLD API - REMOVE AFTER SWITCH
-    Services.obs.notifyObservers(null, "tbsync.removeProvider", "dav");
-
     Services.obs.removeObserver(onInitDoneObserver, "tbsync.init.done");
 
     //unload this provider add-on and all its loaded providers from TbSync

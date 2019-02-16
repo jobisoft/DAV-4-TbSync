@@ -148,10 +148,12 @@ var dav = {
      */
     load: Task.async (function* (lightningIsAvail) {
         //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
-        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        yield tbSync.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
-
+        dav.overlayManager = new OverlayManager({verbose: 5});
+        yield dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
+        yield dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
+        yield dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
+        dav.overlayManager.startObserving();
+	
         if (lightningIsAvail) {
             cal.getCalendarManager().addObserver(tbSync.dav.calendarManagerObserver);    
             cal.getCalendarManager().addCalendarObserver(tbSync.dav.calendarObserver);            
@@ -195,7 +197,8 @@ var dav = {
         if (lightningIsAvail) {
             cal.getCalendarManager().removeObserver(tbSync.dav.calendarManagerObserver);
             cal.getCalendarManager().removeCalendarObserver(tbSync.dav.calendarObserver);                        
-        }        
+        }
+        dav.overlayManager.stopObserving();	
     },
 
 
