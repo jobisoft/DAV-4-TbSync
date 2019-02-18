@@ -30,7 +30,7 @@
         <spacer flex="1" />
         <label control="X-DAV-PrefixName" value="&abCard.PrefixName;" />
         <hbox class="CardEditWidth" >
-            <textbox name="X-DAV-PrefixName" flex="1" class="davProperty CardEditWidth" />
+            <textbox id="X-DAV-PrefixName" flex="1" class="davProperty CardEditWidth" />
         </hbox>
     </hbox>
 
@@ -38,7 +38,7 @@
         <spacer flex="1" />
         <label control="X-DAV-MiddleName" value="&abCard.MiddleName;" />
         <hbox class="CardEditWidth" >
-            <textbox name="X-DAV-MiddleName" flex="1" class="davProperty CardEditWidth" />
+            <textbox id="X-DAV-MiddleName" flex="1" class="davProperty CardEditWidth" />
         </hbox>
     </hbox>
 
@@ -46,7 +46,7 @@
         <spacer flex="1" />
         <label control="X-DAV-SuffixName" value="&abCard.SuffixName;" />
         <hbox class="CardEditWidth" >
-            <textbox name="X-DAV-SuffixName" flex="1" class="davProperty CardEditWidth" />
+            <textbox id="X-DAV-SuffixName" flex="1" class="davProperty CardEditWidth" />
         </hbox>
     </hbox>
 
@@ -62,8 +62,8 @@
           </hbox>
           <richlistbox flex="0" style="height:13ex;" id="X-DAV-PhoneNumberList" seltype="single" >            
           </richlistbox>
-          <!--label name="X-DAV-HomePhoneMetaInfo" collapsed="true" class="davProperty" />
-          <label name="X-DAV-WorkPhoneMetaInfo" collapsed="true" class="davProperty" /-->
+          <!--label id="X-DAV-HomePhoneMetaInfo" collapsed="true" class="davProperty" />
+          <label id="X-DAV-WorkPhoneMetaInfo" collapsed="true" class="davProperty" /-->
         </vbox>
       </hbox>
       
@@ -79,8 +79,8 @@
           </richlistbox>
 
           <description>&abCard.emailtypes.description;</description>
-          <label id="X-DAV-PrimaryEmailMetaInfo" name="X-DAV-PrimaryEmailMetaInfo" collapsed="true" class="davProperty" />
-          <label id="X-DAV-SecondEmailMetaInfo" name="X-DAV-SecondEmailMetaInfo" collapsed="true" class="davProperty" />
+          <label id="X-DAV-PrimaryEmailMetaInfo" collapsed="true" class="davProperty" />
+          <label id="X-DAV-SecondEmailMetaInfo" collapsed="true" class="davProperty" />
         </vbox>
       </hbox>
 
