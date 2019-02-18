@@ -69,11 +69,11 @@ var tbSyncAbDavCardWindow = {
         let newHeight;
 
         if (window.location.href=="chrome://messenger/content/addressbook/abNewCardDialog.xul") {
-            newWidth = 750;
-            newHeight = 500;            
+            newWidth = 710;
+            newHeight = 500;
             window.RegisterSaveListener(tbSyncAbDavCardWindow.onSaveCard);        
         } else {            
-            newWidth = 750;
+            newWidth = 710;
             newHeight = 450;
             window.RegisterLoadListener(tbSyncAbDavCardWindow.onLoadCard);
             window.RegisterSaveListener(tbSyncAbDavCardWindow.onSaveCard);
