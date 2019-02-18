@@ -202,15 +202,11 @@ dav.tools = {
 
         let currentValue = button.value ? button.value : [];        
         if (toggle) {
-            let toggeled = true;
             if (currentValue.includes("PREF")) currentValue = currentValue.filter(e => e != "PREF");
-            else if (email.value.trim() != "") currentValue.push("PREF");
-            else toggeled = false;
+            else currentValue.push("PREF");
 
-            if (toggeled) {
-                button.value = currentValue;
-                dav.tools.updateEmails (aDocument);
-            }
+            button.value = currentValue;
+            dav.tools.updateEmails (aDocument);
         }
         
         if (currentValue.includes("PREF")) {
