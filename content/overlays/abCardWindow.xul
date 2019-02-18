@@ -79,8 +79,8 @@
           </richlistbox>
 
           <description>&abCard.emailtypes.description;</description>
-          <label name="X-DAV-PrimaryEmailMetaInfo" collapsed="true" class="davProperty" />
-          <label name="X-DAV-SecondEmailMetaInfo" collapsed="true" class="davProperty" />
+          <label id="X-DAV-PrimaryEmailMetaInfo" name="X-DAV-PrimaryEmailMetaInfo" collapsed="true" class="davProperty" />
+          <label id="X-DAV-SecondEmailMetaInfo" name="X-DAV-SecondEmailMetaInfo" collapsed="true" class="davProperty" />
         </vbox>
       </hbox>
 
