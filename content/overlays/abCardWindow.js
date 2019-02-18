@@ -137,7 +137,7 @@ var tbSyncAbDavCardWindow = {
         //load properties
         let items = aDocument.getElementsByClassName("davProperty");
         for (let i=0; i < items.length; i++) {
-            items[i].value = aCard.getProperty(items[i].getAttribute("name"), "");
+            items[i].value = aCard.getProperty(items[i].id, "");
         }
 
         //get all emails with metadata from card
@@ -158,7 +158,7 @@ var tbSyncAbDavCardWindow = {
     onSaveCard: function (aCard, aDocument) {
         let items = aDocument.getElementsByClassName("davProperty");
         for (let i=0; i < items.length; i++) {
-            aCard.setProperty(items[i].getAttribute("name"), items[i].value);
+            aCard.setProperty(items[i].id, items[i].value);
         }
     }
     
