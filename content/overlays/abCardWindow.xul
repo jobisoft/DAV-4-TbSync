@@ -3,18 +3,22 @@
 
 <overlay 
     id="TbSyncAbDavCardWindow" 
+    onbeforeinject="tbSyncAbDavCardWindow.onBeforeInject(window)"
+    oninject="tbSyncAbDavCardWindow.onInject(window)"
+    onremove="tbSyncAbDavCardWindow.onRemove(window)"
     xmlns:html="http://www.w3.org/1999/xhtml">
 
-    <hbox id="DavEmailSpacer" collapsed="true" class="davContainer" insertbefore="NickNameContainer" style="margin-bottom:2ex">
+    <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/abCardWindow.js" />
+
+    <hbox id="DavEmailSpacer" insertbefore="NickNameContainer" style="margin-bottom:2ex">
         <menupopup position="start_before">
           <menuitem class="menuitem-iconic" label="&abCard.emailtypes.home;" oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'HOME')" image="chrome://dav4tbsync/skin/type.home16.png" />
           <menuitem class="menuitem-iconic" label="&abCard.emailtypes.work;"  oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'WORK')" image="chrome://dav4tbsync/skin/type.work16.png" />
           <menuitem class="menuitem-iconic" label="&abCard.emailtypes.other;" oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'OTHER')" image="chrome://dav4tbsync/skin/type.other16.png" />
         </menupopup>
     </hbox>
-       
-    
-    <hbox id="DavTopSpacer" align="center" collapsed="true" class="davContainer" insertbefore="NameField1Container" >
+
+    <hbox id="DavTopSpacer" align="center" insertbefore="NameField1Container" >
         <spacer flex="1" />
         <hbox style="visibility:hidden" class="CardEditWidth" >
             <button label="+" flex="0" style="width:3em; min-width:3em" />          
@@ -22,31 +26,31 @@
         <label value="&abCard.ContactDetails;" />
     </hbox>
 
-    <hbox id="DavPrefixNameContainer" align="center" collapsed="true" class="davContainer" insertbefore="NameField1Container" >
+    <hbox id="DavPrefixNameContainer" align="center" insertbefore="NameField1Container" >
         <spacer flex="1" />
         <label control="X-DAV-PrefixName" value="&abCard.PrefixName;" />
         <hbox class="CardEditWidth" >
-            <textbox id="X-DAV-PrefixName" flex="1" class="davProperty CardEditWidth" />
+            <textbox name="X-DAV-PrefixName" flex="1" class="davProperty CardEditWidth" />
         </hbox>
     </hbox>
 
-    <hbox id="DavMiddleNameContainer" align="center" collapsed="true" class="davContainer" insertafter="NameField1Container" >
+    <hbox id="DavMiddleNameContainer" align="center" insertafter="NameField1Container" >
         <spacer flex="1" />
         <label control="X-DAV-MiddleName" value="&abCard.MiddleName;" />
         <hbox class="CardEditWidth" >
-            <textbox id="X-DAV-MiddleName" flex="1" class="davProperty CardEditWidth" />
+            <textbox name="X-DAV-MiddleName" flex="1" class="davProperty CardEditWidth" />
         </hbox>
     </hbox>
 
-    <hbox id="DavSufixNameContainer" align="center" collapsed="true" class="davContainer" insertafter="NameField2Container" >
+    <hbox id="DavSufixNameContainer" align="center" insertafter="NameField2Container" >
         <spacer flex="1" />
         <label control="X-DAV-SuffixName" value="&abCard.SuffixName;" />
         <hbox class="CardEditWidth" >
-            <textbox id="X-DAV-SuffixName" flex="1" class="davProperty CardEditWidth" />
+            <textbox name="X-DAV-SuffixName" flex="1" class="davProperty CardEditWidth" />
         </hbox>
     </hbox>
 
-    <vbox id="DavFieldsContainer" collapsed="true" class="davContainer" insertafter="PhoneNumbers">
+    <vbox id="DavFieldsContainer" insertafter="PhoneNumbers">
 
       <hbox flex="1">
         <spacer style="width:3em;" />
@@ -58,8 +62,8 @@
           </hbox>
           <richlistbox flex="0" style="height:13ex;" id="X-DAV-PhoneNumberList" seltype="single" >            
           </richlistbox>
-          <!--label id="X-DAV-HomePhoneMetaInfo" collapsed="true" class="davProperty" />
-          <label id="X-DAV-WorkPhoneMetaInfo" collapsed="true" class="davProperty" /-->
+          <!--label name="X-DAV-HomePhoneMetaInfo" collapsed="true" class="davProperty" />
+          <label name="X-DAV-WorkPhoneMetaInfo" collapsed="true" class="davProperty" /-->
         </vbox>
       </hbox>
       
@@ -75,13 +79,10 @@
           </richlistbox>
 
           <description>&abCard.emailtypes.description;</description>
-          <label id="X-DAV-PrimaryEmailMetaInfo" collapsed="true" class="davProperty" />
-          <label id="X-DAV-SecondEmailMetaInfo" collapsed="true" class="davProperty" />
+          <label name="X-DAV-PrimaryEmailMetaInfo" collapsed="true" class="davProperty" />
+          <label name="X-DAV-SecondEmailMetaInfo" collapsed="true" class="davProperty" />
         </vbox>
       </hbox>
 
     </vbox>
 </overlay>
-
-
-
