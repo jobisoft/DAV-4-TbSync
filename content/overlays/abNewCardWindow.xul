@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<overlay 
+	id="TbSyncDavAbNewCardWindowOverlay" 
+	oninject="tbSyncDavAbNewCardWindow.onInject(window)"
+	onremove="tbSyncDavAbNewCardWindow.onRemove(window)"
+	xmlns:html="http://www.w3.org/1999/xhtml">
+	
+   <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/abNewCardWindow.js" />
+
+</overlay>
+
+
+

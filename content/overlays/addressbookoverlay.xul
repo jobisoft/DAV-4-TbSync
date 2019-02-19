@@ -1,24 +1,12 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://dav4tbsync/skin/ab.css" type="text/css"?>
-<!DOCTYPE window SYSTEM "chrome://dav4tbsync/locale/dav.dtd">
 
 <overlay 
-	id="TbSyncAbDavOverlay" 
-	xmlns:html="http://www.w3.org/1999/xhtml">
+    id="TbSyncAbDavOverlay"
+    oninject="tbSyncDavAddressBook.onInject(window)"
+    onremove="tbSyncDavAddressBook.onRemove(window)"
+    xmlns:html="http://www.w3.org/1999/xhtml">
 
-    <description class="CardViewText tbsyncContainer" id="cvPhMain" labelprefix="&abCard.Phone;" insertbefore="cvPhWork" >
-    </description>
+    <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/addressbookoverlay.js" />
 
-		<vbox id="cvbEmails" class="cardViewGroup tbsyncContainer" insertafter="cvbContact">
-			<description class="CardViewHeading" id="cvhEmails">&abCard.EmailAddresses;</description>
-			<grid>
-				<columns>
-					<column flex="0"/>
-					<column flex="1"/>
-				</columns>
-				<rows id="cvbEmailRows">
-				</rows>
-			</grid>			
-		</vbox>
-		
 </overlay>        
