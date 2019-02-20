@@ -1091,7 +1091,9 @@ dav.tools = {
     supportedProperties: [
         {name: "DisplayName", minversion: "0.4"},
         {name: "FirstName", minversion: "0.4"},
+        {name: "X-DAV-PrefixName", minversion: "0.12.13"},
         {name: "X-DAV-MiddleName", minversion: "0.8.8"},
+        {name: "X-DAV-SuffixName", minversion: "0.12.13"},
         {name: "X-DAV-MainPhone", minversion: "0.4"},
         {name: "X-DAV-UID", minversion: "0.10.36"},
         {name: "LastName", minversion: "0.4"},
@@ -1153,7 +1155,9 @@ dav.tools = {
         "Categories" : "categories",
         "Notes" : "note",
         "FirstName" : "n",
+        "X-DAV-PrefixName" : "n",
         "X-DAV-MiddleName" : "n",
+        "X-DAV-SuffixName" : "n",
         "LastName" : "n",
         "PreferMailFormat" : "X-MOZILLA-HTML",
         "Custom1" : "X-MOZILLA-CUSTOM1",
@@ -1354,9 +1358,11 @@ dav.tools = {
 
             case "FirstName":
             case "LastName":
+            case "X-DAV-PrefixName":
             case "X-DAV-MiddleName":
+            case "X-DAV-SuffixName":
                 {
-                    let index = ["LastName","FirstName","X-DAV-MiddleName","Prefix","Suffix"].indexOf(property);
+                    let index = ["LastName","FirstName","X-DAV-MiddleName","X-DAV-PrefixName","X-DAV-SuffixName"].indexOf(property);
                     return dav.tools.getSaveArrayValue(vCardValue, index);
                 }
                 break;
@@ -1471,10 +1477,12 @@ dav.tools = {
                 break;
 
             case "FirstName":
+            case "X-DAV-PrefixName":
             case "X-DAV-MiddleName":
+            case "X-DAV-SuffixName":
             case "LastName":
                 {
-                    let index = ["LastName","FirstName","X-DAV-MiddleName","Prefix","Suffix"].indexOf(property);
+                    let index = ["LastName","FirstName","X-DAV-MiddleName","X-DAV-PrefixName","X-DAV-SuffixName"].indexOf(property);
                     if (store) {
                         if (add) vCardData[vCardField.item][vCardField.entry].value = ["","","","",""];
 
