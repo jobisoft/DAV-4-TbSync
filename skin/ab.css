@@ -24,3 +24,25 @@ treechildren::-moz-tree-image(DirCol, davcustom) {
   margin-inline-end: 2px;
   list-style-image: url("chrome://dav4tbsync/skin/sabredav16.png");
 }
+
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davfruux"] {
+  list-style-image: url("chrome://dav4tbsync/skin/fruux16.png");
+}
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davicloud"] {
+  list-style-image: url("chrome://dav4tbsync/skin/icloud16.png");
+}
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davyahoo"] {
+  list-style-image: url("chrome://dav4tbsync/skin/yahoo16.png");
+}
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davgmx"] {
+  list-style-image: url("chrome://dav4tbsync/skin/gmx16.png");
+}
+
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davcustom"] {
+  list-style-image: url("chrome://dav4tbsync/skin/sabredav16.png");
+}
