@@ -38,55 +38,45 @@ var tbSyncDavAddressBookDetails = {
     },
 
     onInject: function (window) {
-        //keep track of default elements we hide/disable, so it can be undone during overlay remove
-        tbSyncDavAddressBookDetails.elementsToHide = [];
-        tbSyncDavAddressBookDetails.elementsToDisable = [];
-
         if (window.document.getElementById("abResultsTree")) {
             window.document.getElementById("abResultsTree").addEventListener("select", tbSyncDavAddressBookDetails.onAbResultSelectionChanged, false);
             tbSyncDavAddressBookDetails.onAbResultSelectionChanged();
         }
-        
-        //hide primary and secondary email, but mark them as hidden by tbsync, so they get unhidden again
-        tbSyncDavAddressBookDetails.elementsToHide.push(window.document.getElementById("cvEmail1Box"));
-        tbSyncDavAddressBookDetails.elementsToHide.push(window.document.getElementById("cvEmail2Box"));
-        
-        //hide registered default elements
-        for (let i=0; i < tbSyncDavAddressBookDetails.elementsToHide.length; i++) {
-            if (tbSyncDavAddressBookDetails.elementsToHide[i]) {
-                tbSyncDavAddressBookDetails.elementsToHide[i].collapsed = true;
-            }
-        }
-
-        //disable registered default elements
-        for (let i=0; i < tbSyncDavAddressBookDetails.elementsToDisable.length; i++) {
-            if (tbSyncDavAddressBookDetails.elementsToDisable[i]) {
-                tbSyncDavAddressBookDetails.elementsToDisable[i].disabled = true;
-            }
-        }
     },
 
     onRemove: function (window) {
-        //unhide elements hidden by this provider
-        for (let i=0; i < tbSyncDavAddressBookDetails.elementsToHide.length; i++) {
-            if (tbSyncDavAddressBookDetails.elementsToHide[i]) {
-                tbSyncDavAddressBookDetails.elementsToHide[i].collapsed = false;
-            }
-        }
-
-        //re-enable elements disabled by this provider
-        for (let i=0; i < tbSyncDavAddressBookDetails.elementsToDisable.length; i++) {
-            if (tbSyncDavAddressBookDetails.elementsToDisable[i]) {
-                tbSyncDavAddressBookDetails.elementsToDisable[i].disabled = false;
-            }
-        }
-
+        tbSyncDavAddressBookDetails.undoChangesToDefaults();
         if (window.document.getElementById("abResultsTree")) {
             window.document.getElementById("abResultsTree").removeEventListener("select", tbSyncDavAddressBookDetails.onAbResultSelectionChanged, false);
         }
     },
+
+    undoChangesToDefaults: function () {
+        //unhide elements hidden by this provider
+        if (tbSyncDavAddressBookDetails.hasOwnProperty("elementsToHide")) {
+            for (let i=0; i < tbSyncDavAddressBookDetails.elementsToHide.length; i++) {
+                if (tbSyncDavAddressBookDetails.elementsToHide[i]) {
+                    tbSyncDavAddressBookDetails.elementsToHide[i].hidden = false;
+                }
+            }
+        }
+
+        //re-enable elements disabled by this provider
+        if (tbSyncDavAddressBookDetails.hasOwnProperty("elementsToDisable")) {
+            for (let i=0; i < tbSyncDavAddressBookDetails.elementsToDisable.length; i++) {
+                if (tbSyncDavAddressBookDetails.elementsToDisable[i]) {
+                    tbSyncDavAddressBookDetails.elementsToDisable[i].disabled = false;
+                }
+            }
+        }
+        
+        tbSyncDavAddressBookDetails.elementsToHide = [];
+        tbSyncDavAddressBookDetails.elementsToDisable = [];        
+    },
     
     onAbResultSelectionChanged: function () {
+        tbSyncDavAddressBookDetails.undoChangesToDefaults();
+        
         let cards = window.GetSelectedAbCards();
         if (cards.length == 1) {
             let aCard = cards[0];
@@ -112,6 +102,27 @@ var tbSyncDavAddressBookDetails = {
                 }
             }
             
+            //hide primary and secondary email
+            if (!tbSyncDavAddressBookDetails.hasOwnProperty("elementsToHide")) tbSyncDavAddressBookDetails.elementsToHide = [];
+            if (!tbSyncDavAddressBookDetails.hasOwnProperty("elementsToDisable")) tbSyncDavAddressBookDetails.elementsToDisable = [];
+            tbSyncDavAddressBookDetails.elementsToHide.push(window.document.getElementById("cvEmail1Box"));
+            tbSyncDavAddressBookDetails.elementsToHide.push(window.document.getElementById("cvEmail2Box"));
+            
+            //hide registered default elements
+            for (let i=0; i < tbSyncDavAddressBookDetails.elementsToHide.length; i++) {
+                if (tbSyncDavAddressBookDetails.elementsToHide[i]) {
+                    tbSyncDavAddressBookDetails.elementsToHide[i].hidden = true; 
+                    //using "hidden" and not "collapsed", because TB is flipping collapsed itself after the card has been edited/saved
+                    //and if we also use that property, the fields "blink" for a split second. Using "hidden" the field stays hidden even if TB is uncollapsing
+                }
+            }
+
+            //disable registered default elements
+            for (let i=0; i < tbSyncDavAddressBookDetails.elementsToDisable.length; i++) {
+                if (tbSyncDavAddressBookDetails.elementsToDisable[i]) {
+                    tbSyncDavAddressBookDetails.elementsToDisable[i].disabled = true;
+                }
+            }
             
             let cvPhMain = window.document.getElementById("cvPhMain");
             let phoneFound = false;
