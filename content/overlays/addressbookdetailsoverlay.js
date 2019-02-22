@@ -18,8 +18,8 @@ var tbSyncDavAddressBookDetails = {
         try {
             let aParentDirURI = window.GetSelectedDirectory();
             let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-            let selectedBook = abManager.getDirectory(aParentDirURI);
-            if (selectedBook.isMailList) {
+            tbSyncDavAddressBookDetails.selectedBook = abManager.getDirectory(aParentDirURI);
+            if (tbSyncDavAddressBookDetails.selectedBook.isMailList) {
                 aParentDirURI = aParentDirURI.substring(0, aParentDirURI.lastIndexOf("/"));
             }
 
@@ -80,6 +80,9 @@ var tbSyncDavAddressBookDetails = {
         let cards = window.GetSelectedAbCards();
         if (cards.length == 1) {
             let aCard = cards[0];
+
+            //migrate
+            tbSync.dav.tools.migrateV13(aCard, tbSyncDavAddressBookDetails.selectedBook);
             
             //get all emails with metadata from card
             let emails = tbSync.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}

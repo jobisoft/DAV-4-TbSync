@@ -10,6 +10,68 @@
 
 dav.tools = {
     
+    migrateV13: function(aCard, addressBook) {
+        let storedCard = tbSync.getPropertyOfCard(aCard, "X-DAV-VCARD").trim();
+        let sCardData = tbSync.dav.vCard.parse(storedCard);
+
+        //migrate emails
+        if (aCard.getProperty("X-DAV-JSON-Emails","") == "" && sCardData.hasOwnProperty("email")) {
+            let emails = [];
+            let metaTypeData = dav.tools.getMetaTypeData(sCardData, "email", "type");
+            for (let i=0; i < metaTypeData.length; i++) {
+                let email = {};
+                email.meta = metaTypeData[i];
+                email.value = sCardData["email"][i].value;
+                emails.push(email);
+            }
+            let json = JSON.stringify(emails);
+            aCard.setProperty("X-DAV-JSON-Emails", json);
+            
+            //get emails from JSON and store them into TB fields
+            let emailData = dav.tools.getEmailsFromJSON(json);
+            for (let field in emailData) {
+                if (emailData.hasOwnProperty(field)) {
+                    //set or delete TB Property
+                    if (  emailData[field].length > 0 ) {
+                        aCard.setProperty(field, emailData[field].join(", "));
+                    } else {
+                        aCard.deleteProperty(field);
+                    }                            
+                }
+            }
+            addressBook.modifyCard(aCard);
+        }
+
+        //migrate phone numbers
+        if (aCard.getProperty("X-DAV-JSON-Phones","") == "" && sCardData.hasOwnProperty("tel")) {
+            let phones = [];
+            let metaTypeData = dav.tools.getMetaTypeData(sCardData, "tel", "type");
+            for (let i=0; i < metaTypeData.length; i++) {
+                let phone = {};
+                phone.meta = metaTypeData[i];
+                phone.value = sCardData["tel"][i].value;
+                phones.push(phone);
+            }
+            let json = JSON.stringify(phones);
+            aCard.setProperty("X-DAV-JSON-Phones", json);
+            
+            //get phone numbers from JSON and store them into TB fields
+            let phoneData = dav.tools.getPhoneNumbersFromJSON(json);
+            for (let field in phoneData) {
+                if (phoneData.hasOwnProperty(field)) {
+                    //set or delete TB Property
+                    if (  phoneData[field].length > 0 ) {
+                        aCard.setProperty(field, phoneData[field].join(", "));
+                    } else {
+                        aCard.deleteProperty(field);
+                    }                            
+                }
+            }
+            addressBook.modifyCard(aCard);
+        }
+    },
+
+
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     //* Functions to handle advanced UI elements of AB
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -49,40 +111,31 @@ dav.tools = {
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
     getEmailsFromCard: function (aCard) {
-        let emails = [];
-        
-        let secondEmail = aCard.getProperty("SecondEmail","").trim();
-        if (secondEmail) {
-            emails = secondEmail.split(";").map(x => Object({value: x.trim(), meta: []}));
-            let secondMeta = [];
-            let secondMetaRaw = aCard.getProperty("X-DAV-SecondEmailMetaInfo","");
-            if (secondMetaRaw) {
-                try {
-                    secondMeta = JSON.parse(secondMetaRaw); //array of arrars of types
-                } catch (e) {}
-            }
-            
-            //add each meta info to its email
-            for (let i=0; i < emails.length && i < secondMeta.length; i++) {
-                emails[i].meta = secondMeta[i];
+        let emails = aCard.getProperty("X-DAV-JSON-Emails","").trim();
+        return emails ? JSON.parse(emails) : []; //array of objects {meta, value}
+    },
+
+    getEmailsFromJSON: function (emailDataJSON) {
+        let emailFields = {};
+
+        if (emailDataJSON) {
+            try {
+                //we pack the first entry into PrimaryEmail and all other into SecondEmail
+                let emailData = JSON.parse(emailDataJSON);
+                let emailFields = {PrimaryEmail:[], SecondEmail:[]};
+                
+                for (let d=0; d < emailData.length; d++) {
+                    let field = (d==0) ? "PrimaryEmail" : "SecondEmail";
+                    emailFields[field].push(emailData[d].value);
+                }
+            } catch(e) {
+                //something went wrong
+                Components.utils.reportError(e);                
             }
         }
         
-        //now prepend the primary
-        let primaryEmail = aCard.getProperty("PrimaryEmail","").trim();
-        if (primaryEmail) {
-            emails.unshift({value: primaryEmail, meta: []});
-            let primaryMeta = [];
-            let primaryMetaRaw = aCard.getProperty("X-DAV-PrimaryEmailMetaInfo","");
-            if (primaryMetaRaw) {
-                try {
-                    primaryMeta = JSON.parse(primaryMetaRaw); //array of types
-                } catch (e) {}
-            }
-            emails[0].meta = primaryMeta;
-        }
-        
-        return emails; //array of objects {meta, value}
+        //object with TB field names as keys and array of numbers as values
+        return emailFields; 
     },
 
 
@@ -90,7 +143,6 @@ dav.tools = {
         let emailType = "other";
         if (aItemData.meta.includes("HOME")) emailType = "home";
         else if (aItemData.meta.includes("WORK")) emailType = "work";            
-        let src = "chrome://dav4tbsync/skin/type."+emailType+"10.png";
 
         //first column
         let vbox = aWindow.document.createElement("vbox");
@@ -99,7 +151,7 @@ dav.tools = {
             let image = aWindow.document.createElement("image");
             image.setAttribute("width","11");
             image.setAttribute("height","10");
-            image.setAttribute("src", src);
+            image.setAttribute("src", "chrome://dav4tbsync/skin/type."+emailType+"10.png");
         vbox.appendChild(image);
 
         //second column
@@ -203,41 +255,26 @@ dav.tools = {
     updateEmails: function(aDocument) {
         let list = aDocument.getElementById("X-DAV-EmailAddressList");
         
-        let primary = "";
-        let primaryMeta = [];
-        let primaryIdx = 0;
+        let emails = [];
         for (let i=0; i < list.children.length; i++) {
             let item = list.children[i];
             let email = dav.tools.getEmailListItemElement(item, "email").value.trim();
             if (email != "") {
-                primary = email;
-                primaryMeta = dav.tools.getEmailListItemElement(item, "dataContainer").meta;                
-                primaryIdx = i;
-                break;
+                let json = {};
+                json.meta = dav.tools.getEmailListItemElement(item, "dataContainer").meta;
+                json.value = email;
+                emails.push(json);
             } 
         }
-        aDocument.getElementById("PrimaryEmail").value = primary; //could be empty
-        aDocument.getElementById("X-DAV-PrimaryEmailMetaInfo").value = JSON.stringify(primaryMeta);
+        aDocument.getElementById("X-DAV-JSON-Emails").value = JSON.stringify(emails);
         
-        //all other emails are put in SecondEmail
-        let secondary = [];
-        let secondaryMeta = [];
-        //if there was no primary, we do not need to search for others
-        if (primary) {
-            for (let i=0; i < list.children.length; i++) {
-                if (i != primaryIdx) {
-                    let item = list.children[i];
-                    let email = dav.tools.getEmailListItemElement(item, "email").value.trim();                
-                    if (email != "") {
-                        secondary.push(email);
-                        secondaryMeta.push(dav.tools.getEmailListItemElement(item, "dataContainer").meta);
-                    }
-                }
+        //now update all other TB number fields based on the new JSON data
+        let emailData = dav.tools.getEmailsFromJSON(aDocument.getElementById("X-DAV-JSON-Emails").value);
+        for (let field in emailData) {
+            if (emailData.hasOwnProperty(field)) {
+                aDocument.getElementById(field).value = emailData[field].join(", ");
             }
-        }
-        aDocument.getElementById("SecondEmail").value = secondary.join("; ");
-        aDocument.getElementById("X-DAV-SecondEmailMetaInfo").value = JSON.stringify(secondaryMeta);  
-        
+        }        
     },
     
 
@@ -253,24 +290,32 @@ dav.tools = {
     },
 
     getPhoneNumbersFromJSON: function (phoneDataJSON) {
-        //We first search and remove CELL, FAX, PAGER and WORK from the list and put the remains into HOME
-        let phoneData = JSON.parse(phoneDataJSON);
         let phoneFields = {};
-        let phoneMap = [
-            {meta: "CELL", field: "CellularNumber"},
-            {meta: "FAX", field: "FaxNumber"},
-            {meta: "PAGER", field: "PagerNumber"},
-            {meta: "WORK", field: "WorkPhone"},
-            {meta: "", field: "HomePhone"},
-            ];
-        
-        for (let m=0; m < phoneMap.length; m++) {
-            phoneFields[phoneMap[m].field] = [];            
-            for (let d=phoneData.length-1; d >= 0; d--) {
-                if (phoneData[d].meta.includes(phoneMap[m].meta) || phoneMap[m].meta == "") {
-                    phoneFields[phoneMap[m].field].push(phoneData[d].value);
-                    phoneData.splice(d,1);
+
+        if (phoneDataJSON) {
+            try {
+                //we first search and remove CELL, FAX, PAGER and WORK from the list and put the remains into HOME
+                let phoneData = JSON.parse(phoneDataJSON);
+                let phoneMap = [
+                    {meta: "CELL", field: "CellularNumber"},
+                    {meta: "FAX", field: "FaxNumber"},
+                    {meta: "PAGER", field: "PagerNumber"},
+                    {meta: "WORK", field: "WorkPhone"},
+                    {meta: "", field: "HomePhone"},
+                    ];
+                
+                for (let m=0; m < phoneMap.length; m++) {
+                    phoneFields[phoneMap[m].field] = [];            
+                    for (let d=phoneData.length-1; d >= 0; d--) {
+                        if (phoneData[d].meta.includes(phoneMap[m].meta) || phoneMap[m].meta == "") {
+                            phoneFields[phoneMap[m].field].push(phoneData[d].value);
+                            phoneData.splice(d,1);
+                        }
+                    }
                 }
+            } catch(e) {
+                //something went wrong
+                Components.utils.reportError(e);                
             }
         }
         
@@ -1292,12 +1337,9 @@ dav.tools = {
         {name: "X-DAV-MiddleName", minversion: "0.8.8"},
         {name: "X-DAV-SuffixName", minversion: "0.12.13"},
         {name: "X-DAV-UID", minversion: "0.10.36"},
-        {name: "X-DAV-JSON-Phones", minversion: "0.12.13"},
+        {name: "X-DAV-JSON-Phones", minversion: "0.4"},
+        {name: "X-DAV-JSON-Emails", minversion: "0.4"},
         {name: "LastName", minversion: "0.4"},
-        {name: "PrimaryEmail", minversion: "0.4"},
-        {name: "SecondEmail", minversion: "0.4"},
-        {name: "X-DAV-PrimaryEmailMetaInfo", minversion: "0.4"},
-        {name: "X-DAV-SecondEmailMetaInfo", minversion: "0.4"},
         {name: "NickName", minversion: "0.4"},
         {name: "Birthday", minversion: "0.4"}, //fake, will trigger special handling
         {name: "Photo", minversion: "0.4"}, //fake, will trigger special handling
@@ -1405,18 +1447,13 @@ dav.tools = {
 
             //handle special cases independently, those from *Map will be handled by default
             switch (property) {
-                case "PrimaryEmail":
-                case "SecondEmail":
-                case "X-DAV-PrimaryEmailMetaInfo":
-                case "X-DAV-SecondEmailMetaInfo":
+                case "X-DAV-JSON-Emails":
                 {
                     data.metatype.push("OTHER"); //default for new entries
                     data.item = "email";
                     
                     if (vCardData[data.item] && vCardData[data.item].length > 0) {
-                        //we return the primary index for BOTH email fields and 
-                        //getThunderbirdPropertyValueFromVCard will take care of that
-                        //based on the property, it will return the given one, or all but the given one
+                        //NOOP, just return something, if present
                         data.entry = 0;
                     }
                 }
@@ -1552,44 +1589,18 @@ dav.tools = {
                 break;
 
             case "X-DAV-JSON-Phones": 
+            case "X-DAV-JSON-Emails": 
                 {
                     //this is special, we need to return the full JSON object
-                    let phones = [];
+                    let entries = [];
                     let metaTypeData = dav.tools.getMetaTypeData(vCardData, vCardField.item, vCardField.metatypefield);
                     for (let i=0; i < metaTypeData.length; i++) {
-                        let phone = {};
-                        phone.meta = metaTypeData[i];
-                        phone.value = vCardData[vCardField.item][i].value;
-                        phones.push(phone);
+                        let entry = {};
+                        entry.meta = metaTypeData[i];
+                        entry.value = vCardData[vCardField.item][i].value;
+                        entries.push(entry);
                     }
-                    return JSON.stringify(phones);
-                }
-                break;
-                
-            case "X-DAV-PrimaryEmailMetaInfo": 
-                {
-                    //this is special, we need to return the meta info of the entry
-                    let metaTypeData = dav.tools.getMetaTypeData(vCardData, vCardField.item, vCardField.metatypefield);
-                    return JSON.stringify(metaTypeData[vCardField.entry]);
-                }
-                break;
-                
-            case "X-DAV-SecondEmailMetaInfo": 
-                {
-                    //this is special, we need to return the meta info of all entries except the indexed one
-                    let metaTypeData = dav.tools.getMetaTypeData(vCardData, vCardField.item, vCardField.metatypefield).filter((e,i) => i != vCardField.entry);
-                    return JSON.stringify(metaTypeData);
-                }
-                break;
-            
-            case "SecondEmail": 
-                {
-                    //this is special, we need to return a list of all emails joined by ; but not the indexed one
-                    let secondEmail = [];
-                    for (let i=0; i < vCardData[vCardField.item].length; i++) {
-                        if (i != vCardField.entry) secondEmail.push(vCardData[vCardField.item][i].value);
-                    }
-                    return secondEmail.join("; ");
+                    return JSON.stringify(entries);
                 }
                 break;
 
@@ -1921,14 +1932,9 @@ dav.tools = {
                     }
                     break;
 
-                case "X-DAV-PrimaryEmailMetaInfo": 
-                case "X-DAV-SecondEmailMetaInfo": 
-                case "SecondEmail":
-                    break;
-                
-                case "PrimaryEmail":
+                case "X-DAV-JSON-Emails":
                     {
-                        //this gets us all emails, not just the primary one
+                        //this gets us all emails
                         let emails = dav.tools.getEmailsFromCard(card);
                         let idx = 0;
             
@@ -1969,7 +1975,7 @@ dav.tools = {
                         //store default meta type
                         let defaultMeta = vCardField.metatype;
 
-                        for (let i=0; i < phones.length || idx < vCardData[vCardField.item].length; i++) {
+                        for (let i=0; i < phones.length || (vCardData.hasOwnProperty(vCardField.item) &&  idx < vCardData[vCardField.item].length); i++) {
                             //get value or or empty if entry is to be deleted
                             let value = (i < phones.length) ? phones[i].value : "";
 

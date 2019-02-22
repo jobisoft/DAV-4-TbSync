@@ -15,7 +15,8 @@ var tbSyncAbDavCardWindow = {
     onBeforeInject: function (window) {
         let cardProvider = "";
         let aParentDirURI  = "";
-        
+        tbSyncAbDavCardWindow.addressbook = null;
+
         if (window.location.href=="chrome://messenger/content/addressbook/abNewCardDialog.xul") {
             aParentDirURI = window.document.getElementById("abPopup").value;
         } else {
@@ -123,8 +124,8 @@ var tbSyncAbDavCardWindow = {
         
         if (abURI) {
             let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-            let ab = abManager.getDirectory(abURI);
-            if (ab.isMailList) {
+            tbSyncAbDavCardWindow.addressbook = abManager.getDirectory(abURI);
+            if (tbSyncAbDavCardWindow.addressbook.isMailList) {
                 let parts = abURI.split("/");
                 parts.pop();
                 return parts.join("/");
@@ -134,6 +135,9 @@ var tbSyncAbDavCardWindow = {
     },   
     
     onLoadCard: function (aCard, aDocument) {                
+        //migrate
+        if (tbSyncAbDavCardWindow.addressbook) tbSync.dav.tools.migrateV13(aCard, tbSyncAbDavCardWindow.addressbook);
+
         //load properties
         let items = aDocument.getElementsByClassName("davProperty");
         for (let i=0; i < items.length; i++) {
