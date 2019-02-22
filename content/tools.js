@@ -329,12 +329,12 @@ dav.tools = {
         else if (aItemData.meta.includes("WORK")) phoneType1 = "work";            
 
         let phoneType2 = "";
-        if (aItemData.meta.includes("VOICE")) phoneType2 = "voice";
-        else if (aItemData.meta.includes("CELL")) phoneType2 = "cell";            
+        if (aItemData.meta.includes("CELL")) phoneType2 = "cell";            
         else if (aItemData.meta.includes("FAX")) phoneType2 = "fax";            
         else if (aItemData.meta.includes("PAGER")) phoneType2 = "pager";            
         else if (aItemData.meta.includes("CAR")) phoneType2 = "car";            
         else if (aItemData.meta.includes("VIDEO")) phoneType2 = "video";            
+        else if (aItemData.meta.includes("VOICE")) phoneType2 = "voice";
         
         //first column
         let vbox = aWindow.document.createElement("hbox");
@@ -400,7 +400,7 @@ dav.tools = {
 
             //button2
             let button2 = aDocument.createElement("button");
-            button2.allowedValues = ["CELL", "FAX", "PAGER", "VIDEO", "CAR", "VOICE"] ;
+            button2.allowedValues = ["CELL", "FAX", "PAGER", "CAR", "VIDEO", "VOICE"] ; //same order as in getNewPhoneDetailsRow
             button2.otherIcon = "none";
             button2.setAttribute("type", "menu");
             button2.setAttribute("class", "plain");

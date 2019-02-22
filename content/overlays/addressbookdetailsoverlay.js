@@ -84,7 +84,7 @@ var tbSyncDavAddressBookDetails = {
             //migrate
             tbSync.dav.tools.migrateV13(aCard, tbSyncDavAddressBookDetails.selectedBook);
             
-            //get all emails with metadata from card
+            //add emails
             let emails = tbSync.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
             let emailDetails = window.document.getElementById("cvbEmailRows");        
             if (emailDetails) {
@@ -101,6 +101,25 @@ var tbSyncDavAddressBookDetails = {
                     window.document.getElementById("cvbEmails").collapsed = (emails.length == 0);
                 }
             }
+            
+            //add phone numbers
+            let phones = tbSync.dav.tools.getPhoneNumbersFromCard(aCard); //array of objects {meta, value}
+            let phoneDetails = window.document.getElementById("cvbPhoneRows");        
+            if (phoneDetails) {
+                //remove all rows
+                while (phoneDetails.firstChild) {
+                    phoneDetails.removeChild(phoneDetails.firstChild);
+                }
+
+                for (let i=0; i < phones.length; i++) {
+                    phoneDetails.appendChild(tbSync.dav.tools.getNewPhoneDetailsRow(window, phones[i])); 
+                }
+                
+                if (window.document.getElementById("cvbPhoneNumbers")) {
+                    window.document.getElementById("cvbPhoneNumbers").collapsed = (phones.length == 0);
+                }
+            }
+            
             
             //hide primary and secondary email
             if (!tbSyncDavAddressBookDetails.hasOwnProperty("elementsToHide")) tbSyncDavAddressBookDetails.elementsToHide = [];
@@ -125,22 +144,6 @@ var tbSyncDavAddressBookDetails = {
                 }
             }
             
-            let phones = tbSync.dav.tools.getPhoneNumbersFromCard(aCard); //array of objects {meta, value}
-            let phoneDetails = window.document.getElementById("cvbPhoneRows");        
-            if (phoneDetails) {
-                //remove all rows
-                while (phoneDetails.firstChild) {
-                    phoneDetails.removeChild(phoneDetails.firstChild);
-                }
-
-                for (let i=0; i < phones.length; i++) {
-                    phoneDetails.appendChild(tbSync.dav.tools.getNewPhoneDetailsRow(window, phones[i])); 
-                }
-                
-                if (window.document.getElementById("cvbPhoneNumbers")) {
-                    window.document.getElementById("cvbPhoneNumbers").collapsed = (phones.length == 0);
-                }
-            }
         }
     },
     

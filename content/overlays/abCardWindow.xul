@@ -93,9 +93,8 @@
           </richlistbox>
 
           <description>&abCard.emailtypes.description;</description>
-          <label id="X-DAV-PrimaryEmailMetaInfo" collapsed="true" class="davProperty" />
-          <label id="X-DAV-SecondEmailMetaInfo" collapsed="true" class="davProperty" />
-          <label id ="X-DAV-JSON-Phones" collapsed="true" class="davProperty" />
+          <label id="X-DAV-JSON-Emails" collapsed="true" class="davProperty" />
+          <label id="X-DAV-JSON-Phones" collapsed="true" class="davProperty" />
         </vbox>
       </hbox>
 
