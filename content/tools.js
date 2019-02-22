@@ -11,6 +11,40 @@
 dav.tools = {
     
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    //* Functions to handle advanced UI elements of AB
+    //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+    updatePref: function(aDocument, icon, toggle = false) {       
+        if (toggle) {
+            if (icon.parentNode.meta.includes("PREF")) icon.parentNode.meta = icon.parentNode.meta.filter(e => e != "PREF");
+            else icon.parentNode.meta.push("PREF");            
+ 
+            icon.parentNode.updateFunction (aDocument);
+        }
+
+        if (icon.parentNode.meta.includes("PREF")) {
+            icon.setAttribute("src", "chrome://dav4tbsync/skin/type.pref.png");
+        } else {
+            icon.setAttribute("src", "chrome://dav4tbsync/skin/type.nopref.png");
+        }
+    },
+
+    updateType: function(aDocument, button, newvalue = null) {        
+        if (newvalue) {
+            //we declare allowedValues to be non-overlapping -> remove all allowed values and just add the newvalue
+            button.parentNode.meta = button.parentNode.meta.filter(value => -1 == button.allowedValues.indexOf(value));
+            if (button.allowedValues.includes(newvalue)) button.parentNode.meta.push(newvalue);
+
+            button.parentNode.updateFunction (aDocument);
+        }
+
+        let intersection = button.parentNode.meta.filter(value => -1 !== button.allowedValues.indexOf(value));
+        let buttonType = (intersection.length > 0) ? intersection[0].toLowerCase() : button.otherIcon;       
+        button.setAttribute("image","chrome://dav4tbsync/skin/type."+buttonType+"10.png");
+    },    
+
+    
+    //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     //* Functions to handle multiple email addresses in AB (UI)
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
@@ -48,7 +82,7 @@ dav.tools = {
             emails[0].meta = primaryMeta;
         }
         
-        return emails;
+        return emails; //array of objects {meta, value}
     },
 
 
@@ -58,7 +92,7 @@ dav.tools = {
         vbox.setAttribute("class","CardViewText");
         vbox.setAttribute("style","margin-right:1ex; margin-bottom:2px;");
             let image = aWindow.document.createElement("image");
-            image.setAttribute("width","10");
+            image.setAttribute("width","11");
             image.setAttribute("height","10");
             image.setAttribute("src", aItemData.src);
         vbox.appendChild(image);
@@ -93,10 +127,13 @@ dav.tools = {
         let outerhbox = aDocument.createElement("hbox");
         outerhbox.setAttribute("flex", "1");
         outerhbox.setAttribute("align", "center");
+        outerhbox.updateFunction = dav.tools.updateEmails;
+        outerhbox.meta =  aItemData.meta;
         
             //button
             let button = aDocument.createElement("button");
-            button.value = aItemData.meta;
+            button.allowedValues = ["HOME", "WORK"];
+            button.otherIcon = "other";
             button.setAttribute("type", "menu");
             button.setAttribute("class", "plain");
             button.setAttribute("style", "width: 35px; min-width: 35px; margin: 0;");
@@ -117,15 +154,14 @@ dav.tools = {
         
             //image
             let image = aDocument.createElement("image");
-            image.setAttribute("name","prefstar");
             image.setAttribute("width", "11");
             image.setAttribute("height", "10");
             image.setAttribute("style", "margin:2px 2px 2px 1ex");
+            image.addEventListener("click", function(e) { tbSync.dav.tools.updatePref(aDocument, e.target, true); });
             outerhbox.appendChild(image);
         
         //richlistitem
         let richlistitem = aDocument.createElement("richlistitem");
-        richlistitem.addEventListener("click", function(e) {if (e.target.getAttribute("name") == "prefstar") tbSync.dav.tools.updateEmailPref(aDocument, e.currentTarget, true)});
         richlistitem.appendChild(outerhbox);
         
         return richlistitem;
@@ -133,11 +169,13 @@ dav.tools = {
     
     getEmailListItemElement: function(item, element) {
         switch (element) {
+            case "dataContainer": 
+                return item.children[0];
             case "button": 
                 return item.children[0].children[0];
             case "email":
                 return item.children[0].children[1].children[0];
-            case "star":
+            case "pref":
                 return item.children[0].children[2];
             default:
                 return null;
@@ -149,12 +187,13 @@ dav.tools = {
         let data = {value: "", meta: ["HOME"]};
         let item = dav.tools.getNewEmailListItem(aDocument, data);
         list.ensureElementIsVisible(list.appendChild(item));
-        let button = dav.tools.getEmailListItemElement(item, "button");
-        dav.tools.updateEmailType(aDocument, button);
-        dav.tools.updateEmailPref(aDocument, item);        
+
+        dav.tools.updateType(aDocument,  dav.tools.getEmailListItemElement(item, "button"));
+        dav.tools.updatePref(aDocument, dav.tools.getEmailListItemElement(item, "pref"));
     },
     
-    //if the PREF setting or the emails itself have changed, we need to update Primary and Secondary Email Fields
+
+    //if any setting changed, we need to update Primary and Secondary Email Fields
     updateEmails: function(aDocument) {
         let list = aDocument.getElementById("X-DAV-EmailAddressList");
         
@@ -166,7 +205,7 @@ dav.tools = {
             let email = dav.tools.getEmailListItemElement(item, "email").value.trim();
             if (email != "") {
                 primary = email;
-                primaryMeta = dav.tools.getEmailListItemElement(item, "button").value;
+                primaryMeta = dav.tools.getEmailListItemElement(item, "dataContainer").meta;                
                 primaryIdx = i;
                 break;
             } 
@@ -185,7 +224,7 @@ dav.tools = {
                     let email = dav.tools.getEmailListItemElement(item, "email").value.trim();                
                     if (email != "") {
                         secondary.push(email);
-                        secondaryMeta.push(dav.tools.getEmailListItemElement(item, "button").value);
+                        secondaryMeta.push(dav.tools.getEmailListItemElement(item, "dataContainer").meta);
                     }
                 }
             }
@@ -195,58 +234,152 @@ dav.tools = {
         
     },
     
-    updateEmailPref: function(aDocument, item, toggle = false) {
-        let icon = dav.tools.getEmailListItemElement(item, "star");
-        let email = dav.tools.getEmailListItemElement(item, "email");
-        let button = dav.tools.getEmailListItemElement(item, "button");
 
-        let currentValue = button.value ? button.value : [];        
-        if (toggle) {
-            if (currentValue.includes("PREF")) currentValue = currentValue.filter(e => e != "PREF");
-            else currentValue.push("PREF");
 
-            button.value = currentValue;
-            dav.tools.updateEmails (aDocument);
+
+    //* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    //* Functions to handle multiple phone numbers in AB (UI)
+    //* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+    updatePhones: function(aDocument) {
+        let list = aDocument.getElementById("X-DAV-PhoneNumberList");
+        
+        let phones = [];
+        for (let i=0; i < list.children.length; i++) {
+            let item = list.children[i];
+            let phone = dav.tools.getPhoneListItemElement(item, "phone").value.trim();
+            if (phone != "") {
+                let json = {};
+                json.meta = dav.tools.getPhoneListItemElement(item, "dataContainer").meta;
+                json.value = phone;
+                phones.push(json);
+            } 
         }
+        aDocument.getElementById("X-DAV-JSON-Phones").value = JSON.stringify(phones);
         
-        if (currentValue.includes("PREF")) {
-            icon.setAttribute("src", "chrome://dav4tbsync/skin/type.pref.png");
-        } else {
-            icon.setAttribute("src", "chrome://dav4tbsync/skin/type.nopref.png");
-        }
-    },
-        
-    //a new email type has been selected
-    updateEmailType: function(aDocument, button, newvalue = null) {
-        let currentValue = button.value ? button.value : [];
-        
-        let invertOf = {"HOME": "WORK", "WORK": "HOME"}
-        let homework = ["HOME", "WORK"];
-        if (newvalue) {
-            switch (newvalue) {
-                case "HOME":
-                case "WORK":
-                    {
-                        let idx = currentValue.indexOf(invertOf[newvalue]);
-                        if (idx != -1) currentValue[idx] = newvalue;
-                        else currentValue.push(newvalue);
-                    }
-                    break;
-
-                default:
-                    currentValue = currentValue.filter(e => !homework.includes(e));
-                    if (!currentValue.includes(newvalue)) currentValue.push(newvalue);
+        //now update all other TB number fields based on the new JSON data
+        let phoneData = dav.tools.getPhoneNumbersFromJSON(aDocument.getElementById("X-DAV-JSON-Phones").value);
+        for (let field in phoneData) {
+            if (phoneData.hasOwnProperty(field)) {
+                aDocument.getElementById(field).value = phoneData[field].join(", ");
             }
-            button.value = currentValue;
-            dav.tools.updateEmails (aDocument);
-        }
-        
-        let emailType = "other";
-        if (currentValue.includes("HOME")) emailType = "home";
-        else if (currentValue.includes("WORK")) emailType = "work";
-        button.setAttribute("image","chrome://dav4tbsync/skin/type."+emailType+"10.png");
+        }        
     },
 
+    addPhoneEntry: function(aDocument) {
+        let list = aDocument.getElementById("X-DAV-PhoneNumberList");
+        let data = {value: "", meta: ["HOME", "VOICE"]};
+        let item = dav.tools.getNewPhoneListItem(aDocument, data);
+        list.ensureElementIsVisible(list.appendChild(item));
+
+        dav.tools.updateType(aDocument, dav.tools.getPhoneListItemElement(item, "button1"));
+        dav.tools.updateType(aDocument, dav.tools.getPhoneListItemElement(item, "button2"));
+        dav.tools.updatePref(aDocument, dav.tools.getPhoneListItemElement(item, "pref"));
+    },    
+
+    getPhoneListItemElement: function(item, element) {
+        switch (element) {
+            case "dataContainer": 
+                return item.children[0];
+            case "button1": 
+                return item.children[0].children[0];
+            case "button2": 
+                return item.children[0].children[1];
+            case "phone":
+                return item.children[0].children[2].children[0];
+            case "pref":
+                return item.children[0].children[3];
+            default:
+                return null;
+        }
+    },
+    
+    getNewPhoneListItem: function (aDocument, aItemData) {
+        //hbox
+        let outerhbox = aDocument.createElement("hbox");
+        outerhbox.setAttribute("flex", "1");
+        outerhbox.setAttribute("align", "center");
+        outerhbox.updateFunction = dav.tools.updatePhones;
+        outerhbox.meta = aItemData.meta;
+
+            //button1
+            let button1 = aDocument.createElement("button");
+            button1.allowedValues = ["HOME", "WORK"];
+            button1.otherIcon = "none";
+            button1.setAttribute("type", "menu");
+            button1.setAttribute("class", "plain");
+            button1.setAttribute("style", "width: 35px; min-width: 35px; margin: 0;");
+            button1.appendChild(aDocument.getElementById("DavEmailSpacer").children[1].cloneNode(true));
+            outerhbox.appendChild(button1);
+
+            //button2
+            let button2 = aDocument.createElement("button");
+            button2.allowedValues = ["CELL", "FAX", "PAGER", "VIDEO", "CAR", "VOICE"] ;
+            button2.otherIcon = "none";
+            button2.setAttribute("type", "menu");
+            button2.setAttribute("class", "plain");
+            button2.setAttribute("style", "width: 35px; min-width: 35px; margin: 0;");
+            button2.appendChild(aDocument.getElementById("DavEmailSpacer").children[2].cloneNode(true));
+            outerhbox.appendChild(button2);
+
+            //email box
+            let phonebox = aDocument.createElement("hbox");
+            phonebox.setAttribute("flex", "1");
+            phonebox.setAttribute("style", "padding-bottom:1px");
+            let phone = aDocument.createElement("textbox");
+            phone.setAttribute("flex", "1");
+            phone.setAttribute("class", "plain");
+            phone.setAttribute("value", aItemData.value);
+            phone.addEventListener("change", function(e) {tbSync.dav.tools.updatePhones(aDocument)});
+            phonebox.appendChild(phone);        
+            outerhbox.appendChild(phonebox);
+        
+            //image
+            let image = aDocument.createElement("image");
+            image.setAttribute("width", "11");
+            image.setAttribute("height", "10");
+            image.setAttribute("style", "margin:2px 2px 2px 1ex");
+            image.addEventListener("click", function(e) { tbSync.dav.tools.updatePref(aDocument, e.target, true); });
+            outerhbox.appendChild(image);
+        
+        //richlistitem
+        let richlistitem = aDocument.createElement("richlistitem");
+        richlistitem.appendChild(outerhbox);
+        
+        return richlistitem;
+    },
+
+    getPhoneNumbersFromJSON: function (phoneDataJSON) {
+        //We first search and remove CELL, FAX, PAGER and WORK from the list and put the remains into HOME
+        let phoneData = JSON.parse(phoneDataJSON);
+        let phoneFields = {};
+        let phoneMap = [
+            {meta: "CELL", field: "CellularNumber"},
+            {meta: "FAX", field: "FaxNumber"},
+            {meta: "PAGER", field: "PagerNumber"},
+            {meta: "WORK", field: "WorkPhone"},
+            {meta: "", field: "HomePhone"},
+            ];
+        
+        for (let m=0; m < phoneMap.length; m++) {
+            phoneFields[phoneMap[m].field] = [];            
+            for (let d=phoneData.length-1; d >= 0; d--) {
+                if (phoneData[d].meta.includes(phoneMap[m].meta) || phoneMap[m].meta == "") {
+                    phoneFields[phoneMap[m].field].push(phoneData[d].value);
+                    phoneData.splice(d,1);
+                }
+            }
+        }
+        
+        //object with TB field names as keys and array of numbers as values
+        return phoneFields; 
+    },
+
+    getPhonesFromCard: function (aCard) {
+        let phones = aCard.getProperty("X-DAV-JSON-Phones","").trim();
+        return JSON.parse(phones); //array of objects {meta, value}
+    },
+    
 
 
     //* * * * * * * * * * * * *
@@ -1094,8 +1227,8 @@ dav.tools = {
         {name: "X-DAV-PrefixName", minversion: "0.12.13"},
         {name: "X-DAV-MiddleName", minversion: "0.8.8"},
         {name: "X-DAV-SuffixName", minversion: "0.12.13"},
-        {name: "X-DAV-MainPhone", minversion: "0.4"},
         {name: "X-DAV-UID", minversion: "0.10.36"},
+        {name: "X-DAV-JSON-Phones", minversion: "0.12.13"},
         {name: "LastName", minversion: "0.4"},
         {name: "PrimaryEmail", minversion: "0.4"},
         {name: "SecondEmail", minversion: "0.4"},
@@ -1109,22 +1242,17 @@ dav.tools = {
         {name: "HomeZipCode", minversion: "0.4"},
         {name: "HomeState", minversion: "0.4"},
         {name: "HomeAddress", minversion: "0.4"},
-        {name: "HomePhone", minversion: "0.4"},
         {name: "WorkCity", minversion: "0.4"},
         {name: "WorkCountry", minversion: "0.4"},
         {name: "WorkZipCode", minversion: "0.4"},
         {name: "WorkState", minversion: "0.4"},
         {name: "WorkAddress", minversion: "0.4"},
-        {name: "WorkPhone", minversion: "0.4"},
         {name: "Categories", minversion: "0.4"},
         {name: "JobTitle", minversion: "0.4"},
         {name: "Department", minversion: "0.4"},
         {name: "Company", minversion: "0.4"},
         {name: "WebPage1", minversion: "0.4"},
         {name: "WebPage2", minversion: "0.4"},
-        {name: "CellularNumber", minversion: "0.4"},
-        {name: "PagerNumber", minversion: "0.4"},
-        {name: "FaxNumber", minversion: "0.4"},
         {name: "Notes", minversion: "0.4"},
         {name: "PreferMailFormat", minversion: "0.4"},
         {name: "Custom1", minversion: "0.4"},
@@ -1164,29 +1292,25 @@ dav.tools = {
         "Custom2" : "X-MOZILLA-CUSTOM2",
         "Custom3" : "X-MOZILLA-CUSTOM3",
         "Custom4" : "X-MOZILLA-CUSTOM4",
+        "X-DAV-JSON-Phones" : "tel",
     },
 
     //map thunderbird fields to vcard fields with additional types
     complexMap : {
         "WebPage1" : {item: "url", type: "WORK"},
         "WebPage2" : {item: "url", type: "HOME"},
-        "CellularNumber" : {item: "tel", type: "CELL"},
-        "PagerNumber" : {item: "tel", type: "PAGER"},
-        "FaxNumber" : {item: "tel", type: "FAX"},
 
         "HomeCity" : {item: "adr", type: "HOME"},
         "HomeCountry" : {item: "adr", type: "HOME"},
         "HomeZipCode" : {item: "adr", type: "HOME"},
         "HomeState" : {item: "adr", type: "HOME"},
         "HomeAddress" : {item: "adr", type: "HOME"},
-        "HomePhone" : {item: "tel", type: "HOME", invalidTypes: ["FAX", "PAGER", "CELL"]},
 
         "WorkCity" : {item: "adr", type: "WORK"},
         "WorkCountry" : {item: "adr", type: "WORK"},
         "WorkZipCode" : {item: "adr", type: "WORK"},
         "WorkState" : {item: "adr", type: "WORK"},
         "WorkAddress" : {item: "adr", type: "WORK"},
-        "WorkPhone" : {item: "tel", type: "WORK", invalidTypes: ["FAX", "PAGER", "CELL"]},
     },
 
     //map thunderbird fields to impp vcard fields with additional x-service-types
@@ -1233,37 +1357,15 @@ dav.tools = {
                     }
                 }
                 break;
-                
-                case "X-DAV-MainPhone":
+
+                case "X-DAV-JSON-Phones":
                 {
-                    let PREF = (Services.vc.compare(syncdata.folderCreatedWithProviderVersion, "0.11")> 0)  ? "PREF" : "PREV"; //up to version 0.11 we used the wrong value "PREV"
-                    data.metatype.push(PREF);
+                    data.metatype.push("VOICE"); //default for new entries
                     data.item = "tel";
-
-                    //search the first valid entry
-                    if (vCardData[data.item]) {
-                        let metaTypeData = dav.tools.getMetaTypeData(vCardData, data.item, data.metatypefield);
-
-                        //we take everything that is not HOME, WORK, CELL, PAGER or FAX
-                        //we take PREF over MAIN (fruux) over VOICE over ?
-                        let tel = {};
-                        tel.pref =[];
-                        tel.main =[];
-                        tel.voice =[];
-                        tel.other =[];
-                        for (let i=0; i < metaTypeData.length; i++) {
-                            if (!metaTypeData[i].includes("HOME") && !metaTypeData[i].includes("WORK") && !metaTypeData[i].includes("CELL") && !metaTypeData[i].includes("PAGER") && !metaTypeData[i].includes("FAX")) {
-                                if (metaTypeData[i].includes(PREF)) tel.pref.push(i);
-                                else if (metaTypeData[i].includes("MAIN")) tel.main.push(i);
-                                else if (metaTypeData[i].includes("VOICE")) tel.voice.push(i);
-                                else tel.other.push(i);
-                            }
-                        }
-
-                        if (tel.pref.length > 0) data.entry = tel.pref[0];
-                        else if (tel.main.length > 0) data.entry = tel.main[0];
-                        else if (tel.voice.length > 0) data.entry = tel.voice[0];
-                        else if (tel.other.length > 0) data.entry = tel.other[0];
+                    
+                    if (vCardData[data.item] && vCardData[data.item].length > 0) {
+                        //NOOP, just return something, if present
+                        data.entry = 0;
                     }
                 }
                 break;
@@ -1385,6 +1487,21 @@ dav.tools = {
                 return 0;
                 break;
 
+            case "X-DAV-JSON-Phones": 
+                {
+                    //this is special, we need to return the full JSON object
+                    let phones = [];
+                    let metaTypeData = dav.tools.getMetaTypeData(vCardData, vCardField.item, vCardField.metatypefield);
+                    for (let i=0; i < metaTypeData.length; i++) {
+                        let phone = {};
+                        phone.meta = metaTypeData[i];
+                        phone.value = vCardData[vCardField.item][i].value;
+                        phones.push(phone);
+                    }
+                    return JSON.stringify(phones);
+                }
+                break;
+                
             case "X-DAV-PrimaryEmailMetaInfo": 
                 {
                     //this is special, we need to return the meta info of the entry
@@ -1525,7 +1642,8 @@ dav.tools = {
                 }
                 break;
 
-            case "Email": //also update meta
+            case "Emails": //also update meta
+            case "Phones": //also update meta
                 if (store) {
                     vCardData[vCardField.item][vCardField.entry].value = vCardField.prefix + value;
                     if (!vCardData[vCardField.item][vCardField.entry].hasOwnProperty("meta")) {
@@ -1596,6 +1714,21 @@ dav.tools = {
                             }
                         }
                         break;
+
+                    case "X-DAV-JSON-Phones":
+                        //This field contains all the phone numbers and TbSync has its own UI to display them.
+                        //However, we also want to fill the standard TB fields.
+                        let phoneData = dav.tools.getPhoneNumbersFromJSON(newServerValue);
+                        for (let field in phoneData) {
+                            if (phoneData.hasOwnProperty(field)) {
+                                //set or delete TB Property
+                                if (  phoneData[field].length > 0 ) {
+                                    card.setProperty(field, phoneData[field].join(", "));
+                                } else {
+                                    card.deleteProperty(field);
+                                }                            
+                            }
+                        }
 
                     default:
                         {
@@ -1738,7 +1871,7 @@ dav.tools = {
                         //store default meta type
                         let defaultMeta = vCardField.metatype;
 
-                        for (let i=0; i < emails.length || idx < vCardData[vCardField.item].length; i++) {
+                        for (let i=0; i < emails.length || (vCardData.hasOwnProperty(vCardField.item) && idx < vCardData[vCardField.item].length); i++) {
                             //get value or or empty if entry is to be deleted
                             let value = (i < emails.length) ? emails[i].value : "";
                             
@@ -1758,7 +1891,37 @@ dav.tools = {
                             vCardField.entry = idx++;
                             if (!(vCardField.entry < vCardData[vCardField.item].length)) vCardField.entry = -1; //need to add a new one
                             
-                            dav.tools.updateValueOfVCard(syncdata, "Email", vCardData, vCardField, value);
+                            dav.tools.updateValueOfVCard(syncdata, "Emails", vCardData, vCardField, value);
+                        }
+                    }
+                    break;
+
+                case "X-DAV-JSON-Phones":
+                    {
+                        //this gets us all phones
+                        let phones = dav.tools.getPhonesFromCard(card);
+                        let idx = 0;
+            
+                        //store default meta type
+                        let defaultMeta = vCardField.metatype;
+
+                        for (let i=0; i < phones.length || idx < vCardData[vCardField.item].length; i++) {
+                            //get value or or empty if entry is to be deleted
+                            let value = (i < phones.length) ? phones[i].value : "";
+
+                            //do we have a meta type? otherwise stick to default
+                            if (i < phones.length && phones[i].meta.length > 0) {
+                                vCardField.metatype = phones[i].meta;
+                            } else {
+                                vCardField.metatype= defaultMeta;
+                            }
+                            
+                            //remove: value == "" and index != -1
+                            //add        value != "" and index == -1                           
+                            vCardField.entry = idx++;
+                            if (!(vCardField.entry < vCardData[vCardField.item].length)) vCardField.entry = -1; //need to add a new one
+                            
+                            dav.tools.updateValueOfVCard(syncdata, "Phones", vCardData, vCardField, value);
                         }
                     }
                     break;

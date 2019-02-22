@@ -142,17 +142,29 @@ var tbSyncAbDavCardWindow = {
 
         //get all emails with metadata from card
         let emails = tbSync.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
-        
         //add emails to list
-        let list = aDocument.getElementById("X-DAV-EmailAddressList");
+        let emailList = aDocument.getElementById("X-DAV-EmailAddressList");
         for (let i=0; i < emails.length; i++) {
             let item = tbSync.dav.tools.getNewEmailListItem(aDocument, emails[i]);
-            list.appendChild(item);
+            emailList.appendChild(item);
 
-            let button = tbSync.dav.tools.getEmailListItemElement(item, "button");
-            tbSync.dav.tools.updateEmailType(aDocument, button);
-            tbSync.dav.tools.updateEmailPref(aDocument, item);
+            tbSync.dav.tools.updateType(aDocument,  tbSync.dav.tools.getEmailListItemElement(item, "button"));
+            tbSync.dav.tools.updatePref(aDocument, tbSync.dav.tools.getEmailListItemElement(item, "pref"));		
         }
+
+        //get all phone numbers with metadata from card
+        let phones = tbSync.dav.tools.getPhonesFromCard(aCard); //array of objects {meta, value}
+        //add phones to list
+        let phoneList = aDocument.getElementById("X-DAV-PhoneNumberList");
+        for (let i=0; i < phones.length; i++) {
+            let item = tbSync.dav.tools.getNewPhoneListItem(aDocument, phones[i]);
+            phoneList.appendChild(item);
+
+            tbSync.dav.tools.updateType(aDocument,  tbSync.dav.tools.getPhoneListItemElement(item, "button1"));
+            tbSync.dav.tools.updateType(aDocument,  tbSync.dav.tools.getPhoneListItemElement(item, "button2"));
+            tbSync.dav.tools.updatePref(aDocument, tbSync.dav.tools.getPhoneListItemElement(item, "pref"));		
+        }
+
     },
     
     onSaveCard: function (aCard, aDocument) {

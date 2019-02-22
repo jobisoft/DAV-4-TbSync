@@ -12,9 +12,23 @@
 
     <hbox id="DavEmailSpacer" insertbefore="NickNameContainer" style="margin-bottom:2ex">
         <menupopup position="start_before">
-          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.home;" oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'HOME')" image="chrome://dav4tbsync/skin/type.home16.png" />
-          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.work;"  oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'WORK')" image="chrome://dav4tbsync/skin/type.work16.png" />
-          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.other;" oncommand="tbSync.dav.tools.updateEmailType(window.document, this.parentNode.parentNode, 'OTHER')" image="chrome://dav4tbsync/skin/type.other16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.home;" oncommand="tbSync.dav.tools.updateType(window.document, this.parentNode.parentNode, 'HOME')" image="chrome://dav4tbsync/skin/type.home16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.work;"  oncommand="tbSync.dav.tools.updateType(window.document, this.parentNode.parentNode, 'WORK')" image="chrome://dav4tbsync/skin/type.work16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.other;" oncommand="tbSync.dav.tools.updateType(window.document, this.parentNode.parentNode, 'OTHER')" image="chrome://dav4tbsync/skin/type.other16.png" />
+        </menupopup>
+        <menupopup position="start_before">
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.home;" oncommand="tbSync.dav.tools.updateType(window.document, this.parentNode.parentNode, 'HOME')" image="chrome://dav4tbsync/skin/type.home16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.work;"  oncommand="tbSync.dav.tools.updateType(window.document, this.parentNode.parentNode, 'WORK')" image="chrome://dav4tbsync/skin/type.work16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.other;" oncommand="tbSync.dav.tools.updateType(window.document, this.parentNode.parentNode, 'OTHER')" image="chrome://dav4tbsync/skin/type.none16.png" />
+        </menupopup>
+        <menupopup position="start_before">
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.voice;" oncommand="tbSync.dav.tools.updateType(window.document, this.parentNode.parentNode, 'VOICE')" image="chrome://dav4tbsync/skin/type.voice16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.cell;" oncommand="tbSync.dav.tools.updateType(window.document, this.parentNode.parentNode, 'CELL')" image="chrome://dav4tbsync/skin/type.cell16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.fax;" oncommand="tbSync.dav.tools.updateType(window.document, this.parentNode.parentNode, 'FAX')" image="chrome://dav4tbsync/skin/type.fax16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.video;" oncommand="tbSync.dav.tools.updateType(window.document, this.parentNode.parentNode, 'VIDEO')" image="chrome://dav4tbsync/skin/type.video16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.pager;" oncommand="tbSync.dav.tools.updateType(window.document, this.parentNode.parentNode, 'PAGER')" image="chrome://dav4tbsync/skin/type.pager16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.car;" oncommand="tbSync.dav.tools.updateType(window.document, this.parentNode.parentNode, 'CAR')" image="chrome://dav4tbsync/skin/type.car16.png" />
+          <menuitem class="menuitem-iconic" label="&abCard.emailtypes.other;" oncommand="tbSync.dav.tools.updateType(window.document, this.parentNode.parentNode, 'OTHER')" image="chrome://dav4tbsync/skin/type.none16.png" />
         </menupopup>
     </hbox>
 
@@ -81,6 +95,7 @@
           <description>&abCard.emailtypes.description;</description>
           <label id="X-DAV-PrimaryEmailMetaInfo" collapsed="true" class="davProperty" />
           <label id="X-DAV-SecondEmailMetaInfo" collapsed="true" class="davProperty" />
+          <label id ="X-DAV-JSON-Phones" collapsed="true" class="davProperty" />
         </vbox>
       </hbox>
 
