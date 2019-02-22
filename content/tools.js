@@ -149,7 +149,7 @@ dav.tools = {
         vbox.setAttribute("class","CardViewText");
         vbox.setAttribute("style","margin-right:1ex; margin-bottom:2px;");
             let image = aWindow.document.createElement("image");
-            image.setAttribute("width","11");
+            image.setAttribute("width","10");
             image.setAttribute("height","10");
             image.setAttribute("src", "chrome://dav4tbsync/skin/type."+emailType+"10.png");
         vbox.appendChild(image);
@@ -340,11 +340,11 @@ dav.tools = {
         let vbox = aWindow.document.createElement("hbox");
         vbox.setAttribute("pack","end");
         vbox.setAttribute("class","CardViewText");
-        vbox.setAttribute("style","margin-bottom:2px;");
+        vbox.setAttribute("style","margin-bottom:3px;");
             if (phoneType1) {
                 let image = aWindow.document.createElement("image");
                 image.setAttribute("style","margin-right:1ex;");
-                image.setAttribute("width","11");
+                image.setAttribute("width","10");
                 image.setAttribute("height","10");
                 image.setAttribute("src", "chrome://dav4tbsync/skin/type."+phoneType1+"10.png");
                 vbox.appendChild(image);
@@ -352,7 +352,7 @@ dav.tools = {
             if (phoneType2) {
                 let image = aWindow.document.createElement("image");
                 image.setAttribute("style","margin-right:1ex;");
-                image.setAttribute("width","11");
+                image.setAttribute("width","10");
                 image.setAttribute("height","10");
                 image.setAttribute("src", "chrome://dav4tbsync/skin/type."+phoneType2+"10.png");
                 vbox.appendChild(image);
