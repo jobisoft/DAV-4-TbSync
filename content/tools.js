@@ -87,6 +87,11 @@ dav.tools = {
 
 
     getNewEmailDetailsRow: function (aWindow, aItemData) {
+        let emailType = "other";
+        if (aItemData.meta.includes("HOME")) emailType = "home";
+        else if (aItemData.meta.includes("WORK")) emailType = "work";            
+        let src = "chrome://dav4tbsync/skin/type."+emailType+"10.png";
+
         //first column
         let vbox = aWindow.document.createElement("vbox");
         vbox.setAttribute("class","CardViewText");
@@ -94,7 +99,7 @@ dav.tools = {
             let image = aWindow.document.createElement("image");
             image.setAttribute("width","11");
             image.setAttribute("height","10");
-            image.setAttribute("src", aItemData.src);
+            image.setAttribute("src", src);
         vbox.appendChild(image);
 
         //second column
@@ -102,17 +107,18 @@ dav.tools = {
         description.setAttribute("class","plain");
             let namespace = aWindow.document.lookupNamespaceURI("html");
             let a = aWindow.document.createElementNS(namespace, "a");
-            a.setAttribute("href", "mailto:" + aItemData.href);    
-            a.textContent = aItemData.href;
+            a.setAttribute("href", "mailto:" + aItemData.value);    
+            a.textContent = aItemData.value;
+            description.appendChild(a);
 
-            let pref = aWindow.document.createElement("image");
-            pref.setAttribute("style", "margin-left:1ex;");
-            pref.setAttribute("width", "11");
-            pref.setAttribute("height", "10");
-            pref.setAttribute("src", "chrome://dav4tbsync/skin/type.nopref.png");
-
-        description.appendChild(a);
-        if (aItemData.pref) description.appendChild(pref);
+            if (aItemData.meta.includes("PREF")) {
+                let pref = aWindow.document.createElement("image");
+                pref.setAttribute("style", "margin-left:1ex;");
+                pref.setAttribute("width", "11");
+                pref.setAttribute("height", "10");
+                pref.setAttribute("src", "chrome://dav4tbsync/skin/type.nopref.png");
+                description.appendChild(pref);
+            }
         
         //row
         let row = aWindow.document.createElement("row");
@@ -241,7 +247,150 @@ dav.tools = {
     //* Functions to handle multiple phone numbers in AB (UI)
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    updatePhones: function(aDocument) {
+    getPhoneNumbersFromCard: function (aCard) {
+        let phones = aCard.getProperty("X-DAV-JSON-Phones","").trim();
+        return phones ? JSON.parse(phones) : []; //array of objects {meta, value}
+    },
+
+    getPhoneNumbersFromJSON: function (phoneDataJSON) {
+        //We first search and remove CELL, FAX, PAGER and WORK from the list and put the remains into HOME
+        let phoneData = JSON.parse(phoneDataJSON);
+        let phoneFields = {};
+        let phoneMap = [
+            {meta: "CELL", field: "CellularNumber"},
+            {meta: "FAX", field: "FaxNumber"},
+            {meta: "PAGER", field: "PagerNumber"},
+            {meta: "WORK", field: "WorkPhone"},
+            {meta: "", field: "HomePhone"},
+            ];
+        
+        for (let m=0; m < phoneMap.length; m++) {
+            phoneFields[phoneMap[m].field] = [];            
+            for (let d=phoneData.length-1; d >= 0; d--) {
+                if (phoneData[d].meta.includes(phoneMap[m].meta) || phoneMap[m].meta == "") {
+                    phoneFields[phoneMap[m].field].push(phoneData[d].value);
+                    phoneData.splice(d,1);
+                }
+            }
+        }
+        
+        //object with TB field names as keys and array of numbers as values
+        return phoneFields; 
+    },
+
+    getNewPhoneDetailsRow: function (aWindow, aItemData) {
+        let phoneType1 = "";
+        if (aItemData.meta.includes("HOME")) phoneType1 = "home";
+        else if (aItemData.meta.includes("WORK")) phoneType1 = "work";            
+
+        let phoneType2 = "";
+        if (aItemData.meta.includes("VOICE")) phoneType2 = "voice";
+        else if (aItemData.meta.includes("CELL")) phoneType2 = "cell";            
+        else if (aItemData.meta.includes("FAX")) phoneType2 = "fax";            
+        else if (aItemData.meta.includes("PAGER")) phoneType2 = "pager";            
+        else if (aItemData.meta.includes("CAR")) phoneType2 = "car";            
+        else if (aItemData.meta.includes("VIDEO")) phoneType2 = "video";            
+        
+        //first column
+        let vbox = aWindow.document.createElement("hbox");
+        vbox.setAttribute("pack","end");
+        vbox.setAttribute("class","CardViewText");
+        vbox.setAttribute("style","margin-bottom:2px;");
+            if (phoneType1) {
+                let image = aWindow.document.createElement("image");
+                image.setAttribute("style","margin-right:1ex;");
+                image.setAttribute("width","11");
+                image.setAttribute("height","10");
+                image.setAttribute("src", "chrome://dav4tbsync/skin/type."+phoneType1+"10.png");
+                vbox.appendChild(image);
+            }
+            if (phoneType2) {
+                let image = aWindow.document.createElement("image");
+                image.setAttribute("style","margin-right:1ex;");
+                image.setAttribute("width","11");
+                image.setAttribute("height","10");
+                image.setAttribute("src", "chrome://dav4tbsync/skin/type."+phoneType2+"10.png");
+                vbox.appendChild(image);
+            }
+
+        //second column
+        let description = aWindow.document.createElement("description");
+        description.setAttribute("class","plain");
+        description.textContent = aItemData.value;
+
+        if (aItemData.meta.includes("PREF")) {
+            let pref = aWindow.document.createElement("image");
+            pref.setAttribute("style", "margin-left:1ex;");
+            pref.setAttribute("width", "11");
+            pref.setAttribute("height", "10");
+            pref.setAttribute("src", "chrome://dav4tbsync/skin/type.nopref.png");
+            description.appendChild(pref);
+        }
+        
+        //row
+        let row = aWindow.document.createElement("row");
+        row.setAttribute("align","end");        
+        row.appendChild(vbox);
+        row.appendChild(description);
+        return row;
+    },
+
+    getNewPhoneListItem: function (aDocument, aItemData) {
+        //hbox
+        let outerhbox = aDocument.createElement("hbox");
+        outerhbox.setAttribute("flex", "1");
+        outerhbox.setAttribute("align", "center");
+        outerhbox.updateFunction = dav.tools.updatePhoneNumbers;
+        outerhbox.meta = aItemData.meta;
+
+            //button1
+            let button1 = aDocument.createElement("button");
+            button1.allowedValues = ["HOME", "WORK"];
+            button1.otherIcon = "none";
+            button1.setAttribute("type", "menu");
+            button1.setAttribute("class", "plain");
+            button1.setAttribute("style", "width: 35px; min-width: 35px; margin: 0;");
+            button1.appendChild(aDocument.getElementById("DavEmailSpacer").children[1].cloneNode(true));
+            outerhbox.appendChild(button1);
+
+            //button2
+            let button2 = aDocument.createElement("button");
+            button2.allowedValues = ["CELL", "FAX", "PAGER", "VIDEO", "CAR", "VOICE"] ;
+            button2.otherIcon = "none";
+            button2.setAttribute("type", "menu");
+            button2.setAttribute("class", "plain");
+            button2.setAttribute("style", "width: 35px; min-width: 35px; margin: 0;");
+            button2.appendChild(aDocument.getElementById("DavEmailSpacer").children[2].cloneNode(true));
+            outerhbox.appendChild(button2);
+
+            //email box
+            let phonebox = aDocument.createElement("hbox");
+            phonebox.setAttribute("flex", "1");
+            phonebox.setAttribute("style", "padding-bottom:1px");
+            let phone = aDocument.createElement("textbox");
+            phone.setAttribute("flex", "1");
+            phone.setAttribute("class", "plain");
+            phone.setAttribute("value", aItemData.value);
+            phone.addEventListener("change", function(e) {tbSync.dav.tools.updatePhoneNumbers(aDocument)});
+            phonebox.appendChild(phone);        
+            outerhbox.appendChild(phonebox);
+        
+            //image
+            let image = aDocument.createElement("image");
+            image.setAttribute("width", "11");
+            image.setAttribute("height", "10");
+            image.setAttribute("style", "margin:2px 2px 2px 1ex");
+            image.addEventListener("click", function(e) { tbSync.dav.tools.updatePref(aDocument, e.target, true); });
+            outerhbox.appendChild(image);
+        
+        //richlistitem
+        let richlistitem = aDocument.createElement("richlistitem");
+        richlistitem.appendChild(outerhbox);
+        
+        return richlistitem;
+    },
+    
+    updatePhoneNumbers: function(aDocument) {
         let list = aDocument.getElementById("X-DAV-PhoneNumberList");
         
         let phones = [];
@@ -293,92 +442,7 @@ dav.tools = {
                 return null;
         }
     },
-    
-    getNewPhoneListItem: function (aDocument, aItemData) {
-        //hbox
-        let outerhbox = aDocument.createElement("hbox");
-        outerhbox.setAttribute("flex", "1");
-        outerhbox.setAttribute("align", "center");
-        outerhbox.updateFunction = dav.tools.updatePhones;
-        outerhbox.meta = aItemData.meta;
 
-            //button1
-            let button1 = aDocument.createElement("button");
-            button1.allowedValues = ["HOME", "WORK"];
-            button1.otherIcon = "none";
-            button1.setAttribute("type", "menu");
-            button1.setAttribute("class", "plain");
-            button1.setAttribute("style", "width: 35px; min-width: 35px; margin: 0;");
-            button1.appendChild(aDocument.getElementById("DavEmailSpacer").children[1].cloneNode(true));
-            outerhbox.appendChild(button1);
-
-            //button2
-            let button2 = aDocument.createElement("button");
-            button2.allowedValues = ["CELL", "FAX", "PAGER", "VIDEO", "CAR", "VOICE"] ;
-            button2.otherIcon = "none";
-            button2.setAttribute("type", "menu");
-            button2.setAttribute("class", "plain");
-            button2.setAttribute("style", "width: 35px; min-width: 35px; margin: 0;");
-            button2.appendChild(aDocument.getElementById("DavEmailSpacer").children[2].cloneNode(true));
-            outerhbox.appendChild(button2);
-
-            //email box
-            let phonebox = aDocument.createElement("hbox");
-            phonebox.setAttribute("flex", "1");
-            phonebox.setAttribute("style", "padding-bottom:1px");
-            let phone = aDocument.createElement("textbox");
-            phone.setAttribute("flex", "1");
-            phone.setAttribute("class", "plain");
-            phone.setAttribute("value", aItemData.value);
-            phone.addEventListener("change", function(e) {tbSync.dav.tools.updatePhones(aDocument)});
-            phonebox.appendChild(phone);        
-            outerhbox.appendChild(phonebox);
-        
-            //image
-            let image = aDocument.createElement("image");
-            image.setAttribute("width", "11");
-            image.setAttribute("height", "10");
-            image.setAttribute("style", "margin:2px 2px 2px 1ex");
-            image.addEventListener("click", function(e) { tbSync.dav.tools.updatePref(aDocument, e.target, true); });
-            outerhbox.appendChild(image);
-        
-        //richlistitem
-        let richlistitem = aDocument.createElement("richlistitem");
-        richlistitem.appendChild(outerhbox);
-        
-        return richlistitem;
-    },
-
-    getPhoneNumbersFromJSON: function (phoneDataJSON) {
-        //We first search and remove CELL, FAX, PAGER and WORK from the list and put the remains into HOME
-        let phoneData = JSON.parse(phoneDataJSON);
-        let phoneFields = {};
-        let phoneMap = [
-            {meta: "CELL", field: "CellularNumber"},
-            {meta: "FAX", field: "FaxNumber"},
-            {meta: "PAGER", field: "PagerNumber"},
-            {meta: "WORK", field: "WorkPhone"},
-            {meta: "", field: "HomePhone"},
-            ];
-        
-        for (let m=0; m < phoneMap.length; m++) {
-            phoneFields[phoneMap[m].field] = [];            
-            for (let d=phoneData.length-1; d >= 0; d--) {
-                if (phoneData[d].meta.includes(phoneMap[m].meta) || phoneMap[m].meta == "") {
-                    phoneFields[phoneMap[m].field].push(phoneData[d].value);
-                    phoneData.splice(d,1);
-                }
-            }
-        }
-        
-        //object with TB field names as keys and array of numbers as values
-        return phoneFields; 
-    },
-
-    getPhonesFromCard: function (aCard) {
-        let phones = aCard.getProperty("X-DAV-JSON-Phones","").trim();
-        return JSON.parse(phones); //array of objects {meta, value}
-    },
     
 
 
@@ -1899,7 +1963,7 @@ dav.tools = {
                 case "X-DAV-JSON-Phones":
                     {
                         //this gets us all phones
-                        let phones = dav.tools.getPhonesFromCard(card);
+                        let phones = dav.tools.getPhoneNumbersFromCard(card);
                         let idx = 0;
             
                         //store default meta type

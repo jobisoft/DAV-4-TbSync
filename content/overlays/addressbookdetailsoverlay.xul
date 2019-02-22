@@ -10,10 +10,7 @@
 
     <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.js" />
 
-    <description class="CardViewText tbsyncContainer" id="cvPhMain" labelprefix="&abCard.Phone;" insertbefore="cvPhWork" >
-    </description>
-
-        <vbox id="cvbEmails" class="cardViewGroup tbsyncContainer" insertafter="cvbContact">
+        <vbox id="cvbEmails" class="cardViewGroup" insertafter="cvbContact">
             <description class="CardViewHeading" id="cvhEmails">&abCard.EmailAddresses;</description>
             <grid>
                 <columns>
@@ -24,5 +21,17 @@
                 </rows>
             </grid>			
         </vbox>
-        
+
+        <vbox id="cvbPhoneNumbers" class="cardViewGroup" insertafter="cvbPhone">
+            <description class="CardViewHeading" id="cvhPhoneNumbers">&abCard.Phone;</description>
+            <grid>
+                <columns>
+                    <column flex="0"/>
+                    <column flex="1"/>
+                </columns>
+                <rows id="cvbPhoneRows">
+                </rows>
+            </grid>			
+        </vbox>
+
 </overlay>        

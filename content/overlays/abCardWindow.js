@@ -153,7 +153,7 @@ var tbSyncAbDavCardWindow = {
         }
 
         //get all phone numbers with metadata from card
-        let phones = tbSync.dav.tools.getPhonesFromCard(aCard); //array of objects {meta, value}
+        let phones = tbSync.dav.tools.getPhoneNumbersFromCard(aCard); //array of objects {meta, value}
         //add phones to list
         let phoneList = aDocument.getElementById("X-DAV-PhoneNumberList");
         for (let i=0; i < phones.length; i++) {

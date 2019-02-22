@@ -83,18 +83,15 @@ var tbSyncDavAddressBookDetails = {
             
             //get all emails with metadata from card
             let emails = tbSync.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
-            let details = window.document.getElementById("cvbEmailRows");        
-            if (details) {
+            let emailDetails = window.document.getElementById("cvbEmailRows");        
+            if (emailDetails) {
                 //remove all rows
-                while (details.firstChild) {
-                    details.removeChild(details.firstChild);
+                while (emailDetails.firstChild) {
+                    emailDetails.removeChild(emailDetails.firstChild);
                 }
 
                 for (let i=0; i < emails.length; i++) {
-                    let emailType = "other";
-                    if (emails[i].meta.includes("HOME")) emailType = "home";
-                    else if (emails[i].meta.includes("WORK")) emailType = "work";            
-                    details.appendChild(tbSync.dav.tools.getNewEmailDetailsRow(window, {pref: emails[i].meta.includes("PREF"), src: "chrome://dav4tbsync/skin/type."+emailType+"10.png", href: emails[i].value}));
+                    emailDetails.appendChild(tbSync.dav.tools.getNewEmailDetailsRow(window, emails[i]));
                 }
                 
                 if (window.document.getElementById("cvbEmails")) {
@@ -107,6 +104,7 @@ var tbSyncDavAddressBookDetails = {
             if (!tbSyncDavAddressBookDetails.hasOwnProperty("elementsToDisable")) tbSyncDavAddressBookDetails.elementsToDisable = [];
             tbSyncDavAddressBookDetails.elementsToHide.push(window.document.getElementById("cvEmail1Box"));
             tbSyncDavAddressBookDetails.elementsToHide.push(window.document.getElementById("cvEmail2Box"));
+            tbSyncDavAddressBookDetails.elementsToHide.push(window.document.getElementById("cvbPhone"));
             
             //hide registered default elements
             for (let i=0; i < tbSyncDavAddressBookDetails.elementsToHide.length; i++) {
@@ -124,20 +122,22 @@ var tbSyncDavAddressBookDetails = {
                 }
             }
             
-            let cvPhMain = window.document.getElementById("cvPhMain");
-            let phoneFound = false;
-            if (cvPhMain) {
-                let cvPhMainValue = aCard.getProperty("X-DAV-MainPhone","");
-                if (cvPhMainValue) {
-                    cvPhMain.textContent = cvPhMain.getAttribute("labelprefix") + " " + cvPhMainValue;
-                    cvPhMain.collapsed = false;
-                    phoneFound = true;
+            let phones = tbSync.dav.tools.getPhoneNumbersFromCard(aCard); //array of objects {meta, value}
+            let phoneDetails = window.document.getElementById("cvbPhoneRows");        
+            if (phoneDetails) {
+                //remove all rows
+                while (phoneDetails.firstChild) {
+                    phoneDetails.removeChild(phoneDetails.firstChild);
                 }
-            }        
-            if (phoneFound) {
-                window.document.getElementById("cvbPhone").collapsed = false;
-                window.document.getElementById("cvhPhone").collapsed = false;
-            } 
+
+                for (let i=0; i < phones.length; i++) {
+                    phoneDetails.appendChild(tbSync.dav.tools.getNewPhoneDetailsRow(window, phones[i])); 
+                }
+                
+                if (window.document.getElementById("cvbPhoneNumbers")) {
+                    window.document.getElementById("cvbPhoneNumbers").collapsed = (phones.length == 0);
+                }
+            }
         }
     },
     
