@@ -52,6 +52,7 @@
 <!ENTITY abCard.emailtypes.fax "fax">
 <!ENTITY abCard.emailtypes.video "vídeo">
 <!ENTITY abCard.emailtypes.pager "pager">
+<!ENTITY abCard.emailtypes.car "carro">
 
 <!ENTITY abCard.emailtypes.home "privadamente">
 <!ENTITY abCard.emailtypes.work "negócio">

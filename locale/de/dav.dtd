@@ -52,6 +52,7 @@
 <!ENTITY abCard.emailtypes.fax "Fax">
 <!ENTITY abCard.emailtypes.video "Video">
 <!ENTITY abCard.emailtypes.pager "Pager">
+<!ENTITY abCard.emailtypes.car "Autotelefon">
 
 <!ENTITY abCard.emailtypes.home "Privat">
 <!ENTITY abCard.emailtypes.work "Dienstlich">
