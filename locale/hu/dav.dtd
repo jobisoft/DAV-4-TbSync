@@ -47,6 +47,12 @@
 <!ENTITY manager.tabs.accountsettings "Fiók beállításai">
 <!ENTITY manager.tabs.syncsettings "Beállítások">
 
+<!ENTITY abCard.emailtypes.voice "telefon">
+<!ENTITY abCard.emailtypes.cell "mozgó">
+<!ENTITY abCard.emailtypes.fax "fax">
+<!ENTITY abCard.emailtypes.video "videó">
+<!ENTITY abCard.emailtypes.pager "pager">
+
 <!ENTITY abCard.emailtypes.home "itthon">
 <!ENTITY abCard.emailtypes.work "üzleti">
 <!ENTITY abCard.emailtypes.other "más">

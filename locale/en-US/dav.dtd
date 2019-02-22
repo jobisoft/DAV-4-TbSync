@@ -47,6 +47,12 @@
 <!ENTITY manager.tabs.accountsettings "Account settings">
 <!ENTITY manager.tabs.syncsettings "Options">
 
+<!ENTITY abCard.emailtypes.voice "Phone">
+<!ENTITY abCard.emailtypes.cell "Mobile">
+<!ENTITY abCard.emailtypes.fax "Fax">
+<!ENTITY abCard.emailtypes.video "Video">
+<!ENTITY abCard.emailtypes.pager "Pager">
+
 <!ENTITY abCard.emailtypes.home "Home">
 <!ENTITY abCard.emailtypes.work "Work">
 <!ENTITY abCard.emailtypes.other "Other">

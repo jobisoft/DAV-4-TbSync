@@ -47,6 +47,12 @@
 <!ENTITY manager.tabs.accountsettings "Настройки аккаунта">
 <!ENTITY manager.tabs.syncsettings "Настройки синхронизации">
 
+<!ENTITY abCard.emailtypes.voice "телефон">
+<!ENTITY abCard.emailtypes.cell "мобильный">
+<!ENTITY abCard.emailtypes.fax "факс">
+<!ENTITY abCard.emailtypes.video "видео">
+<!ENTITY abCard.emailtypes.pager "пейджер">
+
 <!ENTITY abCard.emailtypes.home "дома">
 <!ENTITY abCard.emailtypes.work "бизнес">
 <!ENTITY abCard.emailtypes.other "другой">
