@@ -80,9 +80,6 @@ var tbSyncDavAddressBookDetails = {
         let cards = window.GetSelectedAbCards();
         if (cards.length == 1) {
             let aCard = cards[0];
-
-            //migrate
-            tbSync.dav.tools.migrateV13(aCard, tbSyncDavAddressBookDetails.selectedBook);
             
             //add emails
             let emails = tbSync.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}

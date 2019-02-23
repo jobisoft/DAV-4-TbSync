@@ -9,68 +9,6 @@
 "use strict";
 
 dav.tools = {
-    
-    migrateV13: function(aCard, addressBook) {
-        let storedCard = tbSync.getPropertyOfCard(aCard, "X-DAV-VCARD").trim();
-        let sCardData = tbSync.dav.vCard.parse(storedCard);
-
-        //migrate emails
-        if (aCard.getProperty("X-DAV-JSON-Emails","") == "" && sCardData.hasOwnProperty("email")) {
-            let emails = [];
-            let metaTypeData = dav.tools.getMetaTypeData(sCardData, "email", "type");
-            for (let i=0; i < metaTypeData.length; i++) {
-                let email = {};
-                email.meta = metaTypeData[i];
-                email.value = sCardData["email"][i].value;
-                emails.push(email);
-            }
-            let json = JSON.stringify(emails);
-            aCard.setProperty("X-DAV-JSON-Emails", json);
-            
-            //get emails from JSON and store them into TB fields
-            let emailData = dav.tools.getEmailsFromJSON(json);
-            for (let field in emailData) {
-                if (emailData.hasOwnProperty(field)) {
-                    //set or delete TB Property
-                    if (  emailData[field].length > 0 ) {
-                        aCard.setProperty(field, emailData[field].join(", "));
-                    } else {
-                        aCard.deleteProperty(field);
-                    }                            
-                }
-            }
-            addressBook.modifyCard(aCard);
-        }
-
-        //migrate phone numbers
-        if (aCard.getProperty("X-DAV-JSON-Phones","") == "" && sCardData.hasOwnProperty("tel")) {
-            let phones = [];
-            let metaTypeData = dav.tools.getMetaTypeData(sCardData, "tel", "type");
-            for (let i=0; i < metaTypeData.length; i++) {
-                let phone = {};
-                phone.meta = metaTypeData[i];
-                phone.value = sCardData["tel"][i].value;
-                phones.push(phone);
-            }
-            let json = JSON.stringify(phones);
-            aCard.setProperty("X-DAV-JSON-Phones", json);
-            
-            //get phone numbers from JSON and store them into TB fields
-            let phoneData = dav.tools.getPhoneNumbersFromJSON(json);
-            for (let field in phoneData) {
-                if (phoneData.hasOwnProperty(field)) {
-                    //set or delete TB Property
-                    if (  phoneData[field].length > 0 ) {
-                        aCard.setProperty(field, phoneData[field].join(", "));
-                    } else {
-                        aCard.deleteProperty(field);
-                    }                            
-                }
-            }
-            addressBook.modifyCard(aCard);
-        }
-    },
-
 
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     //* Functions to handle advanced UI elements of AB
@@ -110,9 +48,24 @@ dav.tools = {
     //* Functions to handle multiple email addresses in AB (UI)
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    getEmailsFromCard: function (aCard) {
+    getEmailsFromCard: function (aCard) { //return array of objects {meta, value}
         let emails = aCard.getProperty("X-DAV-JSON-Emails","").trim();
-        return emails ? JSON.parse(emails) : []; //array of objects {meta, value}
+        if (emails) {
+            return JSON.parse(emails);
+        }
+        
+        //there is no X-DAV-JSON-Emails property (an empty JSON would not be "")
+        //so this card is not a "DAV" card. Either it is old spec or moved into this directory
+        //from somewhere else: get the emails from current emails stored in 
+        //PrimaryEmail and SecondEmail
+        emails = [];
+        for (let e of ["PrimaryEmail", "SecondEmail"]) {
+            let email = aCard.getProperty(e,"").trim();
+            if (email) {
+                emails.push({value: email, meta: []});
+            }
+        }    
+        return emails;
     },
 
     getEmailsFromJSON: function (emailDataJSON) {
@@ -268,7 +221,7 @@ dav.tools = {
         }
         aDocument.getElementById("X-DAV-JSON-Emails").value = JSON.stringify(emails);
         
-        //now update all other TB number fields based on the new JSON data
+        //now update all other TB enail fields based on the new JSON data
         let emailData = dav.tools.getEmailsFromJSON(aDocument.getElementById("X-DAV-JSON-Emails").value);
         for (let field in emailData) {
             if (emailData.hasOwnProperty(field)) {
@@ -284,9 +237,32 @@ dav.tools = {
     //* Functions to handle multiple phone numbers in AB (UI)
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    getPhoneNumbersFromCard: function (aCard) {
+    getPhoneNumbersFromCard: function (aCard) { //return array of objects {meta, value}
         let phones = aCard.getProperty("X-DAV-JSON-Phones","").trim();
-        return phones ? JSON.parse(phones) : []; //array of objects {meta, value}
+        if (phones) {
+            return JSON.parse(phones);
+        }
+                
+        //there is no X-DAV-JSON-Phones property (an empty JSON would not be "")
+        //so this card is not a "DAV" card. Either it is old spec or moved into this directory
+        //from somewhere else: get the phone numbers from current numbers stored in 
+        //CellularNumber, FaxNumber, PagerNumber, WorkPhone, HomePhone"},
+        phones = [];
+        let todo = [
+            {field: "CellularNumber", meta: ["CELL"]},
+            {field: "FaxNumber", meta: ["FAX"]}, 
+            {field: "PagerNumber", meta: ["PAGER"]}, 
+            {field: "WorkPhone", meta: ["WORK"]}, 
+            {field: "HomePhone", meta: ["HOME"]}
+        ];
+            
+        for (let data of todo) {
+            let phone = aCard.getProperty(data.field,"").trim();
+            if (phone) {
+                phones.push({value: phone, meta: data.meta});
+            }
+        }    
+        return phones;
     },
 
     getPhoneNumbersFromJSON: function (phoneDataJSON) {
@@ -1398,7 +1374,6 @@ dav.tools = {
         "Custom2" : "X-MOZILLA-CUSTOM2",
         "Custom3" : "X-MOZILLA-CUSTOM3",
         "Custom4" : "X-MOZILLA-CUSTOM4",
-        "X-DAV-JSON-Phones" : "tel",
     },
 
     //map thunderbird fields to vcard fields with additional types
@@ -1790,18 +1765,30 @@ dav.tools = {
                         }
                         break;
 
+                    case "X-DAV-JSON-Emails":
                     case "X-DAV-JSON-Phones":
-                        //This field contains all the phone numbers and TbSync has its own UI to display them.
-                        //However, we also want to fill the standard TB fields.
-                        let phoneData = dav.tools.getPhoneNumbersFromJSON(newServerValue);
-                        for (let field in phoneData) {
-                            if (phoneData.hasOwnProperty(field)) {
-                                //set or delete TB Property
-                                if (  phoneData[field].length > 0 ) {
-                                    card.setProperty(field, phoneData[field].join(", "));
-                                } else {
-                                    card.deleteProperty(field);
-                                }                            
+                        {
+                            //This field contains all the JSON encoded values and TbSync has its own UI to display them.
+                            //However, we also want to fill the standard TB fields.
+                            let jsonData;
+                            switch (property) {
+                                case "X-DAV-JSON-Emails" : 
+                                    jsonData = dav.tools.getEmailsFromJSON(newServerValue);
+                                    break;
+                                case "X-DAV-JSON-Phones" : 
+                                    jsonData = dav.tools.getPhoneNumbersFromJSON(newServerValue);
+                                    break;
+                            }
+                                
+                            for (let field in jsonData) {
+                                if (jsonData.hasOwnProperty(field)) {
+                                    //set or delete TB Property
+                                    if (  jsonData[field].length > 0 ) {
+                                        card.setProperty(field, jsonData[field].join(", "));
+                                    } else {
+                                        card.deleteProperty(field);
+                                    }                            
+                                }
                             }
                         }
 

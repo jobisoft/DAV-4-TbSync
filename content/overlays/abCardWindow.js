@@ -135,9 +135,6 @@ var tbSyncAbDavCardWindow = {
     },   
     
     onLoadCard: function (aCard, aDocument) {                
-        //migrate
-        if (tbSyncAbDavCardWindow.addressbook) tbSync.dav.tools.migrateV13(aCard, tbSyncAbDavCardWindow.addressbook);
-
         //load properties
         let items = aDocument.getElementsByClassName("davProperty");
         for (let i=0; i < items.length; i++) {

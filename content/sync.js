@@ -371,25 +371,6 @@ dav.sync = {
     singleFolder: Task.async (function* (syncdata)  {
         syncdata.downloadonly = (tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "downloadonly") == "1");
         syncdata.folderCreatedWithProviderVersion = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "createdWithProviderVersion");
-
-        //migration
-        if (Services.vc.compare(syncdata.folderCreatedWithProviderVersion, "0.13") < 0) {
-            //run through all contacts and check if we have X-DAV-JSON-Emails or X-DAV-JSON-Phones
-            //if not, these cards have been created with an older mapping, replace the local emails/numbers with those from the stored vCard
-            //and create the missing entries
-            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-            let addressBook = abManager.getDirectory(syncdata.targetId);
-            let cards = addressBook.childCards;
-            while (true) {
-                let more = false;
-                try { more = cards.hasMoreElements() } catch (ex) {}
-                if (!more) break;
-
-                let card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-                dav.tools.migrateV13(card, addressBook);
-        
-            }
-        }
         
         yield dav.sync.remoteChanges(syncdata);
         let numOfLocalChanges = yield dav.sync.localChanges(syncdata);
