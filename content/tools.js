@@ -1968,7 +1968,7 @@ dav.tools = {
                             //remove: value == "" and index != -1
                             //add        value != "" and index == -1                           
                             vCardField.entry = idx++;
-                            if (!(vCardField.entry < vCardData[vCardField.item].length)) vCardField.entry = -1; //need to add a new one
+                            if (!(vCardData.hasOwnProperty(vCardField.item) && vCardField.entry < vCardData[vCardField.item].length)) vCardField.entry = -1; //need to add a new one
                             
                             dav.tools.updateValueOfVCard(syncdata, "Emails", vCardData, vCardField, value);
                         }
@@ -1998,7 +1998,7 @@ dav.tools = {
                             //remove: value == "" and index != -1
                             //add        value != "" and index == -1                           
                             vCardField.entry = idx++;
-                            if (!(vCardField.entry < vCardData[vCardField.item].length)) vCardField.entry = -1; //need to add a new one
+                            if (!(vCardData.hasOwnProperty(vCardField.item) && vCardField.entry < vCardData[vCardField.item].length)) vCardField.entry = -1; //need to add a new one
                             
                             dav.tools.updateValueOfVCard(syncdata, "Phones", vCardData, vCardField, value);
                         }
