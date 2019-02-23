@@ -53,12 +53,23 @@ dav.tools = {
         if (emails) {
             return JSON.parse(emails);
         }
-        
-        //there is no X-DAV-JSON-Emails property (an empty JSON would not be "")
-        //so this card is not a "DAV" card. Either it is old spec or moved into this directory
-        //from somewhere else: get the emails from current emails stored in 
-        //PrimaryEmail and SecondEmail
+
         emails = [];
+        
+        //There is no X-DAV-JSON-Emails property (an empty JSON would not be "")
+        //Is there a stored VCARD we can fallback to?
+        let storedCard = tbSync.getPropertyOfCard(aCard, "X-DAV-VCARD").trim();
+        let sCardData = tbSync.dav.vCard.parse(storedCard);
+        if (sCardData.hasOwnProperty("email")) {
+            let metaTypeData = dav.tools.getMetaTypeData(sCardData, "email", "type");
+            for (let i=0; i < metaTypeData.length; i++) {
+                emails.push({value: sCardData["email"][i].value, meta: metaTypeData[i]});
+            }
+            return emails;
+        }
+        
+        //So this card is not a "DAV" card: Get the emails from current emails stored in 
+        //PrimaryEmail and SecondEmail
         for (let e of ["PrimaryEmail", "SecondEmail"]) {
             let email = aCard.getProperty(e,"").trim();
             if (email) {
@@ -243,11 +254,22 @@ dav.tools = {
             return JSON.parse(phones);
         }
                 
-        //there is no X-DAV-JSON-Phones property (an empty JSON would not be "")
-        //so this card is not a "DAV" card. Either it is old spec or moved into this directory
-        //from somewhere else: get the phone numbers from current numbers stored in 
-        //CellularNumber, FaxNumber, PagerNumber, WorkPhone, HomePhone"},
         phones = [];
+        
+        //There is no X-DAV-JSON-Phones property (an empty JSON would not be "")
+        //Is there a stored VCARD we can fallback to?
+        let storedCard = tbSync.getPropertyOfCard(aCard, "X-DAV-VCARD").trim();
+        let sCardData = tbSync.dav.vCard.parse(storedCard);
+        if (sCardData.hasOwnProperty("tel")) {
+            let metaTypeData = dav.tools.getMetaTypeData(sCardData, "tel", "type");
+            for (let i=0; i < metaTypeData.length; i++) {
+                phones.push({value: sCardData["tel"][i].value, meta: metaTypeData[i]});
+            }
+            return phones;
+        }
+        
+        //So this card is not a "DAV" card: Get the phone numbers from current numbers stored in 
+        //CellularNumber, FaxNumber, PagerNumber, WorkPhone, HomePhone"},
         let todo = [
             {field: "CellularNumber", meta: ["CELL"]},
             {field: "FaxNumber", meta: ["FAX"]}, 
@@ -261,7 +283,7 @@ dav.tools = {
             if (phone) {
                 phones.push({value: phone, meta: data.meta});
             }
-        }    
+        }
         return phones;
     },
 
