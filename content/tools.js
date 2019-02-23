@@ -86,7 +86,7 @@ dav.tools = {
             try {
                 //we pack the first entry into PrimaryEmail and all other into SecondEmail
                 let emailData = JSON.parse(emailDataJSON);
-                let emailFields = {PrimaryEmail:[], SecondEmail:[]};
+                emailFields = {PrimaryEmail:[], SecondEmail:[]};
                 
                 for (let d=0; d < emailData.length; d++) {
                     let field = (d==0) ? "PrimaryEmail" : "SecondEmail";
