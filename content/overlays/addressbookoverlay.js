@@ -13,17 +13,25 @@ Components.utils.import("chrome://tbsync/content/tbsync.jsm");
 var tbSyncDavAddressBook = {
 
     onInject: function (window) {
+        Services.obs.addObserver(tbSyncDavAddressBook.onAddressBookCreated, "tbsync.addressbook.created", false);
         if (window.document.getElementById("dirTree")) {
             window.document.getElementById("dirTree").addEventListener("select", tbSyncDavAddressBook.onAbDirectorySelectionChanged, false);
         }
     },
 
     onRemove: function (window) {
+        Services.obs.removeObserver(tbSyncDavAddressBook.onAddressBookCreated, "tbsync.addressbook.created");
         if (window.document.getElementById("dirTree")) {
             window.document.getElementById("dirTree").removeEventListener("select", tbSyncDavAddressBook.onAbDirectorySelectionChanged, false);
         }
     },
     
+    onAddressBookCreated: {
+        observe: function (aSubject, aTopic, aData) {
+            tbSyncDavAddressBook.onAbDirectorySelectionChanged();
+        }
+    },
+
     onAbDirectorySelectionChanged: function () {
         //TODO: Do not do this, if provider did not change
         //remove our details injection (if injected)
