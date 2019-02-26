@@ -2016,13 +2016,10 @@ dav.tools = {
 
         if (generateUID) {
             //the UID differs from the href/TBSYNCID (following the specs)
-            let uid = card.getProperty("X-DAV-UID", "");
-            if (!uid) {
-                uid = dav.tools.generateUUID();
-                card.setProperty("X-DAV-UID", uid);
-                //this card has added_by_user status and thus this mod will not trigger a UI notification
-                addressBook.modifyCard(card);
-            }
+            let uid = dav.tools.generateUUID();
+            card.setProperty("X-DAV-UID", uid);
+            //this card has added_by_user status and thus this mod will not trigger a UI notification
+            addressBook.modifyCard(card);
             vCardData["uid"] = [{"value": uid}];
         }
 
