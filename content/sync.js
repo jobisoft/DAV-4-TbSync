@@ -624,6 +624,9 @@ dav.sync = {
                                 dav.tools.modifyContact (addressBook, id, data, etag, syncdata);
                                 break;
                         }
+                        //Feedback from users: They want to see the individual count
+                        tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);		
+                        yield tbSync.sleep(100, false);
                     } else {
                         tbSync.dump("Skipped Card", [id, cards.multi[c].status == "200", etag !== null, data !== null, id !== null, vCardsChangedOnServer.hasOwnProperty(id)].join(", "));
                     }
@@ -632,7 +635,7 @@ dav.sync = {
         }
         //Feedback from users: They want to see the final count
         tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);		
-        yield tbSync.sleep(100, false);
+        yield tbSync.sleep(200, false);
     
         let syncGroups = (tbSync.db.getAccountSetting(syncdata.account, "syncGroups") == "1");
         if (syncGroups) {
