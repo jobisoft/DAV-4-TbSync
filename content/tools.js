@@ -359,6 +359,7 @@ dav.tools = {
         //second column
         let description = aWindow.document.createElement("description");
         description.setAttribute("class","plain");
+        description.setAttribute("style","-moz-user-select: text;");
         description.textContent = aItemData.value;
 
         if (aItemData.meta.includes("PREF")) {
