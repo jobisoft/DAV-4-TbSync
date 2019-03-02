@@ -171,6 +171,7 @@ dav.tools = {
             email.setAttribute("class", "plain");
             email.setAttribute("value", aItemData.value);
             email.addEventListener("change", function(e) {tbSync.dav.tools.updateEmails(aDocument)});
+            email.addEventListener("keydown", function(e) {if (e.key == "Enter") {e.stopPropagation(); e.preventDefault(); if (e.target.value != "") { tbSync.dav.tools.addEmailEntry(e.target.ownerDocument); }}});
             emailbox.appendChild(email);        
             outerhbox.appendChild(emailbox);
         
@@ -207,11 +208,13 @@ dav.tools = {
     addEmailEntry: function(aDocument) {
         let list = aDocument.getElementById("X-DAV-EmailAddressList");
         let data = {value: "", meta: ["HOME"]};
-        let item = dav.tools.getNewEmailListItem(aDocument, data);
-        list.ensureElementIsVisible(list.appendChild(item));
+        let item = list.appendChild(dav.tools.getNewEmailListItem(aDocument, data));
+        list.ensureElementIsVisible(item);
 
         dav.tools.updateType(aDocument,  dav.tools.getEmailListItemElement(item, "button"));
         dav.tools.updatePref(aDocument, dav.tools.getEmailListItemElement(item, "pref"));
+    
+        dav.tools.getEmailListItemElement(item, "email").focus();
     },
     
 
@@ -416,6 +419,7 @@ dav.tools = {
             phone.setAttribute("class", "plain");
             phone.setAttribute("value", aItemData.value);
             phone.addEventListener("change", function(e) {tbSync.dav.tools.updatePhoneNumbers(aDocument)});
+            phone.addEventListener("keydown", function(e) {if (e.key == "Enter") {e.stopPropagation(); e.preventDefault(); if (e.target.value != "") { tbSync.dav.tools.addPhoneEntry(e.target.ownerDocument); }}});
             phonebox.appendChild(phone);        
             outerhbox.appendChild(phonebox);
         
@@ -462,12 +466,14 @@ dav.tools = {
     addPhoneEntry: function(aDocument) {
         let list = aDocument.getElementById("X-DAV-PhoneNumberList");
         let data = {value: "", meta: ["HOME", "VOICE"]};
-        let item = dav.tools.getNewPhoneListItem(aDocument, data);
-        list.ensureElementIsVisible(list.appendChild(item));
+        let item = list.appendChild(dav.tools.getNewPhoneListItem(aDocument, data));
+        list.ensureElementIsVisible(item);
 
         dav.tools.updateType(aDocument, dav.tools.getPhoneListItemElement(item, "button1"));
         dav.tools.updateType(aDocument, dav.tools.getPhoneListItemElement(item, "button2"));
         dav.tools.updatePref(aDocument, dav.tools.getPhoneListItemElement(item, "pref"));
+    
+        dav.tools.getPhoneListItemElement(item, "phone").focus();
     },    
 
     getPhoneListItemElement: function(item, element) {
