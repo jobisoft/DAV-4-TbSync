@@ -2037,6 +2037,11 @@ dav.tools = {
 
         //get new vCard
         let newCard = tbSync.dav.vCard.generate(vCardData).trim();
+        if (currentCard != newCard) {
+            tbSync.dump("Card has been modified!","");
+            tbSync.dump("currentCard",currentCard);
+            tbSync.dump("newCard",newCard);
+        }
         return {data: newCard, etag: tbSync.getPropertyOfCard(card, "X-DAV-ETAG"), modified: (currentCard != newCard)};
     },
 
