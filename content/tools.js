@@ -775,7 +775,7 @@ dav.tools = {
                 headers["Authorization"] = "Basic " + tbSync.b64encode(connection.user + ":" + connection.password);
             }
             
-            let r = yield dav.tools.sendRequestCore(requestData, method, connection, headers, options, aUseStreamLoader);
+            let r = yield dav.tools.useHttpChannel(requestData, method, connection, headers, options, aUseStreamLoader);
         
             //connection.uri.host may no longer be the correct value, as there might have been redirects, use connection.fqdn 
             if (r && r.retry && r.retry === true) {
@@ -796,7 +796,7 @@ dav.tools = {
     }),
     
     // Promisified implementation of Components.interfaces.nsIHttpChannel
-    sendRequestCore: Task.async (function* (requestData, method, connection, headers, options, aUseStreamLoader) {
+    useHttpChannel: Task.async (function* (requestData, method, connection, headers, options, aUseStreamLoader) {
         let responseData = "";
         
         //do not log HEADERS, as it could contain an Authorization header
