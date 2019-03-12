@@ -6,7 +6,6 @@
   <!ENTITY % davDTD SYSTEM "chrome://dav4tbsync/locale/dav.dtd">
   %davDTD;
 ]>
-<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
 <wizard 
       width="500"
