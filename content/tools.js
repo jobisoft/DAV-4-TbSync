@@ -1902,6 +1902,7 @@ dav.tools = {
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
     getVCardFromThunderbirdContactCard: function(syncdata, addressBook, card, generateUID = false) {
         let currentCard = tbSync.getPropertyOfCard(card, "X-DAV-VCARD").trim();
+        let cCardData = tbSync.dav.vCard.parse(currentCard);
         let vCardData = tbSync.dav.vCard.parse(currentCard);
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
@@ -1969,7 +1970,7 @@ dav.tools = {
                             if (i < emails.length && emails[i].meta.length > 0) {
                                 vCardField.metatype = emails[i].meta;
                             } else {
-                                vCardField.metatype= defaultMeta;
+                                vCardField.metatype = defaultMeta;
                             }
                             
                             //remove: value == "" and index != -1
@@ -1999,7 +2000,7 @@ dav.tools = {
                             if (i < phones.length && phones[i].meta.length > 0) {
                                 vCardField.metatype = phones[i].meta;
                             } else {
-                                vCardField.metatype= defaultMeta;
+                                vCardField.metatype = defaultMeta;
                             }
                             
                             //remove: value == "" and index != -1
@@ -2037,7 +2038,16 @@ dav.tools = {
 
         //get new vCard
         let newCard = tbSync.dav.vCard.generate(vCardData).trim();
-        return {data: newCard, etag: tbSync.getPropertyOfCard(card, "X-DAV-ETAG"), modified: (currentCard != newCard)};
+
+        //we build these cards just to be less strict on the comparison
+        let currentCardSimpleType = tbSync.dav.vCard.generate(cCardData, {simpleType:true}).trim();
+        let newCardSimpleType = tbSync.dav.vCard.generate(vCardData, {simpleType:true}).trim();
+        if (currentCardSimpleType != newCardSimpleType) {
+            tbSync.dump("Card has been modified!","");
+            tbSync.dump("currentCard", currentCardSimpleType);
+            tbSync.dump("newCard", newCardSimpleType);
+        }
+        return {data: newCard, etag: tbSync.getPropertyOfCard(card, "X-DAV-ETAG"), modified: (currentCardSimpleType != newCardSimpleType)};
     },
 
 }

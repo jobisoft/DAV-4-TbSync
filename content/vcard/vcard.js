@@ -170,17 +170,19 @@
     /**
      * Generate vCard representation af object
      * @param {*} data
-     * @param {boolean=} addRequired determine if generator should add required properties (version and uid)
+     * @param {obj} 
+     *       member "simpleType" returns all types joined by , instead of multiple TYPE= entries
+     *       member "addRequired" determine if generator should add required properties (version and uid)
      * @returns {string}
      */
-    function generate(data, addRequired) {
+    function generate(data, options = {}) {
         var lines = [PREFIX],
             line = '';
 
-        if (addRequired && !data.version) {
+        if (options.addRequired && !data.version) {
             data.version = [{value: '3.0'}];
         }
-        if (addRequired && !data.uid) {
+        if (options.addRequired && !data.uid) {
             data.uid = [{value: guid()}];
         }
 
@@ -240,7 +242,9 @@
                         if (typeof value.meta[metaKey].forEach !== 'function') {
                             return;
                         }
-                        value.meta[metaKey].forEach(function (metaValue) {
+                        //join meta types so we get TYPE=a,b,c instead of TYPE=a;TYPE=b;TYPE=c
+                        let metaArr = (options.simpleType && metaKey.toUpperCase() === 'TYPE') ? [value.meta[metaKey].join(",")] : value.meta[metaKey];
+                        metaArr.forEach(function (metaValue) {
                             if (metaKey.length > 0) {
                                 if (metaKey.toUpperCase() === 'TYPE') {
                                         // Do not escape the comma when it is the type property. This breaks a lot.
