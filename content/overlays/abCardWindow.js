@@ -9,6 +9,7 @@
  "use strict";
 
 Components.utils.import("chrome://tbsync/content/tbsync.jsm");
+Components.utils.import("resource://gre/modules/osfile.jsm");
 
 var tbSyncAbDavCardWindow = {
     
@@ -82,6 +83,12 @@ var tbSyncAbDavCardWindow = {
             //if this window was open during inject, load the extra fields
             if (gEditCard) tbSyncAbDavCardWindow.onLoadCard(gEditCard.card, window.document);
         }
+    
+        //Mac needs extra space
+        if (OS.Constants.Sys.Name == "Darwin") {
+            newWidth += 70;
+            newHeight += 10;
+        }	
         
         //adjust size if needed
         if (currentWidth < newWidth || currentHeight < newHeight) {
