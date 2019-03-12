@@ -1,5 +1,3 @@
-/*  skin/toolbar-button.css  */
-
 treechildren::-moz-tree-image(DirCol, davfruux) {
   margin-inline-end: 2px;
   list-style-image: url("chrome://dav4tbsync/skin/fruux16.png");
