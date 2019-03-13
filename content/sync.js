@@ -516,10 +516,22 @@ dav.sync = {
             //get etags of all cards on server and find the changed cards
             tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
             let cards = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
+            
+            //to test other impl
+            //let cards = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: []}, false);
 
             //this is the same request, but includes getcontenttype, do we need it? icloud send contacts without
             //let cards = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /><d:getcontenttype /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
 
+            //play with filters and limits for synology
+            /*
+            let additional = "<card:limit><card:nresults>10</card:nresults></card:limit>";
+            additional += "<card:filter test='anyof'>";
+                additional += "<card:prop-filter name='FN'>";
+                    additional += "<card:text-match negate-condition='yes' match-type='equals'>bogusxy</card:text-match>";
+                additional += "</card:prop-filter>";
+            additional += "</card:filter>";*/
+        
             //addressbook-query does not work on older servers (zimbra)
             //let cards = yield dav.tools.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
 
