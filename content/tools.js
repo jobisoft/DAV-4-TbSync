@@ -691,14 +691,12 @@ dav.tools = {
                                                                 aConnection.uri,
                                                                 null,
                                                                 Services.scriptSecurityManager.getSystemPrincipal(),        
-                                                                //Services.scriptSecurityManager.createCodebasePrincipal(aConnection.uri, {user: aConnection.user}),
                                                                 null,
                                                                 Components.interfaces.nsILoadInfo.SEC_ALLOW_CROSS_ORIGIN_DATA_IS_NULL,
                                                                 Components.interfaces.nsIContentPolicy.TYPE_OTHER);
         let httpchannel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
 
         
-        //httpchannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_EXPLICIT_CREDENTIALS; //does not help with the cookie cache problem
         httpchannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
         httpchannel.notificationCallbacks = aNotificationCallbacks;
 
@@ -762,11 +760,6 @@ dav.tools = {
         //a few bugs in TB and in client implementations require to retry a connection on certain failures
         for (let i=1; i < 5; i++) { //max number of retries
             tbSync.dump("URL Request #" + i, url);
-            
-            //inject user + password if requested
-            if (tbSync.dav.prefSettings.getBoolPref("addCredentialsToUrl")) {
-                url = url.replace("://","://" + encodeURIComponent(connection.user) + ":" + encodeURIComponent(connection.password) + "@");
-            }
 
             connection.uri = Services.io.newURI(url);
 

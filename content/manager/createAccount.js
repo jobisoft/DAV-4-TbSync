@@ -201,7 +201,6 @@ var tbSyncDavNewAccount = {
         this.accountdata.caldavserver = this.accountdata.caldavserver.replace("https://","").replace("http://","");
         this.accountdata.carddavserver = this.accountdata.carddavserver.replace("https://","").replace("http://","");
 
-        let authenticationManager = Components.classes["@mozilla.org/network/http-auth-manager;1"].getService(Components.interfaces.nsIHttpAuthManager); 
         let davjobs = {
             cal : {valid: false, error: "", server: this.accountdata.caldavserver},
             card : {valid: false, error: "", server: this.accountdata.carddavserver},
@@ -226,9 +225,6 @@ var tbSyncDavNewAccount = {
 
             //build full url, so we do not need fqdn
             let url = "http" + (connection.https == "1" ? "s" : "") + "://" + davjobs[job].server;
-
-            //clear credential cache, so the Channel will call nsIAuthPrompt2 and expose the realm (caldav and carddav could be on the same host but use different realms, so we reset for each type)
-            authenticationManager.clearAll();
             
             try {
                 let response = yield tbSync.dav.tools.sendRequest("<d:propfind "+tbSync.dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", url , "PROPFIND", connection, {"Depth": "0", "Prefer": "return-minimal"});
