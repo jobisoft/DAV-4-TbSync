@@ -659,33 +659,6 @@ dav.tools = {
         }
     },
 
-    Redirect: class {
-        constructor(aHeaders) {
-            this.mHeaders = aHeaders;
-        }
-
-        asyncOnChannelRedirect (aOldChannel, aNewChannel, aFlags, aCallback) {
-            // Make sure we can get/set headers on both channels.
-            aNewChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
-            aOldChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
-            
-            //re-add all headers
-            for (let header in this.mHeaders) {
-                if (this.mHeaders.hasOwnProperty(header)) {
-                    aNewChannel.setRequestHeader(header, this.mHeaders[header], false);
-                }
-            }
-
-            //if a user:pass info has been lost, re-add and redirect
-            if (aOldChannel.URI.userPass != "" && aNewChannel.URI.userPass == "") {
-                let uri = Services.io.newURI(aNewChannel.URI.spec.replace("://","://" + aOldChannel.URI.userPass + "@"));
-                aNewChannel.redirectTo(uri);
-            }
-                
-            aCallback.onRedirectVerifyCallback(Components.results.NS_OK);
-        }
-    },
-       
     prepHttpChannel: function(aUploadData, aHeaders, aMethod, aConnection, aNotificationCallbacks=null, aExisting=null) {
         let userContextId = tbSync.getContainerIdForUser(aConnection.user);
         let channel = aExisting || Services.io.newChannelFromURI2(
@@ -896,7 +869,7 @@ dav.tools = {
                         case 307:
                         case 308:
                             {
-                                //Since we now use the nsIChannelEventSink to handle the redirects, this should never be called.
+                                //Since the default nsIChannelEventSink handles the redirects, this should never be called.
                                 //Just in case, do a retry with the updated connection settings.
                                 let response = {};
                                 response.retry = true;
@@ -1036,10 +1009,7 @@ dav.tools = {
                     } else if (aIID.equals(Components.interfaces.nsIProgressEventSink)) {
                         //tbSync.dump("GET","nsIProgressEventSink");
                     } else if (aIID.equals(Components.interfaces.nsIChannelEventSink)) {
-                        if (!this.redirectSink) {
-                            this.redirectSink = new dav.tools.Redirect(headers);
-                        }
-                        return this.redirectSink;
+                        //tbSync.dump("GET","nsIChannelEventSink");
                     }
 
                     throw Components.results.NS_ERROR_NO_INTERFACE;
