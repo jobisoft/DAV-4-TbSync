@@ -687,10 +687,11 @@ dav.tools = {
     },
        
     prepHttpChannel: function(aUploadData, aHeaders, aMethod, aConnection, aNotificationCallbacks=null, aExisting=null) {
+        let userContextId = tbSync.getContainerIdForUser(aConnection.user);
         let channel = aExisting || Services.io.newChannelFromURI2(
                                                                 aConnection.uri,
                                                                 null,
-                                                                Services.scriptSecurityManager.getSystemPrincipal(),        
+                                                                Services.scriptSecurityManager.createCodebasePrincipal(aConnection.uri, { userContextId }),
                                                                 null,
                                                                 Components.interfaces.nsILoadInfo.SEC_ALLOW_CROSS_ORIGIN_DATA_IS_NULL,
                                                                 Components.interfaces.nsIContentPolicy.TYPE_OTHER);
