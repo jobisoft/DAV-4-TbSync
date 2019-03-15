@@ -505,6 +505,7 @@ var dav = {
         newCalendar.id = cal.getUUID();
         newCalendar.name = newname;
 
+        newCalendar.setProperty("user", user);
         newCalendar.setProperty("color", tbSync.db.getFolderSetting(account, folderID, "targetColor"));
         newCalendar.setProperty("calendar-main-in-composite", true);
         newCalendar.setProperty("cache.enabled", (tbSync.db.getAccountSetting(account, "useCache") == "1"));
