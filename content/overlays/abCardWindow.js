@@ -64,37 +64,16 @@ var tbSyncAbDavCardWindow = {
             }
         }
 
-        //get current size
-        let currentWidth = window.outerWidth;
-        let currentHeight = window.outerHeight;
-        let newWidth;
-        let newHeight;
-
         if (window.location.href=="chrome://messenger/content/addressbook/abNewCardDialog.xul") {
-            newWidth = 750;
-            newHeight = 500;
+            window.sizeToContent(); 
             window.RegisterSaveListener(tbSyncAbDavCardWindow.onSaveCard);        
         } else {            
-            newWidth = 750;
-            newHeight = 450;
             window.RegisterLoadListener(tbSyncAbDavCardWindow.onLoadCard);
             window.RegisterSaveListener(tbSyncAbDavCardWindow.onSaveCard);
 
             //if this window was open during inject, load the extra fields
             if (gEditCard) tbSyncAbDavCardWindow.onLoadCard(gEditCard.card, window.document);
         }
-    
-        //Mac needs extra space
-        if (OS.Constants.Sys.Name == "Darwin") {
-            newWidth += 70;
-            newHeight += 10;
-        }	
-        
-        //adjust size if needed
-        if (currentWidth < newWidth || currentHeight < newHeight) {
-            window.resizeTo(Math.max(newWidth, currentWidth), Math.max(newHeight, currentHeight));
-        }
-        
     },
 
     onRemove: function (window) {
