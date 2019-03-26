@@ -76,6 +76,8 @@ add.serverprofile.custom.details2=Ha a két címet üresen hagyja, akkor a megfe
 
 add.serverprofile.fruux=fruux
 add.serverprofile.fruux.description=A „fruux” egy szolgáltatás, amely összehangolja a névjegyzékeket, naptárakat és feladatokat. A németország cég támogatottja a sabre/dav.
+add.serverprofile.posteo=Posteo
+add.serverprofile.posteo.description=https://www.posteo.de
 
 add.serverprofile.icloud=iCloud
 add.serverprofile.icloud.description=https://www.icloud.com

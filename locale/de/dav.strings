@@ -76,6 +76,8 @@ add.serverprofile.custom.details2=Wenn Sie eine der beiden Adressen leer lassen,
 
 add.serverprofile.fruux=fruux
 add.serverprofile.fruux.description=fruux ist ein Dienst, der Kontakte, Kalender und Aufgaben synchronisiert. Sie wird von der Firma hinter sabre/dav angetrieben und hat ihren Sitz in Deutschland.
+add.serverprofile.posteo=Posteo
+add.serverprofile.posteo.description=https://www.posteo.de
 
 add.serverprofile.icloud=iCloud
 add.serverprofile.icloud.description=https://www.icloud.com

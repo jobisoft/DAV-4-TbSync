@@ -76,6 +76,8 @@ add.serverprofile.custom.details2=Se si lascia un indirizzo vuoto, il servizio c
 
 add.serverprofile.fruux=fruux
 add.serverprofile.fruux.description=fruux è un servizio che sincronizza contatti, calendari e attività. È alimentato dalla società dietro sabre/dav e ha sede in Germania.
+add.serverprofile.posteo=Posteo
+add.serverprofile.posteo.description=https://www.posteo.de
 
 add.serverprofile.icloud=iCloud
 add.serverprofile.icloud.description=https://www.icloud.com

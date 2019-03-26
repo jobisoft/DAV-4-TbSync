@@ -76,6 +76,8 @@ add.serverprofile.custom.details2=Se você deixar o endereço vazio, o serviço 
 
 add.serverprofile.fruux=fruux
 add.serverprofile.fruux.description=fruux é um serviço que sincroniza contatos, calendários e tarefas. É alimentado pela empresa por trás de saber/dav e é baseado na Alemanha.
+add.serverprofile.posteo=Posteo
+add.serverprofile.posteo.description=https://www.posteo.de
 
 add.serverprofile.icloud=iCloud
 add.serverprofile.icloud.description=https://www.icloud.com
