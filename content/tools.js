@@ -1881,7 +1881,9 @@ dav.tools = {
                 case "Photo":
                     {
                         if (card.getProperty("PhotoType", "") == "file") {
+                            tbSync.errorlog("info", syncdata, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, tbSync.getphoto(card));
+                            tbSync.errorlog("info", syncdata, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             vCardData[vCardField.item][0].meta = {"encoding": ["b"], "type": ["JPEG"]};
                         }
                     }
