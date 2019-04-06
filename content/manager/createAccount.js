@@ -9,7 +9,6 @@
 "use strict";
 
 Components.utils.import("resource://gre/modules/Services.jsm");
-Components.utils.import("resource://gre/modules/Task.jsm");
 Components.utils.import("chrome://tbsync/content/tbsync.jsm");
 
 var tbSyncDavNewAccount = {
@@ -172,7 +171,7 @@ var tbSyncDavNewAccount = {
         return false;
     },
 
-    validate: Task.async (function* () {
+    validate: async function () {
         document.getElementById("tbsync.error").hidden = true;
         document.getElementById("tbsync.spinner").hidden = false;
 
@@ -227,7 +226,7 @@ var tbSyncDavNewAccount = {
             let url = "http" + (connection.https == "1" ? "s" : "") + "://" + davjobs[job].server;
             
             try {
-                let response = yield tbSync.dav.tools.sendRequest("<d:propfind "+tbSync.dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", url , "PROPFIND", connection, {"Depth": "0", "Prefer": "return-minimal"});
+                let response = await tbSync.dav.tools.sendRequest("<d:propfind "+tbSync.dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", url , "PROPFIND", connection, {"Depth": "0", "Prefer": "return-minimal"});
                 let principal = (response && response.multi) ? tbSync.dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]) : null;
                 davjobs[job].valid = (principal !== null);
                 if (!davjobs[job].valid) {
@@ -271,7 +270,7 @@ var tbSyncDavNewAccount = {
             document.documentElement.getButton("finish").disabled = false;
             this.validating = false;
         }
-    }),
+    },
     
     onClose: function () {
         //disallow closing of wizard while validating

@@ -727,7 +727,7 @@ dav.tools = {
         connection.password
         [connection.timeout]
     */
-    sendRequest: Task.async (function* (requestData, path, method, connection, headers = {}, options = {softfail: []}, aUseStreamLoader = true) {            
+    sendRequest: async function (requestData, path, method, connection, headers = {}, options = {softfail: []}, aUseStreamLoader = true) {            
         //path could be absolute or relative, we may need to rebuild the full url
         let url = (path.startsWith("http://") || path.startsWith("https://")) ? path : "http" + (connection.https == "1" ? "s" : "") + "://" + connection.fqdn + path;
 
@@ -742,7 +742,7 @@ dav.tools = {
                 headers["Authorization"] = "Basic " + tbSync.b64encode(connection.user + ":" + connection.password);
             }
             
-            let r = yield dav.tools.useHttpChannel(requestData, method, connection, headers, options, aUseStreamLoader);
+            let r = await dav.tools.useHttpChannel(requestData, method, connection, headers, options, aUseStreamLoader);
         
             //connection.uri.host may no longer be the correct value, as there might have been redirects, use connection.fqdn 
             if (r && r.retry && r.retry === true) {
@@ -760,10 +760,10 @@ dav.tools = {
                 return r;
             }
         }
-    }),
+    },
     
     // Promisified implementation of Components.interfaces.nsIHttpChannel
-    useHttpChannel: Task.async (function* (requestData, method, connection, headers, options, aUseStreamLoader) {
+    useHttpChannel: async function (requestData, method, connection, headers, options, aUseStreamLoader) {
         let responseData = "";
         
         //do not log HEADERS, as it could contain an Authorization header
@@ -790,9 +790,9 @@ dav.tools = {
             tbSync.dump("FETCH OPTIONS", JSON.stringify(fetchoptions));
 
             try {
-                let response = yield tbSync.window.fetch(connection.uri.spec, fetchoptions);
+                let response = await tbSync.window.fetch(connection.uri.spec, fetchoptions);
                 tbSync.dump("FETCH STATUS", response.status);
-                let text = yield response.text();
+                let text = await response.text();
                 tbSync.dump("FETCH RESPONSE", response.status + " : " + text);
             } catch (e) {
                 Components.utils.reportError(e);
@@ -1037,7 +1037,7 @@ dav.tools = {
             channel.asyncOpen(listener, channel);
 
         });
-    }),
+    },
 
 
 

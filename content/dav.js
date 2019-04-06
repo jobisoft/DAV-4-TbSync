@@ -147,14 +147,14 @@ var dav = {
      *
      * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
      */
-    load: Task.async (function* (lightningIsAvail) {
+    load: async function (lightningIsAvail) {
         //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
         dav.overlayManager = new OverlayManager({verbose: 0});
-        yield dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abNewCardWindow.xul");
-        yield dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        yield dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        yield dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
-        yield dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abNewCardWindow.xul");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
         dav.overlayManager.startObserving();
 	
         if (lightningIsAvail) {
@@ -187,7 +187,7 @@ var dav = {
 
             }
         }
-    }),
+    },
 
 
 
@@ -545,9 +545,9 @@ var dav = {
      * @param caller        [in] "autocomplete" or "search"
     
      */
-    //abServerSearch: Task.async (function* (account, currentQuery, caller)  {
+    //abServerSearch: async function (account, currentQuery, caller)  {
     //    return null;
-    //}),
+    //},
 
 
 
@@ -559,12 +559,12 @@ var dav = {
      * @param job           [in] identifier about what is to be done, the standard job is "sync", you are free to add
      *                           custom jobs like "deletefolder" via your own accountSettings.xul
      */
-    start: Task.async (function* (syncdata, job)  {
+    start: async function (syncdata, job)  {
         try {
             switch (job) {
                 case "sync":
                     //update folders avail on server and handle added, removed, renamed folders
-                    yield dav.sync.folderList(syncdata);
+                    await dav.sync.folderList(syncdata);
 
                     //set all selected folders to "pending", so they are marked for syncing
                     //this also removes all leftover cached folders and sets all other folders to a well defined cached = "0"
@@ -580,7 +580,7 @@ var dav = {
                     Services.obs.notifyObservers(null, "tbsync.updateFolderList", syncdata.account);
 
                     //process all pending folders
-                    yield dav.sync.allPendingFolders(syncdata);
+                    await dav.sync.allPendingFolders(syncdata);
                     break;
 
                 default:
@@ -597,7 +597,7 @@ var dav = {
                 Components.utils.reportError(e);
             }
         }
-    }),
+    },
 
 
 

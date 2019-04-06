@@ -34,7 +34,7 @@ dav.sync = {
 
 
 
-    folderList: Task.async (function* (syncdata) {
+    folderList: async function (syncdata) {
         //Method description: http://sabre.io/dav/building-a-caldav-client/
 
         //get all folders currently known
@@ -88,7 +88,7 @@ dav.sync = {
                 dav.tools.addAccountDataToConnectionData(syncdata);
 
                 let path = "/" + parts.join("/");                
-                let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", path , "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                let response = await dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", path , "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
                 tbSync.setSyncState("eval.folders", syncdata.account);
                 if (response && response.multi) principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]);
@@ -107,7 +107,7 @@ dav.sync = {
                                         ? "<d:propfind "+dav.tools.xmlns(["d", "cal", "cs"])+"><d:prop><cal:" + homeset + " /><cs:calendar-proxy-write-for /><cs:calendar-proxy-read-for /><d:group-membership /></d:prop></d:propfind>"
                                         : "<d:propfind "+dav.tools.xmlns(["d", "card"])+"><d:prop><card:" + homeset + " /><d:group-membership /></d:prop></d:propfind>";
 
-                let response = yield dav.tools.sendRequest(request, principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
+                let response = await dav.tools.sendRequest(request, principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
                 tbSync.setSyncState("eval.folders", syncdata.account);
                 own = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], principal);
@@ -118,7 +118,7 @@ dav.sync = {
                 let g = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["d", "group-membership" ], ["d","href"]], principal);
                 for (let gc=0; gc < g.length; gc++) {
                     //SOGo reports a 403 if I request the provided resource, also since we do not dive, remove the request for group-membership                    
-                    response = yield dav.tools.sendRequest(request.replace("<d:group-membership />",""), g[gc], "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"}, {softfail: [403, 404]});
+                    response = await dav.tools.sendRequest(request.replace("<d:group-membership />",""), g[gc], "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"}, {softfail: [403, 404]});
                     if (response && response.softerror) {
                         continue;
                     }		    
@@ -141,7 +141,7 @@ dav.sync = {
                                             : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
 
                     //some servers report to have calendar-proxy-read but return a 404 when that gets actually queried
-                    let response = yield dav.tools.sendRequest(request, home[h], "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: [403, 404]});
+                    let response = await dav.tools.sendRequest(request, home[h], "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: [403, 404]});
                     if (response && response.softerror) {
                         continue;
                     }
@@ -262,7 +262,7 @@ dav.sync = {
             }
         }
 
-    }),
+    },
 
 
 
@@ -278,7 +278,7 @@ dav.sync = {
         return null;
     },
 
-    allPendingFolders: Task.async (function* (syncdata) {
+    allPendingFolders: async function (syncdata) {
         do {
             //any pending folders left?
             let nextFolder = dav.sync.getNextPendingFolder(syncdata.account);
@@ -307,7 +307,7 @@ dav.sync = {
 
                             //get sync target of this addressbook
                             syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
-                            yield dav.sync.singleFolder(syncdata);
+                            await dav.sync.singleFolder(syncdata);
                         }
                         break;
 
@@ -357,33 +357,33 @@ dav.sync = {
                 }
             }
         } while (true);
-    }),
+    },
 
 
 
 
 
-    singleFolder: Task.async (function* (syncdata)  {
+    singleFolder: async function (syncdata)  {
         syncdata.downloadonly = (tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "downloadonly") == "1");
         syncdata.folderCreatedWithProviderVersion = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "createdWithProviderVersion");
         
-        yield dav.sync.remoteChanges(syncdata);
-        let numOfLocalChanges = yield dav.sync.localChanges(syncdata);
+        await dav.sync.remoteChanges(syncdata);
+        let numOfLocalChanges = await dav.sync.localChanges(syncdata);
 
         //revert all local changes on permission error by doing a clean sync
         if (numOfLocalChanges < 0) {
             dav.onResetTarget(syncdata.account, syncdata.folderID);
-            yield dav.sync.remoteChanges(syncdata);
+            await dav.sync.remoteChanges(syncdata);
 
             if (!syncdata.downloadonly) throw dav.sync.failed("info.restored");
         } else if (numOfLocalChanges > 0){
             //we will get back our own changes and can store etags and vcards and also get a clean ctag/token
-            yield dav.sync.remoteChanges(syncdata);
+            await dav.sync.remoteChanges(syncdata);
         }
 
         //always finish sync by throwing failed or succeeded
         throw dav.sync.succeeded();
-    }),
+    },
 
 
 
@@ -394,12 +394,12 @@ dav.sync = {
 
 
 
-    remoteChanges: Task.async (function* (syncdata) {
+    remoteChanges: async function (syncdata) {
         //Do we have a sync token? No? -> Initial Sync (or WebDAV sync not supported) / Yes? -> Get updates only (token only present if WebDAV sync is suported)
         let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
         if (token) {
             //update via token sync
-            let tokenSyncSucceeded = yield dav.sync.remoteChangesByTOKEN(syncdata);
+            let tokenSyncSucceeded = await dav.sync.remoteChangesByTOKEN(syncdata);
             if (tokenSyncSucceeded) return;
 
             //token sync failed, reset ctag and token and do a full sync
@@ -413,18 +413,18 @@ dav.sync = {
                 if (i == maxloops)
                     throw dav.sync.failed("could-not-get-stable-ctag");
 
-                let ctagChanged = yield dav.sync.remoteChangesByCTAG(syncdata);
+                let ctagChanged = await dav.sync.remoteChangesByCTAG(syncdata);
                 if (!ctagChanged) break;
         }
-    }),
+    },
 
-    remoteChangesByTOKEN: Task.async (function* (syncdata) {
+    remoteChangesByTOKEN: async function (syncdata) {
         syncdata.todo = 0;
         syncdata.done = 0;
 
         let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-        let cards = yield dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {}, {softfail: [415,403]});
+        let cards = await dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {}, {softfail: [415,403]});
 
         //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book), 415 & 403
         //https://github.com/sabre-io/dav/issues/1075
@@ -477,24 +477,24 @@ dav.sync = {
         }
 
         //download all cards added to vCardsChangedOnServer and process changes
-        yield dav.sync.multiget(addressBook, vCardsChangedOnServer, syncdata);
+        await dav.sync.multiget(addressBook, vCardsChangedOnServer, syncdata);
 
         //delete all contacts added to vCardsDeletedOnServer
-        yield dav.sync.deleteContacts (addressBook, vCardsDeletedOnServer, syncdata);
+        await dav.sync.deleteContacts (addressBook, vCardsDeletedOnServer, syncdata);
 
         //update token
         tbSync.db.setFolderSetting(syncdata.account, syncdata.folderID, "token", tokenNode.textContent);
 
         return true;
-    }),
+    },
 
-    remoteChangesByCTAG: Task.async (function* (syncdata) {
+    remoteChangesByCTAG: async function (syncdata) {
         syncdata.todo = 0;
         syncdata.done = 0;
 
         //Request ctag and token
         tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-        let response = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d", "cs"])+"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "0"});
+        let response = await dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d", "cs"])+"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "0"});
 
         tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
         let ctag = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["cs", "getctag"]], syncdata.folderID);
@@ -510,13 +510,13 @@ dav.sync = {
 
             //get etags of all cards on server and find the changed cards
             tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-            let cards = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
+            let cards = await dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
             
             //to test other impl
-            //let cards = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: []}, false);
+            //let cards = await dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: []}, false);
 
             //this is the same request, but includes getcontenttype, do we need it? icloud send contacts without
-            //let cards = yield dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /><d:getcontenttype /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
+            //let cards = await dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /><d:getcontenttype /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
 
             //play with filters and limits for synology
             /*
@@ -528,7 +528,7 @@ dav.sync = {
             additional += "</card:filter>";*/
         
             //addressbook-query does not work on older servers (zimbra)
-            //let cards = yield dav.tools.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
+            //let cards = await dav.tools.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
 
             tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
             for (let c=0; cards.multi && c < cards.multi.length; c++) {
@@ -578,10 +578,10 @@ dav.sync = {
 
 
             //download all cards added to vCardsChangedOnServer and process changes
-            yield dav.sync.multiget(addressBook, vCardsChangedOnServer, syncdata);
+            await dav.sync.multiget(addressBook, vCardsChangedOnServer, syncdata);
 
             //delete all contacts added to vCardsDeletedOnServer
-            yield dav.sync.deleteContacts (addressBook, vCardsDeletedOnServer, syncdata);
+            await dav.sync.deleteContacts (addressBook, vCardsDeletedOnServer, syncdata);
 
             //update ctag and token (if there is one)
             if (ctag === null) return false; //if server does not support ctag, "it did not change"
@@ -596,11 +596,11 @@ dav.sync = {
             return false;
         }
 
-    }),
+    },
 
 
 
-    multiget: Task.async (function*(addressBook, vCardsChangedOnServer, syncdata) {
+    multiget: async function (addressBook, vCardsChangedOnServer, syncdata) {
         //keep track of found mailing lists and its members
         syncdata.foundMailingListsDuringDownSync = {};
         
@@ -612,7 +612,7 @@ dav.sync = {
             let request = dav.tools.getMultiGetRequest(cards2catch.slice(i, i+maxitems));
             if (request) {
                 tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
-                let cards = yield dav.tools.sendRequest(request, syncdata.folderID, "REPORT", syncdata, {"Depth": "1"});
+                let cards = await dav.tools.sendRequest(request, syncdata.folderID, "REPORT", syncdata, {"Depth": "1"});
 
                 tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
                 for (let c=0; c < cards.multi.length; c++) {
@@ -633,7 +633,7 @@ dav.sync = {
                         }
                         //Feedback from users: They want to see the individual count
                         tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);		
-                        yield tbSync.sleep(100, false);
+                        await tbSync.sleep(100, false);
                     } else {
                         tbSync.dump("Skipped Card", [id, cards.multi[c].status == "200", etag !== null, data !== null, id !== null, vCardsChangedOnServer.hasOwnProperty(id)].join(", "));
                     }
@@ -642,7 +642,7 @@ dav.sync = {
         }
         //Feedback from users: They want to see the final count
         tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);		
-        yield tbSync.sleep(200, false);
+        await tbSync.sleep(200, false);
     
         let syncGroups = (tbSync.db.getAccountSetting(syncdata.account, "syncGroups") == "1");
         if (syncGroups) {
@@ -719,23 +719,23 @@ dav.sync = {
                 }
             }
         }            
-    }),
+    },
 
-    deleteContacts: Task.async (function*(addressBook, vCardsDeletedOnServer, syncdata) {
+    deleteContacts: async function (addressBook, vCardsDeletedOnServer, syncdata) {
         //the vCardsDeletedOnServer object has a data member (array of nsIMutableArray) and each nsIMutableArray has a maximum size
         //of maxitems, so we can show a progress during delete and not delete all at once
         for (let i=0; i < vCardsDeletedOnServer.data.length; i++) {
             syncdata.done += vCardsDeletedOnServer.data[i].length;
             tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
-            yield tbSync.sleep(200); //we want the user to see, that deletes are happening
+            await tbSync.sleep(200); //we want the user to see, that deletes are happening
             addressBook.deleteCards(vCardsDeletedOnServer.data[i]);
         }
-    }),
+    },
 
 
 
 
-    localChanges: Task.async (function* (syncdata) {
+    localChanges: async function (syncdata) {
         //keep track of found mailing lists and its members
         syncdata.foundMailingListsDuringUpSync = {};
 
@@ -817,7 +817,7 @@ dav.sync = {
 
                                     tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
                                     if (isAdding || vcard.modified) {
-                                        let response = yield dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, headers, {softfail: [403,405]});
+                                        let response = await dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, headers, {softfail: [403,405]});
 
                                         tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
                                         if (response && response.softerror) {
@@ -841,7 +841,7 @@ dav.sync = {
                         {
                             if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
                                 tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
-                                let response = yield dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {}, {softfail: [403, 404, 405]});
+                                let response = await dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {}, {softfail: [403, 404, 405]});
 
                                 tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
                                 if (response  && response.softerror) {
@@ -869,7 +869,7 @@ dav.sync = {
 
         //return number of modified cards or the number of permission errors (negativ)
         return (permissionErrors < 0 ? permissionErrors : syncdata.done);
-    }),
+    },
 
 
 }
