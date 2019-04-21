@@ -43,6 +43,58 @@ dav.tools = {
         button.setAttribute("image","chrome://dav4tbsync/skin/type."+buttonType+"10.png");
     },    
 
+    dragdrop: {
+        handleEvent(event) {            
+            //only allow to drag the elements which are valid drag targets
+            if (event.target.getAttribute("dragtarget") != "true") {
+                event.stopPropagation();
+                return;
+            }
+
+            let outerbox = event.currentTarget;
+            let richlistitem = outerbox.parentNode; 
+                        
+            switch (event.type) {
+                case "dragenter":
+                case "dragover":                 
+                    let dropIndex = richlistitem.parentNode.getIndexOfItem(richlistitem);
+                    let dragIndex = richlistitem.parentNode.getIndexOfItem(richlistitem.ownerDocument.getElementById(event.dataTransfer.getData("id")));
+
+                    let centerY = event.currentTarget.clientHeight / 2;
+                    let insertBefore = (event.offsetY < centerY);
+                    let moveNeeded = !(dropIndex == dragIndex || (dropIndex+1 == dragIndex && !insertBefore) || (dropIndex-1 == dragIndex && insertBefore));
+
+                    if (moveNeeded) {
+                        if (insertBefore) {
+                            richlistitem.parentNode.insertBefore(richlistitem.parentNode.getItemAtIndex(dragIndex), richlistitem);
+                        } else {
+                            richlistitem.parentNode.insertBefore(richlistitem.parentNode.getItemAtIndex(dragIndex), richlistitem.nextSibling);
+                        }                        
+                    }
+                    
+                    event.preventDefault();
+                    break;
+                
+                case "drop":
+                    event.preventDefault();
+                case "dragleave":
+                    break;
+                
+                case "dragstart": 
+                    event.currentTarget.style["background-color"] = "#eeeeee"; 
+                    event.dataTransfer.setData("id", richlistitem.id);
+                    break;
+                    
+                case "dragend": 
+                    event.currentTarget.style["background-color"] = "transparent";
+                    outerbox.updateFunction(outerbox.ownerDocument);
+                    break;
+                
+                default: 
+                    return undefined;
+          }
+        },
+    },
     
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     //* Functions to handle multiple email addresses in AB (UI)
@@ -147,10 +199,22 @@ dav.tools = {
     getNewEmailListItem: function (aDocument, aItemData) {
         //hbox
         let outerhbox = aDocument.createElement("hbox");
+        outerhbox.setAttribute("dragtarget", "true");
         outerhbox.setAttribute("flex", "1");
         outerhbox.setAttribute("align", "center");
         outerhbox.updateFunction = dav.tools.updateEmails;
         outerhbox.meta =  aItemData.meta;
+
+        outerhbox.addEventListener("dragenter", tbSync.dav.tools.dragdrop);
+        outerhbox.addEventListener("dragover", tbSync.dav.tools.dragdrop);
+        outerhbox.addEventListener("dragleave", tbSync.dav.tools.dragdrop);
+        outerhbox.addEventListener("dragstart", tbSync.dav.tools.dragdrop);
+        outerhbox.addEventListener("dragend", tbSync.dav.tools.dragdrop);
+        outerhbox.addEventListener("drop", tbSync.dav.tools.dragdrop);
+        
+        outerhbox.style["background-image"] = "url('chrome://dav4tbsync/skin/dragdrop.png')"; 
+        outerhbox.style["background-position"] = "right";
+        outerhbox.style["background-repeat"] = "no-repeat";
         
             //button
             let button = aDocument.createElement("button");
@@ -179,12 +243,13 @@ dav.tools = {
             let image = aDocument.createElement("image");
             image.setAttribute("width", "11");
             image.setAttribute("height", "10");
-            image.setAttribute("style", "margin:2px 2px 2px 1ex");
+            image.setAttribute("style", "margin:2px 20px 2px 1ex");
             image.addEventListener("click", function(e) { tbSync.dav.tools.updatePref(aDocument, e.target, true); });
             outerhbox.appendChild(image);
         
         //richlistitem
         let richlistitem = aDocument.createElement("richlistitem");
+        richlistitem.setAttribute("id", "entry_" + dav.tools.generateUUID());
         richlistitem.appendChild(outerhbox);
         
         return richlistitem;
@@ -381,14 +446,26 @@ dav.tools = {
         row.appendChild(description);
         return row;
     },
-
+    
     getNewPhoneListItem: function (aDocument, aItemData) {
         //hbox
         let outerhbox = aDocument.createElement("hbox");
+        outerhbox.setAttribute("dragtarget", "true");
         outerhbox.setAttribute("flex", "1");
         outerhbox.setAttribute("align", "center");
         outerhbox.updateFunction = dav.tools.updatePhoneNumbers;
         outerhbox.meta = aItemData.meta;
+
+        outerhbox.addEventListener("dragenter", tbSync.dav.tools.dragdrop);
+        outerhbox.addEventListener("dragover", tbSync.dav.tools.dragdrop);
+        outerhbox.addEventListener("dragleave", tbSync.dav.tools.dragdrop);
+        outerhbox.addEventListener("dragstart", tbSync.dav.tools.dragdrop);
+        outerhbox.addEventListener("dragend", tbSync.dav.tools.dragdrop);
+        outerhbox.addEventListener("drop", tbSync.dav.tools.dragdrop);
+        
+        outerhbox.style["background-image"] = "url('chrome://dav4tbsync/skin/dragdrop.png')"; 
+        outerhbox.style["background-position"] = "right";
+        outerhbox.style["background-repeat"] = "no-repeat";
 
             //button1
             let button1 = aDocument.createElement("button");
@@ -410,7 +487,7 @@ dav.tools = {
             button2.appendChild(aDocument.getElementById("DavEmailSpacer").children[2].cloneNode(true));
             outerhbox.appendChild(button2);
 
-            //email box
+            //phone box
             let phonebox = aDocument.createElement("hbox");
             phonebox.setAttribute("flex", "1");
             phonebox.setAttribute("style", "padding-bottom:1px");
@@ -427,12 +504,13 @@ dav.tools = {
             let image = aDocument.createElement("image");
             image.setAttribute("width", "11");
             image.setAttribute("height", "10");
-            image.setAttribute("style", "margin:2px 2px 2px 1ex");
+            image.setAttribute("style", "margin:2px 20px 2px 1ex");
             image.addEventListener("click", function(e) { tbSync.dav.tools.updatePref(aDocument, e.target, true); });
             outerhbox.appendChild(image);
         
         //richlistitem
         let richlistitem = aDocument.createElement("richlistitem");
+        richlistitem.setAttribute("id", "entry_" + dav.tools.generateUUID());
         richlistitem.appendChild(outerhbox);
         
         return richlistitem;
@@ -585,7 +663,7 @@ dav.tools = {
         return  host.split(".").slice(-2).join(".");
     },
     
-    generateUUID: function (aItem, folder) {
+    generateUUID: function () {
         const uuidGenerator  = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
         return uuidGenerator.generateUUID().toString().replace(/[{}]/g, '');
     },
