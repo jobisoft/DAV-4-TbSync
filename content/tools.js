@@ -559,7 +559,7 @@ dav.tools = {
 
     addPhoneEntry: function(aDocument) {
         let list = aDocument.getElementById("X-DAV-PhoneNumberList");
-        let data = {value: "", meta: ["HOME", "VOICE"]};
+        let data = {value: "", meta: ["VOICE"]};
         let item = list.appendChild(dav.tools.getNewPhoneListItem(aDocument, data));
         list.ensureElementIsVisible(item);
 
