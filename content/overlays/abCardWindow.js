@@ -14,25 +14,18 @@ Components.utils.import("resource://gre/modules/osfile.jsm");
 var tbSyncAbDavCardWindow = {
     
     onBeforeInject: function (window) {
-        let cardProvider = "";
         let aParentDirURI  = "";
-        tbSyncAbDavCardWindow.addressbook = null;
 
         if (window.location.href=="chrome://messenger/content/addressbook/abNewCardDialog.xul") {
+            //get provider via uri from drop down
             aParentDirURI = window.document.getElementById("abPopup").value;
         } else {
-            aParentDirURI = tbSyncAbDavCardWindow.getSelectedAbFromArgument(window.arguments[0]);
-        }
-
-        if (aParentDirURI) {
-            let folders = tbSync.db.findFoldersWithSetting("target", aParentDirURI);
-            if (folders.length == 1) {
-                cardProvider = tbSync.db.getAccountSetting(folders[0].account, "provider");
-            }
+            //function to get correct uri of current card for global book as well for mailLists
+            aParentDirURI = tbSync.dav.tools.getSelectedUri(window.arguments[0].abURI, window.arguments[0].card);
         }
         
         //returning false will prevent injection
-        return (cardProvider == "dav");
+        return (MailServices.ab.getDirectory(aParentDirURI).getStringValue("tbSyncProvider", "") == "dav");
     },
 
     onInject: function (window) {
@@ -98,25 +91,6 @@ var tbSyncAbDavCardWindow = {
         }
             
     },
-    
-    getSelectedAbFromArgument: function (arg) {
-        let abURI = "";
-        if (arg.hasOwnProperty("abURI")) {
-            abURI = arg.abURI;
-        } else if (arg.hasOwnProperty("selectedAB")) {
-            abURI = arg.selectedAB;
-        }
-        
-        if (abURI) {
-            tbSyncAbDavCardWindow.addressbook = MailServices.ab.getDirectory(abURI);
-            if (tbSyncAbDavCardWindow.addressbook.isMailList) {
-                let parts = abURI.split("/");
-                parts.pop();
-                return parts.join("/");
-            }
-        }
-        return abURI;
-    },   
     
     onLoadCard: function (aCard, aDocument) {                
         //load properties

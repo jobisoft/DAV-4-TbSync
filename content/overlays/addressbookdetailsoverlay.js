@@ -13,27 +13,8 @@ Components.utils.import("chrome://tbsync/content/tbsync.jsm");
 var tbSyncDavAddressBookDetails = {
     
     onBeforeInject: function (window) {
-        let cardProvider = "";
-        
-        try {
-            let aParentDirURI = window.GetSelectedDirectory();
-            tbSyncDavAddressBookDetails.selectedBook = MailServices.ab.getDirectory(aParentDirURI);
-            if (tbSyncDavAddressBookDetails.selectedBook.isMailList) {
-                aParentDirURI = aParentDirURI.substring(0, aParentDirURI.lastIndexOf("/"));
-            }
-
-            if (aParentDirURI) {
-                let folders = tbSync.db.findFoldersWithSetting("target", aParentDirURI);
-                if (folders.length == 1) {
-                    cardProvider = tbSync.db.getAccountSetting(folders[0].account, "provider");
-                }
-            }
-        } catch (e) {
-            //if the window / gDirTree is not yet avail 
-        }
-        
-        //returning false will prevent injection
-        return (cardProvider == "dav");
+        //we inject always now and let onAbResultSelectionChanged handle our custom display
+        return true;
     },
 
     onInject: function (window) {
@@ -75,10 +56,18 @@ var tbSyncDavAddressBookDetails = {
     
     onAbResultSelectionChanged: function () {
         tbSyncDavAddressBookDetails.undoChangesToDefaults();
-        
+
         let cards = window.GetSelectedAbCards();
         if (cards.length == 1) {
             let aCard = cards[0];
+
+            //function to get correct uri of current card for global book as well for mailLists
+            let abUri = tbSync.dav.tools.getSelectedUri(window.GetSelectedDirectory(), aCard);
+            if (MailServices.ab.getDirectory(abUri).getStringValue("tbSyncProvider", "") != "dav") {
+                window.document.getElementById("cvbEmails").collapsed = true;
+                window.document.getElementById("cvbPhoneNumbers").collapsed =true;
+                return;
+            }
             
             //add emails
             let emails = tbSync.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}

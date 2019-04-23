@@ -10,6 +10,22 @@
 
 dav.tools = {
 
+    //function to get correct uri of current card for global book as well for mailLists
+    getSelectedUri : function(aUri, aCard) {       
+        if (aUri == "moz-abdirectory://?") {
+            //get parent via card owner
+            let ownerId = aCard.directoryId;
+            return tbSync.getUriFromDirectoryId(ownerId);            
+        } else if (MailServices.ab.getDirectory(aUri).isMailList) {
+            //MailList suck, we have to cut the url to get the parent
+            return aUri.substring(0, aUri.lastIndexOf("/"))     
+        } else {
+            return aUri;
+        }
+    },
+
+
+
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     //* Functions to handle advanced UI elements of AB
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
