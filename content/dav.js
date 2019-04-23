@@ -447,20 +447,19 @@ var dav = {
      * return the id of the newAddressBook
      */
     createAddressBook: function (newname, account, folderID) {
-        //This example implementation is using the standard address book, but you may use another one
-        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
+        let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
+        let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
 
-        let dirPrefId = abManager.newAddressBook(newname, "", 2);
-        let data = abManager.getDirectoryFromId(dirPrefId);
-        if (data instanceof Components.interfaces.nsIAbDirectory && data.dirPrefId == dirPrefId) {
+        if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
             let serviceprovider = tbSync.db.getAccountSetting(account, "serviceprovider");
             let icon = "custom";
             if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
                 icon = dav.serviceproviders[serviceprovider].icon;
             }
-            data.setStringValue("tbSyncIcon", "dav" + icon);
+            directory.setStringValue("tbSyncIcon", "dav" + icon);
+            return directory;
         }
-        return dirPrefId; //change this to data on next big change
+        return null;
     },
 
 
