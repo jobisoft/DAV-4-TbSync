@@ -1891,8 +1891,7 @@ dav.tools = {
     },
 
     getGroupInfoFromList: function (listUri) {
-        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-        let listDir = abManager.getDirectory(listUri);
+        let listDir = MailServices.ab.getDirectory(listUri);
         let name = listDir.dirName;
         let members = [];
         

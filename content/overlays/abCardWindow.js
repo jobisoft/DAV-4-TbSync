@@ -108,8 +108,7 @@ var tbSyncAbDavCardWindow = {
         }
         
         if (abURI) {
-            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-            tbSyncAbDavCardWindow.addressbook = abManager.getDirectory(abURI);
+            tbSyncAbDavCardWindow.addressbook = MailServices.ab.getDirectory(abURI);
             if (tbSyncAbDavCardWindow.addressbook.isMailList) {
                 let parts = abURI.split("/");
                 parts.pop();

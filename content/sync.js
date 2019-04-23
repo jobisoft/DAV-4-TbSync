@@ -440,8 +440,7 @@ dav.sync = {
             return false;
         }
 
-        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-        let addressBook = abManager.getDirectory(syncdata.targetId);
+        let addressBook = MailServices.ab.getDirectory(syncdata.targetId);
 
         let vCardsDeletedOnServer = new dav.tools.deleteCardsContainer(tbSync.dav.prefSettings.getIntPref("maxitems"));
         let vCardsChangedOnServer = {};
@@ -505,8 +504,7 @@ dav.sync = {
             let vCardsFoundOnServer = [];
             let vCardsChangedOnServer = {};
 
-            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-            let addressBook = abManager.getDirectory(syncdata.targetId);
+            let addressBook = MailServices.ab.getDirectory(syncdata.targetId);
 
             //get etags of all cards on server and find the changed cards
             tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
@@ -647,14 +645,13 @@ dav.sync = {
         let syncGroups = (tbSync.db.getAccountSetting(syncdata.account, "syncGroups") == "1");
         if (syncGroups) {
             //mailinglists (we need to do that at the very end so all member data is avail)
-            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
             let listcount = 0;
             for (let mailListCardID in syncdata.foundMailingListsDuringDownSync) {
                 if (syncdata.foundMailingListsDuringDownSync.hasOwnProperty(mailListCardID)) {
                     listcount++;
                     let locked = 0;
                     let mailListCard = tbSync.getCardFromProperty(addressBook, "TBSYNCID", mailListCardID);
-                    let mailListDirectory = abManager.getDirectory(mailListCard.mailListURI);
+                    let mailListDirectory = MailServices.ab.getDirectory(mailListCard.mailListURI);
                     
                     //smart merge: oCardInfo contains the state during last sync, vCardInfo is the current state
                     //by comparing we can learn, what was added on the server (in new but not in old) and what was deleted (in old but not in new)
@@ -742,8 +739,7 @@ dav.sync = {
         //define how many entries can be send in one request
         let maxitems = tbSync.dav.prefSettings.getIntPref("maxitems");
 
-        let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-        let addressBook = abManager.getDirectory(syncdata.targetId);
+        let addressBook = MailServices.ab.getDirectory(syncdata.targetId);
         
         let permissionErrors = 0;
         let permissionError = { //keep track of permission errors - preset with downloadonly status to skip sync in that case
@@ -757,7 +753,7 @@ dav.sync = {
             //special handling of lists/groups
             //ADD/MOD of the list cards itself is not detectable, we only detect the change of its member cards when membership changes
             //DEL is handled like a normal card, no special handling needed        
-            let result = abManager.getDirectory(addressBook.URI +  "?(or(IsMailList,=,TRUE))").childCards;
+            let result = MailServices.ab.getDirectory(addressBook.URI +  "?(or(IsMailList,=,TRUE))").childCards;
             while (result.hasMoreElements()) {
                 let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
                 let mailListInfo = dav.tools.getGroupInfoFromList(mailListCard.mailListURI);           

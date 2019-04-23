@@ -17,8 +17,7 @@ var tbSyncDavAddressBookDetails = {
         
         try {
             let aParentDirURI = window.GetSelectedDirectory();
-            let abManager = Components.classes["@mozilla.org/abmanager;1"].getService(Components.interfaces.nsIAbManager);
-            tbSyncDavAddressBookDetails.selectedBook = abManager.getDirectory(aParentDirURI);
+            tbSyncDavAddressBookDetails.selectedBook = MailServices.ab.getDirectory(aParentDirURI);
             if (tbSyncDavAddressBookDetails.selectedBook.isMailList) {
                 aParentDirURI = aParentDirURI.substring(0, aParentDirURI.lastIndexOf("/"));
             }
