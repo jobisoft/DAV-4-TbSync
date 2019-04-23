@@ -41,7 +41,7 @@
 <!ENTITY abCard.PrefixName "előtagja:">
 <!ENTITY abCard.SuffixName "képző:">
 <!ENTITY abCard.Phone "Telefonszámok">
-<!ENTITY abCard.ContactDetails "Kapcsolati tulajdonságok">
+<!ENTITY abCard.ContactDetails "Kapcsolati tulajdonságok (CardDAV)">
 <!ENTITY abCard.EmailAddresses "Email címek:">
 
 <!ENTITY manager.tabs.accountsettings "Fiók beállításai">

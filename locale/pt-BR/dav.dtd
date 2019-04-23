@@ -41,7 +41,7 @@
 <!ENTITY abCard.PrefixName "Prefixo:">
 <!ENTITY abCard.SuffixName "Sufixo:">
 <!ENTITY abCard.Phone "Números de telefone">
-<!ENTITY abCard.ContactDetails "Propriedades de contato">
+<!ENTITY abCard.ContactDetails "Propriedades de contato (CardDAV)">
 <!ENTITY abCard.EmailAddresses "Endereço de e-mail:">
 
 <!ENTITY manager.tabs.accountsettings "Configurações da conta">
