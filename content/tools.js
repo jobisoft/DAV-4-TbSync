@@ -390,7 +390,7 @@ dav.tools = {
                     phoneFields[phoneMap[m].field] = [];            
                     for (let d=phoneData.length-1; d >= 0; d--) {
                         if (phoneData[d].meta.includes(phoneMap[m].meta) || phoneMap[m].meta == "") {
-                            phoneFields[phoneMap[m].field].push(phoneData[d].value);
+                            phoneFields[phoneMap[m].field].unshift(phoneData[d].value);
                             phoneData.splice(d,1);
                         }
                     }
