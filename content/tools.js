@@ -1357,15 +1357,12 @@ dav.tools = {
 
     //helper function: extract the associated meta.type of an entry
     getItemMetaType: function (vCardData, item, i, typefield) {
-        let arr = [];
         if (vCardData[item][i].meta && vCardData[item][i].meta[typefield] && vCardData[item][i].meta[typefield].length > 0) {
-            //bug in vCard parser? type is always array of length 1, all values joined by ,
-            //no, sometimes it is a true array
-            for (let d=0; d < vCardData[item][i].meta[typefield].length; d++) {
-                arr = arr.concat( vCardData[item][i].meta[typefield][d].split(",").map(function(x){ return x.toUpperCase().trim() }) );
-            }
+            //vCard parser now spilts up meta types into single array values 
+            //TYPE="home,cell" and TYPE=home;Type=cell will be received as ["home", "cell"]
+            return vCardData[item][i].meta[typefield];
         }
-        return arr;
+        return [];
     },
 
     //helper function: for each entry for the given item, extract the associated meta.type
