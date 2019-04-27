@@ -64,12 +64,14 @@
                     if (arr[0].length === 0) {
                         return;
                     }
-                    //removing boundary quotes and splitting up values, if send as list
-                    let metavalue = arr[1].replace (/(^")|("$)/g, '').split(",");
-                    if (meta[arr[0]]) {
-                        meta[arr[0]].push(...metavalue);
-                    } else {
-                        meta[arr[0]] = metavalue;
+                    if (arr.length>1) {
+                        //removing boundary quotes and splitting up values, if send as list
+                        let metavalue = arr[1].replace (/(^")|("$)/g, '').split(",");
+                        if (meta[arr[0]]) {
+                            meta[arr[0]].push(...metavalue);
+                        } else {
+                            meta[arr[0]] = metavalue;
+                        }
                     }
                 });
             }
