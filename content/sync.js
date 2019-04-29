@@ -258,7 +258,6 @@ dav.sync = {
         for (let t of folderTypes) {
             for (let i = 0; i < unhandledFolders[t].length; i++) {
                 tbSync.takeTargetOffline("dav", folders[unhandledFolders[t][i]], " [deleted on server]");
-                tbSync.db.deleteFolder(folders[unhandledFolders[t][i]].account, folders[unhandledFolders[t][i]].folderID);
             }
         }
 
