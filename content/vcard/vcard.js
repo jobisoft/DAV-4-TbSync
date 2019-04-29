@@ -179,7 +179,7 @@
      *       member "addRequired" determine if generator should add required properties (version and uid)
      * @returns {string}
      */
-    function generate(data, options = {}) {
+    function generate(data, options = {simpleType: true}) {
         var lines = [PREFIX],
             line = '';
 

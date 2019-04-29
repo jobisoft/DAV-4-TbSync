@@ -2092,18 +2092,18 @@ dav.tools = {
         if (!vCardData.hasOwnProperty("fn")) vCardData["fn"] = [{"value": " "}];
         if (!vCardData.hasOwnProperty("n")) vCardData["n"] = [{"value": [" ","","","",""]}];
 
-        //get new vCard
+        //build vCards
         let newCard = tbSync.dav.vCard.generate(vCardData).trim();
+        let oldCard = tbSync.dav.vCard.generate(cCardData).trim();
 
-        //we build these cards just to be less strict on the comparison
-        let currentCardSimpleType = tbSync.dav.vCard.generate(cCardData, {simpleType:true}).trim();
-        let newCardSimpleType = tbSync.dav.vCard.generate(vCardData, {simpleType:true}).trim();
-        if (currentCardSimpleType != newCardSimpleType) {
+        let modified = false;
+        if (oldCard != newCard) {
             tbSync.dump("Card has been modified!","");
-            tbSync.dump("currentCard", currentCardSimpleType);
-            tbSync.dump("newCard", newCardSimpleType);
+            tbSync.dump("currentCard", oldCard);
+            tbSync.dump("newCard", newCard);
+            modified = true;
         }
-        return {data: newCard, etag: tbSync.getPropertyOfCard(card, "X-DAV-ETAG"), modified: (currentCardSimpleType != newCardSimpleType)};
+        return {data: newCard, etag: tbSync.getPropertyOfCard(card, "X-DAV-ETAG"), modified: modified};
     },
 
 }
