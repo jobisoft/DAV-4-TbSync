@@ -65,8 +65,8 @@
                         return;
                     }
                     if (arr.length>1) {
-                        //removing boundary quotes and splitting up values, if send as list
-                        let metavalue = arr[1].replace (/(^")|("$)/g, '').split(",");
+                        //removing boundary quotes and splitting up values, if send as list - upperCase for hitory reasons
+                        let metavalue = arr[1].replace (/(^")|("$)/g, '').toUpperCase().split(",");
                         if (meta[arr[0]]) {
                             meta[arr[0]].push(...metavalue);
                         } else {
