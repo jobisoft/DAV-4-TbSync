@@ -49,7 +49,11 @@ dav.tools = {
         if (newvalue) {
             //we declare allowedValues to be non-overlapping -> remove all allowed values and just add the newvalue
             button.parentNode.meta = button.parentNode.meta.filter(value => -1 == button.allowedValues.indexOf(value));
-            if (button.allowedValues.includes(newvalue)) button.parentNode.meta.push(newvalue);
+            if (button.allowedValues.includes(newvalue)) {
+                //hardcoded sort order: HOME/WORK always before other types
+                if (["HOME","WORK"].includes(newvalue)) button.parentNode.meta.unshift(newvalue);
+                else button.parentNode.meta.push(newvalue);
+            }
 
             button.parentNode.updateFunction (aDocument);
         }
