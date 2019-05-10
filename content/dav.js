@@ -53,7 +53,7 @@ var dav = {
                         //add target to re-take control
                         tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "target", aCalendar.id);
                         //update settings window, if open
-                        Services.obs.notifyObservers(null, "tbsync.updateSyncstate", folders[f].account);
+                        Services.obs.notifyObservers(null, "tbsync.observer.manager.updateSyncstate", folders[f].account);
                     }
                 }
             }
@@ -107,9 +107,9 @@ var dav = {
         if (configlabel) {
             let extra = "";
             if (isServiceProvider) {
-                extra = " [" + tbSync.getLocalizedMessage("add.serverprofile." + serviceprovider, "dav") + "]";
+                extra = " [" + tbSync.tools.getLocalizedMessage("add.serverprofile." + serviceprovider, "dav") + "]";
             }
-            configlabel.setAttribute("value", tbSync.getLocalizedMessage("config.custom", "dav") + extra);
+            configlabel.setAttribute("value", tbSync.tools.getLocalizedMessage("config.custom", "dav") + extra);
         }
 
         //set certain elements as "alwaysDisable", if locked by service provider (alwaysDisabled is honored by main SettingsUpdate, so we do not have to do that in our own onSettingsGUIUpdate
@@ -213,8 +213,8 @@ var dav = {
      */
     getPassword: function (accountdata) {
         let hostField = (accountdata.host !== "") ? "host" : "host2";
-        let host4PasswordManager = tbSync.getHost4PasswordManager(accountdata.provider, accountdata[hostField]);
-        return tbSync.getLoginInfo(host4PasswordManager, "TbSync", accountdata.user);
+        let origin = tbSync.tools.getOrigin4PasswordManager(accountdata.provider, accountdata[hostField]);
+        return tbSync.tools.getLoginInfo(origin, "TbSync", accountdata.user);
     },
 
 
@@ -227,8 +227,8 @@ var dav = {
      */
     setPassword: function (accountdata, newPassword) {
         let hostField = (accountdata.host !== "") ? "host" : "host2";
-        let host4PasswordManager = tbSync.getHost4PasswordManager(accountdata.provider, accountdata[hostField]);
-        tbSync.setLoginInfo(host4PasswordManager, "TbSync", accountdata.user, newPassword);
+        let origin = tbSync.tools.getOrigin4PasswordManager(accountdata.provider, accountdata[hostField]);
+        tbSync.tools.setLoginInfo(origin, "TbSync", accountdata.user, newPassword);
     },
 
 
@@ -432,7 +432,7 @@ var dav = {
     onResetTarget: function (account, folderID) {
         tbSync.db.resetFolderSetting(account, folderID, "ctag");
         tbSync.db.resetFolderSetting(account, folderID, "token");
-        tbSync.db.setFolderSetting(account, folderID, "createdWithProviderVersion", tbSync.loadedProviders.dav.version);
+        tbSync.db.setFolderSetting(account, folderID, "createdWithProviderVersion", tbSync.providers.loadedProviders.dav.version);
     },
 
 
@@ -517,7 +517,7 @@ var dav = {
             let realm = (dav.listOfRealms.hasOwnProperty(url.host)) ? dav.listOfRealms[url.host] : "";
             if (realm !== "") {
                 tbSync.dump("Found CalDAV authRealm",  realm);
-                tbSync.setLoginInfo(url.prePath, realm, user, password);
+                tbSync.tools.setLoginInfo(url.prePath, realm, user, password);
             }
         }
 
@@ -568,15 +568,15 @@ var dav = {
                     //set all selected folders to "pending", so they are marked for syncing
                     //this also removes all leftover cached folders and sets all other folders to a well defined cached = "0"
                     //which will set this account as connected (if at least one folder with cached == "0" is present)
-                    tbSync.prepareFoldersForSync(syncdata.account);
+                    tbSync.core.prepareFoldersForSync(syncdata.account);
 
                     //check if any folder was found
-                    if (!tbSync.isConnected(syncdata.account)) {
+                    if (!tbSync.core.isConnected(syncdata.account)) {
                         throw dav.sync.failed("no-folders-found-on-server");
                     }
 
                     //update folder list in GUI
-                    Services.obs.notifyObservers(null, "tbsync.updateFolderList", syncdata.account);
+                    Services.obs.notifyObservers(null, "tbsync.observer.manager.updateFolderList", syncdata.account);
 
                     //process all pending folders
                     await dav.sync.allPendingFolders(syncdata);
@@ -588,11 +588,11 @@ var dav = {
             }
         } catch (e) {
             if (e.type == "dav4tbsync") {
-                tbSync.finishAccountSync(syncdata, e);
+                tbSync.core.finishAccountSync(syncdata, e);
             } else {
                 //some other error
                 e.type = "JavaScriptError";
-                tbSync.finishAccountSync(syncdata, e);
+                tbSync.core.finishAccountSync(syncdata, e);
                 Components.utils.reportError(e);
             }
         }
@@ -674,7 +674,7 @@ var dav = {
          * in the folderlist. The content of the folderRowData object is free to choose, it
          * will be passed back to getRow() and updateRow()
          *
-         * Use tbSync.getSyncStatusMsg(folder, syncdata, provider) to get a nice looking
+         * Use tbSync.core.getSyncStatusMsg(folder, syncdata, provider) to get a nice looking
          * status message, including sync progress (if folder is synced)
          *
          * @param folder         [in] folder databasse object of requested folder
@@ -692,7 +692,7 @@ var dav = {
             rowData.acl = folder.acl;
             rowData.name = folder.name;
             rowData.statusCode = folder.status;
-            rowData.statusMsg = tbSync.getSyncStatusMsg(folder, syncdata, "dav");
+            rowData.statusMsg = tbSync.core.getSyncStatusMsg(folder, syncdata, "dav");
 
             return rowData;
         },
@@ -706,8 +706,8 @@ var dav = {
         getHeader: function () {
             return [
                 {style: "font-weight:bold;", label: "", width: "93"},
-                {style: "font-weight:bold;", label: tbSync.getLocalizedMessage("manager.resource"), width:"150"},
-                {style: "font-weight:bold;", label: tbSync.getLocalizedMessage("manager.status"), flex :"1"},
+                {style: "font-weight:bold;", label: tbSync.tools.getLocalizedMessage("manager.resource"), width:"150"},
+                {style: "font-weight:bold;", label: tbSync.tools.getLocalizedMessage("manager.status"), flex :"1"},
             ]
         },
 
@@ -777,21 +777,21 @@ var dav = {
                 let menuitem1 = document.createElement("menuitem");
                 menuitem1.setAttribute("value", "1");
                 menuitem1.setAttribute("class", "menuitem-iconic");
-                menuitem1.setAttribute("label", tbSync.getLocalizedMessage("acl.readonly", "dav"));
+                menuitem1.setAttribute("label", tbSync.tools.getLocalizedMessage("acl.readonly", "dav"));
                 menuitem1.setAttribute("image", "chrome://tbsync/skin/acl_ro2.png");
                 menuitem1.addEventListener("command", tbSync.dav.folderList.updateReadOnly);
 
                 let acl = parseInt(rowData.acl);
                 let acls = [];
-                if (acl & 0x2) acls.push(tbSync.getLocalizedMessage("acl.modify", "dav"));
-                if (acl & 0x4) acls.push(tbSync.getLocalizedMessage("acl.add", "dav"));
-                if (acl & 0x8) acls.push(tbSync.getLocalizedMessage("acl.delete", "dav"));
-                if (acls.length == 0)  acls.push(tbSync.getLocalizedMessage("acl.none", "dav"));
+                if (acl & 0x2) acls.push(tbSync.tools.getLocalizedMessage("acl.modify", "dav"));
+                if (acl & 0x4) acls.push(tbSync.tools.getLocalizedMessage("acl.add", "dav"));
+                if (acl & 0x8) acls.push(tbSync.tools.getLocalizedMessage("acl.delete", "dav"));
+                if (acls.length == 0)  acls.push(tbSync.tools.getLocalizedMessage("acl.none", "dav"));
 
                 let menuitem2 = document.createElement("menuitem");
                 menuitem2.setAttribute("value", "0");
                 menuitem2.setAttribute("class", "menuitem-iconic");
-                menuitem2.setAttribute("label", tbSync.getLocalizedMessage("acl.readwrite::"+acls.join(", "), "dav"));
+                menuitem2.setAttribute("label", tbSync.tools.getLocalizedMessage("acl.readwrite::"+acls.join(", "), "dav"));
                 menuitem2.setAttribute("image", "chrome://tbsync/skin/acl_rw2.png");
                 menuitem2.setAttribute("disabled", (acl & 0x7) != 0x7);                
                 menuitem2.addEventListener("command", tbSync.dav.folderList.updateReadOnly);

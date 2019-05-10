@@ -13,14 +13,14 @@ Components.utils.import("chrome://tbsync/content/tbsync.jsm");
 var tbSyncDavAddressBook = {
 
     onInject: function (window) {
-        Services.obs.addObserver(tbSyncDavAddressBook.onAddressBookCreated, "tbsync.addressbook.created", false);
+        Services.obs.addObserver(tbSyncDavAddressBook.onAddressBookCreated, "tbsync.observer.addressbook.created", false);
         if (window.document.getElementById("dirTree")) {
             window.document.getElementById("dirTree").addEventListener("select", tbSyncDavAddressBook.onAbDirectorySelectionChanged, false);
         }
     },
 
     onRemove: function (window) {
-        Services.obs.removeObserver(tbSyncDavAddressBook.onAddressBookCreated, "tbsync.addressbook.created");
+        Services.obs.removeObserver(tbSyncDavAddressBook.onAddressBookCreated, "tbsync.observer.addressbook.created");
         if (window.document.getElementById("dirTree")) {
             window.document.getElementById("dirTree").removeEventListener("select", tbSyncDavAddressBook.onAbDirectorySelectionChanged, false);
         }

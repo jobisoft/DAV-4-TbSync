@@ -77,7 +77,7 @@ dav.sync = {
             let own = [];
             let principal = null;
 
-            tbSync.setSyncState("send.getfolders", syncdata.account);
+            tbSync.core.setSyncState("send.getfolders", syncdata.account);
             {
                 //split server into fqdn and path
                 let parts = davjobs[job].server.split("/").filter(i => i != "");
@@ -90,14 +90,14 @@ dav.sync = {
                 let path = "/" + parts.join("/");                
                 let response = await dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", path , "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
-                tbSync.setSyncState("eval.folders", syncdata.account);
+                tbSync.core.setSyncState("eval.folders", syncdata.account);
                 if (response && response.multi) principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]);
             }
 
             //principal now contains something like "/remote.php/carddav/principals/john.bieling/"
             // -> get home/root of storage
             if (principal !== null) {
-                tbSync.setSyncState("send.getfolders", syncdata.account);
+                tbSync.core.setSyncState("send.getfolders", syncdata.account);
                 
                 let homeset = (job == "cal")
                                         ? "calendar-home-set"
@@ -109,7 +109,7 @@ dav.sync = {
 
                 let response = await dav.tools.sendRequest(request, principal, "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
-                tbSync.setSyncState("eval.folders", syncdata.account);
+                tbSync.core.setSyncState("eval.folders", syncdata.account);
                 own = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], principal);
                 home = own.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["cs", "calendar-proxy-read-for" ], ["d","href"]], principal));
                 home = home.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["cs", "calendar-proxy-write-for" ], ["d","href"]], principal));
@@ -135,7 +135,7 @@ dav.sync = {
             // -> get all resources
             if (home.length > 0) {
                 for (let h=0; h < home.length; h++) {
-                    tbSync.setSyncState("send.getfolders", syncdata.account);
+                    tbSync.core.setSyncState("send.getfolders", syncdata.account);
                     let request = (job == "cal")
                                             ? "<d:propfind "+dav.tools.xmlns(["d","apple","cs"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /><apple:calendar-color/><cs:source/></d:prop></d:propfind>"
                                             : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
@@ -188,7 +188,7 @@ dav.sync = {
                         if (resourcetype == "ics") href =  dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cs","source"], ["d","href"]]).textContent;
                         
                         let name_node = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","displayname"]]);
-                        let name = tbSync.getLocalizedMessage("defaultname." +  ((job == "cal") ? "calendar" : "contacts") , "dav");
+                        let name = tbSync.tools.getLocalizedMessage("defaultname." +  ((job == "cal") ? "calendar" : "contacts") , "dav");
                         if (name_node != null) {
                             name = name_node.textContent;
                         }
@@ -230,7 +230,7 @@ dav.sync = {
                             color = color.textContent.substring(0,7);
                             tbSync.db.setFolderSetting(syncdata.account, href, "targetColor", color);
                             //do we have to update the calendar?
-                            if (tbSync.lightningIsAvailable() && folder && folder.target) {
+                            if (tbSync.lightning.isAvailable() && folder && folder.target) {
                                 let targetCal = cal.getCalendarManager().getCalendarById(folder.target);
                                 if (targetCal !== null) {
                                     targetCal.setProperty("color", color);
@@ -257,7 +257,7 @@ dav.sync = {
         //remove unhandled old folders, (because they no longer exist on the server)
         for (let t of folderTypes) {
             for (let i = 0; i < unhandledFolders[t].length; i++) {
-                tbSync.takeTargetOffline("dav", folders[unhandledFolders[t][i]], " [deleted on server]");
+                tbSync.core.takeTargetOffline("dav", folders[unhandledFolders[t][i]], " [deleted on server]");
             }
         }
 
@@ -299,7 +299,7 @@ dav.sync = {
                     case "carddav":
                         {
                             // check SyncTarget
-                            if (!tbSync.checkAddressbook(syncdata.account, syncdata.folderID)) {
+                            if (!tbSync.addressbook.checkAddressbook(syncdata.account, syncdata.folderID)) {
                                 //could not create target
                                 throw dav.sync.failed("notargets");
                             }
@@ -314,12 +314,12 @@ dav.sync = {
                     case "ics":
                         {
                             // skip if lightning is not installed
-                            if (tbSync.lightningIsAvailable() == false) {
+                            if (tbSync.lightning.isAvailable() == false) {
                                 throw dav.sync.failed("nolightning");
                             }
 
                             // check SyncTarget
-                            if (!tbSync.checkCalender(syncdata.account, syncdata.folderID)) {
+                            if (!tbSync.lightning.checkCalender(syncdata.account, syncdata.folderID)) {
                                 //could not create target
                                 throw dav.sync.failed("notargets");
                             }
@@ -347,11 +347,11 @@ dav.sync = {
                 }
             } catch (e) {
                 if (e.type == "dav4tbsync") {
-                    tbSync.finishFolderSync(syncdata, e);
+                    tbSync.core.finishFolderSync(syncdata, e);
                 } else {
                     //abort sync of other folders on javascript error
                     e.type = "JavaScriptError";
-                    tbSync.finishFolderSync(syncdata, e);
+                    tbSync.core.finishFolderSync(syncdata, e);
                     throw e;
                 }
             }
@@ -422,7 +422,7 @@ dav.sync = {
         syncdata.done = 0;
 
         let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
-        tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
+        tbSync.core.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
         let cards = await dav.tools.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata, {}, {softfail: [415,403]});
 
         //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book), 415 & 403
@@ -448,7 +448,7 @@ dav.sync = {
             let id = cards.multi[c].href;
             if (id !==null) {
                 //valid
-                let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", id);
+                let card = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", id);
                 if (cards.multi[c].status == "200") {
                     //MOD or ADD
                     let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
@@ -458,7 +458,7 @@ dav.sync = {
                             syncdata.todo++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
-                    } else if (etag.textContent != tbSync.getPropertyOfCard(card, "X-DAV-ETAG")) {
+                    } else if (etag.textContent != tbSync.addressbook.getPropertyOfCard(card, "X-DAV-ETAG")) {
                         syncdata.todo++;
                         vCardsChangedOnServer[id] = "MOD"; 
                     }
@@ -469,7 +469,7 @@ dav.sync = {
                     tbSync.db.addItemToChangeLog(syncdata.targetId, id, "deleted_by_server");
                 } else {
                     //We received something, that is not a DEL, MOD or ADD
-                    tbSync.errorlog("warning", syncdata, "Unknown XML", JSON.stringify(cards.multi[c]));
+                    tbSync.errorlog.add("warning", syncdata, "Unknown XML", JSON.stringify(cards.multi[c]));
                 }
             }
         }
@@ -491,10 +491,10 @@ dav.sync = {
         syncdata.done = 0;
 
         //Request ctag and token
-        tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
+        tbSync.core.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
         let response = await dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d", "cs"])+"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "0"});
 
-        tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
+        tbSync.core.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
         let ctag = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["cs", "getctag"]], syncdata.folderID);
         let token = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d", "sync-token"]], syncdata.folderID);
 
@@ -506,7 +506,7 @@ dav.sync = {
             let addressBook = MailServices.ab.getDirectory(syncdata.targetId);
 
             //get etags of all cards on server and find the changed cards
-            tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
+            tbSync.core.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
             let cards = await dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
             
             //to test other impl
@@ -527,7 +527,7 @@ dav.sync = {
             //addressbook-query does not work on older servers (zimbra)
             //let cards = await dav.tools.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncdata.folderID, "REPORT", syncdata, {"Depth": "1", "Prefer": "return-minimal"});
 
-            tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
+            tbSync.core.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
             for (let c=0; cards.multi && c < cards.multi.length; c++) {
                 let id =  cards.multi[c].href;
                 if (id == syncdata.folderID) {
@@ -541,14 +541,14 @@ dav.sync = {
 
                 if (cards.multi[c].status == "200" && etag !== null && id !== null /* && ctype !== null */) { //we do not actually check the content of ctype - but why do we request it? iCloud seems to send cards without ctype
                     vCardsFoundOnServer.push(id);
-                    let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", id);
+                    let card = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", id);
                     if (!card) {
                         //if the user deleted this card (not yet send to server), do not add it again
                         if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "deleted_by_user") {
                             syncdata.todo++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
-                    } else if (etag.textContent != tbSync.getPropertyOfCard(card, "X-DAV-ETAG")) {
+                    } else if (etag.textContent != tbSync.addressbook.getPropertyOfCard(card, "X-DAV-ETAG")) {
                         syncdata.todo++;
                         vCardsChangedOnServer[id] = "MOD"; 
                     }
@@ -608,10 +608,10 @@ dav.sync = {
         for (let i=0; i < cards2catch.length; i+=maxitems) {
             let request = dav.tools.getMultiGetRequest(cards2catch.slice(i, i+maxitems));
             if (request) {
-                tbSync.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
+                tbSync.core.setSyncState("send.request.remotechanges", syncdata.account, syncdata.folderID);
                 let cards = await dav.tools.sendRequest(request, syncdata.folderID, "REPORT", syncdata, {"Depth": "1"});
 
-                tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
+                tbSync.core.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
                 for (let c=0; c < cards.multi.length; c++) {
                     syncdata.done++;
                     let id =  cards.multi[c].href;
@@ -629,8 +629,8 @@ dav.sync = {
                                 break;
                         }
                         //Feedback from users: They want to see the individual count
-                        tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);		
-                        await tbSync.sleep(100, false);
+                        tbSync.core.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);		
+                        await tbSync.tools.sleep(100, false);
                     } else {
                         tbSync.dump("Skipped Card", [id, cards.multi[c].status == "200", etag !== null, data !== null, id !== null, vCardsChangedOnServer.hasOwnProperty(id)].join(", "));
                     }
@@ -638,8 +638,8 @@ dav.sync = {
             }
         }
         //Feedback from users: They want to see the final count
-        tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);		
-        await tbSync.sleep(200, false);
+        tbSync.core.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);		
+        await tbSync.tools.sleep(200, false);
     
         let syncGroups = (tbSync.db.getAccountSetting(syncdata.account, "syncGroups") == "1");
         if (syncGroups) {
@@ -649,7 +649,7 @@ dav.sync = {
                 if (syncdata.foundMailingListsDuringDownSync.hasOwnProperty(mailListCardID)) {
                     listcount++;
                     let locked = 0;
-                    let mailListCard = tbSync.getCardFromProperty(addressBook, "TBSYNCID", mailListCardID);
+                    let mailListCard = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", mailListCardID);
                     let mailListDirectory = MailServices.ab.getDirectory(mailListCard.mailListURI);
                     
                     //smart merge: oCardInfo contains the state during last sync, vCardInfo is the current state
@@ -668,7 +668,7 @@ dav.sync = {
                         if (removedMembers[i]) {
                         let card = addressBook.getCardFromProperty("TBSYNCID", removedMembers[i], true);
                             if (card) {
-                                let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", removedMembers[i]);
+                                let idx = tbSync.addressbook.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", removedMembers[i]);
                                 if (idx != -1) {
                                     tbSync.db.addItemToChangeLog(syncdata.targetId, removedMembers[i], "locked_by_mailinglist_operations");
                                     locked++;
@@ -683,7 +683,7 @@ dav.sync = {
                         if (addedMembers[i]) {
                             let card = addressBook.getCardFromProperty("TBSYNCID", addedMembers[i], true);
                             if (card) {
-                                let idx = tbSync.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", addedMembers[i]);
+                                let idx = tbSync.addressbook.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", addedMembers[i]);
                                 if (idx == -1) {
                                     tbSync.db.addItemToChangeLog(syncdata.targetId, addedMembers[i], "locked_by_mailinglist_operations");
                                     locked++;
@@ -722,8 +722,8 @@ dav.sync = {
         //of maxitems, so we can show a progress during delete and not delete all at once
         for (let i=0; i < vCardsDeletedOnServer.data.length; i++) {
             syncdata.done += vCardsDeletedOnServer.data[i].length;
-            tbSync.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
-            await tbSync.sleep(200); //we want the user to see, that deletes are happening
+            tbSync.core.setSyncState("eval.response.remotechanges", syncdata.account, syncdata.folderID);
+            await tbSync.tools.sleep(200); //we want the user to see, that deletes are happening
             addressBook.deleteCards(vCardsDeletedOnServer.data[i]);
         }
     },
@@ -757,10 +757,10 @@ dav.sync = {
                 let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
                 let mailListInfo = dav.tools.getGroupInfoFromList(mailListCard.mailListURI);           
 
-                let mailListCardId = tbSync.getPropertyOfCard(mailListCard, "TBSYNCID");
+                let mailListCardId = tbSync.addressbook.getPropertyOfCard(mailListCard, "TBSYNCID");
                 if (mailListCardId) {
                     //get old data from vCard to find changes
-                    let oCardInfo = dav.tools.getGroupInfoFromCardData(tbSync.dav.vCard.parse(tbSync.getPropertyOfCard(mailListCard, "X-DAV-VCARD")), addressBook);            
+                    let oCardInfo = dav.tools.getGroupInfoFromCardData(tbSync.dav.vCard.parse(tbSync.addressbook.getPropertyOfCard(mailListCard, "X-DAV-VCARD")), addressBook);            
                     
                     let addedMembers = mailListInfo.members.filter(e => !oCardInfo.members.includes(e));
                     let removedMembers = oCardInfo.members.filter(e => !mailListInfo.members.includes(e));
@@ -772,7 +772,7 @@ dav.sync = {
                     //that listcard has no id yet (because the general TbSync addressbook listener cannot catch it)
                     let folder = tbSync.db.getFolder(syncdata.account, syncdata.folderID);
                     mailListCardId = tbSync.dav.getNewCardID(mailListCard, folder);
-                    tbSync.setPropertyOfCard (mailListCard, "TBSYNCID", mailListCardId);                
+                    tbSync.addressbook.setPropertyOfCard (mailListCard, "TBSYNCID", mailListCardId);                
                     tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardId, "added_by_user");
                 }
                 syncdata.foundMailingListsDuringUpSync[mailListCardId] = mailListInfo;
@@ -784,7 +784,7 @@ dav.sync = {
         syncdata.todo = db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
 
         do {
-            tbSync.setSyncState("prepare.request.localchanges", syncdata.account, syncdata.folderID);
+            tbSync.core.setSyncState("prepare.request.localchanges", syncdata.account, syncdata.folderID);
 
             //get changed items from ChangeLog
             let changes = db.getItemsFromChangeLog(syncdata.targetId, maxitems, "_by_user");
@@ -799,7 +799,7 @@ dav.sync = {
                             let isAdding = (changes[i].status == "added_by_user");
                             if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
 
-                                let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", changes[i].id);
+                                let card = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", changes[i].id);
                                 if (card) {
                                     if (card.isMailList && !syncGroups)
                                         continue;
@@ -810,18 +810,18 @@ dav.sync = {
                                     let headers = {"Content-Type": "text/vcard; charset=utf-8"};
                                     //if (!isAdding) options["If-Match"] = vcard.etag;
 
-                                    tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
+                                    tbSync.core.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
                                     if (isAdding || vcard.modified) {
                                         let response = await dav.tools.sendRequest(vcard.data, changes[i].id, "PUT", syncdata, headers, {softfail: [403,405]});
 
-                                        tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
+                                        tbSync.core.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
                                         if (response && response.softerror) {
                                             permissionError[changes[i].status] = true;
-                                            tbSync.errorlog("warning", syncdata, "missing-permission::" + tbSync.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
+                                            tbSync.errorlog.add("warning", syncdata, "missing-permission::" + tbSync.tools.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
                                         }
                                     }
                                 } else {
-                                    tbSync.errorlog("warning", syncdata, "cardnotfoundbutinchangelog::" + changes[i].id);
+                                    tbSync.errorlog.add("warning", syncdata, "cardnotfoundbutinchangelog::" + changes[i].id);
                                 }
                             }
 
@@ -835,14 +835,14 @@ dav.sync = {
                     case "deleted_by_user":
                         {
                             if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
-                                tbSync.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
+                                tbSync.core.setSyncState("send.request.localchanges", syncdata.account, syncdata.folderID);
                                 let response = await dav.tools.sendRequest("", changes[i].id , "DELETE", syncdata, {}, {softfail: [403, 404, 405]});
 
-                                tbSync.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
+                                tbSync.core.setSyncState("eval.response.localchanges", syncdata.account, syncdata.folderID);
                                 if (response  && response.softerror) {
                                     if (response.softerror != 404) { //we cannot do anything about a 404 on delete, the card has been deleted here and is not avail on server
                                         permissionError[changes[i].status] = true;
-                                        tbSync.errorlog("warning", syncdata, "missing-permission::" + tbSync.getLocalizedMessage("acl.delete", "dav"));
+                                        tbSync.errorlog.add("warning", syncdata, "missing-permission::" + tbSync.tools.getLocalizedMessage("acl.delete", "dav"));
                                     }
                                 }
                             }

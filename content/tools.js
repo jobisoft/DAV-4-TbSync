@@ -15,7 +15,7 @@ dav.tools = {
         if (aUri == "moz-abdirectory://?") {
             //get parent via card owner
             let ownerId = aCard.directoryId;
-            return tbSync.getUriFromDirectoryId(ownerId);            
+            return tbSync.addressbook.getUriFromDirectoryId(ownerId);            
         } else if (MailServices.ab.getDirectory(aUri).isMailList) {
             //MailList suck, we have to cut the url to get the parent
             return aUri.substring(0, aUri.lastIndexOf("/"))     
@@ -130,7 +130,7 @@ dav.tools = {
         
         //There is no X-DAV-JSON-Emails property (an empty JSON would not be "")
         //Is there a stored VCARD we can fallback to?
-        let storedCard = tbSync.getPropertyOfCard(aCard, "X-DAV-VCARD").trim();
+        let storedCard = tbSync.addressbook.getPropertyOfCard(aCard, "X-DAV-VCARD").trim();
         let sCardData = tbSync.dav.vCard.parse(storedCard);
         if (sCardData.hasOwnProperty("email")) {
             let metaTypeData = dav.tools.getMetaTypeData(sCardData, "email", "type");
@@ -346,7 +346,7 @@ dav.tools = {
         
         //There is no X-DAV-JSON-Phones property (an empty JSON would not be "")
         //Is there a stored VCARD we can fallback to?
-        let storedCard = tbSync.getPropertyOfCard(aCard, "X-DAV-VCARD").trim();
+        let storedCard = tbSync.addressbook.getPropertyOfCard(aCard, "X-DAV-VCARD").trim();
         let sCardData = tbSync.dav.vCard.parse(storedCard);
         if (sCardData.hasOwnProperty("tel")) {
             let metaTypeData = dav.tools.getMetaTypeData(sCardData, "tel", "type");
@@ -758,7 +758,7 @@ dav.tools = {
     },
 
     prepHttpChannel: function(aUploadData, aHeaders, aMethod, aConnection, aNotificationCallbacks=null, aExisting=null) {
-        let userContextId = tbSync.getContainerIdForUser(aConnection.user);
+        let userContextId = tbSync.network.getContainerIdForUser(aConnection.user);
         let channel = aExisting || Services.io.newChannelFromURI2(
                                                                 aConnection.uri,
                                                                 null,
@@ -837,7 +837,7 @@ dav.tools = {
 
             //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
             if (dav.problematicHosts.includes(connection.uri.host)) {
-                headers["Authorization"] = "Basic " + tbSync.b64encode(connection.user + ":" + connection.password);
+                headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connection.user + ":" + connection.password);
             }
             
             let r = await dav.tools.useHttpChannel(requestData, method, connection, headers, options, aUseStreamLoader);
@@ -846,7 +846,7 @@ dav.tools = {
             if (r && r.retry && r.retry === true) {
                 if (r.addBasicAuthHeaderOnce) {
                     tbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + connection.user + "@" + connection.fqdn + ">");
-                    headers["Authorization"] = "Basic " + tbSync.b64encode(connection.user + ":" + connection.password);
+                    headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connection.user + ":" + connection.password);
                 } else if (!dav.problematicHosts.includes(connection.fqdn) ) {
                     tbSync.dump("BUG 669675", "Adding <" + connection.fqdn + "> to list of problematic hosts.");
                     dav.problematicHosts.push(connection.fqdn)
@@ -866,7 +866,7 @@ dav.tools = {
         
         //do not log HEADERS, as it could contain an Authorization header
         //tbSync.dump("HEADERS", JSON.stringify(headers));
-        if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("REQUEST", method + " : " + requestData);
+        if (tbSync.prefs.getIntPref("log.userdatalevel")>1) tbSync.dump("REQUEST", method + " : " + requestData);
         
         //testing with fetch()
 /*        if (!aUseStreamLoader) {
@@ -935,7 +935,7 @@ dav.tools = {
                     try {
                         responseStatus = aChannel.responseStatus;
                     } catch (ex) {
-                        let error = tbSync.createTCPErrorFromFailedChannel(aChannel);
+                        let error = tbSync.network.createTCPErrorFromFailedRequest(aChannel);
                         if (!error) {
                             return reject(dav.sync.failed("networkerror", "URL:\n" + connection.uri.spec + " ("+method+")")); //reject/resolve do not terminate control flow
                         } else {
@@ -943,7 +943,7 @@ dav.tools = {
                         }
                     }
                     
-                    if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("RESPONSE", responseStatus + " ("+aChannel.responseStatusText+")" + " : " + aResult);
+                    if (tbSync.prefs.getIntPref("log.userdatalevel")>1) tbSync.dump("RESPONSE", responseStatus + " ("+aChannel.responseStatusText+")" + " : " + aResult);
                     responseData = aResult.split("><").join(">\n<");
                     
                     //Redirected? Update connection settings from current URL
@@ -1078,7 +1078,7 @@ dav.tools = {
                                     }
                                 }
                                 //manually log this non-fatal error
-                                tbSync.errorlog("info", connection, "softerror::"+responseStatus, "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
+                                tbSync.errorlog.add("info", connection, "softerror::"+responseStatus, "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
                                 return resolve(noresponse);
                             } else {
                                 return reject(dav.sync.failed(responseStatus, "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
@@ -1123,7 +1123,7 @@ dav.tools = {
         
             //manually set timout
             connection.timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
-            let timeout = connection.hasOwnProperty("timeout") ? connection.timeout : tbSync.prefSettings.getIntPref("timeout");
+            let timeout = connection.hasOwnProperty("timeout") ? connection.timeout : tbSync.prefs.getIntPref("timeout");
             let rv = Components.results.NS_ERROR_NET_TIMEOUT;
             let event = {
                 notify: function(timer) {
@@ -1276,12 +1276,12 @@ dav.tools = {
         let vCardData = tbSync.dav.vCard.parse(vCard);
 
         //get card
-        let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", id);
+        let card = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", id);
         if (card) {
             //check if contact or mailinglist to update card
             if (!dav.tools.vCardIsMailingList (id, card, addressBook, vCard, vCardData, etag, syncdata)) {          
                 //get original vCard data as stored by last update from server
-                let oCard = tbSync.getPropertyOfCard(card, "X-DAV-VCARD");
+                let oCard = tbSync.addressbook.getPropertyOfCard(card, "X-DAV-VCARD");
                 let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
 
                 card.setProperty("X-DAV-ETAG", etag.textContent);
@@ -1309,7 +1309,7 @@ dav.tools = {
             for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
                 let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
                 //this is the only place where we have to look up a card based on its UID
-                let memberCard = tbSync.getCardFromProperty(addressBook, "X-DAV-UID", member);
+                let memberCard = tbSync.addressbook.getCardFromProperty(addressBook, "X-DAV-UID", member);
                 if (memberCard) members.push(memberCard.getProperty("TBSYNCID", ""));
             }
         }
@@ -1327,22 +1327,22 @@ dav.tools = {
             let vCardInfo = dav.tools.getGroupInfoFromCardData(vCardData, addressBook, false); //just get the name, not the members
 
             //if no card provided, create a new one
-            let card = _card ? _card : tbSync.createMailingListCard(addressBook, vCardInfo.name, id);
+            let card = _card ? _card : tbSync.addressbook.createMailingListCard(addressBook, vCardInfo.name, id);
             
             //if this card was created with an older version of TbSync, which did not have groups support, handle as normal card
             if (!card.isMailList) {
-                tbSync.errorlog("info", syncdata, "ignoredgroup::" + vCardInfo.name, "dav");
+                tbSync.errorlog.add("info", syncdata, "ignoredgroup::" + vCardInfo.name, "dav");
                 return false;
             }
                 
             //get original vCardData from last server contact, needed for "smart merge" on changes on both sides
-            let oCardData = tbSync.dav.vCard.parse(tbSync.getPropertyOfCard(card, "X-DAV-VCARD"));
+            let oCardData = tbSync.dav.vCard.parse(tbSync.addressbook.getPropertyOfCard(card, "X-DAV-VCARD"));
             //store all old and new vCards for later processing (cannot do it here, because it is not guaranteed, that all members exists already)
             syncdata.foundMailingListsDuringDownSync[id] = {oCardData, vCardData};
 
             //update properties
-            tbSync.setPropertyOfCard(card, "X-DAV-ETAG", etag.textContent);
-            tbSync.setPropertyOfCard(card, "X-DAV-VCARD", vCard);            
+            tbSync.addressbook.setPropertyOfCard(card, "X-DAV-ETAG", etag.textContent);
+            tbSync.addressbook.setPropertyOfCard(card, "X-DAV-VCARD", vCard);            
             return true;
 
         } else {
@@ -1804,7 +1804,7 @@ dav.tools = {
 
     //update send from server to client
     setThunderbirdCardFromVCard: function(syncdata, addressBook, card, vCardData, oCardData = null) {
-        if (tbSync.prefSettings.getIntPref("log.userdatalevel")>1) tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
+        if (tbSync.prefs.getIntPref("log.userdatalevel")>1) tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
         //if (oCardData) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
@@ -1827,7 +1827,7 @@ dav.tools = {
                             if (newServerValue) {
                                 //set if supported
                                 if (vCardData[vCardField.item][0].meta && vCardData[vCardField.item][0].meta.encoding) {
-                                    tbSync.addphoto(dav.tools.generateUUID() + '.jpg', addressBook.URI, card, vCardData["photo"][0].value);
+                                    tbSync.addressbook.addphoto(dav.tools.generateUUID() + '.jpg', addressBook.URI, card, vCardData["photo"][0].value);
                                 }
                             } else {
                                 //clear
@@ -1900,9 +1900,9 @@ dav.tools = {
     },
 
     invalidateThunderbirdCard: function(syncdata, addressBook, id) {
-        let card = tbSync.getCardFromProperty(addressBook, "TBSYNCID", id);
-        tbSync.setPropertyOfCard(card, "X-DAV-ETAG", "");
-        tbSync.setPropertyOfCard(card, "X-DAV-VCARD", "");
+        let card = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", id);
+        tbSync.addressbook.setPropertyOfCard(card, "X-DAV-ETAG", "");
+        tbSync.addressbook.setPropertyOfCard(card, "X-DAV-VCARD", "");
         tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
         addressBook.modifyCard(card);
     },
@@ -1923,8 +1923,8 @@ dav.tools = {
     
     //build group card
     getVCardFromThunderbirdListCard: function(syncdata, addressBook, card, generateUID = false) {
-        let cardID  = tbSync.getPropertyOfCard(card, "TBSYNCID");
-        let currentCard = tbSync.getPropertyOfCard(card, "X-DAV-VCARD").trim();
+        let cardID  = tbSync.addressbook.getPropertyOfCard(card, "TBSYNCID");
+        let currentCard = tbSync.addressbook.getPropertyOfCard(card, "X-DAV-VCARD").trim();
         let vCardData = tbSync.dav.vCard.parse(currentCard);
         
         if (!vCardData.hasOwnProperty("version")) vCardData["version"] = [{"value": "3.0"}];
@@ -1942,7 +1942,7 @@ dav.tools = {
         vCardData["X-ADDRESSBOOKSERVER-MEMBER"]=[];
         for (let i=0; i < syncdata.foundMailingListsDuringUpSync[cardID].members.length; i++) {
             //the UID differs from the href/TBSYNCID (following the specs)
-            let memberCard = tbSync.getCardFromProperty(addressBook, "TBSYNCID", syncdata.foundMailingListsDuringUpSync[cardID].members[i]);
+            let memberCard = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", syncdata.foundMailingListsDuringUpSync[cardID].members[i]);
             let uid = memberCard.getProperty("X-DAV-UID", "");
             if (!uid) {
                 uid = dav.tools.generateUUID();
@@ -1954,12 +1954,12 @@ dav.tools = {
         }
         
         let newCard = tbSync.dav.vCard.generate(vCardData).trim();
-        return {data: newCard, etag: tbSync.getPropertyOfCard(card, "X-DAV-ETAG"), modified: (currentCard != newCard)};
+        return {data: newCard, etag: tbSync.addressbook.getPropertyOfCard(card, "X-DAV-ETAG"), modified: (currentCard != newCard)};
     },
 
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
     getVCardFromThunderbirdContactCard: function(syncdata, addressBook, card, generateUID = false) {
-        let currentCard = tbSync.getPropertyOfCard(card, "X-DAV-VCARD").trim();
+        let currentCard = tbSync.addressbook.getPropertyOfCard(card, "X-DAV-VCARD").trim();
         let cCardData = tbSync.dav.vCard.parse(currentCard);
         let vCardData = tbSync.dav.vCard.parse(currentCard);
 
@@ -1975,9 +1975,9 @@ dav.tools = {
                 case "Photo":
                     {
                         if (card.getProperty("PhotoType", "") == "file") {
-                            tbSync.errorlog("info", syncdata, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
-                            dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, tbSync.getphoto(card));
-                            tbSync.errorlog("info", syncdata, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
+                            tbSync.errorlog.add("info", syncdata, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
+                            dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, tbSync.addressbook.getphoto(card));
+                            tbSync.errorlog.add("info", syncdata, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             vCardData[vCardField.item][0].meta = {"encoding": ["b"], "type": ["JPEG"]};
                         }
                     }
@@ -2107,7 +2107,7 @@ dav.tools = {
             tbSync.dump("newCard", newCard);
             modified = true;
         }
-        return {data: newCard, etag: tbSync.getPropertyOfCard(card, "X-DAV-ETAG"), modified: modified};
+        return {data: newCard, etag: tbSync.addressbook.getPropertyOfCard(card, "X-DAV-ETAG"), modified: modified};
     },
 
 }

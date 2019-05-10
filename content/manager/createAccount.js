@@ -17,8 +17,8 @@ var tbSyncDavNewAccount = {
     maxTimeout: 30,
 
     addProviderEntry: function (icon, serviceprovider) {
-        let name =  tbSync.getLocalizedMessage("add.serverprofile."+serviceprovider, "dav");
-        let description =  tbSync.getLocalizedMessage("add.serverprofile."+serviceprovider+".description", "dav");
+        let name =  tbSync.tools.getLocalizedMessage("add.serverprofile."+serviceprovider, "dav");
+        let description =  tbSync.tools.getLocalizedMessage("add.serverprofile."+serviceprovider+".description", "dav");
         
         //left column
         let image = document.createElement("image");
@@ -86,7 +86,7 @@ var tbSyncDavNewAccount = {
         if (serviceprovider == "discovery" || serviceprovider == "custom") {
             this.elementName.value = "";
         } else {
-            this.elementName.value = tbSync.getLocalizedMessage("add.serverprofile."+serviceprovider, "dav");
+            this.elementName.value = tbSync.tools.getLocalizedMessage("add.serverprofile."+serviceprovider, "dav");
         }
     },
     
@@ -104,7 +104,7 @@ var tbSyncDavNewAccount = {
         for (let i=1; i < 4; i++) {
             let dElement = document.getElementById("tbsync.newaccount.details" + i);
             let dLocaleString = "add.serverprofile."+serviceprovider+".details" + i;
-            let dLocaleValue = tbSync.getLocalizedMessage(dLocaleString, "dav");
+            let dLocaleValue = tbSync.tools.getLocalizedMessage(dLocaleString, "dav");
             
             if (dLocaleValue == dLocaleString) {
                 dElement.textContent = "";
@@ -236,7 +236,7 @@ var tbSyncDavNewAccount = {
                 davjobs[job].valid = false;
                 davjobs[job].error = e.message;
                 if (e.type == "dav4tbsync") {
-                    tbSync.errorlog("warning", connection, e.message, e.details ? e.details : null);
+                    tbSync.errorlog.add("warning", connection, e.message, e.details ? e.details : null);
                 } else {
                     Components.utils.reportError(e);
                 }
@@ -258,10 +258,10 @@ var tbSyncDavNewAccount = {
                 case "503":
                 case "network":
                 case "security":
-                    document.getElementById("tbsync.error.message").textContent = tbSync.getLocalizedMessage("info.error") + ": " + tbSync.getLocalizedMessage("status."+davjobs[badjob].error, "dav");
+                    document.getElementById("tbsync.error.message").textContent = tbSync.tools.getLocalizedMessage("info.error") + ": " + tbSync.tools.getLocalizedMessage("status."+davjobs[badjob].error, "dav");
                     break;
                 default:
-                    document.getElementById("tbsync.error.message").textContent = tbSync.getLocalizedMessage("info.error") + ": " + tbSync.getLocalizedMessage("status.networkerror", "dav");
+                    document.getElementById("tbsync.error.message").textContent = tbSync.tools.getLocalizedMessage("info.error") + ": " + tbSync.tools.getLocalizedMessage("status.networkerror", "dav");
             }
                         
             document.getElementById("tbsync.spinner").hidden = true;
@@ -287,7 +287,7 @@ var tbSyncDavNewAccount = {
         let newAccountEntry = tbSync.dav.getDefaultAccountEntries();
         newAccountEntry.accountname = accountdata.accountname;
         newAccountEntry.user = accountdata.user;
-        newAccountEntry.createdWithProviderVersion = tbSync.loadedProviders.dav.version;
+        newAccountEntry.createdWithProviderVersion = tbSync.providers.loadedProviders.dav.version;
 
         newAccountEntry.https = accountdata.https
         newAccountEntry.serviceprovider = accountdata.serviceprovider;

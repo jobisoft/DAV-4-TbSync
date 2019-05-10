@@ -24,7 +24,7 @@ let onInitDoneObserver = {
         
         //load this provider add-on into TbSync
         if (valid) {
-            await tbSync.loadProvider(thisID, "dav", "//dav4tbsync/content/dav.js");
+            await tbSync.providers.loadProvider(thisID, "dav", "//dav4tbsync/content/dav.js");
         }
     }
 }
@@ -46,7 +46,7 @@ function startup(data, reason) {
     branch.setBoolPref("addCredentialsToUrl", false);
 
     thisID = data.id;
-    Services.obs.addObserver(onInitDoneObserver, "tbsync.init.done", false);
+    Services.obs.addObserver(onInitDoneObserver, "tbsync.observer.initialized", false);
 
     //during app startup, the load of the provider will be triggered by a "tbsync.init.done" notification, 
     //if load happens later, we need load manually 
@@ -56,11 +56,11 @@ function startup(data, reason) {
 }
 
 function shutdown(data, reason) {
-    Services.obs.removeObserver(onInitDoneObserver, "tbsync.init.done");
+    Services.obs.removeObserver(onInitDoneObserver, "tbsync.observer.initialized");
 
     //unload this provider add-on and all its loaded providers from TbSync
     try {
-        tbSync.unloadProvider("dav");
+        tbSync.providers.unloadProvider("dav");
     } catch (e) {
         //if this fails, tbSync has been unloaded already but has unloaded this addon as well
     }
