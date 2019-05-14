@@ -8,7 +8,7 @@
 
 "use strict";
 
-dav.tools = {
+var tools = {
 
     //function to get correct uri of current card for global book as well for mailLists
     getSelectedUri : function(aUri, aCard) {       
@@ -131,7 +131,7 @@ dav.tools = {
         //There is no X-DAV-JSON-Emails property (an empty JSON would not be "")
         //Is there a stored VCARD we can fallback to?
         let storedCard = tbSync.addressbook.getPropertyOfCard(aCard, "X-DAV-VCARD").trim();
-        let sCardData = tbSync.dav.vCard.parse(storedCard);
+        let sCardData = dav.vCard.parse(storedCard);
         if (sCardData.hasOwnProperty("email")) {
             let metaTypeData = dav.tools.getMetaTypeData(sCardData, "email", "type");
             for (let i=0; i < metaTypeData.length; i++) {
@@ -225,12 +225,12 @@ dav.tools = {
         outerhbox.updateFunction = dav.tools.updateEmails;
         outerhbox.meta =  aItemData.meta;
 
-        outerhbox.addEventListener("dragenter", tbSync.dav.tools.dragdrop);
-        outerhbox.addEventListener("dragover", tbSync.dav.tools.dragdrop);
-        outerhbox.addEventListener("dragleave", tbSync.dav.tools.dragdrop);
-        outerhbox.addEventListener("dragstart", tbSync.dav.tools.dragdrop);
-        outerhbox.addEventListener("dragend", tbSync.dav.tools.dragdrop);
-        outerhbox.addEventListener("drop", tbSync.dav.tools.dragdrop);
+        outerhbox.addEventListener("dragenter", dav.tools.dragdrop);
+        outerhbox.addEventListener("dragover", dav.tools.dragdrop);
+        outerhbox.addEventListener("dragleave", dav.tools.dragdrop);
+        outerhbox.addEventListener("dragstart", dav.tools.dragdrop);
+        outerhbox.addEventListener("dragend", dav.tools.dragdrop);
+        outerhbox.addEventListener("drop", dav.tools.dragdrop);
         
         outerhbox.style["background-image"] = "url('chrome://dav4tbsync/skin/dragdrop.png')"; 
         outerhbox.style["background-position"] = "right";
@@ -254,8 +254,8 @@ dav.tools = {
             email.setAttribute("flex", "1");
             email.setAttribute("class", "plain");
             email.setAttribute("value", aItemData.value);
-            email.addEventListener("change", function(e) {tbSync.dav.tools.updateEmails(aDocument)});
-            email.addEventListener("keydown", function(e) {if (e.key == "Enter") {e.stopPropagation(); e.preventDefault(); if (e.target.value != "") { tbSync.dav.tools.addEmailEntry(e.target.ownerDocument); }}});
+            email.addEventListener("change", function(e) {dav.tools.updateEmails(aDocument)});
+            email.addEventListener("keydown", function(e) {if (e.key == "Enter") {e.stopPropagation(); e.preventDefault(); if (e.target.value != "") { dav.tools.addEmailEntry(e.target.ownerDocument); }}});
             emailbox.appendChild(email);        
             outerhbox.appendChild(emailbox);
         
@@ -264,7 +264,7 @@ dav.tools = {
             image.setAttribute("width", "11");
             image.setAttribute("height", "10");
             image.setAttribute("style", "margin:2px 20px 2px 1ex");
-            image.addEventListener("click", function(e) { tbSync.dav.tools.updatePref(aDocument, e.target, true); });
+            image.addEventListener("click", function(e) { dav.tools.updatePref(aDocument, e.target, true); });
             outerhbox.appendChild(image);
         
         //richlistitem
@@ -347,7 +347,7 @@ dav.tools = {
         //There is no X-DAV-JSON-Phones property (an empty JSON would not be "")
         //Is there a stored VCARD we can fallback to?
         let storedCard = tbSync.addressbook.getPropertyOfCard(aCard, "X-DAV-VCARD").trim();
-        let sCardData = tbSync.dav.vCard.parse(storedCard);
+        let sCardData = dav.vCard.parse(storedCard);
         if (sCardData.hasOwnProperty("tel")) {
             let metaTypeData = dav.tools.getMetaTypeData(sCardData, "tel", "type");
             for (let i=0; i < metaTypeData.length; i++) {
@@ -476,12 +476,12 @@ dav.tools = {
         outerhbox.updateFunction = dav.tools.updatePhoneNumbers;
         outerhbox.meta = aItemData.meta;
 
-        outerhbox.addEventListener("dragenter", tbSync.dav.tools.dragdrop);
-        outerhbox.addEventListener("dragover", tbSync.dav.tools.dragdrop);
-        outerhbox.addEventListener("dragleave", tbSync.dav.tools.dragdrop);
-        outerhbox.addEventListener("dragstart", tbSync.dav.tools.dragdrop);
-        outerhbox.addEventListener("dragend", tbSync.dav.tools.dragdrop);
-        outerhbox.addEventListener("drop", tbSync.dav.tools.dragdrop);
+        outerhbox.addEventListener("dragenter", dav.tools.dragdrop);
+        outerhbox.addEventListener("dragover", dav.tools.dragdrop);
+        outerhbox.addEventListener("dragleave", dav.tools.dragdrop);
+        outerhbox.addEventListener("dragstart", dav.tools.dragdrop);
+        outerhbox.addEventListener("dragend", dav.tools.dragdrop);
+        outerhbox.addEventListener("drop", dav.tools.dragdrop);
         
         outerhbox.style["background-image"] = "url('chrome://dav4tbsync/skin/dragdrop.png')"; 
         outerhbox.style["background-position"] = "right";
@@ -515,8 +515,8 @@ dav.tools = {
             phone.setAttribute("flex", "1");
             phone.setAttribute("class", "plain");
             phone.setAttribute("value", aItemData.value);
-            phone.addEventListener("change", function(e) {tbSync.dav.tools.updatePhoneNumbers(aDocument)});
-            phone.addEventListener("keydown", function(e) {if (e.key == "Enter") {e.stopPropagation(); e.preventDefault(); if (e.target.value != "") { tbSync.dav.tools.addPhoneEntry(e.target.ownerDocument); }}});
+            phone.addEventListener("change", function(e) {dav.tools.updatePhoneNumbers(aDocument)});
+            phone.addEventListener("keydown", function(e) {if (e.key == "Enter") {e.stopPropagation(); e.preventDefault(); if (e.target.value != "") { dav.tools.addPhoneEntry(e.target.ownerDocument); }}});
             phonebox.appendChild(phone);        
             outerhbox.appendChild(phonebox);
         
@@ -525,7 +525,7 @@ dav.tools = {
             image.setAttribute("width", "11");
             image.setAttribute("height", "10");
             image.setAttribute("style", "margin:2px 20px 2px 1ex");
-            image.addEventListener("click", function(e) { tbSync.dav.tools.updatePref(aDocument, e.target, true); });
+            image.addEventListener("click", function(e) { dav.tools.updatePref(aDocument, e.target, true); });
             outerhbox.appendChild(image);
         
         //richlistitem
@@ -724,7 +724,7 @@ dav.tools = {
         let account = tbSync.db.getAccount(connection.account);
         connection.https = account.https;
         connection.user = account.user;    
-        connection.password = tbSync.dav.getPassword(account);    
+        connection.password = dav.api.getPassword(account);    
     },
     
     Prompt: class {
@@ -1254,7 +1254,7 @@ dav.tools = {
     
     addContact: function(addressBook, id, data, etag, syncdata) {
         let vCard = data.textContent.trim();
-        let vCardData = tbSync.dav.vCard.parse(vCard);
+        let vCardData = dav.vCard.parse(vCard);
 
         //check if contact or mailinglist
         if (!dav.tools.vCardIsMailingList (id, null, addressBook, vCard, vCardData, etag, syncdata)) {
@@ -1273,7 +1273,7 @@ dav.tools = {
 
     modifyContact: function(addressBook, id, data, etag, syncdata) {
         let vCard = data.textContent.trim();
-        let vCardData = tbSync.dav.vCard.parse(vCard);
+        let vCardData = dav.vCard.parse(vCard);
 
         //get card
         let card = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", id);
@@ -1282,7 +1282,7 @@ dav.tools = {
             if (!dav.tools.vCardIsMailingList (id, card, addressBook, vCard, vCardData, etag, syncdata)) {          
                 //get original vCard data as stored by last update from server
                 let oCard = tbSync.addressbook.getPropertyOfCard(card, "X-DAV-VCARD");
-                let oCardData = oCard ? tbSync.dav.vCard.parse(oCard) : null;
+                let oCardData = oCard ? dav.vCard.parse(oCard) : null;
 
                 card.setProperty("X-DAV-ETAG", etag.textContent);
                 card.setProperty("X-DAV-VCARD", vCard);
@@ -1336,7 +1336,7 @@ dav.tools = {
             }
                 
             //get original vCardData from last server contact, needed for "smart merge" on changes on both sides
-            let oCardData = tbSync.dav.vCard.parse(tbSync.addressbook.getPropertyOfCard(card, "X-DAV-VCARD"));
+            let oCardData = dav.vCard.parse(tbSync.addressbook.getPropertyOfCard(card, "X-DAV-VCARD"));
             //store all old and new vCards for later processing (cannot do it here, because it is not guaranteed, that all members exists already)
             syncdata.foundMailingListsDuringDownSync[id] = {oCardData, vCardData};
 
@@ -1925,7 +1925,7 @@ dav.tools = {
     getVCardFromThunderbirdListCard: function(syncdata, addressBook, card, generateUID = false) {
         let cardID  = tbSync.addressbook.getPropertyOfCard(card, "TBSYNCID");
         let currentCard = tbSync.addressbook.getPropertyOfCard(card, "X-DAV-VCARD").trim();
-        let vCardData = tbSync.dav.vCard.parse(currentCard);
+        let vCardData = dav.vCard.parse(currentCard);
         
         if (!vCardData.hasOwnProperty("version")) vCardData["version"] = [{"value": "3.0"}];
 
@@ -1953,15 +1953,15 @@ dav.tools = {
             vCardData["X-ADDRESSBOOKSERVER-MEMBER"].push({"value": "urn:uuid:" + uid});
         }
         
-        let newCard = tbSync.dav.vCard.generate(vCardData).trim();
+        let newCard = dav.vCard.generate(vCardData).trim();
         return {data: newCard, etag: tbSync.addressbook.getPropertyOfCard(card, "X-DAV-ETAG"), modified: (currentCard != newCard)};
     },
 
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
     getVCardFromThunderbirdContactCard: function(syncdata, addressBook, card, generateUID = false) {
         let currentCard = tbSync.addressbook.getPropertyOfCard(card, "X-DAV-VCARD").trim();
-        let cCardData = tbSync.dav.vCard.parse(currentCard);
-        let vCardData = tbSync.dav.vCard.parse(currentCard);
+        let cCardData = dav.vCard.parse(currentCard);
+        let vCardData = dav.vCard.parse(currentCard);
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
@@ -2097,8 +2097,8 @@ dav.tools = {
         if (!vCardData.hasOwnProperty("n")) vCardData["n"] = [{"value": [" ","","","",""]}];
 
         //build vCards
-        let newCard = tbSync.dav.vCard.generate(vCardData).trim();
-        let oldCard = tbSync.dav.vCard.generate(cCardData).trim();
+        let newCard = dav.vCard.generate(vCardData).trim();
+        let oldCard = dav.vCard.generate(cCardData).trim();
 
         let modified = false;
         if (oldCard != newCard) {

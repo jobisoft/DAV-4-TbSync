@@ -9,7 +9,7 @@
 
 "use strict";
 
-dav.sync = {
+var sync = {
 
     failed: function (msg = "", details = "") {
         let e = new Error();
@@ -55,9 +55,9 @@ dav.sync = {
 
         //get server urls from account setup - update urls of serviceproviders
         let serviceprovider = tbSync.db.getAccountSetting(syncdata.account, "serviceprovider");
-        if (tbSync.dav.serviceproviders.hasOwnProperty(serviceprovider)) {
-            tbSync.db.setAccountSetting(syncdata.account, "host", tbSync.dav.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
-            tbSync.db.setAccountSetting(syncdata.account, "host2", tbSync.dav.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
+        if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
+            tbSync.db.setAccountSetting(syncdata.account, "host", dav.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
+            tbSync.db.setAccountSetting(syncdata.account, "host2", dav.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
         }
 
         let davjobs = {
@@ -283,7 +283,8 @@ dav.sync = {
             let nextFolder = dav.sync.getNextPendingFolder(syncdata.account);
             if (nextFolder === null) {
                 //all folders of this account have been synced
-                throw dav.sync.succeeded();
+                //we just called finish folder sync on syncdata, so syncdata knows last error state
+                return true;
             }
 
             //what folder are we syncing?
@@ -346,13 +347,10 @@ dav.sync = {
 
                 }
             } catch (e) {
-                if (e.type == "dav4tbsync") {
-                    tbSync.core.finishFolderSync(syncdata, e);
-                } else {
+                syncdata.finishSync(e.message, e.details);
+                if (e.type != "dav4tbsync") {
                     //abort sync of other folders on javascript error
-                    e.type = "JavaScriptError";
-                    tbSync.core.finishFolderSync(syncdata, e);
-                    throw e;
+                    return false;
                 }
             }
         } while (true);
@@ -441,7 +439,7 @@ dav.sync = {
 
         let addressBook = MailServices.ab.getDirectory(syncdata.targetId);
 
-        let vCardsDeletedOnServer = new dav.tools.deleteCardsContainer(tbSync.dav.prefSettings.getIntPref("maxitems"));
+        let vCardsDeletedOnServer = new dav.tools.deleteCardsContainer(dav.prefSettings.getIntPref("maxitems"));
         let vCardsChangedOnServer = {};
 
         for (let c=0; c < cards.multi.length; c++) {
@@ -556,7 +554,7 @@ dav.sync = {
             }
 
             //FIND DELETES: loop over current addressbook and check each local card if it still exists on the server
-            let vCardsDeletedOnServer =  new dav.tools.deleteCardsContainer(tbSync.dav.prefSettings.getIntPref("maxitems"));
+            let vCardsDeletedOnServer =  new dav.tools.deleteCardsContainer(dav.prefSettings.getIntPref("maxitems"));
             cards = addressBook.childCards;
             while (true) {
                 let more = false;
@@ -603,7 +601,7 @@ dav.sync = {
         
         //download all changed cards and process changes
         let cards2catch = Object.keys(vCardsChangedOnServer);
-        let maxitems = tbSync.dav.prefSettings.getIntPref("maxitems");
+        let maxitems = dav.prefSettings.getIntPref("maxitems");
 
         for (let i=0; i < cards2catch.length; i+=maxitems) {
             let request = dav.tools.getMultiGetRequest(cards2catch.slice(i, i+maxitems));
@@ -736,7 +734,7 @@ dav.sync = {
         syncdata.foundMailingListsDuringUpSync = {};
 
         //define how many entries can be send in one request
-        let maxitems = tbSync.dav.prefSettings.getIntPref("maxitems");
+        let maxitems = dav.prefSettings.getIntPref("maxitems");
 
         let addressBook = MailServices.ab.getDirectory(syncdata.targetId);
         
@@ -760,7 +758,7 @@ dav.sync = {
                 let mailListCardId = tbSync.addressbook.getPropertyOfCard(mailListCard, "TBSYNCID");
                 if (mailListCardId) {
                     //get old data from vCard to find changes
-                    let oCardInfo = dav.tools.getGroupInfoFromCardData(tbSync.dav.vCard.parse(tbSync.addressbook.getPropertyOfCard(mailListCard, "X-DAV-VCARD")), addressBook);            
+                    let oCardInfo = dav.tools.getGroupInfoFromCardData(dav.vCard.parse(tbSync.addressbook.getPropertyOfCard(mailListCard, "X-DAV-VCARD")), addressBook);            
                     
                     let addedMembers = mailListInfo.members.filter(e => !oCardInfo.members.includes(e));
                     let removedMembers = oCardInfo.members.filter(e => !mailListInfo.members.includes(e));
@@ -771,7 +769,7 @@ dav.sync = {
                 } else {
                     //that listcard has no id yet (because the general TbSync addressbook listener cannot catch it)
                     let folder = tbSync.db.getFolder(syncdata.account, syncdata.folderID);
-                    mailListCardId = tbSync.dav.getNewCardID(mailListCard, folder);
+                    mailListCardId = dav.getNewCardID(mailListCard, folder);
                     tbSync.addressbook.setPropertyOfCard (mailListCard, "TBSYNCID", mailListCardId);                
                     tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardId, "added_by_user");
                 }
@@ -781,13 +779,13 @@ dav.sync = {
         
         //access changelog to get local modifications (done and todo are used for UI to display progress)
         syncdata.done = 0;
-        syncdata.todo = db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
+        syncdata.todo = tbSync.db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
 
         do {
             tbSync.core.setSyncState("prepare.request.localchanges", syncdata.account, syncdata.folderID);
 
             //get changed items from ChangeLog
-            let changes = db.getItemsFromChangeLog(syncdata.targetId, maxitems, "_by_user");
+            let changes = tbSync.db.getItemsFromChangeLog(syncdata.targetId, maxitems, "_by_user");
             if (changes == 0)
                 break;
 
@@ -855,7 +853,7 @@ dav.sync = {
                         break;
                 }
 
-                db.removeItemFromChangeLog(syncdata.targetId, changes[i].id);
+                tbSync.db.removeItemFromChangeLog(syncdata.targetId, changes[i].id);
                 syncdata.done++; //UI feedback
             }
 

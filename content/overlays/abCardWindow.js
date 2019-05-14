@@ -21,7 +21,7 @@ var tbSyncAbDavCardWindow = {
             aParentDirURI = window.document.getElementById("abPopup").value;
         } else {
             //function to get correct uri of current card for global book as well for mailLists
-            aParentDirURI = tbSync.dav.tools.getSelectedUri(window.arguments[0].abURI, window.arguments[0].card);
+            aParentDirURI = tbSync.providers.dav.tools.getSelectedUri(window.arguments[0].abURI, window.arguments[0].card);
         }
         
         //returning false will prevent injection
@@ -100,28 +100,28 @@ var tbSyncAbDavCardWindow = {
         }
 
         //get all emails with metadata from card
-        let emails = tbSync.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
+        let emails = tbSync.providers.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
         //add emails to list
         let emailList = aDocument.getElementById("X-DAV-EmailAddressList");
         for (let i=0; i < emails.length; i++) {
-            let item = tbSync.dav.tools.getNewEmailListItem(aDocument, emails[i]);
+            let item = tbSync.providers.dav.tools.getNewEmailListItem(aDocument, emails[i]);
             emailList.appendChild(item);
 
-            tbSync.dav.tools.updateType(aDocument,  tbSync.dav.tools.getEmailListItemElement(item, "button"));
-            tbSync.dav.tools.updatePref(aDocument, tbSync.dav.tools.getEmailListItemElement(item, "pref"));		
+            tbSync.providers.dav.tools.updateType(aDocument,  tbSync.providers.dav.tools.getEmailListItemElement(item, "button"));
+            tbSync.providers.dav.tools.updatePref(aDocument, tbSync.providers.dav.tools.getEmailListItemElement(item, "pref"));		
         }
 
         //get all phone numbers with metadata from card
-        let phones = tbSync.dav.tools.getPhoneNumbersFromCard(aCard); //array of objects {meta, value}
+        let phones = tbSync.providers.dav.tools.getPhoneNumbersFromCard(aCard); //array of objects {meta, value}
         //add phones to list
         let phoneList = aDocument.getElementById("X-DAV-PhoneNumberList");
         for (let i=0; i < phones.length; i++) {
-            let item = tbSync.dav.tools.getNewPhoneListItem(aDocument, phones[i]);
+            let item = tbSync.providers.dav.tools.getNewPhoneListItem(aDocument, phones[i]);
             phoneList.appendChild(item);
 
-            tbSync.dav.tools.updateType(aDocument,  tbSync.dav.tools.getPhoneListItemElement(item, "button1"));
-            tbSync.dav.tools.updateType(aDocument,  tbSync.dav.tools.getPhoneListItemElement(item, "button2"));
-            tbSync.dav.tools.updatePref(aDocument, tbSync.dav.tools.getPhoneListItemElement(item, "pref"));		
+            tbSync.providers.dav.tools.updateType(aDocument,  tbSync.providers.dav.tools.getPhoneListItemElement(item, "button1"));
+            tbSync.providers.dav.tools.updateType(aDocument,  tbSync.providers.dav.tools.getPhoneListItemElement(item, "button2"));
+            tbSync.providers.dav.tools.updatePref(aDocument, tbSync.providers.dav.tools.getPhoneListItemElement(item, "pref"));		
         }
 
     },

@@ -62,7 +62,7 @@ var tbSyncDavAddressBookDetails = {
             let aCard = cards[0];
 
             //function to get correct uri of current card for global book as well for mailLists
-            let abUri = tbSync.dav.tools.getSelectedUri(window.GetSelectedDirectory(), aCard);
+            let abUri = tbSync.providers.dav.tools.getSelectedUri(window.GetSelectedDirectory(), aCard);
             if (MailServices.ab.getDirectory(abUri).getStringValue("tbSyncProvider", "") != "dav") {
                 window.document.getElementById("cvbEmails").collapsed = true;
                 window.document.getElementById("cvbPhoneNumbers").collapsed =true;
@@ -70,7 +70,7 @@ var tbSyncDavAddressBookDetails = {
             }
             
             //add emails
-            let emails = tbSync.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
+            let emails = tbSync.providers.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
             let emailDetails = window.document.getElementById("cvbEmailRows");        
             if (emailDetails) {
                 //remove all rows
@@ -79,7 +79,7 @@ var tbSyncDavAddressBookDetails = {
                 }
 
                 for (let i=0; i < emails.length; i++) {
-                    emailDetails.appendChild(tbSync.dav.tools.getNewEmailDetailsRow(window, emails[i]));
+                    emailDetails.appendChild(tbSync.providers.dav.tools.getNewEmailDetailsRow(window, emails[i]));
                 }
                 
                 if (window.document.getElementById("cvbEmails")) {
@@ -88,7 +88,7 @@ var tbSyncDavAddressBookDetails = {
             }
             
             //add phone numbers
-            let phones = tbSync.dav.tools.getPhoneNumbersFromCard(aCard); //array of objects {meta, value}
+            let phones = tbSync.providers.dav.tools.getPhoneNumbersFromCard(aCard); //array of objects {meta, value}
             let phoneDetails = window.document.getElementById("cvbPhoneRows");        
             if (phoneDetails) {
                 //remove all rows
@@ -97,7 +97,7 @@ var tbSyncDavAddressBookDetails = {
                 }
 
                 for (let i=0; i < phones.length; i++) {
-                    phoneDetails.appendChild(tbSync.dav.tools.getNewPhoneDetailsRow(window, phones[i])); 
+                    phoneDetails.appendChild(tbSync.providers.dav.tools.getNewPhoneDetailsRow(window, phones[i])); 
                 }
                 
                 if (window.document.getElementById("cvbPhoneNumbers")) {
