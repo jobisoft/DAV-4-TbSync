@@ -555,63 +555,24 @@ var api = {
 
     syncFolderList: async function (syncdata) {
         //update folders avail on server and handle added, removed, renamed folders
-        return await dav.sync.folderList(syncdata);
+        await dav.sync.folderList(syncdata);
     },
     
-    syncPendingFolders: async function (syncdata) {
-        //process all pending folders
-        return await dav.sync.allPendingFolders(syncdata);
-    },
-
-
     /**
-     * Is called if TbSync needs to synchronize an account.
+     * Is called if TbSync needs to synchronize a folder.
      *
-     * @param syncdata      [in] object that contains the account and maybe the folder which needs to worked on
-     *                           you are free to add more fields to this object which you need (persistent) during sync
-     * @param job           [in] identifier about what is to be done, the standard job is "sync", you are free to add
-     *                           custom jobs like "deletefolder" via your own accountSettings.xul
+     * @param syncdata      [in] SyncdataObject
+     *
+     * return false on error which should abort the entire sync (if more than
+     * one folder is in the queue)
      */
-    sync: async function (syncdata, job)  {
-        try {
-            switch (job) {
-                case "sync":
-                    //update folders avail on server and handle added, removed, renamed folders
-                    await dav.sync.folderList(syncdata);
-
-                    //set all selected folders to "pending", so they are marked for syncing
-                    //this also removes all leftover cached folders and sets all other folders to a well defined cached = "0"
-                    //which will set this account as connected (if at least one folder with cached == "0" is present)
-                    tbSync.core.prepareFoldersForSync(syncdata.account);
-
-                    //check if any folder was found
-                    if (!tbSync.core.isConnected(syncdata.account)) {
-                        throw dav.sync.failed("no-folders-found-on-server");
-                    }
-
-                    //update folder list in GUI
-                    Services.obs.notifyObservers(null, "tbsync.observer.manager.updateFolderList", syncdata.account);
-
-                    //process all pending folders
-                    await dav.sync.allPendingFolders(syncdata);
-                    break;
-
-                default:
-                    throw dav.sync.failed("unknown::"+job);
-                    break;
-            }
-        } catch (e) {
-            if (e.type == "dav4tbsync") {
-                syncdata.finishAccountSync(e);
-            } else {
-                //some other error
-                e.type = "JavaScriptError";
-                syncdata.finishAccountSync(e);
-                Components.utils.reportError(e);
-            }
-        }
+    syncFolder: async function (syncdata) {
+        //process all pending folders
+        return await dav.sync.folder(syncdata);
     },
 }
+
+
 
 
 /**
@@ -688,7 +649,7 @@ var folderList = {
      * in the folderlist. The content of the folderRowData object is free to choose, it
      * will be passed back to getRow() and updateRow()
      *
-     * Use syncdata.getSyncStatusMsg(folder) to get a nice looking
+     * Use syncdata.getSyncStatus(folder) to get a nice looking
      * status message, including sync progress (if folder is synced)
      *
      * @param folder         [in] folder databasse object of requested folder
@@ -706,7 +667,7 @@ var folderList = {
         rowData.acl = folder.acl;
         rowData.name = folder.name;
         rowData.statusCode = folder.status;
-        rowData.statusMsg = syncdata ? syncdata.getSyncStatusMsg(folder) : "";
+        rowData.statusMsg = syncdata ? syncdata.getSyncStatus(folder) : "";
 
         return rowData;
     },

@@ -285,7 +285,7 @@ var tbSyncDavNewAccount = {
     
 
     addAccount (accountdata) {
-        let newAccountEntry = dav.getDefaultAccountEntries();
+        let newAccountEntry = dav.api.getDefaultAccountEntries();
         newAccountEntry.accountname = accountdata.accountname;
         newAccountEntry.user = accountdata.user;
         newAccountEntry.createdWithProviderVersion = tbSync.providers.loadedProviders.dav.version;
