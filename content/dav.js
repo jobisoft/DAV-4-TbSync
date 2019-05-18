@@ -241,13 +241,13 @@ var api = {
      * Returns location of a provider icon.
      *
      * @param size       [in] size of requested icon
-     * @param accountId  [in] optional ID of the account related to this request
+     * @param accountObject  [in] optional AccountObject
      *
      */
-    getProviderIcon: function (size, accountId = null) {
+    getProviderIcon: function (size, accountObject = null) {
         let base = "sabredav";
-        if (accountId !== null) {
-            let serviceprovider = tbSync.db.getAccountSetting(accountId, "serviceprovider");
+        if (accountObject) {
+            let serviceprovider = accountObject.getAccountSetting("serviceprovider");
             if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
                 base = dav.serviceproviders[serviceprovider].icon;
             }
@@ -320,21 +320,23 @@ var api = {
      */
     getDefaultAccountEntries: function () {
         let row = {
+            //global, should not be listed here
             "account" : "",
-            "accountname": "",
             "provider": "dav",
             "lastsynctime" : "0",
             "status" : "disabled", //global status: disabled, OK, syncing, notsyncronized, nolightning, ...
+            "useCache" : "1",
+            "autosync" : "0",
+            "accountname": "",
+
             "host" : "",            
             "host2" : "",
             "serviceprovider" : "",
             "user" : "",
             "https" : "1",
-            "autosync" : "0",
             "createdWithProviderVersion" : "0",
 
             "syncGroups" : "0",
-            "useCache" : "1",
             "useCardBook" : "0",
             }; 
         return row;
@@ -346,28 +348,29 @@ var api = {
      */
     getDefaultFolderEntries: function (account) {
         let folder = {
+            //global, should not be listed here
             "account" : account,
             "folderID" : "",
+            "selected" : "",
+            "lastsynctime" : "",
+            "status" : "",
+            "name" : "",
+            "target" : "",
+            "targetName" : "",
+            "useChangeLog" : "1", //log changes into changelog
+            "downloadonly" : "0",
 
             //different folders can be stored on different servers (yahoo, icloud, gmx, ...), 
             //so we need to store the fqdn information per folders
             "fqdn" : "",
 
-            "name" : "",
             "type" : "", //cladav, carddav or ics
             "shared": "", //identify shared resources
             "acl": "", //acl send from server
-            "target" : "",
-            "targetName" : "",
             "targetColor" : "",
-            "selected" : "",
-            "lastsynctime" : "",
-            "status" : "",
-            "parentID" : "",
-            "useChangeLog" : "1", //log changes into changelog
+            "parentID" : "", //??? global ???
             "ctag" : "",
             "token" : "",
-            "downloadonly" : "0",
             "createdWithProviderVersion" : "0",
             };
         return folder;
@@ -408,10 +411,10 @@ var api = {
     /**
      * Is called everytime an account of this provider is enabled in the manager UI, set/reset database fields as needed.
      *
-     * @param account       [in] account which is being enabled
+     * @param accountObject  [in] optional AccountObject
      */
-    onEnableAccount: function (account) {
-        tbSync.db.resetAccountSetting(account, "lastsynctime");
+    onEnableAccount: function (accountObject) {
+        accountObject.resetAccountSetting("lastsynctime");
     },
 
 
@@ -420,9 +423,9 @@ var api = {
      * Is called everytime an account of this provider is disabled in the manager UI, set/reset database fields as needed and
      * remove/backup all sync targets of this account.
      *
-     * @param account       [in] account which is being disabled
+     * @param accountObject  [in] optional AccountObject
      */
-    onDisableAccount: function (account) {
+    onDisableAccount: function (accountObject) {
     },
 
 

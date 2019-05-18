@@ -14,7 +14,7 @@ var sync = {
     failed: function (msg = "", details = "") {
         let e = new Error();
         e.name = "dav4tbsync";
-        e.message = msg;
+        e.message = msg.toString();
         e.details = details;
         return e;
     },
