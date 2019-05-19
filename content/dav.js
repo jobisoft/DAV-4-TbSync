@@ -430,7 +430,7 @@ var api = {
     onResetTarget: function (accountObject) {
         accountObject.resetFolderSetting("ctag");
         accountObject.resetFolderSetting("token");
-        accountObject.setFolderSetting("createdWithProviderVersion", accountObject.getProviderVersion());
+        accountObject.setFolderSetting("createdWithProviderVersion", accountObject.providerInfo.getVersion());
     },
 
 
@@ -560,7 +560,7 @@ var api = {
      * one folder is in the queue)
      */
     syncFolder: async function (syncdata) {
-        //process all pending folders
+        //process a single folder
         return await dav.sync.folder(syncdata);
     },
 }
