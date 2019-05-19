@@ -425,13 +425,12 @@ var api = {
     /**
      * Is called everytime an new target is created, intended to set a clean sync status.
      *
-     * @param account       [in] account the new target belongs to
-     * @param folderID       [in] folder the new target belongs to
+     * @param accountObject  [in] AccountObject
      */
-    onResetTarget: function (account, folderID) {
-        tbSync.db.resetFolderSetting(account, folderID, "ctag");
-        tbSync.db.resetFolderSetting(account, folderID, "token");
-        tbSync.db.setFolderSetting(account, folderID, "createdWithProviderVersion", tbSync.providers.loadedProviders.dav.version);
+    onResetTarget: function (accountObject) {
+        accountObject.resetFolderSetting("ctag");
+        accountObject.resetFolderSetting("token");
+        accountObject.setFolderSetting("createdWithProviderVersion", accountObject.getProviderVersion());
     },
 
 

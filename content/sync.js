@@ -354,7 +354,7 @@ var sync = {
 
         //revert all local changes on permission error by doing a clean sync
         if (numOfLocalChanges < 0) {
-            dav.onResetTarget(syncdata.account, syncdata.folderID);
+            dav.onResetTarget(syncdata);
             await dav.sync.remoteChanges(syncdata);
 
             if (!syncdata.downloadonly) throw dav.sync.failed("info.restored");
@@ -385,7 +385,7 @@ var sync = {
             if (tokenSyncSucceeded) return;
 
             //token sync failed, reset ctag and token and do a full sync
-            dav.onResetTarget(syncdata.account, syncdata.folderID);
+            dav.onResetTarget(syncdata);
         }
 
         //Either token sync did not work or there is no token (initial sync)
