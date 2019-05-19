@@ -285,7 +285,7 @@ var sync = {
                 case "carddav":
                     {
                         // check SyncTarget
-                        if (!tbSync.addressbook.checkAddressbook(syncdata.account, syncdata.folderID)) {
+                        if (!tbSync.addressbook.checkAddressbook(syncdata)) {
                             //could not create target
                             throw dav.sync.failed("notargets");
                         }

@@ -439,17 +439,16 @@ var api = {
      * Is called if TbSync needs to create a new thunderbird address book associated with an account of this provider.
      *
      * @param newname       [in] name of the new address book
-     * @param account       [in] id of the account this address book belongs to
-     * @param folderID      [in] id of the folder this address book belongs to (sync target)
+     * @param accountObject  [in] AccountObject
      *
      * return the id of the newAddressBook
      */
-    createAddressBook: function (newname, account, folderID) {
+    createAddressBook: function (newname, accountObject) {
         let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
         let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
 
         if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
-            let serviceprovider = tbSync.db.getAccountSetting(account, "serviceprovider");
+            let serviceprovider = accountObject.getAccountSetting("serviceprovider");
             let icon = "custom";
             if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
                 icon = dav.serviceproviders[serviceprovider].icon;
