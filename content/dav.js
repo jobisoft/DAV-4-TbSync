@@ -479,33 +479,33 @@ var api = {
      * Is called if TbSync needs to create a new lightning calendar associated with an account of this provider.
      *
      * @param newname       [in] name of the new calendar
-     * @param account       [in] id of the account this calendar belongs to
-     * @param folderID      [in] id of the folder this calendar belongs to (sync target)
+     * @param accountObject  [in] AccountObject
      */
-    createCalendar: function(newname, account, folderID) {
+    createCalendar: function(newname, accountObject) {
         let calManager = cal.getCalendarManager();
-        let accountdata = tbSync.db.getAccount(account);
+        let accountdata = tbSync.db.getAccount(accountObject.account);
+        
         let password = dav.api.getPassword(accountdata);
         let user = accountdata.user;
-        let caltype = tbSync.db.getFolderSetting(account, folderID, "type");
-        let downloadonly = (tbSync.db.getFolderSetting(account, folderID, "downloadonly") == "1");
+        let caltype = accountObject.getFolderSetting("type");
+        let downloadonly = (accountObject.getFolderSetting("downloadonly") == "1");
 
         let baseUrl = "";
         if (caltype != "ics") {
-            baseUrl =  "http" + (accountdata.https == "1" ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + tbSync.db.getFolderSetting(account, folderID, "fqdn");
+            baseUrl =  "http" + (accountdata.https == "1" ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + accountObject.getFolderSetting("fqdn");
         }
 
-        let url = dav.tools.parseUri(baseUrl + folderID);        
-        tbSync.db.setFolderSetting(account, folderID, "url", url.spec);
+        let url = dav.tools.parseUri(baseUrl + accountObject.folderID);        
+        accountObject.setFolderSetting("url", url.spec);
 
         let newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
         newCalendar.id = cal.getUUID();
         newCalendar.name = newname;
 
         newCalendar.setProperty("user", user);
-        newCalendar.setProperty("color", tbSync.db.getFolderSetting(account, folderID, "targetColor"));
+        newCalendar.setProperty("color", accountObject.getFolderSetting("targetColor"));
         newCalendar.setProperty("calendar-main-in-composite", true);
-        newCalendar.setProperty("cache.enabled", (tbSync.db.getAccountSetting(account, "useCache") == "1"));
+        newCalendar.setProperty("cache.enabled", (accountObject.getAccountSetting("useCache") == "1"));
         if (downloadonly) newCalendar.setProperty("readOnly", true);
 
         //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
@@ -519,7 +519,7 @@ var api = {
         }
 
         //do not monitor CalDAV calendars (managed by lightning)
-        tbSync.db.setFolderSetting(account, folderID, "useChangeLog", "0");
+        accountObject.setFolderSetting("useChangeLog", "0");
 
         calManager.registerCalendar(newCalendar);
         return newCalendar;

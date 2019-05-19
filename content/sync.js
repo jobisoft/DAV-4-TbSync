@@ -303,7 +303,7 @@ var sync = {
                         }
 
                         // check SyncTarget
-                        if (!tbSync.lightning.checkCalender(syncdata.account, syncdata.folderID)) {
+                        if (!tbSync.lightning.checkCalender(syncdata)) {
                             //could not create target
                             throw dav.sync.failed("notargets");
                         }
