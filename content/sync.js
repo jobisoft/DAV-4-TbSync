@@ -290,8 +290,6 @@ var sync = {
                             throw dav.sync.failed("notargets");
                         }
 
-                        //get sync target of this addressbook
-                        syncdata.targetId = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
                         await dav.sync.singleFolder(syncdata);
                     }
                     break;
@@ -422,7 +420,7 @@ var sync = {
             return false;
         }
 
-        let addressBook = MailServices.ab.getDirectory(syncdata.targetId);
+        let addressBook = MailServices.ab.getDirectory(syncdata.getFolderSetting("target"));
 
         let vCardsDeletedOnServer = new dav.tools.deleteCardsContainer(dav.prefSettings.getIntPref("maxitems"));
         let vCardsChangedOnServer = {};
@@ -437,7 +435,7 @@ var sync = {
                     let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
                     if (!card) {
                         //if the user deleted this card (not yet send to server), do not add it again
-                        if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "deleted_by_user")  {
+                        if (tbSync.db.getItemStatusFromChangeLog(syncdata.getFolderSetting("target"), id) != "deleted_by_user")  {
                             syncdata.todo++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
@@ -449,7 +447,7 @@ var sync = {
                     //DEL
                     syncdata.todo++;
                     vCardsDeletedOnServer.appendElement(card, false);
-                    tbSync.db.addItemToChangeLog(syncdata.targetId, id, "deleted_by_server");
+                    tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), id, "deleted_by_server");
                 } else {
                     //We received something, that is not a DEL, MOD or ADD
                     tbSync.errorlog.add("warning", syncdata, "Unknown XML", JSON.stringify(cards.multi[c]));
@@ -486,7 +484,7 @@ var sync = {
             let vCardsFoundOnServer = [];
             let vCardsChangedOnServer = {};
 
-            let addressBook = MailServices.ab.getDirectory(syncdata.targetId);
+            let addressBook = MailServices.ab.getDirectory(syncdata.getFolderSetting("target"));
 
             //get etags of all cards on server and find the changed cards
             syncdata.setSyncState("send.request.remotechanges");
@@ -527,7 +525,7 @@ var sync = {
                     let card = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", id);
                     if (!card) {
                         //if the user deleted this card (not yet send to server), do not add it again
-                        if (tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "deleted_by_user") {
+                        if (tbSync.db.getItemStatusFromChangeLog(syncdata.getFolderSetting("target"), id) != "deleted_by_user") {
                             syncdata.todo++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
@@ -548,11 +546,11 @@ var sync = {
 
                 let card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
                 let id = card.getProperty("TBSYNCID","");
-                if (id && !vCardsFoundOnServer.includes(id) && tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "added_by_user") {
+                if (id && !vCardsFoundOnServer.includes(id) && tbSync.db.getItemStatusFromChangeLog(syncdata.getFolderSetting("target"), id) != "added_by_user") {
                     //delete request from server
                     syncdata.todo++;
                     vCardsDeletedOnServer.appendElement(card, false);
-                    tbSync.db.addItemToChangeLog(syncdata.targetId, id, "deleted_by_server");
+                    tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), id, "deleted_by_server");
                 }
             }
 
@@ -653,7 +651,7 @@ var sync = {
                             if (card) {
                                 let idx = tbSync.addressbook.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", removedMembers[i]);
                                 if (idx != -1) {
-                                    tbSync.db.addItemToChangeLog(syncdata.targetId, removedMembers[i], "locked_by_mailinglist_operations");
+                                    tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), removedMembers[i], "locked_by_mailinglist_operations");
                                     locked++;
                                     mailListDirectory.addressLists.removeElementAt(idx);  
                                 }                                
@@ -668,7 +666,7 @@ var sync = {
                             if (card) {
                                 let idx = tbSync.addressbook.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", addedMembers[i]);
                                 if (idx == -1) {
-                                    tbSync.db.addItemToChangeLog(syncdata.targetId, addedMembers[i], "locked_by_mailinglist_operations");
+                                    tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), addedMembers[i], "locked_by_mailinglist_operations");
                                     locked++;
                                     //fix for bug 1522453
                                     let email = card.getProperty("PrimaryEmail", "");
@@ -687,11 +685,11 @@ var sync = {
                     //if at least one member (or the name) has been changed, we need to call 
                     //editMailListToDatabase to update the directory, which will modify all members
                     if (locked > 0 || vCardInfo.name != oCardInfo.name) {
-                        tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardID, "locked_by_mailinglist_operations");
+                        tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), mailListCardID, "locked_by_mailinglist_operations");
                         mailListDirectory.dirName = vCardInfo.name;                    
                         //editMailListToDatabase will mod all members of this list, so we need to lock all of them
                         for (let i=0; i < vCardInfo.members.length; i++) {
-                            tbSync.db.addItemToChangeLog(syncdata.targetId, vCardInfo.members[i], "locked_by_mailinglist_operations");
+                            tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), vCardInfo.members[i], "locked_by_mailinglist_operations");
                         }
                         mailListDirectory.editMailListToDatabase(mailListCard);
                     }
@@ -721,7 +719,7 @@ var sync = {
         //define how many entries can be send in one request
         let maxitems = dav.prefSettings.getIntPref("maxitems");
 
-        let addressBook = MailServices.ab.getDirectory(syncdata.targetId);
+        let addressBook = MailServices.ab.getDirectory(syncdata.getFolderSetting("target"));
         
         let permissionErrors = 0;
         let permissionError = { //keep track of permission errors - preset with downloadonly status to skip sync in that case
@@ -749,14 +747,14 @@ var sync = {
                     let removedMembers = oCardInfo.members.filter(e => !mailListInfo.members.includes(e));
                     
                     if (oCardInfo.name != mailListInfo.name || addedMembers.length > 0 || removedMembers.length > 0) {
-                        tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardId, "modified_by_user");
+                        tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), mailListCardId, "modified_by_user");
                     }
                 } else {
                     //that listcard has no id yet (because the general TbSync addressbook listener cannot catch it)
                     let folder = tbSync.db.getFolder(syncdata.account, syncdata.folderID);
                     mailListCardId = dav.getNewCardID(mailListCard, folder);
                     tbSync.addressbook.setPropertyOfCard (mailListCard, "TBSYNCID", mailListCardId);                
-                    tbSync.db.addItemToChangeLog(syncdata.targetId, mailListCardId, "added_by_user");
+                    tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), mailListCardId, "added_by_user");
                 }
                 syncdata.foundMailingListsDuringUpSync[mailListCardId] = mailListInfo;
             }
@@ -764,13 +762,13 @@ var sync = {
         
         //access changelog to get local modifications (done and todo are used for UI to display progress)
         syncdata.done = 0;
-        syncdata.todo = tbSync.db.getItemsFromChangeLog(syncdata.targetId, 0, "_by_user").length;
+        syncdata.todo = tbSync.db.getItemsFromChangeLog(syncdata.getFolderSetting("target"), 0, "_by_user").length;
 
         do {
             syncdata.setSyncState("prepare.request.localchanges");
 
             //get changed items from ChangeLog
-            let changes = tbSync.db.getItemsFromChangeLog(syncdata.targetId, maxitems, "_by_user");
+            let changes = tbSync.db.getItemsFromChangeLog(syncdata.getFolderSetting("target"), maxitems, "_by_user");
             if (changes == 0)
                 break;
 
@@ -831,14 +829,14 @@ var sync = {
                             }
 
                             if (permissionError[changes[i].status]) {
-                                tbSync.db.addItemToChangeLog(syncdata.targetId, changes[i].id, "deleted_by_server");
+                                tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), changes[i].id, "deleted_by_server");
                                 permissionErrors--;                                
                             }
                         }
                         break;
                 }
 
-                tbSync.db.removeItemFromChangeLog(syncdata.targetId, changes[i].id);
+                tbSync.db.removeItemFromChangeLog(syncdata.getFolderSetting("target"), changes[i].id);
                 syncdata.done++; //UI feedback
             }
 

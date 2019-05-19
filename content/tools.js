@@ -1266,7 +1266,7 @@ var tools = {
 
             dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, vCardData);
 
-            tbSync.db.addItemToChangeLog(syncdata.targetId, id, "added_by_server");
+            tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), id, "added_by_server");
             addressBook.addCard(card);
         }
     },
@@ -1289,8 +1289,8 @@ var tools = {
                 
                 dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, vCardData, oCardData);
 
-                if (syncdata.revert || tbSync.db.getItemStatusFromChangeLog(syncdata.targetId, id) != "modified_by_user") {
-                    tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
+                if (syncdata.revert || tbSync.db.getItemStatusFromChangeLog(syncdata.getFolderSetting("target"), id) != "modified_by_user") {
+                    tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), id, "modified_by_server");
                 }
                 addressBook.modifyCard(card);
             }        
@@ -1903,7 +1903,7 @@ var tools = {
         let card = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", id);
         tbSync.addressbook.setPropertyOfCard(card, "X-DAV-ETAG", "");
         tbSync.addressbook.setPropertyOfCard(card, "X-DAV-VCARD", "");
-        tbSync.db.addItemToChangeLog(syncdata.targetId, id, "modified_by_server");
+        tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), id, "modified_by_server");
         addressBook.modifyCard(card);
     },
 
