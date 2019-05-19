@@ -320,22 +320,13 @@ var api = {
      */
     getDefaultAccountEntries: function () {
         let row = {
-            //global, should not be listed here
-            "account" : "",
-            "provider": "dav",
-            "lastsynctime" : "0",
-            "status" : "disabled", //global status: disabled, OK, syncing, notsyncronized, nolightning, ...
             "useCache" : "1",
-            "autosync" : "0",
-            "accountname": "",
-
             "host" : "",            
             "host2" : "",
             "serviceprovider" : "",
             "user" : "",
             "https" : "1",
             "createdWithProviderVersion" : "0",
-
             "syncGroups" : "0",
             "useCardBook" : "0",
             }; 
@@ -346,11 +337,8 @@ var api = {
     /**
      * Return object which contains all possible fields of a row in the folder database with the default value if not yet stored in the database.
      */
-    getDefaultFolderEntries: function (account) {
+    getDefaultFolderEntries: function () { //TODO: shadow more standard entries
         let folder = {
-            //global, should not be listed here
-            "account" : account,
-            "folderID" : "",
             "selected" : "",
             "lastsynctime" : "",
             "status" : "",
@@ -411,10 +399,9 @@ var api = {
     /**
      * Is called everytime an account of this provider is enabled in the manager UI, set/reset database fields as needed.
      *
-     * @param accountObject  [in] optional AccountObject
+     * @param accountObject  [in] AccountObject
      */
     onEnableAccount: function (accountObject) {
-        accountObject.resetAccountSetting("lastsynctime");
     },
 
 
@@ -423,7 +410,7 @@ var api = {
      * Is called everytime an account of this provider is disabled in the manager UI, set/reset database fields as needed and
      * remove/backup all sync targets of this account.
      *
-     * @param accountObject  [in] optional AccountObject
+     * @param accountObject  [in] AccountObject
      */
     onDisableAccount: function (accountObject) {
     },

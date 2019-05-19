@@ -176,8 +176,9 @@ var tbSyncDavNewAccount = {
         document.getElementById("tbsync.error").hidden = true;
         document.getElementById("tbsync.spinner").hidden = false;
 
+        let accountname = this.elementName.value.trim();
+
         this.accountdata = {};
-        this.accountdata.accountname = this.elementName.value.trim();
         this.accountdata.user = this.elementUser.value;
         this.accountdata.password = this.elementPass.value;
         this.accountdata.caldavserver = this.elementCalDavServer.value.trim();
@@ -221,7 +222,7 @@ var tbSyncDavNewAccount = {
             connection.fqdn = "";
             //only needed for proper error reporting
             connection.provider = "dav";
-            connection.accountname = this.accountdata.accountname;
+            connection.accountname = accountname;
 
             //build full url, so we do not need fqdn
             let url = "http" + (connection.https == "1" ? "s" : "") + "://" + davjobs[job].server;
@@ -245,7 +246,7 @@ var tbSyncDavNewAccount = {
         }
         
         if (davjobs.cal.valid && davjobs.card.valid) {
-            tbSyncDavNewAccount.addAccount(this.accountdata);
+            tbSyncDavNewAccount.addAccount(accountname, this.accountdata);
             this.validating = false;
             document.getElementById("tbsync.newaccount.wizard").cancel();
         } else {
@@ -284,9 +285,8 @@ var tbSyncDavNewAccount = {
     },
     
 
-    addAccount (accountdata) {
-        let newAccountEntry = dav.api.getDefaultAccountEntries();
-        newAccountEntry.accountname = accountdata.accountname;
+    addAccount (accountname, accountdata) {
+        let newAccountEntry = tbSync.providers.getDefaultAccountEntries("dav");
         newAccountEntry.user = accountdata.user;
         newAccountEntry.createdWithProviderVersion = tbSync.providers.loadedProviders.dav.version;
 
@@ -300,7 +300,7 @@ var tbSyncDavNewAccount = {
 
         //create a new account and pass its id to updateAccountsList, which will select it
         //the onSelect event of the List will load the selected account
-        window.opener.tbSyncAccounts.updateAccountsList(tbSync.db.addAccount(newAccountEntry));
+        window.opener.tbSyncAccounts.updateAccountsList(tbSync.db.addAccount(accountname, newAccountEntry));
 
         window.close();
     }
