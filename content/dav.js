@@ -143,9 +143,7 @@ function stripHost(document, account, field) {
 /**
  * Implements the TbSync interface for external provider extensions.
  */
-var api = {
-    bundle: Services.strings.createBundle("chrome://dav4tbsync/locale/dav.strings"),
-    
+var api = {    
     /**
      * Called during load of external provider extension to init provider.
      *
@@ -287,7 +285,14 @@ var api = {
     },
 
 
-
+    /**
+     * Returns the URL of the string bundle file of this provider, it can be accessed by
+     * tbSync.tools.getLocalizedMessage(<key>, <provider>)
+     */
+    getStringBundleUrl: function () {
+        return "chrome://dav4tbsync/locale/dav.strings";
+    },
+    
     /**
      * Returns XUL URL of the new account dialog.
      */
@@ -310,7 +315,7 @@ var api = {
      * Returns nice string for name of provider (is used in the add account menu).
      */
     getNiceProviderName: function () {
-        return dav.api.bundle.GetStringFromName("menu.name")
+        return tbSync.tools.getLocalizedMessage("menu.name", "dav");
     },
 
 
