@@ -228,7 +228,7 @@ var tbSyncDavNewAccount = {
             let url = "http" + (connection.https == "1" ? "s" : "") + "://" + davjobs[job].server;
             
             try {
-                let response = await dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", url , "PROPFIND", connection, {"Depth": "0", "Prefer": "return-minimal"});
+                let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", url , "PROPFIND", connection, {"Depth": "0", "Prefer": "return-minimal"});
                 let principal = (response && response.multi) ? dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]) : null;
                 davjobs[job].valid = (principal !== null);
                 if (!davjobs[job].valid) {
@@ -298,7 +298,8 @@ var tbSyncDavNewAccount = {
         newAccountEntry.host2 = accountdata.carddavserver;
     
         //also update password in PasswordManager
-        dav.api.setPassword (newAccountEntry, accountdata.password);
+        let auth = new tbSync.AuthObject(newAccountEntry.user, newAccountEntry.host != "" ? newAccountEntry.host : newAccountEntry.host2, "dav")
+        auth.setPassword(accountdata.password);
 
         //create a new account and pass its id to updateAccountsList, which will select it
         //the onSelect event of the List will load the selected account

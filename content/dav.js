@@ -87,7 +87,7 @@ var calendarObserver = {
                         dav.tools.addAccountDataToConnectionData(connection);
 
                         //update stored color to recover after disable
-                        dav.tools.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folders[0].folderID, "PROPPATCH", connection);
+                        dav.network.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folders[0].folderID, "PROPPATCH", connection);
                         break;
                 }
             }
@@ -204,33 +204,6 @@ var api = {
             cal.getCalendarManager().removeCalendarObserver(dav.calendarObserver);                        
         }
         dav.overlayManager.stopObserving();	
-    },
-
-
-
-    /**
-     * Called to get passwords of accounts of this provider
-     *
-     * @param accountdata       [in] account data structure
-     */
-    getPassword: function (accountdata) {
-        let hostField = (accountdata.host !== "") ? "host" : "host2";
-        let origin = tbSync.tools.getOrigin4PasswordManager(accountdata.provider, accountdata[hostField]);
-        return tbSync.tools.getLoginInfo(origin, "TbSync", accountdata.user);
-    },
-
-
-
-    /**
-     * Called to set passwords of accounts of this provider
-     *
-     * @param accountdata       [in] account data structure
-     * @param newPassword       [in] new password
-     */
-    setPassword: function (accountdata, newPassword) {
-        let hostField = (accountdata.host !== "") ? "host" : "host2";
-        let origin = tbSync.tools.getOrigin4PasswordManager(accountdata.provider, accountdata[hostField]);
-        tbSync.tools.setLoginInfo(origin, "TbSync", accountdata.user, newPassword);
     },
 
 
@@ -483,16 +456,14 @@ var api = {
      */
     createCalendar: function(newname, accountObject) {
         let calManager = cal.getCalendarManager();
-        let accountdata = tbSync.db.getAccount(accountObject.account);
+        let auth = dav.network.getAuthentication(accountObject);
         
-        let password = dav.api.getPassword(accountdata);
-        let user = accountdata.user;
         let caltype = accountObject.getFolderSetting("type");
         let downloadonly = (accountObject.getFolderSetting("downloadonly") == "1");
 
         let baseUrl = "";
         if (caltype != "ics") {
-            baseUrl =  "http" + (accountdata.https == "1" ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(user) + ":" + encodeURIComponent(password) + "@" : "") + accountObject.getFolderSetting("fqdn");
+            baseUrl =  "http" + (accountObject.getAccountSetting("https") == "1" ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(auth.getUsername()) + ":" + encodeURIComponent(auth.getPassword()) + "@" : "") + accountObject.getFolderSetting("fqdn");
         }
 
         let url = dav.tools.parseUri(baseUrl + accountObject.folderID);        
@@ -502,7 +473,7 @@ var api = {
         newCalendar.id = cal.getUUID();
         newCalendar.name = newname;
 
-        newCalendar.setProperty("user", user);
+        newCalendar.setProperty("user", auth.getUsername());
         newCalendar.setProperty("color", accountObject.getFolderSetting("targetColor"));
         newCalendar.setProperty("calendar-main-in-composite", true);
         newCalendar.setProperty("cache.enabled", (accountObject.getAccountSetting("useCache") == "1"));
@@ -514,7 +485,7 @@ var api = {
             let realm = (dav.listOfRealms.hasOwnProperty(url.host)) ? dav.listOfRealms[url.host] : "";
             if (realm !== "") {
                 tbSync.dump("Found CalDAV authRealm",  realm);
-                tbSync.tools.setLoginInfo(url.prePath, realm, user, password);
+                tbSync.authentication.setLoginInfo(url.prePath, realm, auth.getUsername(), auth.getPassword());
             }
         }
 
@@ -874,4 +845,5 @@ var folderList = {
 
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/sync.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/tools.js", this, "UTF-8");
+Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/network.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/vcard/vcard.js", this, "UTF-8");
