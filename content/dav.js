@@ -162,27 +162,25 @@ var api = {
         
         //Migration - accounts without a serviceprovider setting only have a value in host
         //is it a discovery setting (only fqdn) or a custom value?
-        let accounts = tbSync.db.getAccounts();
-        for (let i=0; i<accounts.IDs.length; i++) {
-            let accountID = accounts.IDs[i];
-            if (accounts.data[accountID].provider == "dav") {
-                
-                let serviceprovider = tbSync.db.getAccountSetting(accountID, "serviceprovider");
-                if (serviceprovider == "") {
-                    let account = tbSync.db.getAccount(accountID);
-                    let hostparts = account.host.split("/").filter(i => i != "");
-                    let fqdn = hostparts.splice(0,1).toString();
-                    if (hostparts.length == 0) {
-                        tbSync.db.setAccountSetting(accountID, "host", fqdn + "/.well-known/caldav");
-                        tbSync.db.setAccountSetting(accountID, "host2", fqdn + "/.well-known/carddav");
-                        tbSync.db.setAccountSetting(accountID, "serviceprovider", "discovery");
-                    } else {
-                        tbSync.db.setAccountSetting(accountID, "host", fqdn + "/" + hostparts.join("/"));
-                        tbSync.db.setAccountSetting(accountID, "host2", fqdn + "/" + hostparts.join("/"));
-                        tbSync.db.setAccountSetting(accountID, "serviceprovider", "custom");
-                    }
+        let providerInfo = new tbSync.ProviderInfoObject("dav");
+        let accountObjects = providerInfo.getAccountObjects();
+        
+        for (accountObject of accountObjects) {                
+            let serviceprovider = accountObject.getAccountSetting("serviceprovider");
+        
+            if (serviceprovider == "") {
+                let host = accountObject.getAccountSetting("host");
+                let hostparts = host.split("/").filter(i => i != "");
+                let fqdn = hostparts.splice(0,1).toString();
+                if (hostparts.length == 0) {
+                    accountObject.setAccountSetting("host", fqdn + "/.well-known/caldav");
+                    accountObject.setAccountSetting("host2", fqdn + "/.well-known/carddav");
+                    accountObject.setAccountSetting("serviceprovider", "discovery");
+                } else {
+                    accountObject.setAccountSetting("host", fqdn + "/" + hostparts.join("/"));
+                    accountObject.setAccountSetting("host2", fqdn + "/" + hostparts.join("/"));
+                    accountObject.setAccountSetting("serviceprovider", "custom");
                 }
-
             }
         }
     },
