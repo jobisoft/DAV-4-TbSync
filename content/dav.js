@@ -139,6 +139,24 @@ function stripHost(document, account, field) {
 /**
  * Implements the TbSync interface for external provider extensions.
  */
+var auth = {
+    /**
+     * Returns XUL URL of the password prompt window (return null to use the default one)
+     */
+    getPassPromptXulUrl: function () {
+        return "chrome://tbsync/content/manager/password.xul";
+    },
+    
+    getUserField4PasswordManager : function (accountObject) {
+        return "user";
+    },
+    
+    getHostField4PasswordManager : function (accountObject) {
+        let host = accountObject.getAccountSetting("host");
+        return host ? "host" : "host2";
+    },
+}
+
 var api = {    
     /**
      * Called during load of external provider extension to init provider.
@@ -165,7 +183,7 @@ var api = {
         let providerInfo = new tbSync.ProviderInfoObject("dav");
         let accountObjects = providerInfo.getAccountObjects();
         
-        for (accountObject of accountObjects) {                
+        for (let accountObject of accountObjects) {                
             let serviceprovider = accountObject.getAccountSetting("serviceprovider");
         
             if (serviceprovider == "") {
@@ -260,6 +278,7 @@ var api = {
         return "chrome://dav4tbsync/locale/dav.strings";
     },
     
+
     /**
      * Returns XUL URL of the new account dialog.
      */
@@ -268,14 +287,12 @@ var api = {
     },
 
 
-
     /**
      * Returns overlay XUL URL of the edit account dialog (chrome://tbsync/content/manager/editAccount.xul)
      */
     getEditAccountOverlayUrl: function () {
         return "chrome://dav4tbsync/content/manager/editAccountOverlay.xul";
     },
-
 
 
     /**
@@ -450,7 +467,7 @@ var api = {
      */
     createCalendar: function(newname, accountObject) {
         let calManager = cal.getCalendarManager();
-        let auth = dav.network.getAuthentication(accountObject);
+        let auth = new tbSync.DefaultAuthentication(accountObject);
         
         let caltype = accountObject.getFolderSetting("type");
         let downloadonly = (accountObject.getFolderSetting("downloadonly") == "1");

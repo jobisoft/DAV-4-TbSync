@@ -24,7 +24,7 @@ var network = {
             this._ownerInfo = null;
             
             if (accountObject) {
-                let auth = network.getAuthentication(accountObject);
+                let auth = new tbSync.DefaultAuthentication(accountObject);
                 this._password = auth.getPassword();
                 this._user = auth.getUsername();
 
@@ -64,13 +64,6 @@ var network = {
         get type() {return this._type;}
         get fqdn() {return this._fqdn;}
         get ownerInfo() {return this.ownerInfo;}
-    },
-
-    getAuthentication: function (accountObject) {
-        let host = accountObject.getAccountSetting("host") !== "" ? accountObject.getAccountSetting("host") : accountObject.getAccountSetting("host2")
-        let user = accountObject.getAccountSetting("user");
-        let auth = new tbSync.AuthObject(user, host, "dav");
-        return auth;
     },
     
     Prompt: class {
