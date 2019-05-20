@@ -448,7 +448,7 @@ var sync = {
                     tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), id, "deleted_by_server");
                 } else {
                     //We received something, that is not a DEL, MOD or ADD
-                    tbSync.errorlog.add("warning", syncdata, "Unknown XML", JSON.stringify(cards.multi[c]));
+                    tbSync.errorlog.add("warning", syncdata.getOwnerInfo(), "Unknown XML", JSON.stringify(cards.multi[c]));
                 }
             }
         }
@@ -797,11 +797,11 @@ var sync = {
                                         syncdata.setSyncState("eval.response.localchanges");
                                         if (response && response.softerror) {
                                             permissionError[changes[i].status] = true;
-                                            tbSync.errorlog.add("warning", syncdata, "missing-permission::" + tbSync.tools.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
+                                            tbSync.errorlog.add("warning", syncdata.getOwnerInfo(), "missing-permission::" + tbSync.tools.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
                                         }
                                     }
                                 } else {
-                                    tbSync.errorlog.add("warning", syncdata, "cardnotfoundbutinchangelog::" + changes[i].id);
+                                    tbSync.errorlog.add("warning", syncdata.getOwnerInfo(), "cardnotfoundbutinchangelog::" + changes[i].id);
                                 }
                             }
 
@@ -822,7 +822,7 @@ var sync = {
                                 if (response  && response.softerror) {
                                     if (response.softerror != 404) { //we cannot do anything about a 404 on delete, the card has been deleted here and is not avail on server
                                         permissionError[changes[i].status] = true;
-                                        tbSync.errorlog.add("warning", syncdata, "missing-permission::" + tbSync.tools.getLocalizedMessage("acl.delete", "dav"));
+                                        tbSync.errorlog.add("warning", syncdata.getOwnerInfo(), "missing-permission::" + tbSync.tools.getLocalizedMessage("acl.delete", "dav"));
                                     }
                                 }
                             }
