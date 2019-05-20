@@ -35,7 +35,7 @@ var network = {
                     this._type = accountObject.getFolderSetting("type");
                     this._fqdn = accountObject.getFolderSetting("fqdn");
                 }
-                this._ownerInfo = accountObject.getOwnerInfo();
+                this._ownerInfo = accountObject.ownerInfo;
             }            
         }
         

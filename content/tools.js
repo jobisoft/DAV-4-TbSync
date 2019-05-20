@@ -907,7 +907,7 @@ var tools = {
             
             //if this card was created with an older version of TbSync, which did not have groups support, handle as normal card
             if (!card.isMailList) {
-                tbSync.errorlog.add("info", syncdata.getOwnerInfo(), "ignoredgroup::" + vCardInfo.name, "dav");
+                tbSync.errorlog.add("info", syncdata.ownerInfo, "ignoredgroup::" + vCardInfo.name, "dav");
                 return false;
             }
                 
@@ -1551,9 +1551,9 @@ var tools = {
                 case "Photo":
                     {
                         if (card.getProperty("PhotoType", "") == "file") {
-                            tbSync.errorlog.add("info", syncdata.getOwnerInfo(), "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
+                            tbSync.errorlog.add("info", syncdata.ownerInfo, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, tbSync.addressbook.getphoto(card));
-                            tbSync.errorlog.add("info", syncdata.getOwnerInfo(), "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
+                            tbSync.errorlog.add("info", syncdata.ownerInfo, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             vCardData[vCardField.item][0].meta = {"encoding": ["b"], "type": ["JPEG"]};
                         }
                     }
