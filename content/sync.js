@@ -52,15 +52,15 @@ var sync = {
             }
 
             //get server urls from account setup - update urls of serviceproviders
-            let serviceprovider = tbSync.db.getAccountSetting(syncdata.account, "serviceprovider");
+            let serviceprovider = syncdata.getAccountSetting("serviceprovider");
             if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
-                tbSync.db.setAccountSetting(syncdata.account, "host", dav.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
-                tbSync.db.setAccountSetting(syncdata.account, "host2", dav.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
+                syncdata.setAccountSetting("host", dav.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
+                syncdata.setAccountSetting("host2", dav.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
             }
 
             let davjobs = {
-                cal : {server: tbSync.db.getAccountSetting(syncdata.account, "host")},
-                card : {server: tbSync.db.getAccountSetting(syncdata.account, "host2")},
+                cal : {server: syncdata.getAccountSetting("host")},
+                card : {server: syncdata.getAccountSetting("host2")},
             };
             
             for (let job in davjobs) {
@@ -308,14 +308,14 @@ var sync = {
                         }
 
                         //init sync via lightning
-                        let target = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "target");
+                        let target = syncdata.getFolderSetting("target");
                         let calManager = cal.getCalendarManager();
                         let targetCal = calManager.getCalendarById(target);
                         targetCal.refresh();
                         tbSync.db.clearChangeLog(target);
 
                         //update downloadonly
-                        if (tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "downloadonly") == "1") targetCal.setProperty("readOnly", true);
+                        if ( syncdata.getFolderSetting("downloadonly") == "1") targetCal.setProperty("readOnly", true);
 
                         throw dav.sync.succeeded("managed-by-lightning");
                     }
@@ -374,7 +374,7 @@ var sync = {
 
     remoteChanges: async function (syncdata) {
         //Do we have a sync token? No? -> Initial Sync (or WebDAV sync not supported) / Yes? -> Get updates only (token only present if WebDAV sync is suported)
-        let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
+        let token = syncdata.getFolderSetting("token");
         if (token) {
             //update via token sync
             let tokenSyncSucceeded = await dav.sync.remoteChangesByTOKEN(syncdata);
@@ -400,7 +400,7 @@ var sync = {
         syncdata.todo = 0;
         syncdata.done = 0;
 
-        let token = tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "token");
+        let token = syncdata.getFolderSetting("token");
         syncdata.setSyncState("send.request.remotechanges");
         let cards = await dav.network.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata.connection, {}, {softfail: [415,403]});
 
@@ -460,7 +460,7 @@ var sync = {
         await dav.sync.deleteContacts (addressBook, vCardsDeletedOnServer, syncdata);
 
         //update token
-        tbSync.db.setFolderSetting(syncdata.account, syncdata.folderID, "token", tokenNode.textContent);
+        syncdata.setFolderSetting("token", tokenNode.textContent);
 
         return true;
     },
@@ -478,7 +478,7 @@ var sync = {
         let token = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d", "sync-token"]], syncdata.folderID);
 
         //if CTAG changed, we need to sync everything and compare
-        if (ctag === null || ctag != tbSync.db.getFolderSetting(syncdata.account, syncdata.folderID, "ctag")) {
+        if (ctag === null || ctag != syncdata.getFolderSetting("ctag")) {
             let vCardsFoundOnServer = [];
             let vCardsChangedOnServer = {};
 
@@ -561,8 +561,8 @@ var sync = {
 
             //update ctag and token (if there is one)
             if (ctag === null) return false; //if server does not support ctag, "it did not change"
-            tbSync.db.setFolderSetting(syncdata.account, syncdata.folderID, "ctag", ctag);
-            if (token) tbSync.db.setFolderSetting(syncdata.account, syncdata.folderID, "token", token);
+            syncdata.setFolderSetting("ctag", ctag);
+            if (token) syncdata.setFolderSetting("token", token);
 
             //ctag did change
             return true;
@@ -620,7 +620,7 @@ var sync = {
         syncdata.setSyncState("eval.response.remotechanges");		
         await tbSync.tools.sleep(200, false);
     
-        let syncGroups = (tbSync.db.getAccountSetting(syncdata.account, "syncGroups") == "1");
+        let syncGroups = (syncdata.getAccountSetting("syncGroups") == "1");
         if (syncGroups) {
             //mailinglists (we need to do that at the very end so all member data is avail)
             let listcount = 0;
@@ -727,7 +727,7 @@ var sync = {
             "deleted_by_user": downloadonly
         }; 
         
-        let syncGroups = (tbSync.db.getAccountSetting(syncdata.account, "syncGroups") == "1");
+        let syncGroups = (syncdata.getAccountSetting("syncGroups") == "1");
         if (syncGroups) {
             //special handling of lists/groups
             //ADD/MOD of the list cards itself is not detectable, we only detect the change of its member cards when membership changes
