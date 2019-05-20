@@ -79,12 +79,8 @@ var calendarObserver = {
                 switch (aName) {
                     case "color":
                         //prepare connection data
-                        let connection = {};
-                        connection.account = folders[0].account;
-                        connection.folderID = folders[0].folderID;
-                        connection.type = "cal";
-                        connection.fqdn = folders[0].fqdn;
-                        dav.tools.addAccountDataToConnectionData(connection);
+                        let accountData = new tbSync.AccountObject(folders[0].account, folders[0].folderID);
+                        let connection = new dav.network.Connection(accountData);
 
                         //update stored color to recover after disable
                         dav.network.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folders[0].folderID, "PROPPATCH", connection);
