@@ -213,16 +213,14 @@ var tbSyncDavNewAccount = {
                 continue;
             }
 
-            let connection = {};
+            let connection = new dav.network.Connection();
             connection.password = this.accountdata.password;
             connection.user = this.accountdata.user;
             connection.https = this.accountdata.https;
             connection.timeout = 15000;
             connection.type = job;
-            connection.fqdn = "";
+                
             //only needed for proper error reporting
-            connection.provider = "dav";
-            connection.accountname = accountname;
 
             //build full url, so we do not need fqdn
             let url = "http" + (connection.https == "1" ? "s" : "") + "://" + davjobs[job].server;
