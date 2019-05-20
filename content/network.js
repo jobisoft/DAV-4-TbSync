@@ -55,7 +55,7 @@ var network = {
         set https(v) {this._https = v;}
         set type(v) {this._type = v;}
         set fqdn(v) {this._fqdn = v;}
-        set ownerInfo(v) {this.ownerInfo = v;}
+        set ownerInfo(v) {this._ownerInfo = v;}
 
         get password() {return this._password;}
         get user() {return this._user;}
@@ -63,7 +63,7 @@ var network = {
         get https() {return this._https;}
         get type() {return this._type;}
         get fqdn() {return this._fqdn;}
-        get ownerInfo() {return this.ownerInfo;}
+        get ownerInfo() {return this._ownerInfo;}
     },
     
     Prompt: class {

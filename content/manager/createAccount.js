@@ -236,7 +236,7 @@ var tbSyncDavNewAccount = {
             } catch (e) {
                 davjobs[job].valid = false;
                 davjobs[job].error = e.message;
-                if (e.type == "dav4tbsync") {
+                if (e.name == "dav4tbsync") {
                     tbSync.errorlog.add("warning", connection.ownerInfo, e.message, e.details ? e.details : null);
                 } else {
                     Components.utils.reportError(e);
@@ -296,13 +296,16 @@ var tbSyncDavNewAccount = {
         newAccountEntry.host = accountdata.caldavserver;
         newAccountEntry.host2 = accountdata.carddavserver;
     
-        //also update password in PasswordManager
-        let auth = new tbSync.AuthObject(newAccountEntry.user, newAccountEntry.host != "" ? newAccountEntry.host : newAccountEntry.host2, "dav")
+        let newAccountID = tbSync.db.addAccount(accountname, newAccountEntry);
+        let accountObject = new tbSync.AccountObject(newAccountID);
+
+        // update password in PasswordManager
+        let auth = new tbSync.DefaultAuthentication(accountObject);
         auth.setPassword(accountdata.password);
 
-        //create a new account and pass its id to updateAccountsList, which will select it
-        //the onSelect event of the List will load the selected account
-        window.opener.tbSyncAccounts.updateAccountsList(tbSync.db.addAccount(accountname, newAccountEntry));
+        // pass new id to updateAccountsList, which will select it
+        // the onSelect event of the List will load the selected account
+        window.opener.tbSyncAccounts.updateAccountsList(newAccountID);
 
         window.close();
     }
