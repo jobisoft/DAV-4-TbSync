@@ -328,7 +328,7 @@ var api = {
     /**
      * Return object which contains all possible fields of a row in the folder database with the default value if not yet stored in the database.
      */
-    getDefaultFolderEntries: function () { //TODO: shadow more standard entries
+    getDefaultFolderEntries: function () {
         let folder = {
             "selected" : "",
             "lastsynctime" : "",
