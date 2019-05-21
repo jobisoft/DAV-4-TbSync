@@ -137,13 +137,13 @@ function stripHost(document, account, field) {
 
 
 /**
- * Implements the TbSync interface for external provider extensions.
+ * Implements the TbSync interfaces for external provider extensions.
  */
 var auth = {
     /**
-     * Returns XUL URL of the password prompt window (return null to use the default one)
+     * Returns XUL URL of the authentication prompt window
      */
-    getPassPromptXulUrl: function () {
+    getAuthPromptXulUrl: function () {
         return "chrome://tbsync/content/manager/password.xul";
     },
     
@@ -220,6 +220,16 @@ var api = {
 
 
 
+
+
+    /**
+     * Returns nice string for name of provider (is used in the add account menu).
+     */
+    getNiceProviderName: function () {
+        return tbSync.tools.getLocalizedMessage("menu.name", "dav");
+    },
+
+
     /**
      * Returns location of a provider icon.
      *
@@ -292,14 +302,6 @@ var api = {
      */
     getEditAccountOverlayUrl: function () {
         return "chrome://dav4tbsync/content/manager/editAccountOverlay.xul";
-    },
-
-
-    /**
-     * Returns nice string for name of provider (is used in the add account menu).
-     */
-    getNiceProviderName: function () {
-        return tbSync.tools.getLocalizedMessage("menu.name", "dav");
     },
 
 
