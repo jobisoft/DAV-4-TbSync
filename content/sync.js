@@ -394,8 +394,7 @@ var sync = {
     },
 
     remoteChangesByTOKEN: async function (syncdata) {
-        syncdata.todo = 0;
-        syncdata.done = 0;
+        syncdata.progress.reset();
 
         let token = syncdata.getFolderSetting("token");
         syncdata.setSyncState("send.request.remotechanges");
@@ -419,7 +418,8 @@ var sync = {
 
         let vCardsDeletedOnServer = new dav.tools.deleteCardsContainer(dav.prefSettings.getIntPref("maxitems"));
         let vCardsChangedOnServer = {};
-
+        
+        let cardsFound = 0;
         for (let c=0; c < cards.multi.length; c++) {
             let id = cards.multi[c].href;
             if (id !==null) {
@@ -431,16 +431,16 @@ var sync = {
                     if (!card) {
                         //if the user deleted this card (not yet send to server), do not add it again
                         if (tbSync.db.getItemStatusFromChangeLog(syncdata.getFolderSetting("target"), id) != "deleted_by_user")  {
-                            syncdata.todo++;
+                            cardsFound++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
                     } else if (etag.textContent != tbSync.addressbook.getPropertyOfCard(card, "X-DAV-ETAG")) {
-                        syncdata.todo++;
+                        cardsFound++;
                         vCardsChangedOnServer[id] = "MOD"; 
                     }
                 } else if (cards.multi[c].responsestatus == "404" && card) {
                     //DEL
-                    syncdata.todo++;
+                    cardsFound++;
                     vCardsDeletedOnServer.appendElement(card, false);
                     tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), id, "deleted_by_server");
                 } else {
@@ -449,6 +449,9 @@ var sync = {
                 }
             }
         }
+
+        // reset sync process
+        syncdata.progress.reset(0, cardsFound);
 
         //download all cards added to vCardsChangedOnServer and process changes
         await dav.sync.multiget(addressBook, vCardsChangedOnServer, syncdata);
@@ -463,8 +466,7 @@ var sync = {
     },
 
     remoteChangesByCTAG: async function (syncdata) {
-        syncdata.todo = 0;
-        syncdata.done = 0;
+        syncdata.progress.reset();
 
         //Request ctag and token
         syncdata.setSyncState("send.request.remotechanges");
@@ -504,6 +506,7 @@ var sync = {
             //let cards = await dav.network.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncdata.folderID, "REPORT", syncdata.connection, {"Depth": "1", "Prefer": "return-minimal"});
 
             syncdata.setSyncState("eval.response.remotechanges");
+            let cardsFound = 0;
             for (let c=0; cards.multi && c < cards.multi.length; c++) {
                 let id =  cards.multi[c].href;
                 if (id == syncdata.folderID) {
@@ -521,11 +524,11 @@ var sync = {
                     if (!card) {
                         //if the user deleted this card (not yet send to server), do not add it again
                         if (tbSync.db.getItemStatusFromChangeLog(syncdata.getFolderSetting("target"), id) != "deleted_by_user") {
-                            syncdata.todo++;
+                            cardsFound++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
                     } else if (etag.textContent != tbSync.addressbook.getPropertyOfCard(card, "X-DAV-ETAG")) {
-                        syncdata.todo++;
+                        cardsFound++;
                         vCardsChangedOnServer[id] = "MOD"; 
                     }
                 }
@@ -543,12 +546,14 @@ var sync = {
                 let id = card.getProperty("TBSYNCID","");
                 if (id && !vCardsFoundOnServer.includes(id) && tbSync.db.getItemStatusFromChangeLog(syncdata.getFolderSetting("target"), id) != "added_by_user") {
                     //delete request from server
-                    syncdata.todo++;
+                    cardsFound++;
                     vCardsDeletedOnServer.appendElement(card, false);
                     tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), id, "deleted_by_server");
                 }
             }
 
+            // reset sync process
+            syncdata.progress.reset(0, cardsFound);
 
             //download all cards added to vCardsChangedOnServer and process changes
             await dav.sync.multiget(addressBook, vCardsChangedOnServer, syncdata);
@@ -589,7 +594,7 @@ var sync = {
 
                 syncdata.setSyncState("eval.response.remotechanges");
                 for (let c=0; c < cards.multi.length; c++) {
-                    syncdata.done++;
+                    syncdata.progress.inc();
                     let id =  cards.multi[c].href;
                     let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
                     let data = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["card","address-data"]]);
@@ -697,7 +702,8 @@ var sync = {
         //the vCardsDeletedOnServer object has a data member (array of nsIMutableArray) and each nsIMutableArray has a maximum size
         //of maxitems, so we can show a progress during delete and not delete all at once
         for (let i=0; i < vCardsDeletedOnServer.data.length; i++) {
-            syncdata.done += vCardsDeletedOnServer.data[i].length;
+            syncdata.progress.inc(vCardsDeletedOnServer.data[i].length);
+
             syncdata.setSyncState("eval.response.remotechanges");
             await tbSync.tools.sleep(200); //we want the user to see, that deletes are happening
             addressBook.deleteCards(vCardsDeletedOnServer.data[i]);
@@ -757,8 +763,7 @@ var sync = {
         }
         
         //access changelog to get local modifications (done and todo are used for UI to display progress)
-        syncdata.done = 0;
-        syncdata.todo = tbSync.db.getItemsFromChangeLog(syncdata.getFolderSetting("target"), 0, "_by_user").length;
+        syncdata.progress.reset(0, tbSync.db.getItemsFromChangeLog(syncdata.getFolderSetting("target"), 0, "_by_user").length);
 
         do {
             syncdata.setSyncState("prepare.request.localchanges");
@@ -833,14 +838,14 @@ var sync = {
                 }
 
                 tbSync.db.removeItemFromChangeLog(syncdata.getFolderSetting("target"), changes[i].id);
-                syncdata.done++; //UI feedback
+                syncdata.progress.inc(); //UI feedback
             }
 
 
         } while (true);
 
         //return number of modified cards or the number of permission errors (negativ)
-        return (permissionErrors < 0 ? permissionErrors : syncdata.done);
+        return (permissionErrors < 0 ? permissionErrors : syncdata.progress.done);
     },
 
 
