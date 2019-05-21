@@ -14,17 +14,14 @@ var sync = {
     failed: function (msg = "", details = "") {
         let e = new Error();
         e.name = "dav4tbsync";
-        e.message = msg.toString();
-        e.details = details;
+        e.statusData = new tbSync.StatusData(tbSync.StatusData.WARNING, msg.toString(), details.toString());
         return e;
     },
 
     succeeded: function (msg = "") {
         let e = new Error();
         e.name = "dav4tbsync";
-        e.message = "OK";
-        if (msg) e.message = e.message + "." + msg;
-        e.details = "";
+        e.statusData = new tbSync.StatusData(tbSync.StatusData.SUCCESS, msg.toString());
         return e;
     },
 
@@ -261,12 +258,15 @@ var sync = {
             }
         } catch (e) {
             if (e.name == "dav4tbsync") {
-                syncdata.setSyncStatus(e.message, e.details);
+                return e.statusData;
             } else {
-                syncdata.setSyncStatus("JavaScriptError", e.message + "\n\n" + e.stack);
                 Components.utils.reportError(e);
+                return new tbSync.StatusData(tbSync.StatusData.WARNING, "JavaScriptError", e.message + "\n\n" + e.stack);
             }
         }
+        // we fall through, if there was no error
+        return new tbSync.StatusData();
+
     },
 
 
@@ -288,7 +288,6 @@ var sync = {
                             //could not create target
                             throw dav.sync.failed("notargets");
                         }
-
                         await dav.sync.singleFolder(syncdata);
                     }
                     break;
@@ -330,15 +329,13 @@ var sync = {
             }
         } catch (e) {
             if (e.name == "dav4tbsync") {
-                syncdata.setSyncStatus(e.message, e.details);
+                return e.statusData;
             } else {
                 Components.utils.reportError(e);
-                syncdata.setSyncStatus("JavaScriptError", e.message + "\n\n" + e.stack);
-                //abort sync of other folders on javascript error
-                return false;
+                return new tbSync.StatusData(tbSync.StatusData.WARNING, "JavaScriptError", e.message + "\n\n" + e.stack);
             }
         }
-        return true;
+        throw new Error("Should not happen!");
     },
 
 

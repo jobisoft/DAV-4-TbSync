@@ -47,7 +47,7 @@ var calendarManagerObserver = {
             
                 //only act on dav calendars which have the same uri
                 if (provider == "dav" && folders[f].selected == "1" && folders[f].url == aCalendar.uri.spec) {
-                    tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "status", "OK");
+                    tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "status", tbSync.StatusData.SUCCESS);
                     //add target to re-take control
                     tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "target", aCalendar.id);
                     //update settings window, if open
@@ -531,9 +531,16 @@ var api = {
 
 
 
+    /**
+     * Is called if TbSync needs to synchronize the folder list.
+     *
+     * @param syncdata      [in] SyncData
+     *
+     * return StatusData
+     */
     syncFolderList: async function (syncdata) {
         //update folders avail on server and handle added, removed, renamed folders
-        await dav.sync.folderList(syncdata);
+        return await dav.sync.folderList(syncdata);
     },
     
     /**
@@ -541,8 +548,7 @@ var api = {
      *
      * @param syncdata      [in] SyncData
      *
-     * return false on error which should abort the entire sync (if more than
-     * one folder is in the queue)
+     * return StatusData
      */
     syncFolder: async function (syncdata) {
         //process a single folder
@@ -627,7 +633,7 @@ var folderList = {
      * in the folderlist. The content of the folderRowData object is free to choose, it
      * will be passed back to getRow() and updateRow()
      *
-     * Use syncdata.getSyncStatus(folder) to get a nice looking
+     * Use syncdata.getFolderStatus(folder) to get a nice looking
      * status message, including sync progress (if folder is synced)
      *
      * @param folder         [in] folder databasse object of requested folder
@@ -645,7 +651,7 @@ var folderList = {
         rowData.acl = folder.acl;
         rowData.name = folder.name;
         rowData.statusCode = folder.status;
-        rowData.statusMsg = syncdata ? syncdata.getSyncStatus(folder) : "";
+        rowData.statusMsg = syncdata ? syncdata.getFolderStatus(folder) : "";
 
         return rowData;
     },
