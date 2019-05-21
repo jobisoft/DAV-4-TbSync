@@ -498,7 +498,8 @@ var api = {
             let realm = (dav.listOfRealms.hasOwnProperty(url.host)) ? dav.listOfRealms[url.host] : "";
             if (realm !== "") {
                 tbSync.dump("Found CalDAV authRealm",  realm);
-                tbSync.authentication.setLoginInfo(url.prePath, realm, auth.getUsername(), auth.getPassword());
+                //manually create a lightning style entry in the password manager
+                tbSync.passwordAuth.setLoginInfo(url.prePath, realm, auth.getUsername(), auth.getPassword());
             }
         }
 
