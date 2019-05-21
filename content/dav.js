@@ -79,7 +79,7 @@ var calendarObserver = {
                 switch (aName) {
                     case "color":
                         //prepare connection data
-                        let accountData = new tbSync.AccountObject(folders[0].account, folders[0].folderID);
+                        let accountData = new tbSync.AccountData(folders[0].account, folders[0].folderID);
                         let connection = new dav.network.Connection(accountData);
 
                         //update stored color to recover after disable
@@ -147,12 +147,12 @@ var auth = {
         return "chrome://tbsync/content/manager/password.xul";
     },
     
-    getUserField4PasswordManager : function (accountObject) {
+    getUserField4PasswordManager : function (accountData) {
         return "user";
     },
     
-    getHostField4PasswordManager : function (accountObject) {
-        let host = accountObject.getAccountSetting("host");
+    getHostField4PasswordManager : function (accountData) {
+        let host = accountData.getAccountSetting("host");
         return host ? "host" : "host2";
     },
 }
@@ -172,7 +172,7 @@ var api = {
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
         dav.overlayManager.startObserving();
-	
+
         if (lightningIsAvail) {
             cal.getCalendarManager().addObserver(dav.calendarManagerObserver);    
             cal.getCalendarManager().addCalendarObserver(dav.calendarObserver);            
@@ -180,24 +180,24 @@ var api = {
         
         //Migration - accounts without a serviceprovider setting only have a value in host
         //is it a discovery setting (only fqdn) or a custom value?
-        let providerInfo = new tbSync.ProviderInfoObject("dav");
-        let accountObjects = providerInfo.getAccountObjects();
+        let providerData = new tbSync.ProviderData("dav");
+        let allAccounts = providerData.getAllAccounts();
         
-        for (let accountObject of accountObjects) {                
-            let serviceprovider = accountObject.getAccountSetting("serviceprovider");
+        for (let accountData of allAccounts) {                
+            let serviceprovider = accountData.getAccountSetting("serviceprovider");
         
             if (serviceprovider == "") {
-                let host = accountObject.getAccountSetting("host");
+                let host = accountData.getAccountSetting("host");
                 let hostparts = host.split("/").filter(i => i != "");
                 let fqdn = hostparts.splice(0,1).toString();
                 if (hostparts.length == 0) {
-                    accountObject.setAccountSetting("host", fqdn + "/.well-known/caldav");
-                    accountObject.setAccountSetting("host2", fqdn + "/.well-known/carddav");
-                    accountObject.setAccountSetting("serviceprovider", "discovery");
+                    accountData.setAccountSetting("host", fqdn + "/.well-known/caldav");
+                    accountData.setAccountSetting("host2", fqdn + "/.well-known/carddav");
+                    accountData.setAccountSetting("serviceprovider", "discovery");
                 } else {
-                    accountObject.setAccountSetting("host", fqdn + "/" + hostparts.join("/"));
-                    accountObject.setAccountSetting("host2", fqdn + "/" + hostparts.join("/"));
-                    accountObject.setAccountSetting("serviceprovider", "custom");
+                    accountData.setAccountSetting("host", fqdn + "/" + hostparts.join("/"));
+                    accountData.setAccountSetting("host2", fqdn + "/" + hostparts.join("/"));
+                    accountData.setAccountSetting("serviceprovider", "custom");
                 }
             }
         }
@@ -234,13 +234,13 @@ var api = {
      * Returns location of a provider icon.
      *
      * @param size       [in] size of requested icon
-     * @param accountObject  [in] optional AccountObject
+     * @param accountData  [in] optional AccountData
      *
      */
-    getProviderIcon: function (size, accountObject = null) {
+    getProviderIcon: function (size, accountData = null) {
         let base = "sabredav";
-        if (accountObject) {
-            let serviceprovider = accountObject.getAccountSetting("serviceprovider");
+        if (accountData) {
+            let serviceprovider = accountData.getAccountSetting("serviceprovider");
             if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
                 base = dav.serviceproviders[serviceprovider].icon;
             }
@@ -390,9 +390,9 @@ var api = {
     /**
      * Is called everytime an account of this provider is enabled in the manager UI, set/reset database fields as needed.
      *
-     * @param accountObject  [in] AccountObject
+     * @param accountData  [in] AccountData
      */
-    onEnableAccount: function (accountObject) {
+    onEnableAccount: function (accountData) {
     },
 
 
@@ -401,9 +401,9 @@ var api = {
      * Is called everytime an account of this provider is disabled in the manager UI, set/reset database fields as needed and
      * remove/backup all sync targets of this account.
      *
-     * @param accountObject  [in] AccountObject
+     * @param accountData  [in] AccountData
      */
-    onDisableAccount: function (accountObject) {
+    onDisableAccount: function (accountData) {
     },
 
 
@@ -411,12 +411,12 @@ var api = {
     /**
      * Is called everytime an new target is created, intended to set a clean sync status.
      *
-     * @param accountObject  [in] AccountObject
+     * @param accountData  [in] AccountData
      */
-    onResetTarget: function (accountObject) {
-        accountObject.resetFolderSetting("ctag");
-        accountObject.resetFolderSetting("token");
-        accountObject.setFolderSetting("createdWithProviderVersion", accountObject.providerInfo.getVersion());
+    onResetTarget: function (accountData) {
+        accountData.resetFolderSetting("ctag");
+        accountData.resetFolderSetting("token");
+        accountData.setFolderSetting("createdWithProviderVersion", accountData.providerData.getVersion());
     },
 
 
@@ -425,16 +425,16 @@ var api = {
      * Is called if TbSync needs to create a new thunderbird address book associated with an account of this provider.
      *
      * @param newname       [in] name of the new address book
-     * @param accountObject  [in] AccountObject
+     * @param accountData  [in] AccountData
      *
      * return the id of the newAddressBook
      */
-    createAddressBook: function (newname, accountObject) {
+    createAddressBook: function (newname, accountData) {
         let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
         let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
 
         if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
-            let serviceprovider = accountObject.getAccountSetting("serviceprovider");
+            let serviceprovider = accountData.getAccountSetting("serviceprovider");
             let icon = "custom";
             if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
                 icon = dav.serviceproviders[serviceprovider].icon;
@@ -465,31 +465,31 @@ var api = {
      * Is called if TbSync needs to create a new lightning calendar associated with an account of this provider.
      *
      * @param newname       [in] name of the new calendar
-     * @param accountObject  [in] AccountObject
+     * @param accountData  [in] AccountData
      */
-    createCalendar: function(newname, accountObject) {
+    createCalendar: function(newname, accountData) {
         let calManager = cal.getCalendarManager();
-        let auth = new tbSync.DefaultAuthentication(accountObject);
+        let auth = new tbSync.PasswordAuthData(accountData);
         
-        let caltype = accountObject.getFolderSetting("type");
-        let downloadonly = (accountObject.getFolderSetting("downloadonly") == "1");
+        let caltype = accountData.getFolderSetting("type");
+        let downloadonly = (accountData.getFolderSetting("downloadonly") == "1");
 
         let baseUrl = "";
         if (caltype != "ics") {
-            baseUrl =  "http" + (accountObject.getAccountSetting("https") == "1" ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(auth.getUsername()) + ":" + encodeURIComponent(auth.getPassword()) + "@" : "") + accountObject.getFolderSetting("fqdn");
+            baseUrl =  "http" + (accountData.getAccountSetting("https") == "1" ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(auth.getUsername()) + ":" + encodeURIComponent(auth.getPassword()) + "@" : "") + accountData.getFolderSetting("fqdn");
         }
 
-        let url = dav.tools.parseUri(baseUrl + accountObject.folderID);        
-        accountObject.setFolderSetting("url", url.spec);
+        let url = dav.tools.parseUri(baseUrl + accountData.folderID);        
+        accountData.setFolderSetting("url", url.spec);
 
         let newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
         newCalendar.id = cal.getUUID();
         newCalendar.name = newname;
 
         newCalendar.setProperty("user", auth.getUsername());
-        newCalendar.setProperty("color", accountObject.getFolderSetting("targetColor"));
+        newCalendar.setProperty("color", accountData.getFolderSetting("targetColor"));
         newCalendar.setProperty("calendar-main-in-composite", true);
-        newCalendar.setProperty("cache.enabled", (accountObject.getAccountSetting("useCache") == "1"));
+        newCalendar.setProperty("cache.enabled", (accountData.getAccountSetting("useCache") == "1"));
         if (downloadonly) newCalendar.setProperty("readOnly", true);
 
         //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
@@ -503,7 +503,7 @@ var api = {
         }
 
         //do not monitor CalDAV calendars (managed by lightning)
-        accountObject.setFolderSetting("useChangeLog", "0");
+        accountData.setFolderSetting("useChangeLog", "0");
 
         calManager.registerCalendar(newCalendar);
         return newCalendar;
@@ -538,7 +538,7 @@ var api = {
     /**
      * Is called if TbSync needs to synchronize a folder.
      *
-     * @param syncdata      [in] SyncdataObject
+     * @param syncdata      [in] SyncData
      *
      * return false on error which should abort the entire sync (if more than
      * one folder is in the queue)

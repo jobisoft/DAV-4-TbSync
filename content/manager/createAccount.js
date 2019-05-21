@@ -16,7 +16,27 @@ var tbSyncDavNewAccount = {
 
     startTime: 0,
     maxTimeout: 30,
-
+    
+    onLoad: function () {
+        this.providerData = window.arguments[0];
+        this.elementName = document.getElementById('tbsync.newaccount.name');
+        this.elementUser = document.getElementById('tbsync.newaccount.user');
+        this.elementPass = document.getElementById('tbsync.newaccount.password');
+        this.elementServer = document.getElementById('tbsync.newaccount.server');
+        this.elementCalDavServer = document.getElementById('tbsync.newaccount.caldavserver');
+        this.elementCardDavServer = document.getElementById('tbsync.newaccount.carddavserver');
+        this.serviceproviderlist = document.getElementById('tbsync.newaccount.serviceproviderlist');
+        
+        //init list
+        this.serviceproviderlist.appendChild(this.addProviderEntry("sabredav32.png", "discovery"));
+        this.serviceproviderlist.appendChild(this.addProviderEntry("sabredav32.png", "custom"));
+        for (let p in dav.serviceproviders) {
+            this.serviceproviderlist.appendChild(this.addProviderEntry(dav.serviceproviders[p].icon +"32.png", p));
+        }
+        this.serviceproviderlist.selectedIndex = 0;
+        this.validating = false;
+    },
+    
     addProviderEntry: function (icon, serviceprovider) {
         let name =  tbSync.tools.getLocalizedMessage("add.serverprofile."+serviceprovider, "dav");
         let description =  tbSync.tools.getLocalizedMessage("add.serverprofile."+serviceprovider+".description", "dav");
@@ -55,26 +75,7 @@ var tbSyncDavNewAccount = {
         
         return richlistitem;
     },
-    
-    onLoad: function () {
-        this.elementName = document.getElementById('tbsync.newaccount.name');
-        this.elementUser = document.getElementById('tbsync.newaccount.user');
-        this.elementPass = document.getElementById('tbsync.newaccount.password');
-        this.elementServer = document.getElementById('tbsync.newaccount.server');
-        this.elementCalDavServer = document.getElementById('tbsync.newaccount.caldavserver');
-        this.elementCardDavServer = document.getElementById('tbsync.newaccount.carddavserver');
-        this.serviceproviderlist = document.getElementById('tbsync.newaccount.serviceproviderlist');
-        
-        //init list
-        this.serviceproviderlist.appendChild(this.addProviderEntry("sabredav32.png", "discovery"));
-        this.serviceproviderlist.appendChild(this.addProviderEntry("sabredav32.png", "custom"));
-        for (let p in dav.serviceproviders) {
-            this.serviceproviderlist.appendChild(this.addProviderEntry(dav.serviceproviders[p].icon +"32.png", p));
-        }
-        this.serviceproviderlist.selectedIndex = 0;
-        this.validating = false;
-    },
-    
+
     clearValues: function () {
         //clear fields
         this.elementUser.value = "";
@@ -178,33 +179,33 @@ var tbSyncDavNewAccount = {
 
         let accountname = this.elementName.value.trim();
 
-        this.accountdata = {};
-        this.accountdata.user = this.elementUser.value;
-        this.accountdata.password = this.elementPass.value;
-        this.accountdata.caldavserver = this.elementCalDavServer.value.trim();
-        this.accountdata.carddavserver = this.elementCardDavServer.value.trim();
+        this.newAccountInfo = {};
+        this.newAccountInfo.user = this.elementUser.value;
+        this.newAccountInfo.password = this.elementPass.value;
+        this.newAccountInfo.caldavserver = this.elementCalDavServer.value.trim();
+        this.newAccountInfo.carddavserver = this.elementCardDavServer.value.trim();
        
-        this.accountdata.serviceprovider = this.serviceproviderlist.value;        
-        if (this.accountdata.serviceprovider == "discovery") {
-            this.accountdata.serviceprovider = "custom";
+        this.newAccountInfo.serviceprovider = this.serviceproviderlist.value;        
+        if (this.newAccountInfo.serviceprovider == "discovery") {
+            this.newAccountInfo.serviceprovider = "custom";
             let server = this.elementServer.value.trim();
             while (server.endsWith("/")) { server = server.slice(0,-1); }        
             
-            this.accountdata.caldavserver = server + "/.well-known/caldav";
-            this.accountdata.carddavserver = server + "/.well-known/carddav";
+            this.newAccountInfo.caldavserver = server + "/.well-known/caldav";
+            this.newAccountInfo.carddavserver = server + "/.well-known/carddav";
         } else {
-            while (this.accountdata.caldavserver.endsWith("/")) { this.accountdata.caldavserver = this.accountdata.caldavserver.slice(0,-1); }        
-            while (this.accountdata.carddavserver.endsWith("/")) { this.accountdata.carddavserver = this.accountdata.carddavserver.slice(0,-1); }        
+            while (this.newAccountInfo.caldavserver.endsWith("/")) { this.newAccountInfo.caldavserver = this.newAccountInfo.caldavserver.slice(0,-1); }        
+            while (this.newAccountInfo.carddavserver.endsWith("/")) { this.newAccountInfo.carddavserver = this.newAccountInfo.carddavserver.slice(0,-1); }        
         }
 
         //HTTP or HTTPS? Default to https, if http is not explicitly specified
-        this.accountdata.https = (this.accountdata.caldavserver.toLowerCase().substring(0,7) == "http://") ? "0" : "1";
-        this.accountdata.caldavserver = this.accountdata.caldavserver.replace("https://","").replace("http://","");
-        this.accountdata.carddavserver = this.accountdata.carddavserver.replace("https://","").replace("http://","");
+        this.newAccountInfo.https = (this.newAccountInfo.caldavserver.toLowerCase().substring(0,7) == "http://") ? "0" : "1";
+        this.newAccountInfo.caldavserver = this.newAccountInfo.caldavserver.replace("https://","").replace("http://","");
+        this.newAccountInfo.carddavserver = this.newAccountInfo.carddavserver.replace("https://","").replace("http://","");
 
         let davjobs = {
-            cal : {valid: false, error: "", server: this.accountdata.caldavserver},
-            card : {valid: false, error: "", server: this.accountdata.carddavserver},
+            cal : {valid: false, error: "", server: this.newAccountInfo.caldavserver},
+            card : {valid: false, error: "", server: this.newAccountInfo.carddavserver},
         };
         
         for (let job in davjobs) {
@@ -214,14 +215,14 @@ var tbSyncDavNewAccount = {
             }
 
             let connection = new dav.network.Connection();
-            connection.password = this.accountdata.password;
-            connection.user = this.accountdata.user;
-            connection.https = this.accountdata.https;
+            connection.password = this.newAccountInfo.password;
+            connection.user = this.newAccountInfo.user;
+            connection.https = this.newAccountInfo.https;
             connection.timeout = 15000;
             connection.type = job;
             
-            //only needed for proper error reporting
-            connection.ownerInfo = new tbSync.OwnerInfoObject("dav", accountname);
+            //only needed for proper error reporting - that dav needs this is beyond API - connection is not used by TbSync
+            connection.ownerData = new tbSync.OwnerData("dav", accountname);
 
             //build full url, so we do not need fqdn
             let url = "http" + (connection.https == "1" ? "s" : "") + "://" + davjobs[job].server;
@@ -237,7 +238,7 @@ var tbSyncDavNewAccount = {
                 davjobs[job].valid = false;
                 davjobs[job].error = e.message;
                 if (e.name == "dav4tbsync") {
-                    tbSync.errorlog.add("warning", connection.ownerInfo, e.message, e.details ? e.details : null);
+                    tbSync.errorlog.add("warning", connection.ownerData, e.message, e.details ? e.details : null);
                 } else {
                     Components.utils.reportError(e);
                 }
@@ -245,7 +246,7 @@ var tbSyncDavNewAccount = {
         }
         
         if (davjobs.cal.valid && davjobs.card.valid) {
-            tbSyncDavNewAccount.addAccount(accountname, this.accountdata);
+            tbSyncDavNewAccount.addAccount(accountname, this.newAccountInfo);
             this.validating = false;
             document.getElementById("tbsync.newaccount.wizard").cancel();
         } else {
@@ -284,28 +285,22 @@ var tbSyncDavNewAccount = {
     },
     
 
-    addAccount (accountname, accountdata) {
-        let providerInfo = new tbSync.ProviderInfoObject("dav");
-        
-        let newAccountEntry = tbSync.providers.getDefaultAccountEntries("dav");
-        newAccountEntry.user = accountdata.user;
-        newAccountEntry.createdWithProviderVersion = providerInfo.getVersion();
+    addAccount (accountname, newAccountInfo) {        
+        let newAccountEntry = this.providerData.getDefaultAccountEntries();
+        newAccountEntry.user = newAccountInfo.user;
+        newAccountEntry.createdWithProviderVersion = this.providerData.getVersion();
 
-        newAccountEntry.https = accountdata.https
-        newAccountEntry.serviceprovider = accountdata.serviceprovider;
-        newAccountEntry.host = accountdata.caldavserver;
-        newAccountEntry.host2 = accountdata.carddavserver;
+        newAccountEntry.https = newAccountInfo.https
+        newAccountEntry.serviceprovider = newAccountInfo.serviceprovider;
+        newAccountEntry.host = newAccountInfo.caldavserver;
+        newAccountEntry.host2 = newAccountInfo.carddavserver;
     
-        let newAccountID = tbSync.db.addAccount(accountname, newAccountEntry);
-        let accountObject = new tbSync.AccountObject(newAccountID);
+        // add the new account
+        let newAccountData = this.providerData.addAccount(accountname, newAccountEntry);
 
         // update password in PasswordManager
-        let auth = new tbSync.DefaultAuthentication(accountObject);
-        auth.setPassword(accountdata.password);
-
-        // pass new id to updateAccountsList, which will select it
-        // the onSelect event of the List will load the selected account
-        window.opener.tbSyncAccounts.updateAccountsList(newAccountID);
+        let auth = new tbSync.PasswordAuthData(newAccountData);
+        auth.setPassword(newAccountInfo.password);
 
         window.close();
     }

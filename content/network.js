@@ -11,7 +11,7 @@
 var network = {
 
     Connection: class {
-        constructor(accountObject) {            
+        constructor(accountData) {            
             this._password = "";
             this._user = "";
             this._https = "";
@@ -21,21 +21,21 @@ var network = {
             this._timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
 
             //for error logging
-            this._ownerInfo = null;
+            this._ownerData = null;
             
-            if (accountObject) {
-                let auth = new tbSync.DefaultAuthentication(accountObject);
+            if (accountData) {
+                let auth = new tbSync.PasswordAuthData(accountData);
                 this._password = auth.getPassword();
                 this._user = auth.getUsername();
 
-                this._https = accountObject.getAccountSetting("https");
-                this._accountname = accountObject.getAccountSetting("accountname");
-                if (accountObject.hasFolderData()) {
-                    this._foldername = accountObject.getFolderSetting("name");
-                    this._type = accountObject.getFolderSetting("type");
-                    this._fqdn = accountObject.getFolderSetting("fqdn");
+                this._https = accountData.getAccountSetting("https");
+                this._accountname = accountData.getAccountSetting("accountname");
+                if (accountData.hasFolderData()) {
+                    this._foldername = accountData.getFolderSetting("name");
+                    this._type = accountData.getFolderSetting("type");
+                    this._fqdn = accountData.getFolderSetting("fqdn");
                 }
-                this._ownerInfo = accountObject.ownerInfo;
+                this._ownerData = accountData.ownerData;
             }            
         }
         
@@ -55,7 +55,7 @@ var network = {
         set https(v) {this._https = v;}
         set type(v) {this._type = v;}
         set fqdn(v) {this._fqdn = v;}
-        set ownerInfo(v) {this._ownerInfo = v;}
+        set ownerData(v) {this._ownerData = v;}
 
         get password() {return this._password;}
         get user() {return this._user;}
@@ -63,7 +63,7 @@ var network = {
         get https() {return this._https;}
         get type() {return this._type;}
         get fqdn() {return this._fqdn;}
-        get ownerInfo() {return this._ownerInfo;}
+        get ownerData() {return this._ownerData;}
     },
     
     Prompt: class {
@@ -409,7 +409,7 @@ var network = {
                                     }
                                 }
                                 //manually log this non-fatal error
-                                tbSync.errorlog.add("info", connection.ownerInfo, "softerror::"+responseStatus, "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
+                                tbSync.errorlog.add("info", connection.ownerData, "softerror::"+responseStatus, "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
                                 return resolve(noresponse);
                             } else {
                                 return reject(dav.sync.failed(responseStatus, "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
