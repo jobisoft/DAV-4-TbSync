@@ -532,6 +532,56 @@ var api = {
 
 
     /**
+     * Returns all folders of the account, sorted in the desired order.
+     * The most simple implementation is to return accountData.getAllFolders();
+     *
+     * @param accountData         [in] AccountData for the account for which the 
+     *                                 sorted folder should be returned
+     */
+    getSortedFolders: function (accountData) {
+        let folders = accountData.getAllFolders();
+
+        //we can only sort arrays, so we need to create an array of objects and those objects 
+        //must contain the sort key and the associated folder
+        let toBeSorted = [];
+        for (let folder of folders) {
+            let t = 100;
+            switch (folder.getFolderSetting("type")) {
+                case "carddav": 
+                    t+=0; 
+                    break;
+                case "caldav": 
+                    t+=1; 
+                    break;
+                case "ics": 
+                    t+=2; 
+                    break;
+                default:
+                    t+=9;
+                    break;
+            }
+
+            if (folder.getFolderSetting("shared") == "1") {
+                t+=100;
+            }
+            
+            toBeSorted.push({"key": t.toString() + folder.getFolderSetting("name"), "folder": folder});
+        }
+        
+        //sort
+        toBeSorted.sort(function(a,b) {
+            return  a.key > b.key;
+        });
+        
+        let sortedFolders = [];
+        for (let sortObj of toBeSorted) {
+            sortedFolders.push(sortObj.folder);
+        }
+        return sortedFolders;
+    },
+
+
+    /**
      * Is called if TbSync needs to synchronize the folder list.
      *
      * @param syncdata      [in] SyncData
@@ -569,93 +619,10 @@ var folderList = {
      * show/hide custom menu options based on selected folder
      *
      * @param document       [in] document object of the account settings window
-     * @param folder         [in] folder databasse object of the selected folder
+     * @param accountData         [in] AccountData of the selected folder
      */
-    onContextMenuShowing: function (document, folder) {
+    onContextMenuShowing: function (document, accountData) {
     },
-
-
-
-    /**
-     * Returns an array of folderRowData objects, containing all information needed
-     * to fill the folderlist. The content of the folderRowData object is free to choose,
-     * it will be passed back to getRow() and updateRow()
-     *
-     * @param account        [in] account id for which the folder data should be returned
-     */
-    getSortedData: function (account) {
-        let folders = tbSync.db.getFolders(account);
-        let folderIDs = Object.keys(folders);
-
-        //we can only sort arrays, so we need to create an array of objects and those objects 
-        //must contain the sort key and the associated folderId
-        let toBeSorted = [];
-        for (let i=0; i < folderIDs.length; i++) {
-            let t = 100;
-            switch (folders[folderIDs[i]].type) {
-                case "carddav": 
-                    t+=0; 
-                    break;
-                case "caldav": 
-                    t+=1; 
-                    break;
-                case "ics": 
-                    t+=2; 
-                    break;
-                default:
-                    t+=9;
-                    break;
-            }
-
-            if (folders[folderIDs[i]].shared == "1") {
-                t+=100;
-            }
-            
-            toBeSorted.push({"key": t.toString() + folders[folderIDs[i]].name, "id": folderIDs[i]});
-        }
-        
-        //sort
-        toBeSorted.sort(function(a,b) {
-            return  a.key > b.key;
-        });
-        
-        let folderData = [];
-        for (let sorted of toBeSorted) {
-            folderData.push(dav.folderList.getRowData(folders[sorted.id]));
-        }
-        return folderData;
-    },
-
-
-
-    /**
-     * Returns a folderRowData object, containing all information needed to fill one row
-     * in the folderlist. The content of the folderRowData object is free to choose, it
-     * will be passed back to getRow() and updateRow()
-     *
-     * Use syncdata.getFolderStatus(folder) to get a nice looking
-     * status message, including sync progress (if folder is synced)
-     *
-     * @param folder         [in] folder databasse object of requested folder
-     * @param syncdata       [in] optional syncdata obj send by updateRow(),
-     *                            needed to check if the folder is currently synced
-     */
-    getRowData: function (folder, syncdata = null) {
-        let rowData = {};
-        rowData.account = folder.account;
-        rowData.folderID = folder.folderID;
-        rowData.selected = (folder.selected == "1");
-        rowData.type = folder.type;
-        rowData.shared = folder.shared;
-        rowData.downloadonly = folder.downloadonly;
-        rowData.acl = folder.acl;
-        rowData.name = folder.name;
-        rowData.statusCode = folder.status;
-        rowData.statusMsg = syncdata ? syncdata.getFolderStatus(folder) : "";
-
-        return rowData;
-    },
-
 
 
     /**
@@ -670,67 +637,31 @@ var folderList = {
         ]
     },
 
-    
-    //not part of API
-    updateReadOnly: function (event) {
-        let p = event.target.parentNode.parentNode;
-        let account = p.getAttribute('account');
-        let folderID = p.getAttribute('folderID');
-        let value = event.target.value;
-        let type = tbSync.db.getFolderSetting(account, folderID, "type");
-
-        //update value
-        tbSync.db.setFolderSetting(account, folderID, "downloadonly", value);
-
-        //update icon
-        if (value == "0") {
-            p.setAttribute('image','chrome://tbsync/skin/acl_rw.png');
-        } else {
-            p.setAttribute('image','chrome://tbsync/skin/acl_ro.png');
-        }
-            
-        //update ro flag if calendar
-        switch (type) {
-            case "carddav":
-                break;
-            case "caldav":
-            case "ics":
-                {
-                    let target = tbSync.db.getFolderSetting(account, folderID, "target");
-                    if (target != "") {
-                        let calManager = cal.getCalendarManager();
-                        let targetCal = calManager.getCalendarById(target); 
-                        targetCal.setProperty("readOnly", value == '1');
-                    }
-                }
-                break;
-        }
-    },
 
     /**
      * Is called to add a row to the folderlist. After this call, updateRow is called as well.
      *
      * @param document        [in] document object of the account settings window
-     * @param newListItem     [in] the listitem of the row, where row items should be added to
-     * @param rowData         [in] rowData object with all information needed to add the row
+     * @param accountData         [in] AccountData of the folder in the row
      * @param itemSelCheckbox [in] a checkbox object which can be used to allow the user to select/deselect this resource
      */        
-    getRow: function (document, rowData, itemSelCheckbox) {
+    getRow: function (document, accountData, itemSelCheckbox) {      
         //checkbox
         itemSelCheckbox.setAttribute("style", "margin: 0px 0px 0px 3px;");
 
         //icon
         let itemType = document.createElement("image");
-        itemType.setAttribute("src", dav.folderList.getTypeImage(rowData));
+        itemType.setAttribute("src", extra.getTypeImage(accountData));
         itemType.setAttribute("style", "margin: 0px 9px 0px 3px;");
 
         //ACL                 
         let itemACL = document.createElement("button");
-        itemACL.setAttribute("image", "chrome://tbsync/skin/acl_" + (rowData.downloadonly == "1" ? "ro" : "rw") + ".png");
+        itemACL.setAttribute("image", "chrome://tbsync/skin/acl_" + (accountData.getFolderSetting("downloadonly") == "1" ? "ro" : "rw") + ".png");
         itemACL.setAttribute("class", "plain");
         itemACL.setAttribute("style", "width: 35px; min-width: 35px; margin: 0; height:26px");
-        itemACL.setAttribute("account", rowData.account);
-        itemACL.setAttribute("folderID", rowData.folderID);
+        itemACL.setAttribute("account", accountData.account); //TODO
+        itemACL.setAttribute("folderID", accountData.folderID); //TODO
+        itemACL.setAttribute("updatefield", "acl");
         itemACL.setAttribute("type", "menu");
         let menupopup = document.createElement("menupopup");
             let menuitem1 = document.createElement("menuitem");
@@ -738,9 +669,9 @@ var folderList = {
             menuitem1.setAttribute("class", "menuitem-iconic");
             menuitem1.setAttribute("label", tbSync.getString("acl.readonly", "dav"));
             menuitem1.setAttribute("image", "chrome://tbsync/skin/acl_ro2.png");
-            menuitem1.addEventListener("command", dav.folderList.updateReadOnly);
+            menuitem1.addEventListener("command", extra.updateReadOnly);
 
-            let acl = parseInt(rowData.acl);
+            let acl = parseInt(accountData.getFolderSetting("acl"));
             let acls = [];
             if (acl & 0x2) acls.push(tbSync.getString("acl.modify", "dav"));
             if (acl & 0x4) acls.push(tbSync.getString("acl.add", "dav"));
@@ -753,7 +684,7 @@ var folderList = {
             menuitem2.setAttribute("label", tbSync.getString("acl.readwrite::"+acls.join(", "), "dav"));
             menuitem2.setAttribute("image", "chrome://tbsync/skin/acl_rw2.png");
             menuitem2.setAttribute("disabled", (acl & 0x7) != 0x7);                
-            menuitem2.addEventListener("command", dav.folderList.updateReadOnly);
+            menuitem2.addEventListener("command", extra.updateReadOnly);
 
             menupopup.appendChild(menuitem2);
             menupopup.appendChild(menuitem1);
@@ -761,12 +692,12 @@ var folderList = {
 
         //folder name
         let itemLabel = document.createElement("description");
-        itemLabel.setAttribute("disabled", !rowData.selected);
+        itemLabel.setAttribute("updatefield", "name");
 
         //status
         let itemStatus = document.createElement("description");
-        itemStatus.setAttribute("disabled", !rowData.selected);
-
+        itemStatus.setAttribute("updatefield", "status");
+        
         //group1
         let itemHGroup1 = document.createElement("hbox");
         itemHGroup1.setAttribute("align", "center");
@@ -814,45 +745,50 @@ var folderList = {
      *
      * @param document       [in] document object of the account settings window
      * @param listItem       [in] the listitem of the row, which needs to be updated
-     * @param rowData        [in] rowData object with all information needed to add the row
+     * @param accountData        [in] AccountData for that row
      */        
-    updateRow: function (document, item, rowData) {
-        //acl image
-        item.childNodes[0].childNodes[0].childNodes[0].childNodes[2].setAttribute("image", "chrome://tbsync/skin/acl_" + (rowData.downloadonly == "1" ? "ro" : "rw") + ".png");
-
-        //select checkbox
-        if (rowData.selected) {
-            item.childNodes[0].childNodes[0].childNodes[0].childNodes[0].setAttribute("checked", true);
-        } else {
-            item.childNodes[0].childNodes[0].childNodes[0].childNodes[0].removeAttribute("checked");
+    updateRow: function (document, listItem, accountData, selected) {
+        let name = accountData.getFolderSetting("name");
+        let status = accountData.getFolderStatus();
+        
+        // get updatefields
+        let fields = {}
+        for (let f of listItem.querySelectorAll("[updatefield]")) {
+            fields[f.getAttribute("updatefield")] = f;
         }
         
-        if (item.childNodes[0].childNodes[1].childNodes[0].textContent != rowData.name) item.childNodes[0].childNodes[1].childNodes[0].textContent = rowData.name;
-        if (item.childNodes[0].childNodes[2].childNodes[0].textContent != rowData.statusMsg) item.childNodes[0].childNodes[2].childNodes[0].textContent = rowData.statusMsg;
-        item.childNodes[0].childNodes[1].childNodes[0].setAttribute("disabled", !rowData.selected);
-        item.childNodes[0].childNodes[1].childNodes[0].setAttribute("style", rowData.selected ? "" : "font-style:italic");
-        item.childNodes[0].childNodes[2].childNodes[0].setAttribute("style", rowData.selected ? "" : "font-style:italic");
+        // update fields
+        fields.name.setAttribute("disabled", !selected);
+        fields.name.setAttribute("style", selected ? "" : "font-style:italic");
+        if (fields.name.textContent != name) fields.name.textContent = name;
+        
+        fields.status.setAttribute("style", selected ? "" : "font-style:italic");
+        if (fields.status.textContent != status) fields.status.textContent = status;
+        
+        fields.acl.setAttribute("image", "chrome://tbsync/skin/acl_" + (accountData.getFolderSetting("downloadonly") == "1" ? "ro" : "rw") + ".png");
+        fields.acl.setAttribute("disabled", accountData.isSyncing());
     },
+}
 
-
-
-    /**
+// beyond API, private
+let extra = {
+   /**
      * Return the icon used in the folderlist to represent the different folder types 
-     * Not part of API, only called by getRow
+     * only called by getRow
      *
-     * @param rowData       [in] rowData object
+     * @param accountData       [in] AccountData object
      */
-    getTypeImage: function (rowData) {
+    getTypeImage: function (accountData) {
         let src = "";
-        switch (rowData.type) {
+        switch (accountData.getFolderSetting("type")) {
             case "carddav":
-                if (rowData.shared == "1") {
+                if (accountData.getFolderSetting("shared") == "1") {
                     return "chrome://tbsync/skin/contacts16_shared.png";
                 } else {
                     return "chrome://tbsync/skin/contacts16.png";
                 }
             case "caldav":
-                if (rowData.shared == "1") {
+                if (accountData.getFolderSetting("shared") == "1") {
                     return "chrome://tbsync/skin/calendar16_shared.png";
                 } else {
                     return "chrome://tbsync/skin/calendar16.png";
@@ -860,8 +796,43 @@ var folderList = {
             case "ics":
                 return "chrome://dav4tbsync/skin/ics16.png";
         }
-    }
-};
+    },
+    
+    updateReadOnly: function (event) {
+        let p = event.target.parentNode.parentNode;
+        let account = p.getAttribute('account');
+        let folderID = p.getAttribute('folderID');
+        let value = event.target.value;
+        let type = tbSync.db.getFolderSetting(account, folderID, "type");
+
+        //update value
+        tbSync.db.setFolderSetting(account, folderID, "downloadonly", value);
+
+        //update icon
+        if (value == "0") {
+            p.setAttribute('image','chrome://tbsync/skin/acl_rw.png');
+        } else {
+            p.setAttribute('image','chrome://tbsync/skin/acl_ro.png');
+        }
+            
+        //update ro flag if calendar
+        switch (type) {
+            case "carddav":
+                break;
+            case "caldav":
+            case "ics":
+                {
+                    let target = tbSync.db.getFolderSetting(account, folderID, "target");
+                    if (target != "") {
+                        let calManager = cal.getCalendarManager();
+                        let targetCal = calManager.getCalendarById(target); 
+                        targetCal.setProperty("readOnly", value == '1');
+                    }
+                }
+                break;
+        }
+    },     
+}
 
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/sync.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/tools.js", this, "UTF-8");
