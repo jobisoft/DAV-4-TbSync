@@ -38,8 +38,8 @@ var tbSyncDavNewAccount = {
     },
     
     addProviderEntry: function (icon, serviceprovider) {
-        let name =  tbSync.tools.getLocalizedMessage("add.serverprofile."+serviceprovider, "dav");
-        let description =  tbSync.tools.getLocalizedMessage("add.serverprofile."+serviceprovider+".description", "dav");
+        let name =  tbSync.getString("add.serverprofile."+serviceprovider, "dav");
+        let description =  tbSync.getString("add.serverprofile."+serviceprovider+".description", "dav");
         
         //left column
         let image = document.createElement("image");
@@ -88,7 +88,7 @@ var tbSyncDavNewAccount = {
         if (serviceprovider == "discovery" || serviceprovider == "custom") {
             this.elementName.value = "";
         } else {
-            this.elementName.value = tbSync.tools.getLocalizedMessage("add.serverprofile."+serviceprovider, "dav");
+            this.elementName.value = tbSync.getString("add.serverprofile."+serviceprovider, "dav");
         }
     },
     
@@ -106,7 +106,7 @@ var tbSyncDavNewAccount = {
         for (let i=1; i < 4; i++) {
             let dElement = document.getElementById("tbsync.newaccount.details" + i);
             let dLocaleString = "add.serverprofile."+serviceprovider+".details" + i;
-            let dLocaleValue = tbSync.tools.getLocalizedMessage(dLocaleString, "dav");
+            let dLocaleValue = tbSync.getString(dLocaleString, "dav");
             
             if (dLocaleValue == dLocaleString) {
                 dElement.textContent = "";
@@ -260,10 +260,10 @@ var tbSyncDavNewAccount = {
                 case "503":
                 case "network":
                 case "security":
-                    document.getElementById("tbsync.error.message").textContent = tbSync.tools.getLocalizedMessage("info.error") + ": " + tbSync.tools.getLocalizedMessage("status."+davjobs[badjob].error, "dav");
+                    document.getElementById("tbsync.error.message").textContent = tbSync.getString("info.error") + ": " + tbSync.getString("status."+davjobs[badjob].error, "dav");
                     break;
                 default:
-                    document.getElementById("tbsync.error.message").textContent = tbSync.tools.getLocalizedMessage("info.error") + ": " + tbSync.tools.getLocalizedMessage("status.networkerror", "dav");
+                    document.getElementById("tbsync.error.message").textContent = tbSync.getString("info.error") + ": " + tbSync.getString("status.networkerror", "dav");
             }
                         
             document.getElementById("tbsync.spinner").hidden = true;

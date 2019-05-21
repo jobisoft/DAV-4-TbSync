@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
  */
 
-//no need to create namespace, we are in a sandbox
+// no need to create namespace, we are in a sandbox
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 
@@ -48,7 +48,7 @@ function startup(data, reason) {
     thisID = data.id;
     Services.obs.addObserver(onInitDoneObserver, "tbsync.observer.initialized", false);
 
-    //during app startup, the load of the provider will be triggered by a "tbsync.init.done" notification, 
+    //during app startup, the load of the provider will be triggered by a "tbsync.observer.initialized" notification, 
     //if load happens later, we need load manually 
     if (reason != APP_STARTUP) {
         onInitDoneObserver.observe();
@@ -58,11 +58,11 @@ function startup(data, reason) {
 function shutdown(data, reason) {
     Services.obs.removeObserver(onInitDoneObserver, "tbsync.observer.initialized");
 
-    //unload this provider add-on and all its loaded providers from TbSync
+    //unload this provider add-on from TbSync
     try {
         tbSync.providers.unloadProvider("dav");
     } catch (e) {
-        //if this fails, tbSync has been unloaded already but has unloaded this addon as well
+        //if this fails, tbSync has been unloaded already and has unloaded this addon as well
     }
     Services.obs.notifyObservers(null, "chrome-flush-caches", null);
 }

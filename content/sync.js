@@ -187,7 +187,7 @@ var sync = {
                             if (resourcetype == "ics") href =  dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cs","source"], ["d","href"]]).textContent;
                             
                             let name_node = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","displayname"]]);
-                            let name = tbSync.tools.getLocalizedMessage("defaultname." +  ((job == "cal") ? "calendar" : "contacts") , "dav");
+                            let name = tbSync.getString("defaultname." +  ((job == "cal") ? "calendar" : "contacts") , "dav");
                             if (name_node != null) {
                                 name = name_node.textContent;
                             }
@@ -797,7 +797,7 @@ var sync = {
                                         syncdata.setSyncState("eval.response.localchanges");
                                         if (response && response.softerror) {
                                             permissionError[changes[i].status] = true;
-                                            tbSync.errorlog.add("warning", syncdata.ownerData, "missing-permission::" + tbSync.tools.getLocalizedMessage(isAdding ? "acl.add" : "acl.modify", "dav"));
+                                            tbSync.errorlog.add("warning", syncdata.ownerData, "missing-permission::" + tbSync.getString(isAdding ? "acl.add" : "acl.modify", "dav"));
                                         }
                                     }
                                 } else {
@@ -822,7 +822,7 @@ var sync = {
                                 if (response  && response.softerror) {
                                     if (response.softerror != 404) { //we cannot do anything about a 404 on delete, the card has been deleted here and is not avail on server
                                         permissionError[changes[i].status] = true;
-                                        tbSync.errorlog.add("warning", syncdata.ownerData, "missing-permission::" + tbSync.tools.getLocalizedMessage("acl.delete", "dav"));
+                                        tbSync.errorlog.add("warning", syncdata.ownerData, "missing-permission::" + tbSync.getString("acl.delete", "dav"));
                                     }
                                 }
                             }

@@ -8,7 +8,7 @@
 
 "use strict";
 
-// every object in here will be loaded into tbSync.providers.<providername>.<objectname>
+// every object in here will be loaded into tbSync.providers.<providername> namespace
 const dav = tbSync.providers.dav;
 
 var prefSettings = Services.prefs.getBranch("extensions.dav4tbsync.");
@@ -100,9 +100,9 @@ function onSettingsGUILoad(window, accountID) {
     if (configlabel) {
         let extra = "";
         if (isServiceProvider) {
-            extra = " [" + tbSync.tools.getLocalizedMessage("add.serverprofile." + serviceprovider, "dav") + "]";
+            extra = " [" + tbSync.getString("add.serverprofile." + serviceprovider, "dav") + "]";
         }
-        configlabel.setAttribute("value", tbSync.tools.getLocalizedMessage("config.custom", "dav") + extra);
+        configlabel.setAttribute("value", tbSync.getString("config.custom", "dav") + extra);
     }
 
     //set certain elements as "alwaysDisable", if locked by service provider (alwaysDisabled is honored by main SettingsUpdate, so we do not have to do that in our own onSettingsGUIUpdate
@@ -226,7 +226,7 @@ var api = {
      * Returns nice string for name of provider (is used in the add account menu).
      */
     getNiceProviderName: function () {
-        return tbSync.tools.getLocalizedMessage("menu.name", "dav");
+        return tbSync.getString("menu.name", "dav");
     },
 
 
@@ -282,7 +282,7 @@ var api = {
 
     /**
      * Returns the URL of the string bundle file of this provider, it can be accessed by
-     * tbSync.tools.getLocalizedMessage(<key>, <provider>)
+     * tbSync.getString(<key>, <provider>) //RENAME to getString
      */
     getStringBundleUrl: function () {
         return "chrome://dav4tbsync/locale/dav.strings";
@@ -659,8 +659,8 @@ var folderList = {
     getHeader: function () {
         return [
             {style: "font-weight:bold;", label: "", width: "93"},
-            {style: "font-weight:bold;", label: tbSync.tools.getLocalizedMessage("manager.resource"), width:"150"},
-            {style: "font-weight:bold;", label: tbSync.tools.getLocalizedMessage("manager.status"), flex :"1"},
+            {style: "font-weight:bold;", label: tbSync.getString("manager.resource"), width:"150"},
+            {style: "font-weight:bold;", label: tbSync.getString("manager.status"), flex :"1"},
         ]
     },
 
@@ -730,21 +730,21 @@ var folderList = {
             let menuitem1 = document.createElement("menuitem");
             menuitem1.setAttribute("value", "1");
             menuitem1.setAttribute("class", "menuitem-iconic");
-            menuitem1.setAttribute("label", tbSync.tools.getLocalizedMessage("acl.readonly", "dav"));
+            menuitem1.setAttribute("label", tbSync.getString("acl.readonly", "dav"));
             menuitem1.setAttribute("image", "chrome://tbsync/skin/acl_ro2.png");
             menuitem1.addEventListener("command", dav.folderList.updateReadOnly);
 
             let acl = parseInt(rowData.acl);
             let acls = [];
-            if (acl & 0x2) acls.push(tbSync.tools.getLocalizedMessage("acl.modify", "dav"));
-            if (acl & 0x4) acls.push(tbSync.tools.getLocalizedMessage("acl.add", "dav"));
-            if (acl & 0x8) acls.push(tbSync.tools.getLocalizedMessage("acl.delete", "dav"));
-            if (acls.length == 0)  acls.push(tbSync.tools.getLocalizedMessage("acl.none", "dav"));
+            if (acl & 0x2) acls.push(tbSync.getString("acl.modify", "dav"));
+            if (acl & 0x4) acls.push(tbSync.getString("acl.add", "dav"));
+            if (acl & 0x8) acls.push(tbSync.getString("acl.delete", "dav"));
+            if (acls.length == 0)  acls.push(tbSync.getString("acl.none", "dav"));
 
             let menuitem2 = document.createElement("menuitem");
             menuitem2.setAttribute("value", "0");
             menuitem2.setAttribute("class", "menuitem-iconic");
-            menuitem2.setAttribute("label", tbSync.tools.getLocalizedMessage("acl.readwrite::"+acls.join(", "), "dav"));
+            menuitem2.setAttribute("label", tbSync.getString("acl.readwrite::"+acls.join(", "), "dav"));
             menuitem2.setAttribute("image", "chrome://tbsync/skin/acl_rw2.png");
             menuitem2.setAttribute("disabled", (acl & 0x7) != 0x7);                
             menuitem2.addEventListener("command", dav.folderList.updateReadOnly);
