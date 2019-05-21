@@ -659,8 +659,8 @@ var folderList = {
         itemACL.setAttribute("image", "chrome://tbsync/skin/acl_" + (accountData.getFolderSetting("downloadonly") == "1" ? "ro" : "rw") + ".png");
         itemACL.setAttribute("class", "plain");
         itemACL.setAttribute("style", "width: 35px; min-width: 35px; margin: 0; height:26px");
-        itemACL.setAttribute("account", accountData.account); //TODO
-        itemACL.setAttribute("folderID", accountData.folderID); //TODO
+        itemACL.setAttribute("account", accountData.account); 
+        itemACL.setAttribute("folderID", accountData.folderID); 
         itemACL.setAttribute("updatefield", "acl");
         itemACL.setAttribute("type", "menu");
         let menupopup = document.createElement("menupopup");
