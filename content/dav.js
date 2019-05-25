@@ -367,27 +367,6 @@ var api = {
 
 
     /**
-     * Return the thunderbird type (tb-contact, tb-event, tb-todo) for a given folder type of this provider. A provider could have multiple
-     * type definitions for a single thunderbird type (default calendar, shared address book, etc), this maps all possible provider types to
-     * one of the three thunderbird types.
-     *
-     * @param type       [in] provider folder type
-     */
-    getThunderbirdFolderType: function(type) {
-        switch (type) {
-            case "carddav":
-                return "tb-contact";
-            case "caldav":
-            case "ics":
-                return "tb-event";
-            default:
-                return "unknown ("+type + ")";
-        };
-    },
-
-
-
-    /**
      * Is called everytime an account of this provider is enabled in the manager UI, set/reset database fields as needed.
      *
      * @param accountData  [in] AccountData
@@ -608,12 +587,7 @@ var api = {
 
 
 
-
-/**
- * Functions used by the folderlist in the main account settings tab
- */
-var folderList = {
-
+var standardFolderList = {
     /**
      * Is called before the context menu of the folderlist is shown, allows to
      * show/hide custom menu options based on selected folder
@@ -624,157 +598,8 @@ var folderList = {
     onContextMenuShowing: function (document, accountData) {
     },
 
-
     /**
-     * Returns an array of attribute objects, which define the number of columns 
-     * and the look of the header
-     */
-    getHeader: function () {
-        return [
-            {style: "font-weight:bold;", label: "", width: "93"},
-            {style: "font-weight:bold;", label: tbSync.getString("manager.resource"), width:"150"},
-            {style: "font-weight:bold;", label: tbSync.getString("manager.status"), flex :"1"},
-        ]
-    },
-
-
-    /**
-     * Is called to add a row to the folderlist. After this call, updateRow is called as well.
-     *
-     * @param document        [in] document object of the account settings window
-     * @param accountData         [in] AccountData of the folder in the row
-     * @param itemSelCheckbox [in] a checkbox object which can be used to allow the user to select/deselect this resource
-     */        
-    getRow: function (document, accountData, itemSelCheckbox) {      
-        //checkbox
-        itemSelCheckbox.setAttribute("style", "margin: 0px 0px 0px 3px;");
-
-        //icon
-        let itemType = document.createElement("image");
-        itemType.setAttribute("src", extra.getTypeImage(accountData));
-        itemType.setAttribute("style", "margin: 0px 9px 0px 3px;");
-
-        //ACL                 
-        let itemACL = document.createElement("button");
-        itemACL.setAttribute("image", "chrome://tbsync/skin/acl_" + (accountData.getFolderSetting("downloadonly") == "1" ? "ro" : "rw") + ".png");
-        itemACL.setAttribute("class", "plain");
-        itemACL.setAttribute("style", "width: 35px; min-width: 35px; margin: 0; height:26px");
-        itemACL.setAttribute("account", accountData.account); 
-        itemACL.setAttribute("folderID", accountData.folderID); 
-        itemACL.setAttribute("updatefield", "acl");
-        itemACL.setAttribute("type", "menu");
-        let menupopup = document.createElement("menupopup");
-            let menuitem1 = document.createElement("menuitem");
-            menuitem1.setAttribute("value", "1");
-            menuitem1.setAttribute("class", "menuitem-iconic");
-            menuitem1.setAttribute("label", tbSync.getString("acl.readonly", "dav"));
-            menuitem1.setAttribute("image", "chrome://tbsync/skin/acl_ro2.png");
-            menuitem1.addEventListener("command", extra.updateReadOnly);
-
-            let acl = parseInt(accountData.getFolderSetting("acl"));
-            let acls = [];
-            if (acl & 0x2) acls.push(tbSync.getString("acl.modify", "dav"));
-            if (acl & 0x4) acls.push(tbSync.getString("acl.add", "dav"));
-            if (acl & 0x8) acls.push(tbSync.getString("acl.delete", "dav"));
-            if (acls.length == 0)  acls.push(tbSync.getString("acl.none", "dav"));
-
-            let menuitem2 = document.createElement("menuitem");
-            menuitem2.setAttribute("value", "0");
-            menuitem2.setAttribute("class", "menuitem-iconic");
-            menuitem2.setAttribute("label", tbSync.getString("acl.readwrite::"+acls.join(", "), "dav"));
-            menuitem2.setAttribute("image", "chrome://tbsync/skin/acl_rw2.png");
-            menuitem2.setAttribute("disabled", (acl & 0x7) != 0x7);                
-            menuitem2.addEventListener("command", extra.updateReadOnly);
-
-            menupopup.appendChild(menuitem2);
-            menupopup.appendChild(menuitem1);
-        itemACL.appendChild(menupopup);
-
-        //folder name
-        let itemLabel = document.createElement("description");
-        itemLabel.setAttribute("updatefield", "name");
-
-        //status
-        let itemStatus = document.createElement("description");
-        itemStatus.setAttribute("updatefield", "status");
-        
-        //group1
-        let itemHGroup1 = document.createElement("hbox");
-        itemHGroup1.setAttribute("align", "center");
-        itemHGroup1.appendChild(itemSelCheckbox);
-        itemHGroup1.appendChild(itemType);
-        itemHGroup1.appendChild(itemACL);
-
-        let itemVGroup1 = document.createElement("vbox");
-        itemVGroup1.setAttribute("width", "93");
-        itemVGroup1.appendChild(itemHGroup1);
-
-        //group2
-        let itemHGroup2 = document.createElement("hbox");
-        itemHGroup2.setAttribute("align", "center");
-        itemHGroup2.setAttribute("width", "146");
-        itemHGroup2.appendChild(itemLabel);
-
-        let itemVGroup2 = document.createElement("vbox");
-        itemVGroup2.setAttribute("style", "padding: 3px");
-        itemVGroup2.appendChild(itemHGroup2);
-
-        //group3
-        let itemHGroup3 = document.createElement("hbox");
-        itemHGroup3.setAttribute("align", "center");
-        itemHGroup3.setAttribute("width", "200");
-        itemHGroup3.appendChild(itemStatus);
-
-        let itemVGroup3 = document.createElement("vbox");
-        itemVGroup3.setAttribute("style", "padding: 3px");
-        itemVGroup3.appendChild(itemHGroup3);
-
-        //final row
-        let row = document.createElement("hbox");
-        row.setAttribute("style", "min-height: 24px;");
-        row.appendChild(itemVGroup1);
-        row.appendChild(itemVGroup2);            
-        row.appendChild(itemVGroup3);            
-        return row;               
-    },		
-
-
-
-    /**
-     * Is called to update a row of the folderlist (the first cell is a select checkbox inserted by TbSync)
-     *
-     * @param document       [in] document object of the account settings window
-     * @param listItem       [in] the listitem of the row, which needs to be updated
-     * @param accountData        [in] AccountData for that row
-     */        
-    updateRow: function (document, listItem, accountData, selected) {
-        let name = accountData.getFolderSetting("name");
-        let status = accountData.getFolderStatus();
-        
-        // get updatefields
-        let fields = {}
-        for (let f of listItem.querySelectorAll("[updatefield]")) {
-            fields[f.getAttribute("updatefield")] = f;
-        }
-        
-        // update fields
-        fields.name.setAttribute("disabled", !selected);
-        fields.name.setAttribute("style", selected ? "" : "font-style:italic");
-        if (fields.name.textContent != name) fields.name.textContent = name;
-        
-        fields.status.setAttribute("style", selected ? "" : "font-style:italic");
-        if (fields.status.textContent != status) fields.status.textContent = status;
-        
-        fields.acl.setAttribute("image", "chrome://tbsync/skin/acl_" + (accountData.getFolderSetting("downloadonly") == "1" ? "ro" : "rw") + ".png");
-        fields.acl.setAttribute("disabled", accountData.isSyncing());
-    },
-}
-
-// beyond API, private
-let extra = {
-   /**
      * Return the icon used in the folderlist to represent the different folder types 
-     * only called by getRow
      *
      * @param accountData       [in] AccountData object
      */
@@ -798,40 +623,25 @@ let extra = {
         }
     },
     
-    updateReadOnly: function (event) {
-        let p = event.target.parentNode.parentNode;
-        let account = p.getAttribute('account');
-        let folderID = p.getAttribute('folderID');
-        let value = event.target.value;
-        let type = tbSync.db.getFolderSetting(account, folderID, "type");
+    getAttributesRoAcl: function (accountData) {
+        return {
+            label: tbSync.getString("acl.readonly", "dav"),
+        };
+    },
+    
+    getAttributesRwAcl: function (accountData) {
+        let acl = parseInt(accountData.getFolderSetting("acl"));
+        let acls = [];
+        if (acl & 0x2) acls.push(tbSync.getString("acl.modify", "dav"));
+        if (acl & 0x4) acls.push(tbSync.getString("acl.add", "dav"));
+        if (acl & 0x8) acls.push(tbSync.getString("acl.delete", "dav"));
+        if (acls.length == 0)  acls.push(tbSync.getString("acl.none", "dav"));
 
-        //update value
-        tbSync.db.setFolderSetting(account, folderID, "downloadonly", value);
-
-        //update icon
-        if (value == "0") {
-            p.setAttribute('image','chrome://tbsync/skin/acl_rw.png');
-        } else {
-            p.setAttribute('image','chrome://tbsync/skin/acl_ro.png');
-        }
-            
-        //update ro flag if calendar
-        switch (type) {
-            case "carddav":
-                break;
-            case "caldav":
-            case "ics":
-                {
-                    let target = tbSync.db.getFolderSetting(account, folderID, "target");
-                    if (target != "") {
-                        let calManager = cal.getCalendarManager();
-                        let targetCal = calManager.getCalendarById(target); 
-                        targetCal.setProperty("readOnly", value == '1');
-                    }
-                }
-                break;
-        }
-    },     
+        return {
+            label: tbSync.getString("acl.readwrite::"+acls.join(", "), "dav"),
+            disabled: (acl & 0x7) != 0x7,
+        }             
+    },
 }
 
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/sync.js", this, "UTF-8");
