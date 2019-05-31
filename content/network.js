@@ -31,7 +31,6 @@ var network = {
                 this._https = accountData.getAccountSetting("https");
                 this._accountname = accountData.getAccountSetting("accountname");
                 if (accountData.hasFolderData()) {
-                    this._foldername = accountData.getFolderSetting("name");
                     this._type = accountData.getFolderSetting("type");
                     this._fqdn = accountData.getFolderSetting("fqdn");
                 }

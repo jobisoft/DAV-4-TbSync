@@ -36,7 +36,7 @@ var serviceproviders = {
 //non permanent cache
 var problematicHosts = [];
 
-var calendarManagerObserver = {
+/*var calendarManagerObserver = {
     onCalendarRegistered : function (aCalendar) {
         //this observer can go stale, if something bad happens during load and the unload is never called
         if (tbSync) {
@@ -83,13 +83,13 @@ var calendarObserver = {
                         let connection = new dav.network.Connection(accountData);
 
                         //update stored color to recover after disable
-                        dav.network.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folders[0].folderID, "PROPPATCH", connection);
+                        dav.network.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folders[0].href, "PROPPATCH", connection);
                         break;
                 }
             }
         }
     },
-};
+};*/
 
 function onSettingsGUILoad(window, accountID) {
     let serviceprovider = tbSync.db.getAccountSetting(accountID, "serviceprovider");
@@ -132,13 +132,44 @@ function stripHost(document, account, field) {
 };
 
 
-
-
-
-
 /**
- * Implements the TbSync interfaces for external provider extensions.
+ * Implementation the TbSync interfaces for external provider extensions.
  */
+
+var addressbook = {
+    directoryObserver: function (aTopic, folderData) {
+        switch (aTopic) {
+            case "addrbook-removed":
+            case "addrbook-updated":
+                Services.console.logStringMessage("["+aTopic+"] DAV");
+            break;
+        }
+    },
+    
+    cardObserver: function (aTopic, folderData, abCardData) {
+        switch (aTopic) {
+            case "addrbook-contact-created":
+            case "addrbook-contact-updated":
+            case "addrbook-contact-removed":
+                Services.console.logStringMessage("["+aTopic+"] DAV");
+            break;
+        }
+    },
+    
+    listObserver: function (aTopic, folderData, abListData, abMemberData = null) {
+        switch (aTopic) {
+            case "addrbook-list-created": 
+            case "addrbook-list-removed":
+            case "addrbook-list-updated":
+            case "addrbook-list-member-added":
+            case "addrbook-list-member-removed":
+                Services.console.logStringMessage("["+aTopic+"] DAV");
+            break;
+        }
+    }    
+}
+
+
 var auth = {
     /**
      * Returns XUL URL of the authentication prompt window
@@ -174,8 +205,8 @@ var api = {
         dav.overlayManager.startObserving();
 
         if (lightningIsAvail) {
-            cal.getCalendarManager().addObserver(dav.calendarManagerObserver);    
-            cal.getCalendarManager().addCalendarObserver(dav.calendarObserver);            
+            //cal.getCalendarManager().addObserver(dav.calendarManagerObserver);    
+            //cal.getCalendarManager().addCalendarObserver(dav.calendarObserver);            
         }
         
         //Migration - accounts without a serviceprovider setting only have a value in host
@@ -212,8 +243,8 @@ var api = {
      */
     unload: async function (lightningIsAvail) {
         if (lightningIsAvail) {
-            cal.getCalendarManager().removeObserver(dav.calendarManagerObserver);
-            cal.getCalendarManager().removeCalendarObserver(dav.calendarObserver);                        
+            //cal.getCalendarManager().removeObserver(dav.calendarManagerObserver);
+            //cal.getCalendarManager().removeCalendarObserver(dav.calendarObserver);                        
         }
         dav.overlayManager.stopObserving();	
     },
@@ -328,7 +359,7 @@ var api = {
     /**
      * Return object which contains all possible fields of a row in the folder database with the default value if not yet stored in the database.
      */
-    getDefaultFolderEntries: function () {
+    getDefaultFolderEntries: function () { //TODO: shadow more standard entries
         let folder = {
             "selected" : "",
             "lastsynctime" : "",
@@ -336,32 +367,23 @@ var api = {
             "name" : "",
             "target" : "",
             "targetName" : "",
-            "useChangeLog" : "1", //log changes into changelog
+            "useChangeLog" : "1", //log changes into changelog //REPALCE by disable/enable changelog
             "downloadonly" : "0",
 
             //different folders can be stored on different servers (yahoo, icloud, gmx, ...), 
             //so we need to store the fqdn information per folders
+            "href" : "",
             "fqdn" : "",
 
             "type" : "", //cladav, carddav or ics
             "shared": "", //identify shared resources
             "acl": "", //acl send from server
             "targetColor" : "",
-            "parentID" : "", //??? global ???
             "ctag" : "",
             "token" : "",
             "createdWithProviderVersion" : "0",
             };
         return folder;
-    },
-
-
-
-    /**
-     * Returns an array of folder settings, that should survive unsubscribe/subscribe and disable/re-enable (caching)
-     */
-    getPersistentFolderSettings: function () {
-        return ["targetName", "targetColor","downloadonly"];
     },
 
 
@@ -406,7 +428,7 @@ var api = {
      * @param newname       [in] name of the new address book
      * @param accountData  [in] AccountData
      *
-     * return the id of the newAddressBook
+     * return the directory of the newAddressBook
      */
     createAddressBook: function (newname, accountData) {
         let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
@@ -422,20 +444,6 @@ var api = {
             return directory;
         }
         return null;
-    },
-
-
-
-    /**
-     * Is called if TbSync needs to create a new UID for an address book card
-     *
-     * @param aItem       [in] card that needs new ID
-     *
-     * returns the new id
-     */
-    getNewCardID: function (aItem, folder) {
-        //actually use the full href of this vcard as id - the actual UID is not used by TbSync (only for mailinglist members)
-        return folder.folderID + dav.tools.generateUUID() + ".vcf";
     },
 
 
@@ -458,7 +466,7 @@ var api = {
             baseUrl =  "http" + (accountData.getAccountSetting("https") == "1" ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(auth.getUsername()) + ":" + encodeURIComponent(auth.getPassword()) + "@" : "") + accountData.getFolderSetting("fqdn");
         }
 
-        let url = dav.tools.parseUri(baseUrl + accountData.folderID);        
+        let url = dav.tools.parseUri(baseUrl + accountData.getFolderSetting("href"));        
         accountData.setFolderSetting("url", url.spec);
 
         let newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
@@ -502,7 +510,7 @@ var api = {
      *
      * @param account       [in] id of the account which should be searched
      * @param currentQuery  [in] search query
-     * @param caller        [in] "autocomplete" or "search"
+     * @param caller        [in] "autocomplete" or "search" //TODO
      */
     abServerSearch: async function (account, currentQuery, caller)  {
         return null;

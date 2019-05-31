@@ -35,17 +35,17 @@ var sync = {
             //get all folders currently known
             let folderTypes = ["caldav", "carddav", "ics"];
             let unhandledFolders = {};
-            for (let t of folderTypes) {
-                unhandledFolders[t] = [];
+            for (let type of folderTypes) {
+                unhandledFolders[type] = [];
             }
 
-            let folders = tbSync.db.getFolders(syncdata.account);
-            for (let f in folders) {
+            let folders = syncdata.getAllFolders();
+            for (let folder of folders) {
                 //just in case
-                if (!unhandledFolders.hasOwnProperty(folders[f].type)) {
-                    unhandledFolders[folders[f].type] = [];
+                if (!unhandledFolders.hasOwnProperty(folder.getFolderSetting("type"))) {
+                    unhandledFolders[folder.getFolderSetting("type")] = [];
                 }
-                unhandledFolders[folders[f].type].push(f);
+                unhandledFolders[folder.getFolderSetting("type")].push(folder);
             }
 
             //get server urls from account setup - update urls of serviceproviders
@@ -191,30 +191,39 @@ var sync = {
                             let color = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["apple","calendar-color"]]);
 
                             //remove found folder from list of unhandled folders
-                            unhandledFolders[resourcetype] = unhandledFolders[resourcetype].filter(item => item !== href);
+                            unhandledFolders[resourcetype] = unhandledFolders[resourcetype].filter(item => item.getFolderSetting("href") !== href);
 
-                            let folder = tbSync.db.getFolder(syncdata.account, href);
-                            if (folder === null || folder.cached === "1") { //this is NOT called by unsubscribing/subscribing
-                                let newFolder = {}
-                                newFolder.folderID = href;
-                                newFolder.name = name;
-                                newFolder.type = resourcetype;
-                                newFolder.shared = (own.includes(home[h])) ? "0" : "1";
-                                newFolder.acl = acl.toString();
-                                newFolder.downloadonly = (acl == 0x1) ? "1" : "0"; //if any write access is granted, setup as writeable
-                                    
-                                newFolder.parentID = "0"; //root - tbsync flatens hierachy, using parentID to sort entries
-                                newFolder.selected = "0";
-                                //we assume the folder has the same fqdn as the homeset, otherwise the folderID must contain the full URL and the fqdn is ignored
-                                newFolder.fqdn = syncdata.connection.fqdn;
-                        
-                                //if there is a cached version of this folderID, addFolder will merge all persistent settings - all other settings not defined here will be set to their defaults
-                                tbSync.db.addFolder(syncdata.account, newFolder);
+                            
+                            // interaction with TbSync
+                            // do we have a folder for that href?
+                            let folderData = syncdata.getFolder("href", href);
+                            if (!folderData) {
+                                // create a new folder entry
+                                folderData = syncdata.createNewFolder();
+                                folderData.setFolderSetting("href", href);
+                                folderData.setFolderSetting("name", name);
+                                folderData.setFolderSetting("type", resourcetype);
+                                folderData.setFolderSetting("shared", (own.includes(home[h])) ? "0" : "1");
+                                folderData.setFolderSetting("acl", acl.toString());
+                                folderData.setFolderSetting("downloadonly", (acl == 0x1) ? "1" : "0"); //if any write access is granted, setup as writeable
+
+                                //we assume the folder has the same fqdn as the homeset, otherwise href must contain the full URL and the fqdn is ignored
+                                folderData.setFolderSetting("fqdn", syncdata.connection.fqdn);
+                                
+                                //do we have a cached folder?
+                                let cachedFolderData = syncdata.getFolderFromCache("href", href);
+                                if (cachedFolderData) {
+                                    folderData.setFolderSetting("targetColor", cachedFolderData.getFolderSetting("targetColor"));
+                                    folderData.setFolderSetting("targetName", cachedFolderData.getFolderSetting("targetName"));
+                                    let cachedDownloadOnly = cachedFolderData.getFolderSetting("downloadonly");
+                                    //if we have only READ access, do not restore cached value for downloadonly
+                                    if (acl > 0x1) folderData.setFolderSetting("downloadonly", cachedFolderData.getFolderSetting("downloadonly"));
+                                }
                             } else {
                                 //Update name & color
-                                tbSync.db.setFolderSetting(syncdata.account, href, "name", name);
-                                tbSync.db.setFolderSetting(syncdata.account, href, "fqdn", syncdata.connection.fqdn);
-                                tbSync.db.setFolderSetting(syncdata.account, href, "acl", acl);
+                                folderData.setFolderSetting("name", name);
+                                folderData.setFolderSetting("fqdn", syncdata.connection.fqdn);
+                                folderData.setFolderSetting("acl", acl);
                                 //if the acl changed from RW to RO we need to update the downloadonly setting
                                 if (acl == 0x1) {
                                     tbSync.db.setFolderSetting(syncdata.account, href, "downloadonly", "1");
@@ -224,13 +233,11 @@ var sync = {
                             //update color from server
                             if (color && job == "cal") {
                                 color = color.textContent.substring(0,7);
-                                tbSync.db.setFolderSetting(syncdata.account, href, "targetColor", color);
+                                folderData.setFolderSetting("targetColor", color);
                                 //do we have to update the calendar?
-                                if (tbSync.lightning.isAvailable() && folder && folder.target) {
-                                    let targetCal = cal.getCalendarManager().getCalendarById(folder.target);
-                                    if (targetCal !== null) {
-                                        targetCal.setProperty("color", color);
-                                    }
+                                let targetCal = folderData.getTarget();
+                                if (targetCal) {
+                                    targetCal.setProperty("color", color);
                                 }
                             }
                         }
@@ -251,9 +258,9 @@ var sync = {
             }
 
             //remove unhandled old folders, (because they no longer exist on the server)
-            for (let t of folderTypes) {
-                for (let i = 0; i < unhandledFolders[t].length; i++) {
-                    tbSync.core.takeTargetOffline("dav", folders[unhandledFolders[t][i]], " [deleted on server]");
+            for (let type of folderTypes) {
+                for (let folder of unhandledFolders[type]) {
+                    folder.takeTargetOffline("[deleted on server]");
                 }
             }
         } catch (e) {
@@ -398,7 +405,7 @@ var sync = {
 
         let token = syncdata.getFolderSetting("token");
         syncdata.setSyncState("send.request.remotechanges");
-        let cards = await dav.network.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.folderID, "REPORT", syncdata.connection, {}, {softfail: [415,403]});
+        let cards = await dav.network.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncdata.getFolderSetting("href"), "REPORT", syncdata.connection, {}, {softfail: [415,403]});
 
         //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book), 415 & 403
         //https://github.com/sabre-io/dav/issues/1075
@@ -414,9 +421,9 @@ var sync = {
             return false;
         }
 
-        let addressBook = MailServices.ab.getDirectory(syncdata.getFolderSetting("target"));
+        let addressBook = syncdata.getTarget();
 
-        let vCardsDeletedOnServer = new dav.tools.deleteCardsContainer(dav.prefSettings.getIntPref("maxitems"));
+        let vCardsDeletedOnServer = [];
         let vCardsChangedOnServer = {};
         
         let cardsFound = 0;
@@ -424,7 +431,7 @@ var sync = {
             let id = cards.multi[c].href;
             if (id !==null) {
                 //valid
-                let card = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", id);
+                let card = addressBook.getCardFromProperty("X-DAV-HREF", id);
                 if (cards.multi[c].status == "200") {
                     //MOD or ADD
                     let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
@@ -434,14 +441,14 @@ var sync = {
                             cardsFound++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
-                    } else if (etag.textContent != tbSync.addressbook.getPropertyOfCard(card, "X-DAV-ETAG")) {
+                    } else if (etag.textContent != card.getProperty("X-DAV-ETAG")) {
                         cardsFound++;
                         vCardsChangedOnServer[id] = "MOD"; 
                     }
                 } else if (cards.multi[c].responsestatus == "404" && card) {
                     //DEL
                     cardsFound++;
-                    vCardsDeletedOnServer.appendElement(card, false);
+                    vCardsDeletedOnServer.push(card);
                     tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), id, "deleted_by_server");
                 } else {
                     //We received something, that is not a DEL, MOD or ADD
@@ -470,28 +477,28 @@ var sync = {
 
         //Request ctag and token
         syncdata.setSyncState("send.request.remotechanges");
-        let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d", "cs"])+"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata.connection, {"Depth": "0"});
+        let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d", "cs"])+"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>", syncdata.getFolderSetting("href"), "PROPFIND", syncdata.connection, {"Depth": "0"});
 
         syncdata.setSyncState("eval.response.remotechanges");
-        let ctag = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["cs", "getctag"]], syncdata.folderID);
-        let token = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d", "sync-token"]], syncdata.folderID);
+        let ctag = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["cs", "getctag"]], syncdata.getFolderSetting("href"));
+        let token = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d", "sync-token"]], syncdata.getFolderSetting("href"));
 
         //if CTAG changed, we need to sync everything and compare
         if (ctag === null || ctag != syncdata.getFolderSetting("ctag")) {
             let vCardsFoundOnServer = [];
             let vCardsChangedOnServer = {};
 
-            let addressBook = MailServices.ab.getDirectory(syncdata.getFolderSetting("target"));
+            let addressBook = syncdata.getTarget();
 
             //get etags of all cards on server and find the changed cards
             syncdata.setSyncState("send.request.remotechanges");
-            let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata.connection, {"Depth": "1", "Prefer": "return-minimal"});
+            let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncdata.getFolderSetting("href"), "PROPFIND", syncdata.connection, {"Depth": "1", "Prefer": "return-minimal"});
             
             //to test other impl
-            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata.connection, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: []}, false);
+            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncdata.getFolderSetting("href"), "PROPFIND", syncdata.connection, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: []}, false);
 
             //this is the same request, but includes getcontenttype, do we need it? icloud send contacts without
-            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /><d:getcontenttype /></d:prop></d:propfind>", syncdata.folderID, "PROPFIND", syncdata.connection, {"Depth": "1", "Prefer": "return-minimal"});
+            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /><d:getcontenttype /></d:prop></d:propfind>", syncdata.getFolderSetting("href"), "PROPFIND", syncdata.connection, {"Depth": "1", "Prefer": "return-minimal"});
 
             //play with filters and limits for synology
             /*
@@ -503,13 +510,13 @@ var sync = {
             additional += "</card:filter>";*/
         
             //addressbook-query does not work on older servers (zimbra)
-            //let cards = await dav.network.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncdata.folderID, "REPORT", syncdata.connection, {"Depth": "1", "Prefer": "return-minimal"});
+            //let cards = await dav.network.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncdata.getFolderSetting("href"), "REPORT", syncdata.connection, {"Depth": "1", "Prefer": "return-minimal"});
 
             syncdata.setSyncState("eval.response.remotechanges");
             let cardsFound = 0;
             for (let c=0; cards.multi && c < cards.multi.length; c++) {
                 let id =  cards.multi[c].href;
-                if (id == syncdata.folderID) {
+                if (id == syncdata.getFolderSetting("href")) {
                     //some servers (Radicale) report the folder itself and a querry to that would return everything again
                     continue;
                 }
@@ -520,14 +527,14 @@ var sync = {
 
                 if (cards.multi[c].status == "200" && etag !== null && id !== null /* && ctype !== null */) { //we do not actually check the content of ctype - but why do we request it? iCloud seems to send cards without ctype
                     vCardsFoundOnServer.push(id);
-                    let card = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", id);
+                    let card = addressBook.getCardFromProperty("X-DAV-HREF", id);
                     if (!card) {
                         //if the user deleted this card (not yet send to server), do not add it again
                         if (tbSync.db.getItemStatusFromChangeLog(syncdata.getFolderSetting("target"), id) != "deleted_by_user") {
                             cardsFound++;
                             vCardsChangedOnServer[id] = "ADD"; 
                         }
-                    } else if (etag.textContent != tbSync.addressbook.getPropertyOfCard(card, "X-DAV-ETAG")) {
+                    } else if (etag.textContent != card.getProperty("X-DAV-ETAG")) {
                         cardsFound++;
                         vCardsChangedOnServer[id] = "MOD"; 
                     }
@@ -535,19 +542,19 @@ var sync = {
             }
 
             //FIND DELETES: loop over current addressbook and check each local card if it still exists on the server
-            let vCardsDeletedOnServer =  new dav.tools.deleteCardsContainer(dav.prefSettings.getIntPref("maxitems"));
-            cards = addressBook.childCards;
+            let vCardsDeletedOnServer = [];
+            cards = addressBook.directorychildCards;
             while (true) {
                 let more = false;
                 try { more = cards.hasMoreElements() } catch (ex) {}
                 if (!more) break;
 
                 let card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-                let id = card.getProperty("TBSYNCID","");
-                if (id && !vCardsFoundOnServer.includes(id) && tbSync.db.getItemStatusFromChangeLog(syncdata.getFolderSetting("target"), id) != "added_by_user") {
+                let id = card.getProperty("X-DAV-HREF");
+                if (id && !vCardsFoundOnServer.includes(id) && tbSync.db.getItemStatusFromChangeLog(syncdata.getFolderSetting("target"), card.UID) != "added_by_user") {
                     //delete request from server
                     cardsFound++;
-                    vCardsDeletedOnServer.appendElement(card, false);
+                    vCardsDeletedOnServer.push(card);
                     tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), id, "deleted_by_server");
                 }
             }
@@ -590,7 +597,7 @@ var sync = {
             let request = dav.tools.getMultiGetRequest(cards2catch.slice(i, i+maxitems));
             if (request) {
                 syncdata.setSyncState("send.request.remotechanges");
-                let cards = await dav.network.sendRequest(request, syncdata.folderID, "REPORT", syncdata.connection, {"Depth": "1"});
+                let cards = await dav.network.sendRequest(request, syncdata.getFolderSetting("href"), "REPORT", syncdata.connection, {"Depth": "1"});
 
                 syncdata.setSyncState("eval.response.remotechanges");
                 for (let c=0; c < cards.multi.length; c++) {
@@ -630,7 +637,7 @@ var sync = {
                 if (syncdata.foundMailingListsDuringDownSync.hasOwnProperty(mailListCardID)) {
                     listcount++;
                     let locked = 0;
-                    let mailListCard = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", mailListCardID);
+                    let mailListCard = addressBook.getCardFromProperty("X-DAV-HREF", mailListCardID);
                     let mailListDirectory = MailServices.ab.getDirectory(mailListCard.mailListURI);
                     
                     //smart merge: oCardInfo contains the state during last sync, vCardInfo is the current state
@@ -647,9 +654,9 @@ var sync = {
                     //remove requested members from list
                     for (let i=0; i < removedMembers.length; i++) {
                         if (removedMembers[i]) {
-                        let card = addressBook.getCardFromProperty("TBSYNCID", removedMembers[i], true);
+                        let card = addressBook.getCardFromProperty("X-DAV-HREF", removedMembers[i]);
                             if (card) {
-                                let idx = tbSync.addressbook.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", removedMembers[i]);
+                                let idx = tbSync.addressbook.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-HREF", removedMembers[i]);
                                 if (idx != -1) {
                                     tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), removedMembers[i], "locked_by_mailinglist_operations");
                                     locked++;
@@ -662,9 +669,9 @@ var sync = {
                     //add requested members to list (make sure it has an email as long that bug is not fixed in TB!)
                     for (let i=0; i < addedMembers.length; i++) {
                         if (addedMembers[i]) {
-                            let card = addressBook.getCardFromProperty("TBSYNCID", addedMembers[i], true);
+                            let card = addressBook.getCardFromProperty("X-DAV-HREF", addedMembers[i]);
                             if (card) {
-                                let idx = tbSync.addressbook.findIndexOfMailingListMemberWithProperty(mailListDirectory, "TBSYNCID", addedMembers[i]);
+                                let idx = tbSync.addressbook.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-HREF", addedMembers[i]);
                                 if (idx == -1) {
                                     tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), addedMembers[i], "locked_by_mailinglist_operations");
                                     locked++;
@@ -698,15 +705,22 @@ var sync = {
         }            
     },
 
-    deleteContacts: async function (addressBook, vCardsDeletedOnServer, syncdata) {
-        //the vCardsDeletedOnServer object has a data member (array of nsIMutableArray) and each nsIMutableArray has a maximum size
-        //of maxitems, so we can show a progress during delete and not delete all at once
-        for (let i=0; i < vCardsDeletedOnServer.data.length; i++) {
-            syncdata.progress.inc(vCardsDeletedOnServer.data[i].length);
+    deleteContacts: async function (addressBook, cards2delete, syncdata) {
+        let maxitems = dav.prefSettings.getIntPref("maxitems");
 
+        // try to show a progress based on maxitens during delete and not delete all at once
+        for (let i=0; i < cards2delete.length; i+=maxitems) {
+            //get size of next block
+            let remain = (cards2delete.length - i);
+            let chunk = Math.min(remain, maxitems);
+
+            syncdata.progress.inc(chunk);
             syncdata.setSyncState("eval.response.remotechanges");
             await tbSync.tools.sleep(200); //we want the user to see, that deletes are happening
-            addressBook.deleteCards(vCardsDeletedOnServer.data[i]);
+
+            for (let j=0; j < chunk; j++) {
+                addressBook.deleteCard(cards2delete[i+j]);
+            }
         }
     },
 
@@ -720,7 +734,7 @@ var sync = {
         //define how many entries can be send in one request
         let maxitems = dav.prefSettings.getIntPref("maxitems");
 
-        let addressBook = MailServices.ab.getDirectory(syncdata.getFolderSetting("target"));
+        let addressBook = tbSync.addressbook.getDirectoryFromDirectoryUID(syncdata.getFolderSetting("target"));
         let downloadonly = (syncdata.getFolderSetting("downloadonly") == "1");
 
         let permissionErrors = 0;
@@ -740,10 +754,10 @@ var sync = {
                 let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
                 let mailListInfo = dav.tools.getGroupInfoFromList(mailListCard.mailListURI);           
 
-                let mailListCardId = tbSync.addressbook.getPropertyOfCard(mailListCard, "TBSYNCID");
+                let mailListCardId = mailListCard.getProperty("X-DAV-HREF");
                 if (mailListCardId) {
                     //get old data from vCard to find changes
-                    let oCardInfo = dav.tools.getGroupInfoFromCardData(dav.vCard.parse(tbSync.addressbook.getPropertyOfCard(mailListCard, "X-DAV-VCARD")), addressBook);            
+                    let oCardInfo = dav.tools.getGroupInfoFromCardData(dav.vCard.parse(mailListCard.getProperty("X-DAV-VCARD")), addressBook);            
                     
                     let addedMembers = mailListInfo.members.filter(e => !oCardInfo.members.includes(e));
                     let removedMembers = oCardInfo.members.filter(e => !mailListInfo.members.includes(e));
@@ -755,7 +769,7 @@ var sync = {
                     //that listcard has no id yet (because the general TbSync addressbook listener cannot catch it)
                     let folder = tbSync.db.getFolder(syncdata.account, syncdata.folderID);
                     mailListCardId = dav.getNewCardID(mailListCard, folder);
-                    tbSync.addressbook.setPropertyOfCard (mailListCard, "TBSYNCID", mailListCardId);                
+                    mailListCard.setProperty("X-DAV-HREF", mailListCardId);                
                     tbSync.db.addItemToChangeLog(syncdata.getFolderSetting("target"), mailListCardId, "added_by_user");
                 }
                 syncdata.foundMailingListsDuringUpSync[mailListCardId] = mailListInfo;
@@ -781,7 +795,7 @@ var sync = {
                             let isAdding = (changes[i].status == "added_by_user");
                             if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
 
-                                let card = tbSync.addressbook.getCardFromProperty(addressBook, "TBSYNCID", changes[i].id);
+                                let card = addressBook.getCardFromProperty("X-DAV-HREF", changes[i].id);
                                 if (card) {
                                     if (card.isMailList && !syncGroups)
                                         continue;
