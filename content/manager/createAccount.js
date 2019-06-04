@@ -214,21 +214,21 @@ var tbSyncDavNewAccount = {
                 continue;
             }
 
-            let connection = new dav.network.Connection();
-            connection.password = this.newAccountInfo.password;
-            connection.user = this.newAccountInfo.user;
-            connection.https = this.newAccountInfo.https;
-            connection.timeout = 15000;
-            connection.type = job;
+            let connectionData = new dav.network.ConnectionData();
+            connectionData.password = this.newAccountInfo.password;
+            connectionData.user = this.newAccountInfo.user;
+            connectionData.https = this.newAccountInfo.https;
+            connectionData.timeout = 15000;
+            connectionData.type = job;
             
-            //only needed for proper error reporting - that dav needs this is beyond API - connection is not used by TbSync
-            connection.ownerData = new tbSync.OwnerData("dav", accountname);
+            //only needed for proper error reporting - that dav needs this is beyond API - connectionData is not used by TbSync
+            connectionData.errorOwnerData = new tbSync.ErrorOwnerData("dav", accountname);
 
             //build full url, so we do not need fqdn
-            let url = "http" + (connection.https == "1" ? "s" : "") + "://" + davjobs[job].server;
+            let url = "http" + (connectionData.https == "1" ? "s" : "") + "://" + davjobs[job].server;
             
             try {
-                let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", url , "PROPFIND", connection, {"Depth": "0", "Prefer": "return-minimal"});
+                let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", url , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return-minimal"});
                 let principal = (response && response.multi) ? dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]) : null;
                 davjobs[job].valid = (principal !== null);
                 if (!davjobs[job].valid) {
@@ -238,7 +238,7 @@ var tbSyncDavNewAccount = {
                 davjobs[job].valid = false;
                 davjobs[job].error = e.message;
                 if (e.name == "dav4tbsync") {
-                    tbSync.errorlog.add("warning", connection.ownerData, e.message, e.details ? e.details : null);
+                    tbSync.errorlog.add("warning", connectionData.errorOwnerData, e.message, e.details ? e.details : null);
                 } else {
                     Components.utils.reportError(e);
                 }

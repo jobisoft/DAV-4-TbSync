@@ -136,48 +136,8 @@ function stripHost(document, account, field) {
  * Implementation the TbSync interfaces for external provider extensions.
  */
 
-var addressbook = {
-    directoryObserver: function (aTopic, folderData) {
-        switch (aTopic) {
-            case "addrbook-removed":
-            case "addrbook-updated":
-                Services.console.logStringMessage("["+aTopic+"] DAV");
-            break;
-        }
-    },
-    
-    cardObserver: function (aTopic, folderData, abCardData) {
-        switch (aTopic) {
-            case "addrbook-contact-created":
-            case "addrbook-contact-updated":
-            case "addrbook-contact-removed":
-                Services.console.logStringMessage("["+aTopic+"] DAV");
-            break;
-        }
-    },
-    
-    listObserver: function (aTopic, folderData, abListData, abMemberData = null) {
-        switch (aTopic) {
-            case "addrbook-list-created": 
-            case "addrbook-list-removed":
-            case "addrbook-list-updated":
-            case "addrbook-list-member-added":
-            case "addrbook-list-member-removed":
-                Services.console.logStringMessage("["+aTopic+"] DAV");
-            break;
-        }
-    }    
-}
-
-
-var auth = {
-    /**
-     * Returns XUL URL of the authentication prompt window
-     */
-    getAuthPromptXulUrl: function () {
-        return "chrome://tbsync/content/manager/password.xul";
-    },
-    
+// this provider is usung the default authPrompt, so it must implement passwordAuth
+var passwordAuth = {    
     getUserField4PasswordManager : function (accountData) {
         return "user";
     },
@@ -313,13 +273,21 @@ var api = {
 
     /**
      * Returns the URL of the string bundle file of this provider, it can be accessed by
-     * tbSync.getString(<key>, <provider>) //RENAME to getString
+     * tbSync.getString(<key>, <provider>)
      */
     getStringBundleUrl: function () {
         return "chrome://dav4tbsync/locale/dav.strings";
     },
     
+    
+    /**
+     * Returns XUL URL of the authentication prompt window
+     */
+    getAuthPromptXulUrl: function () {
+        return "chrome://tbsync/content/manager/password.xul";
+    },
 
+    
     /**
      * Returns XUL URL of the new account dialog.
      */
@@ -367,7 +335,6 @@ var api = {
             "name" : "",
             "target" : "",
             "targetName" : "",
-            "useChangeLog" : "1", //log changes into changelog //REPALCE by disable/enable changelog
             "downloadonly" : "0",
 
             //different folders can be stored on different servers (yahoo, icloud, gmx, ...), 
@@ -412,89 +379,12 @@ var api = {
     /**
      * Is called everytime an new target is created, intended to set a clean sync status.
      *
-     * @param accountData  [in] AccountData
+     * @param accountData  [in] FolderData
      */
-    onResetTarget: function (accountData) {
-        accountData.resetFolderSetting("ctag");
-        accountData.resetFolderSetting("token");
-        accountData.setFolderSetting("createdWithProviderVersion", accountData.providerData.getVersion());
-    },
-
-
-
-    /**
-     * Is called if TbSync needs to create a new thunderbird address book associated with an account of this provider.
-     *
-     * @param newname       [in] name of the new address book
-     * @param accountData  [in] AccountData
-     *
-     * return the directory of the newAddressBook
-     */
-    createAddressBook: function (newname, accountData) {
-        let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
-        let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
-
-        if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
-            let serviceprovider = accountData.getAccountSetting("serviceprovider");
-            let icon = "custom";
-            if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
-                icon = dav.serviceproviders[serviceprovider].icon;
-            }
-            directory.setStringValue("tbSyncIcon", "dav" + icon);
-            return directory;
-        }
-        return null;
-    },
-
-
-
-    /**
-     * Is called if TbSync needs to create a new lightning calendar associated with an account of this provider.
-     *
-     * @param newname       [in] name of the new calendar
-     * @param accountData  [in] AccountData
-     */
-    createCalendar: function(newname, accountData) {
-        let calManager = cal.getCalendarManager();
-        let auth = new tbSync.PasswordAuthData(accountData);
-        
-        let caltype = accountData.getFolderSetting("type");
-        let downloadonly = (accountData.getFolderSetting("downloadonly") == "1");
-
-        let baseUrl = "";
-        if (caltype != "ics") {
-            baseUrl =  "http" + (accountData.getAccountSetting("https") == "1" ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(auth.getUsername()) + ":" + encodeURIComponent(auth.getPassword()) + "@" : "") + accountData.getFolderSetting("fqdn");
-        }
-
-        let url = dav.tools.parseUri(baseUrl + accountData.getFolderSetting("href"));        
-        accountData.setFolderSetting("url", url.spec);
-
-        let newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
-        newCalendar.id = cal.getUUID();
-        newCalendar.name = newname;
-
-        newCalendar.setProperty("user", auth.getUsername());
-        newCalendar.setProperty("color", accountData.getFolderSetting("targetColor"));
-        newCalendar.setProperty("calendar-main-in-composite", true);
-        newCalendar.setProperty("cache.enabled", (accountData.getAccountSetting("useCache") == "1"));
-        if (downloadonly) newCalendar.setProperty("readOnly", true);
-
-        //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
-        if (!dav.prefSettings.getBoolPref("addCredentialsToUrl") && caltype != "ics") {
-            tbSync.dump("Searching CalDAV authRealm for", url.host);
-            let realm = (dav.listOfRealms.hasOwnProperty(url.host)) ? dav.listOfRealms[url.host] : "";
-            if (realm !== "") {
-                tbSync.dump("Found CalDAV authRealm",  realm);
-                //manually create a lightning style entry in the password manager
-                tbSync.passwordAuth.setLoginInfo(url.prePath, realm, auth.getUsername(), auth.getPassword());
-            }
-        }
-
-        //do not monitor CalDAV calendars (managed by lightning)
-        accountData.setFolderSetting("useChangeLog", "0");
-
-        calManager.registerCalendar(newCalendar);
-        return newCalendar;
+    onResetTarget: function (folderData) {
+        folderData.resetFolderSetting("ctag");
+        folderData.resetFolderSetting("token");
+        folderData.setFolderSetting("createdWithProviderVersion", folderData.accountData.providerData.getVersion());
     },
 
 
@@ -571,28 +461,145 @@ var api = {
     /**
      * Is called if TbSync needs to synchronize the folder list.
      *
-     * @param syncdata      [in] SyncData
+     * @param syncData      [in] SyncData
      *
      * return StatusData
      */
-    syncFolderList: async function (syncdata) {
+    syncFolderList: async function (syncData) {
         //update folders avail on server and handle added, removed, renamed folders
-        return await dav.sync.folderList(syncdata);
+        return await dav.sync.folderList(syncData);
     },
     
     /**
      * Is called if TbSync needs to synchronize a folder.
      *
-     * @param syncdata      [in] SyncData
+     * @param syncData      [in] SyncData
      *
      * return StatusData
      */
-    syncFolder: async function (syncdata) {
+    syncFolder: async function (syncData) {
         //process a single folder
-        return await dav.sync.folder(syncdata);
+        return await dav.sync.folder(syncData);
     },
 }
 
+
+// only needed, if the standard "addressbook" targetType is used
+var addressbook = {
+
+    // define a card property, which should be used for the changelog
+    // specify nothing to disable changelog for this target
+    changeLogKey: "X-DAV-HREF",
+
+    /**
+     * Is called by TbSync, if the standard "addressbook" targetType is used, and a new addressbook needs to be created.
+     *
+     * @param newname       [in] name of the new address book
+     * @param folderData  [in] FolderData
+     *
+     * return the new directory
+     */
+    createAddressBook: function (newname, folderData) {
+        let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
+        let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
+
+        if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
+            let serviceprovider = folderData.accountData.getAccountSetting("serviceprovider");
+            let icon = "custom";
+            if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
+                icon = dav.serviceproviders[serviceprovider].icon;
+            }
+            directory.setStringValue("tbSyncIcon", "dav" + icon);
+            return directory;
+        }
+        return null;
+    },
+
+    directoryObserver: function (aTopic, folderData) {
+        switch (aTopic) {
+            case "addrbook-removed":
+            case "addrbook-updated":
+            break;
+        }
+    },
+    
+    cardObserver: function (aTopic, folderData, abCardData) {
+        switch (aTopic) {
+            case "addrbook-contact-created":
+            case "addrbook-contact-updated":
+            case "addrbook-contact-removed":
+            break;
+        }
+    },
+    
+    listObserver: function (aTopic, folderData, abListData, abMemberData = null) {
+        switch (aTopic) {
+            case "addrbook-list-created": 
+            case "addrbook-list-removed":
+            case "addrbook-list-updated":
+            case "addrbook-list-member-added":
+            case "addrbook-list-member-removed":
+            break;
+        }
+    }    
+    
+}
+
+// only needed, if the standard "calendar" targetType is used
+var calendar = {
+    
+    // define a property of calendar items, which should be used for the changelog
+    // specify nothing to disable changelog for this target
+    changeLogKey: "",
+
+    /**
+     * Is called by TbSync, if the standard "calendar" targetType is used, and a new calendar needs to be created.
+     *
+     * @param newname       [in] name of the new calendar
+     * @param folderData  [in] folderData
+     *
+     * return the new calendar
+     */
+    createCalendar: function(newname, folderData) {
+        let calManager = cal.getCalendarManager();
+        let auth = new tbSync.PasswordAuthData(folderData.accountData);
+        
+        let caltype = folderData.getFolderSetting("type");
+        let downloadonly = (folderData.getFolderSetting("downloadonly") == "1");
+
+        let baseUrl = "";
+        if (caltype != "ics") {
+            baseUrl =  "http" + (folderData.accountData.getAccountSetting("https") == "1" ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(auth.getUsername()) + ":" + encodeURIComponent(auth.getPassword()) + "@" : "") + folderData.getFolderSetting("fqdn");
+        }
+
+        let url = dav.tools.parseUri(baseUrl + folderData.getFolderSetting("href"));        
+        folderData.setFolderSetting("url", url.spec);
+
+        let newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
+        newCalendar.id = cal.getUUID();
+        newCalendar.name = newname;
+
+        newCalendar.setProperty("user", auth.getUsername());
+        newCalendar.setProperty("color", folderData.getFolderSetting("targetColor"));
+        newCalendar.setProperty("calendar-main-in-composite", true);
+        newCalendar.setProperty("cache.enabled", (folderData.accountData.getAccountSetting("useCache") == "1"));
+        if (downloadonly) newCalendar.setProperty("readOnly", true);
+
+        //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
+        if (!dav.prefSettings.getBoolPref("addCredentialsToUrl") && caltype != "ics") {
+            tbSync.dump("Searching CalDAV authRealm for", url.host);
+            let realm = (dav.listOfRealms.hasOwnProperty(url.host)) ? dav.listOfRealms[url.host] : "";
+            if (realm !== "") {
+                tbSync.dump("Found CalDAV authRealm",  realm);
+                //manually create a lightning style entry in the password manager
+                tbSync.passwordAuth.setLoginInfo(url.prePath, realm, auth.getUsername(), auth.getPassword());
+            }
+        }
+
+        calManager.registerCalendar(newCalendar);
+        return newCalendar;
+    },
+}
 
 
 var standardFolderList = {
@@ -601,27 +608,27 @@ var standardFolderList = {
      * show/hide custom menu options based on selected folder
      *
      * @param document       [in] document object of the account settings window
-     * @param accountData         [in] AccountData of the selected folder
+     * @param folderData         [in] FolderData of the selected folder
      */
-    onContextMenuShowing: function (document, accountData) {
+    onContextMenuShowing: function (document, folderData) {
     },
 
     /**
      * Return the icon used in the folderlist to represent the different folder types 
      *
-     * @param accountData       [in] AccountData object
+     * @param folderData         [in] FolderData of the selected folder
      */
-    getTypeImage: function (accountData) {
+    getTypeImage: function (folderData) {
         let src = "";
-        switch (accountData.getFolderSetting("type")) {
+        switch (folderData.getFolderSetting("type")) {
             case "carddav":
-                if (accountData.getFolderSetting("shared") == "1") {
+                if (folderData.getFolderSetting("shared") == "1") {
                     return "chrome://tbsync/skin/contacts16_shared.png";
                 } else {
                     return "chrome://tbsync/skin/contacts16.png";
                 }
             case "caldav":
-                if (accountData.getFolderSetting("shared") == "1") {
+                if (folderData.getFolderSetting("shared") == "1") {
                     return "chrome://tbsync/skin/calendar16_shared.png";
                 } else {
                     return "chrome://tbsync/skin/calendar16.png";
@@ -631,14 +638,14 @@ var standardFolderList = {
         }
     },
     
-    getAttributesRoAcl: function (accountData) {
+    getAttributesRoAcl: function (folderData) {
         return {
             label: tbSync.getString("acl.readonly", "dav"),
         };
     },
     
-    getAttributesRwAcl: function (accountData) {
-        let acl = parseInt(accountData.getFolderSetting("acl"));
+    getAttributesRwAcl: function (folderData) {
+        let acl = parseInt(folderData.getFolderSetting("acl"));
         let acls = [];
         if (acl & 0x2) acls.push(tbSync.getString("acl.modify", "dav"));
         if (acl & 0x4) acls.push(tbSync.getString("acl.add", "dav"));

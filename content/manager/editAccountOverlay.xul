@@ -8,7 +8,7 @@
 ]>
 <overlay 
     id="tbSyncAccountConfig" 
-    oninject="tbSync.providers.dav.onSettingsGUILoad(window, tbSyncAccountSettings.account);"
+    oninject="tbSync.providers.dav.onSettingsGUILoad(window, tbSyncAccountSettings.accountID);"
     xmlns:html="http://www.w3.org/1999/xhtml">
 
     <tab id="manager.tabs.accountsettings" label="&manager.tabs.accountsettings;" appendto="manager.tabs" />
@@ -42,13 +42,13 @@
                             <vbox pack="center">
                                 <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CalDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.host"  onblur="tbSync.providers.dav.stripHost(document, tbSyncAccountSettings.account, 'host');"/>
+                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.host"  onblur="tbSync.providers.dav.stripHost(document, tbSyncAccountSettings.accountID, 'host');"/>
                         </row>
                         <row>
                             <vbox pack="center">
                                 <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CardDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.host2" onblur="tbSync.providers.dav.stripHost(document, tbSyncAccountSettings.account, 'host2');" />
+                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.host2" onblur="tbSync.providers.dav.stripHost(document, tbSyncAccountSettings.accountID, 'host2');" />
                         </row>
                         <row>
                             <hbox/>

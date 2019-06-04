@@ -130,7 +130,7 @@ var tools = {
         
         //There is no X-DAV-JSON-Emails property (an empty JSON would not be "")
         //Is there a stored VCARD we can fallback to?
-        let storedCard = aCard.getProperty("X-DAV-VCARD").trim();
+        let storedCard = aCard.getProperty("X-DAV-VCARD","").trim();
         let sCardData = dav.vCard.parse(storedCard);
         if (sCardData.hasOwnProperty("email")) {
             let metaTypeData = dav.tools.getMetaTypeData(sCardData, "email", "type");
@@ -346,7 +346,7 @@ var tools = {
         
         //There is no X-DAV-JSON-Phones property (an empty JSON would not be "")
         //Is there a stored VCARD we can fallback to?
-        let storedCard = aCard.getProperty("X-DAV-VCARD").trim();
+        let storedCard = aCard.getProperty("X-DAV-VCARD","").trim();
         let sCardData = dav.vCard.parse(storedCard);
         if (sCardData.hasOwnProperty("tel")) {
             let metaTypeData = dav.tools.getMetaTypeData(sCardData, "tel", "type");
@@ -811,33 +811,33 @@ var tools = {
     //* CARDS OPERATIONS  *
     //* * * * * * * * * * *
 
-    addContact: function(addressBook, id, data, etag, syncdata) {
+    addContact: function(syncData, id, data, etag) {
         let vCard = data.textContent.trim();
         let vCardData = dav.vCard.parse(vCard);
 
         //check if contact or mailinglist
-        if (!dav.tools.vCardIsMailingList (id, null, addressBook, vCard, vCardData, etag, syncdata)) {
+        if (!dav.tools.vCardIsMailingList (syncData, id, null, vCard, vCardData, etag)) {
             //prepare new contact card
-            let card = new tbSync.AbCardData();
+            let card = syncData.target.createNewCard();
             card.setProperty("X-DAV-HREF", id);
             card.setProperty("X-DAV-ETAG", etag.textContent);
             card.setProperty("X-DAV-VCARD", vCard);
 
-            dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, vCardData);
+            dav.tools.setThunderbirdCardFromVCard(syncData, card, vCardData);
 
-            addressBook.addCard(card);
+            syncData.target.addCard(card);
         }
     },
 
-    modifyContact: function(addressBook, id, data, etag, syncdata) {
+    modifyContact: function(syncData, id, data, etag) {
         let vCard = data.textContent.trim();
         let vCardData = dav.vCard.parse(vCard);
 
         //get card
-        let card = addressBook.getCardFromProperty("X-DAV-HREF", id);
+        let card = syncData.target.getCardFromProperty("X-DAV-HREF", id);
         if (card) {
             //check if contact or mailinglist to update card
-            if (!dav.tools.vCardIsMailingList (id, card, addressBook, vCard, vCardData, etag, syncdata)) {          
+            if (!dav.tools.vCardIsMailingList (syncData, id, card, vCard, vCardData, etag)) {          
                 //get original vCard data as stored by last update from server
                 let oCard = card.getProperty("X-DAV-VCARD");
                 let oCardData = oCard ? dav.vCard.parse(oCard) : null;
@@ -845,8 +845,8 @@ var tools = {
                 card.setProperty("X-DAV-ETAG", etag.textContent);
                 card.setProperty("X-DAV-VCARD", vCard);
                 
-                dav.tools.setThunderbirdCardFromVCard(syncdata, addressBook, card, vCardData, oCardData);
-                addressBook.modifyCard(card);
+                dav.tools.setThunderbirdCardFromVCard(syncData, card, vCardData, oCardData);
+                syncData.target.modifyCard(card);
             }        
 
         } else {
@@ -871,28 +871,28 @@ var tools = {
     },
     
     //check if vCard is a mailinglist and handle it
-    vCardIsMailingList: function (id, _card, addressBook, vCard, vCardData, etag, syncdata) {
+    vCardIsMailingList: function (syncData, id, _card, vCard, vCardData, etag) {
         if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-KIND") && vCardData["X-ADDRESSBOOKSERVER-KIND"][0].value == "group") { 
-            if (syncdata.getAccountSetting("syncGroups") != "1") {
+            if (syncData.accountData.getAccountSetting("syncGroups") != "1") {
                 //user did not enable group sync, so do nothing, but return true so this card does not get added as a real card
                 return true;
             }
 
-            let vCardInfo = dav.tools.getGroupInfoFromCardData(vCardData, addressBook, false); //just get the name, not the members
+            let vCardInfo = dav.tools.getGroupInfoFromCardData(vCardData, syncData.target, false); //just get the name, not the members
 
             //if no card provided, create a new one
             let card = _card ? _card : tbSync.addressbook.createMailingListCard(addressBook, vCardInfo.name, id);
             
             //if this card was created with an older version of TbSync, which did not have groups support, handle as normal card
             if (!card.isMailList) {
-                tbSync.errorlog.add("info", syncdata.ownerData, "ignoredgroup::" + vCardInfo.name, "dav");
+                tbSync.errorlog.add("info", syncData.errorOwnerData, "ignoredgroup::" + vCardInfo.name, "dav");
                 return false;
             }
                 
             //get original vCardData from last server contact, needed for "smart merge" on changes on both sides
             let oCardData = dav.vCard.parse(card.getProperty("X-DAV-VCARD"));
             //store all old and new vCards for later processing (cannot do it here, because it is not guaranteed, that all members exists already)
-            syncdata.foundMailingListsDuringDownSync[id] = {oCardData, vCardData};
+            syncData.foundMailingListsDuringDownSync[id] = {oCardData, vCardData};
 
             //update properties
             card.setProperty("X-DAV-ETAG", etag.textContent);
@@ -1057,7 +1057,7 @@ var tools = {
     // -> which main item
     // -> which array element (based on metatype, if needed)
     //https://tools.ietf.org/html/rfc2426#section-3.6.1
-    getVCardField: function (syncdata, property, vCardData) {
+    getVCardField: function (syncData, property, vCardData) {
         let data = {item: "", metatype: [], metatypefield: "type", entry: -1, prefix: ""};
 
         if (vCardData) {
@@ -1141,7 +1141,7 @@ var tools = {
 
 
     //turn the given vCardValue into a string to be stored as a Thunderbird property
-    getThunderbirdPropertyValueFromVCard: function (syncdata, property, vCardData, vCardField) {
+    getThunderbirdPropertyValueFromVCard: function (syncData, property, vCardData, vCardField) {
         let vCardValue = (vCardData &&
                                     vCardField &&
                                     vCardField.entry != -1 &&
@@ -1167,7 +1167,7 @@ var tools = {
             case "WorkAddress":
                 {
                     let field = property.substring(4);
-                    let adr = (Services.vc.compare("0.8.11", syncdata.getFolderSetting("createdWithProviderVersion")) > 0)
+                    let adr = (Services.vc.compare("0.8.11", syncData.currentFolderData.getFolderSetting("createdWithProviderVersion")) > 0)
                                     ?  ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"] //WRONG
                                     : ["OfficeBox","ExtAddr","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
 
@@ -1236,7 +1236,7 @@ var tools = {
 
 
     //add/update the given Thunderbird propeties value in vCardData obj
-    updateValueOfVCard: function (syncdata, property, vCardData, vCardField, value) {
+    updateValueOfVCard: function (syncData, property, vCardData, vCardField, value) {
         let add = false;
         let store = value ? true : false;
         let remove = (!store && vCardData[vCardField.item] && vCardField.entry != -1);
@@ -1268,7 +1268,7 @@ var tools = {
             case "WorkAddress":
                 {
                     let field = property.substring(4);
-                    let adr = (Services.vc.compare("0.8.11", syncdata.getFolderSetting("createdWithProviderVersion")) > 0)
+                    let adr = (Services.vc.compare("0.8.11", syncData.currentFolderData.getFolderSetting("createdWithProviderVersion")) > 0)
                                     ?  ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"] //WRONG
                                     : ["OfficeBox","ExtAddr","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
 
@@ -1357,20 +1357,20 @@ var tools = {
     //MAIN FUNCTIONS FOR UP/DOWN SYNC
 
     //update send from server to client
-    setThunderbirdCardFromVCard: function(syncdata, addressBook, card, vCardData, oCardData = null) {
+    setThunderbirdCardFromVCard: function(syncData, card, vCardData, oCardData = null) {
         if (tbSync.prefs.getIntPref("log.userdatalevel")>1) tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
         //if (oCardData) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
-            if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncdata.getFolderSetting("createdWithProviderVersion"))> 0) continue;
+            if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncData.currentFolderData.getFolderSetting("createdWithProviderVersion"))> 0) continue;
 
             let property = dav.tools.supportedProperties[f].name;
-            let vCardField = dav.tools.getVCardField(syncdata, property, vCardData);
-            let newServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(syncdata, property, vCardData, vCardField);
+            let vCardField = dav.tools.getVCardField(syncData, property, vCardData);
+            let newServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(syncData, property, vCardData, vCardField);
 
-            let oCardField = dav.tools.getVCardField(syncdata, property, oCardData);
-            let oldServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(syncdata, property, oCardData, oCardField);
+            let oCardField = dav.tools.getVCardField(syncData, property, oCardData);
+            let oldServerValue = dav.tools.getThunderbirdPropertyValueFromVCard(syncData, property, oCardData, oCardField);
             
             //smart merge: only update the property, if it has changed on the server (keep local modifications)
             if (newServerValue !== oldServerValue) {
@@ -1381,7 +1381,7 @@ var tools = {
                             if (newServerValue) {
                                 //set if supported
                                 if (vCardData[vCardField.item][0].meta && vCardData[vCardField.item][0].meta.encoding) {
-                                    tbSync.addressbook.addphoto(tbSync.generateUUID() + '.jpg', addressBook.URI, card, vCardData["photo"][0].value);
+                                    card.addPhoto(tbSync.generateUUID() + '.jpg', syncData.target.UID, vCardData["photo"][0].value);
                                 }
                             } else {
                                 //clear
@@ -1453,13 +1453,6 @@ var tools = {
         }
     },
 
-    invalidateThunderbirdCard: function(syncdata, addressBook, id) {
-        let card = addressBook.getCardFromProperty("X-DAV-HREF", id);
-        card.setProperty("X-DAV-ETAG", "");
-        card.setProperty("X-DAV-VCARD", "");
-        addressBook.modifyCard(card);
-    },
-
     getGroupInfoFromList: function (listUri) {
         let listDir = MailServices.ab.getDirectory(listUri);
         let name = listDir.dirName;
@@ -1475,15 +1468,15 @@ var tools = {
     },
     
     //build group card
-    getVCardFromThunderbirdListCard: function(syncdata, addressBook, card, generateUID = false) {
+    getVCardFromThunderbirdListCard: function(syncData, card, generateUID = false) {
         let cardID  = card.getProperty("X-DAV-HREF");
         let currentCard = card.getProperty("X-DAV-VCARD").trim();
         let vCardData = dav.vCard.parse(currentCard);
         
         if (!vCardData.hasOwnProperty("version")) vCardData["version"] = [{"value": "3.0"}];
 
-        vCardData["fn"] = [{"value": syncdata.foundMailingListsDuringUpSync[cardID].name}];
-        vCardData["n"] = [{"value": syncdata.foundMailingListsDuringUpSync[cardID].name}];
+        vCardData["fn"] = [{"value": syncData.foundMailingListsDuringUpSync[cardID].name}];
+        vCardData["n"] = [{"value": syncData.foundMailingListsDuringUpSync[cardID].name}];
         vCardData["X-ADDRESSBOOKSERVER-KIND"] = [{"value": "group"}];
 
         if (generateUID) {
@@ -1493,15 +1486,15 @@ var tools = {
         
         //build memberlist from scratch  
         vCardData["X-ADDRESSBOOKSERVER-MEMBER"]=[];
-        for (let i=0; i < syncdata.foundMailingListsDuringUpSync[cardID].members.length; i++) {
+        for (let i=0; i < syncData.foundMailingListsDuringUpSync[cardID].members.length; i++) {
             //the X-DAV-UID differs from X-DAV-HREF (following the specs)
-            let memberCard = addressBook.getCardFromProperty("X-DAV-HREF", syncdata.foundMailingListsDuringUpSync[cardID].members[i]);
+            let memberCard = syncData.target.getCardFromProperty("X-DAV-HREF", syncData.foundMailingListsDuringUpSync[cardID].members[i]);
             let uid = memberCard.getProperty("X-DAV-UID");
             if (!uid) {
                 uid = tbSync.generateUUID();
                 memberCard.setProperty("X-DAV-UID", uid);
                 //this card has added_by_user status and thus this mod will not trigger a UI notification
-                addressBook.modifyCard(memberCard);
+                syncData.target.modifyCard(memberCard);
             }
             vCardData["X-ADDRESSBOOKSERVER-MEMBER"].push({"value": "urn:uuid:" + uid});
         }
@@ -1511,26 +1504,26 @@ var tools = {
     },
 
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
-    getVCardFromThunderbirdContactCard: function(syncdata, addressBook, card, generateUID = false) {
+    getVCardFromThunderbirdContactCard: function(syncData, card, generateUID = false) {
         let currentCard = card.getProperty("X-DAV-VCARD").trim();
         let cCardData = dav.vCard.parse(currentCard);
         let vCardData = dav.vCard.parse(currentCard);
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
-            if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncdata.getFolderSetting("createdWithProviderVersion"))> 0) continue;
+            if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncData.currentFolderData.getFolderSetting("createdWithProviderVersion"))> 0) continue;
 
             let property = dav.tools.supportedProperties[f].name;
-            let vCardField = dav.tools.getVCardField(syncdata, property, vCardData);
+            let vCardField = dav.tools.getVCardField(syncData, property, vCardData);
 
             //some "properties" need special handling
             switch (property) {
                 case "Photo":
                     {
                         if (card.getProperty("PhotoType", "") == "file") {
-                            tbSync.errorlog.add("info", syncdata.ownerData, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
-                            dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, tbSync.addressbook.getphoto(card));
-                            tbSync.errorlog.add("info", syncdata.ownerData, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
+                            tbSync.errorlog.add("info", syncData.errorOwnerData, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
+                            dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, card.getPhoto());
+                            tbSync.errorlog.add("info", syncData.errorOwnerData, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             vCardData[vCardField.item][0].meta = {"encoding": ["b"], "type": ["JPEG"]};
                         }
                     }
@@ -1554,7 +1547,7 @@ var tools = {
                             // TODO: for vcard4, we'll need to get rid of the hyphens and support missing date elements
                             value = birthYear + "-" + ("00"+birthMonth).slice(-2) + "-" + ("00"+birthDay).slice(-2);
                         }
-                        dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, value);
+                        dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, value);
 
                         if (birthYear == APPLE_MISSING_YEAR_MARK && Array.isArray(vCardData[vCardField.item]) && vCardData[vCardField.item].length > 0) {
                             vCardData[vCardField.item][0].meta = {"x-apple-omit-year": [APPLE_MISSING_YEAR_MARK]};
@@ -1591,7 +1584,7 @@ var tools = {
                             vCardField.entry = idx++;
                             if (!(vCardData.hasOwnProperty(vCardField.item) && vCardField.entry < vCardData[vCardField.item].length)) vCardField.entry = -1; //need to add a new one
                             
-                            dav.tools.updateValueOfVCard(syncdata, "Emails", vCardData, vCardField, value);
+                            dav.tools.updateValueOfVCard(syncData, "Emails", vCardData, vCardField, value);
                         }
                     }
                     break;
@@ -1621,7 +1614,7 @@ var tools = {
                             vCardField.entry = idx++;
                             if (!(vCardData.hasOwnProperty(vCardField.item) && vCardField.entry < vCardData[vCardField.item].length)) vCardField.entry = -1; //need to add a new one
                             
-                            dav.tools.updateValueOfVCard(syncdata, "Phones", vCardData, vCardField, value);
+                            dav.tools.updateValueOfVCard(syncData, "Phones", vCardData, vCardField, value);
                         }
                     }
                     break;
@@ -1629,7 +1622,7 @@ var tools = {
                 default:
                     {
                         let value = card.getProperty(property, "");
-                        dav.tools.updateValueOfVCard(syncdata, property, vCardData, vCardField, value);
+                        dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, value);
                     }
                     break;
             }
@@ -1640,7 +1633,7 @@ var tools = {
             let uid = tbSync.generateUUID();
             card.setProperty("X-DAV-UID", uid);
             //this card has added_by_user status and thus this mod will not trigger a UI notification
-            addressBook.modifyCard(card);
+            syncData.target.modifyCard(card);
             vCardData["uid"] = [{"value": uid}];
         }
 

@@ -10,8 +10,8 @@
 
 var network = {
 
-    Connection: class {
-        constructor(accountData) {            
+    ConnectionData: class {
+        constructor(syncData) {            
             this._password = "";
             this._user = "";
             this._https = "";
@@ -21,20 +21,20 @@ var network = {
             this._timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
 
             //for error logging
-            this._ownerData = null;
+            this._errorOwnerData = null;
             
-            if (accountData) {
-                let auth = new tbSync.PasswordAuthData(accountData);
+            if (syncData) {
+                let auth = new tbSync.PasswordAuthData(syncData.accountData);
                 this._password = auth.getPassword();
                 this._user = auth.getUsername();
 
-                this._https = accountData.getAccountSetting("https");
-                this._accountname = accountData.getAccountSetting("accountname");
-                if (accountData.hasFolderData()) {
-                    this._type = accountData.getFolderSetting("type");
-                    this._fqdn = accountData.getFolderSetting("fqdn");
+                this._https = syncData.accountData.getAccountSetting("https");
+                this._accountname = syncData.accountData.getAccountSetting("accountname");
+                if (syncData.currentFolderData) {
+                    this._type = syncData.currentFolderData.getFolderSetting("type");
+                    this._fqdn = syncData.currentFolderData.getFolderSetting("fqdn");
                 }
-                this._ownerData = accountData.ownerData;
+                this._errorOwnerData = syncData.errorOwnerData;
             }            
         }
         
@@ -54,7 +54,7 @@ var network = {
         set https(v) {this._https = v;}
         set type(v) {this._type = v;}
         set fqdn(v) {this._fqdn = v;}
-        set ownerData(v) {this._ownerData = v;}
+        set errorOwnerData(v) {this._errorOwnerData = v;}
 
         get password() {return this._password;}
         get user() {return this._user;}
@@ -62,7 +62,7 @@ var network = {
         get https() {return this._https;}
         get type() {return this._type;}
         get fqdn() {return this._fqdn;}
-        get ownerData() {return this._ownerData;}
+        get errorOwnerData() {return this._errorOwnerData;}
     },
     
     Prompt: class {
@@ -76,6 +76,8 @@ var network = {
         //                    in nsIAuthInformation authInfo)
         promptAuth (aChannel, aLevel, aAuthInfo) {
             //store aAuthInfo.realm, needed later to setup lightning passwords
+            tbSync.dump("PROMPTING", (this.mConnection.type));
+
             if (this.mConnection.type == "cal") {
                 tbSync.dump("Found CalDAV authRealm for <"+aChannel.URI.host+">", aAuthInfo.realm);
                 dav.listOfRealms[aChannel.URI.host] = aAuthInfo.realm;
@@ -155,35 +157,35 @@ var network = {
         return httpchannel;
     },
  
-    sendRequest: async function (requestData, path, method, connection, headers = {}, options = {softfail: []}, aUseStreamLoader = true) {            
+    sendRequest: async function (requestData, path, method, connectionData, headers = {}, options = {softfail: []}, aUseStreamLoader = true) {            
         //path could be absolute or relative, we may need to rebuild the full url
-        let url = (path.startsWith("http://") || path.startsWith("https://")) ? path : "http" + (connection.https == "1" ? "s" : "") + "://" + connection.fqdn + path;
+        let url = (path.startsWith("http://") || path.startsWith("https://")) ? path : "http" + (connectionData.https == "1" ? "s" : "") + "://" + connectionData.fqdn + path;
 
         //a few bugs in TB and in client implementations require to retry a connection on certain failures
         for (let i=1; i < 5; i++) { //max number of retries
             tbSync.dump("URL Request #" + i, url);
 
-            connection.uri = Services.io.newURI(url);
+            connectionData.uri = Services.io.newURI(url);
 
             //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
-            if (dav.problematicHosts.includes(connection.uri.host)) {
-                headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connection.user + ":" + connection.password);
+            if (dav.problematicHosts.includes(connectionData.uri.host)) {
+                headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connectionData.user + ":" + connectionData.password);
             }
             
-            let r = await dav.network.useHttpChannel(requestData, method, connection, headers, options, aUseStreamLoader);
+            let r = await dav.network.useHttpChannel(requestData, method, connectionData, headers, options, aUseStreamLoader);
         
-            //connection.uri.host may no longer be the correct value, as there might have been redirects, use connection.fqdn 
+            //connectionData.uri.host may no longer be the correct value, as there might have been redirects, use connectionData.fqdn 
             if (r && r.retry && r.retry === true) {
                 if (r.addBasicAuthHeaderOnce) {
-                    tbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + connection.user + "@" + connection.fqdn + ">");
-                    headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connection.user + ":" + connection.password);
-                } else if (!dav.problematicHosts.includes(connection.fqdn) ) {
-                    tbSync.dump("BUG 669675", "Adding <" + connection.fqdn + "> to list of problematic hosts.");
-                    dav.problematicHosts.push(connection.fqdn)
+                    tbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + connectionData.user + "@" + connectionData.fqdn + ">");
+                    headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connectionData.user + ":" + connectionData.password);
+                } else if (!dav.problematicHosts.includes(connectionData.fqdn) ) {
+                    tbSync.dump("BUG 669675", "Adding <" + connectionData.fqdn + "> to list of problematic hosts.");
+                    dav.problematicHosts.push(connectionData.fqdn)
                 }
 
                 //there might have been a redirect, rebuild url
-                url = "http" + (connection.https == "1" ? "s" : "") + "://" + connection.fqdn + r.path;
+                url = "http" + (connectionData.https == "1" ? "s" : "") + "://" + connectionData.fqdn + r.path;
             } else {
                 return r;
             }
@@ -191,7 +193,7 @@ var network = {
     },
     
     // Promisified implementation of Components.interfaces.nsIHttpChannel
-    useHttpChannel: async function (requestData, method, connection, headers, options, aUseStreamLoader) {
+    useHttpChannel: async function (requestData, method, connectionData, headers, options, aUseStreamLoader) {
         let responseData = "";
         
         //do not log HEADERS, as it could contain an Authorization header
@@ -213,12 +215,12 @@ var network = {
             if (!fetchoptions.headers.hasOwnProperty("Content-Type"))
                 fetchoptions.headers["Content-Type"] = "application/xml; charset=utf-8";
             
-            fetchoptions.headers["Authorization"] = "Basic " + btoa(connection.user + ':' + connection.password);
-            tbSync.dump("FETCH URL", connection.uri.spec);
+            fetchoptions.headers["Authorization"] = "Basic " + btoa(connectionData.user + ':' + connectionData.password);
+            tbSync.dump("FETCH URL", connectionData.uri.spec);
             tbSync.dump("FETCH OPTIONS", JSON.stringify(fetchoptions));
 
             try {
-                let response = await tbSync.window.fetch(connection.uri.spec, fetchoptions);
+                let response = await tbSync.window.fetch(connectionData.uri.spec, fetchoptions);
                 tbSync.dump("FETCH STATUS", response.status);
                 let text = await response.text();
                 tbSync.dump("FETCH RESPONSE", response.status + " : " + text);
@@ -267,9 +269,9 @@ var network = {
                     } catch (ex) {
                         let error = tbSync.network.createTCPErrorFromFailedRequest(aChannel);
                         if (!error) {
-                            return reject(dav.sync.failed("networkerror", "URL:\n" + connection.uri.spec + " ("+method+")")); //reject/resolve do not terminate control flow
+                            return reject(dav.sync.failed("networkerror", "URL:\n" + connectionData.uri.spec + " ("+method+")")); //reject/resolve do not terminate control flow
                         } else {
-                            return reject(dav.sync.failed(error, "URL:\n" + connection.uri.spec + " ("+method+")"));
+                            return reject(dav.sync.failed(error, "URL:\n" + connectionData.uri.spec + " ("+method+")"));
                         }
                     }
                     
@@ -279,13 +281,13 @@ var network = {
                     //Redirected? Update connection settings from current URL
                     if (aChannel.URI) {
                         let newHttps = (aChannel.URI.scheme == "https") ? "1" : "0";
-                        if (connection.https != newHttps) {
-                            tbSync.dump("Updating HTTPS", connection.https + " -> " + newHttps);
-                            connection.https = newHttps;
+                        if (connectionData.https != newHttps) {
+                            tbSync.dump("Updating HTTPS", connectionData.https + " -> " + newHttps);
+                            connectionData.https = newHttps;
                         }
-                        if (connection.fqdn != aChannel.URI.hostPort) {
-                            tbSync.dump("Updating FQDN", connection.fqdn + " -> " + aChannel.URI.hostPort);
-                            connection.fqdn = aChannel.URI.hostPort;
+                        if (connectionData.fqdn != aChannel.URI.hostPort) {
+                            tbSync.dump("Updating FQDN", connectionData.fqdn + " -> " + aChannel.URI.hostPort);
+                            connectionData.fqdn = aChannel.URI.hostPort;
                         }
                     }
 
@@ -317,7 +319,7 @@ var network = {
                                 //I hope this bug gets fixed soon
 
                                 //should the channel have been able to authenticate (password is stored)?
-                                if (connection.password !== null) {                                    
+                                if (connectionData.password !== null) {                                    
                                     //did the channel try to authenticate?
                                     let triedToAuthenticate;
                                     try {
@@ -335,14 +337,14 @@ var network = {
                                     }
                                 }
                                 
-                                return reject(dav.sync.failed(responseStatus, "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
+                                return reject(dav.sync.failed(responseStatus, "URL:\n" + connectionData.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
                             }
                             break;
                             
                         case 207: //preprocess multiresponse
                             {
                                 let xml = dav.tools.convertToXML(aResult);
-                                if (xml === null) return reject(dav.sync.failed("maiformed-xml", "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData));
+                                if (xml === null) return reject(dav.sync.failed("maiformed-xml", "URL:\n" + connectionData.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData));
 
                                 //the specs allow to  return a 207 with DAV:unauthenticated if not authenticated 
                                 if (xml.documentElement.getElementsByTagNameNS(dav.ns.d, "unauthenticated").length != 0) {
@@ -408,10 +410,10 @@ var network = {
                                     }
                                 }
                                 //manually log this non-fatal error
-                                tbSync.errorlog.add("info", connection.ownerData, "softerror::"+responseStatus, "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
+                                tbSync.errorlog.add("info", connectionData.errorOwnerData, "softerror::"+responseStatus, "URL:\n" + connectionData.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
                                 return resolve(noresponse);
                             } else {
-                                return reject(dav.sync.failed(responseStatus, "URL:\n" + connection.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
+                                return reject(dav.sync.failed(responseStatus, "URL:\n" + connectionData.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
                             }                                
                             break;
 
@@ -425,7 +427,7 @@ var network = {
                     if (aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
                         tbSync.dump("GET","nsIAuthPrompt2");
                         if (!this.authPrompt) {
-                            this.authPrompt = new dav.network.Prompt(connection);
+                            this.authPrompt = new dav.network.Prompt(connectionData);
                         }
                         return this.authPrompt;
                     } else if (aIID.equals(Components.interfaces.nsIAuthPrompt)) {
@@ -444,14 +446,14 @@ var network = {
                 },
             }
 
-            let channel = dav.network.prepHttpChannel(requestData, headers, method, connection, notificationCallbacks);    
+            let channel = dav.network.prepHttpChannel(requestData, headers, method, connectionData, notificationCallbacks);    
             if (aUseStreamLoader) {
                 let loader =  Components.classes["@mozilla.org/network/stream-loader;1"].createInstance(Components.interfaces.nsIStreamLoader);
                 loader.init(listener);
                 listener = loader;
             }        
         
-            connection.startTimeout(channel);
+            connectionData.startTimeout(channel);
             channel.asyncOpen(listener, channel);
         });
     }
