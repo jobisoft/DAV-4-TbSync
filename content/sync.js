@@ -14,6 +14,7 @@ var sync = {
     failed: function (msg = "", details = "") {
         let e = new Error();
         e.name = "dav4tbsync";
+        e.message = tbSync.StatusData.WARNING + ": " + msg.toString() + " (" + details.toString() + ")";
         e.statusData = new tbSync.StatusData(tbSync.StatusData.WARNING, msg.toString(), details.toString());
         return e;
     },
@@ -21,6 +22,7 @@ var sync = {
     succeeded: function (msg = "") {
         let e = new Error();
         e.name = "dav4tbsync";
+        e.message = tbSync.StatusData.SUCCESS + ": " + msg.toString();
         e.statusData = new tbSync.StatusData(tbSync.StatusData.SUCCESS, msg.toString());
         return e;
     },
@@ -244,7 +246,7 @@ var sync = {
                                 folderData.setFolderSetting("targetColor", color);
                                 
                                 //do we have to update the calendar? Get the raw cal object
-                                let targetCal = folderData.targetData.target;
+                                let targetCal = folderData.targetData.checkTarget();
                                 if (targetCal) {
                                     targetCal.setProperty("color", color);
                                 }
@@ -298,7 +300,7 @@ var sync = {
 
             // add target to syncData
             try {
-                // accessing the target for the first time will check if it is avail or can be created
+                // accessing the target for the first time will check if it is avail and if not will create it (if possible)
                 syncData.target = syncData.currentFolderData.targetData.getTarget();
             } catch (e) {
                 throw dav.sync.failed(e.message);
@@ -315,7 +317,7 @@ var sync = {
                 case "ics":
                     {
                         //update downloadonly
-                        if (syncData.currentFolderData.getFolderSetting("downloadonly") == "1") target.setProperty("readOnly", true);
+                        if (syncData.currentFolderData.getFolderSetting("downloadonly") == "1") syncData.target.setProperty("readOnly", true);
 
                         //init sync via lightning
                         syncData.target.refresh();

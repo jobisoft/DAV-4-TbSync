@@ -575,14 +575,29 @@ var calendar = {
         let url = dav.tools.parseUri(baseUrl + folderData.getFolderSetting("href"));        
         folderData.setFolderSetting("url", url.spec);
 
-        let newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
-        newCalendar.id = cal.getUUID();
-        newCalendar.name = newname;
+        //check if that calendar already exists
+        let cals = calManager.getCalendars({});
+        let newCalendar = null;
+        let found = false;
+        for (let calendar of calManager.getCalendars({})) {
+            if (calendar.uri.spec == url.spec) {
+                newCalendar = calendar;
+                found = true;
+                break;
+            }
+        }
 
-        newCalendar.setProperty("user", auth.getUsername());
-        newCalendar.setProperty("color", folderData.getFolderSetting("targetColor"));
-        newCalendar.setProperty("calendar-main-in-composite", true);
-        newCalendar.setProperty("cache.enabled", (folderData.accountData.getAccountSetting("useCache") == "1"));
+        if (!found) {
+            newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
+            newCalendar.id = cal.getUUID();
+            newCalendar.name = newname;
+
+            newCalendar.setProperty("user", auth.getUsername());
+            newCalendar.setProperty("color", folderData.getFolderSetting("targetColor"));
+            newCalendar.setProperty("calendar-main-in-composite", true);
+            newCalendar.setProperty("cache.enabled", (folderData.accountData.getAccountSetting("useCache") == "1"));
+        }
+        
         if (downloadonly) newCalendar.setProperty("readOnly", true);
 
         //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
@@ -596,7 +611,9 @@ var calendar = {
             }
         }
 
-        calManager.registerCalendar(newCalendar);
+        if (!found) {
+            calManager.registerCalendar(newCalendar);
+        }
         return newCalendar;
     },
 }

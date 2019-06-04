@@ -667,15 +667,8 @@ var tools = {
             // Test if the entered uri can be parsed.
             uri = Services.io.newURI(aUri, null, null);
         } catch (ex) {
-            throw dav.sync.failed("invalid-uri");
+            throw new Error("invalid-calendar-url");
         }
-
-        let calManager = cal.getCalendarManager();
-        let cals = calManager.getCalendars({});
-        if (cals.some(calendar => calendar.uri.spec == uri.spec)) {
-            throw dav.sync.succeeded("caldav-calendar-already-exists");
-        }
-
         return uri;
     },
 
