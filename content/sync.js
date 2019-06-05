@@ -284,7 +284,6 @@ var sync = {
         }
         // we fall through, if there was no error
         return new tbSync.StatusData();
-
     },
 
 
@@ -678,7 +677,7 @@ var sync = {
                                         let email = Date.now() + "." +listcount + "." + i + "@bug1522453";
                                         card.setProperty("PrimaryEmail", email);
                                         card.setProperty("X-DAV-JSON-Emails", JSON.stringify([{meta: [], value: email}]));
-                                        syncData.target.modifyCard(card);
+                                        syncData.target.modify(card);
                                     }
                                     mailListDirectory.addressLists.appendElement(card, false);
                                 }
@@ -716,7 +715,7 @@ var sync = {
             await tbSync.tools.sleep(200); //we want the user to see, that deletes are happening
 
             for (let j=0; j < chunk; j++) {
-                syncData.target.deleteCard(cards2delete[i+j]);
+                syncData.target.remove(cards2delete[i+j]);
             }
         }
     },
@@ -819,7 +818,7 @@ var sync = {
 
                             if (permissionError[changes[i].status]) {
                                 //we where not allowed to add or modify that card, remove it, we will get a fresh copy on the following revert
-                                syncData.target.deleteCard(card);
+                                syncData.target.remove(card);
                                 permissionErrors++;
                             }
                         }

@@ -817,8 +817,22 @@ var tools = {
             card.setProperty("X-DAV-VCARD", vCard);
 
             dav.tools.setThunderbirdCardFromVCard(syncData, card, vCardData);
+            syncData.target.add(card);
 
-            syncData.target.addCard(card);
+            let list  = syncData.target.createNewList();
+            list.setProperty("X-DAV-HREF", "LIST::"+id);
+            list.setProperty("ListName", "2: " + id);
+            list.setProperty("ListDescription", "description");
+            list.setProperty("ListNickName", "listNickName");
+            syncData.target.add(list);
+            list.setProperty("ListName", "3: " + id);
+            syncData.target.modify(list);
+//prevent to set UID
+//getCardFromProperty        -> getItemFromProperty        
+            //let list2 = syncData.target.getCardFromProperty("UID", list.UID);
+            //list2.setProperty("ListName", "4: " + id);
+            //syncData.target.modify(list2);
+            
         }
     },
 
@@ -839,7 +853,7 @@ var tools = {
                 card.setProperty("X-DAV-VCARD", vCard);
                 
                 dav.tools.setThunderbirdCardFromVCard(syncData, card, vCardData, oCardData);
-                syncData.target.modifyCard(card);
+                syncData.target.modify(card);
             }        
 
         } else {
@@ -1487,7 +1501,7 @@ var tools = {
                 uid = tbSync.generateUUID();
                 memberCard.setProperty("X-DAV-UID", uid);
                 //this card has added_by_user status and thus this mod will not trigger a UI notification
-                syncData.target.modifyCard(memberCard);
+                syncData.target.modify(memberCard);
             }
             vCardData["X-ADDRESSBOOKSERVER-MEMBER"].push({"value": "urn:uuid:" + uid});
         }
@@ -1626,7 +1640,7 @@ var tools = {
             let uid = tbSync.generateUUID();
             card.setProperty("X-DAV-UID", uid);
             //this card has added_by_user status and thus this mod will not trigger a UI notification
-            syncData.target.modifyCard(card);
+            syncData.target.modify(card);
             vCardData["uid"] = [{"value": uid}];
         }
 
