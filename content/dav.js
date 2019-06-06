@@ -487,7 +487,7 @@ var passwordAuth = {
 
 
 
-// only needed, if the standard "addressbook" targetType is used
+// this provider is using the standard "addressbook" targetType, so it must implement the addressbook object
 var addressbook = {
 
     // define a card property, which should be used for the changelog
@@ -559,7 +559,7 @@ var addressbook = {
 
 
 
-// only needed, if the standard "calendar" targetType is used
+// this provider is using the standard "calendar" targetType, so it must implement the calendar object
 var calendar = {
     
     // define a card property, which should be used for the changelog
@@ -637,7 +637,7 @@ var calendar = {
 }
 
 
-// either implement the full folderList object or use the standardFolderList
+// this provider is using the standardFolderList (instead of this it could also implement the full folderList)
 var standardFolderList = {
     /**
      * Is called before the context menu of the folderlist is shown, allows to
