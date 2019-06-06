@@ -136,18 +136,6 @@ function stripHost(document, account, field) {
  * Implementation the TbSync interfaces for external provider extensions.
  */
 
-// this provider is usung the default authPrompt, so it must implement passwordAuth
-var passwordAuth = {    
-    getUserField4PasswordManager : function (accountData) {
-        return "user";
-    },
-    
-    getHostField4PasswordManager : function (accountData) {
-        let host = accountData.getAccountSetting("host");
-        return host ? "host" : "host2";
-    },
-}
-
 var api = {    
     /**
      * Called during load of external provider extension to init provider.
@@ -484,15 +472,67 @@ var api = {
 }
 
 
+
+// this provider is using the default authPrompt, so it must implement passwordAuth
+var passwordAuth = {    
+    getUserField4PasswordManager : function (accountData) {
+        return "user";
+    },
+    
+    getHostField4PasswordManager : function (accountData) {
+        let host = accountData.getAccountSetting("host");
+        return host ? "host" : "host2";
+    },
+}
+
+
+
 // only needed, if the standard "addressbook" targetType is used
 var addressbook = {
 
     // define a card property, which should be used for the changelog
-    // specify nothing to disable changelog for this target
+    // basically your primary key for the abItem properties
+    // UID will be used, if nothing specified
     changeLogKey: "X-DAV-HREF",
+    
+    // enable or disable changelog
+    logUserChanges: true,
 
+    directoryObserver: function (aTopic, folderData) {
+        switch (aTopic) {
+            case "addrbook-removed":
+            case "addrbook-updated":
+                Services.console.logStringMessage("["+ aTopic + "] " + folderData.getFolderSetting("name"));
+            break;
+        }
+    },
+    
+    cardObserver: function (aTopic, folderData, abCardItem) {
+        switch (aTopic) {
+            case "addrbook-contact-created":
+            case "addrbook-contact-updated":
+            case "addrbook-contact-removed":
+                Services.console.logStringMessage("["+ aTopic + "] " + abCardItem.getProperty("DisplayName"));
+            break;
+        }
+    },
+    
+    listObserver: function (aTopic, folderData, abListItem, abListMember) {
+        switch (aTopic) {
+            case "addrbook-list-member-added":
+            case "addrbook-list-member-removed":
+                Services.console.logStringMessage("["+ aTopic + "] " + abListMember.getProperty("DisplayName"));
+
+            case "addrbook-list-created": 
+            case "addrbook-list-removed":
+            case "addrbook-list-updated":
+                Services.console.logStringMessage("["+ aTopic + "] " + abListItem.getProperty("ListName"));
+            break;
+        }
+    },
+    
     /**
-     * Is called by TbSync, if the standard "addressbook" targetType is used, and a new addressbook needs to be created.
+     * Is called by TargetData::getTarget() if  the standard "addressbook" targetType is used, and a new addressbook needs to be created.
      *
      * @param newname       [in] name of the new address book
      * @param folderData  [in] FolderData
@@ -500,6 +540,7 @@ var addressbook = {
      * return the new directory
      */
     createAddressBook: function (newname, folderData) {
+        // maybe use target.create or something
         let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
         let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
 
@@ -513,47 +554,24 @@ var addressbook = {
             return directory;
         }
         return null;
-    },
-
-    directoryObserver: function (aTopic, folderData) {
-        switch (aTopic) {
-            case "addrbook-removed":
-            case "addrbook-updated":
-            break;
-        }
-    },
-    
-    cardObserver: function (aTopic, folderData, abCardData) {
-        switch (aTopic) {
-            case "addrbook-contact-created":
-            case "addrbook-contact-updated":
-            case "addrbook-contact-removed":
-            break;
-        }
-    },
-    
-    listObserver: function (aTopic, folderData, abListData, abMemberData = null) {
-        switch (aTopic) {
-            case "addrbook-list-created": 
-            case "addrbook-list-removed":
-            case "addrbook-list-updated":
-            case "addrbook-list-member-added":
-            case "addrbook-list-member-removed":
-            break;
-        }
-    }    
-    
+    },    
 }
+
+
 
 // only needed, if the standard "calendar" targetType is used
 var calendar = {
     
-    // define a property of calendar items, which should be used for the changelog
-    // specify nothing to disable changelog for this target
+    // define a card property, which should be used for the changelog
+    // basically your primary key for the abItem properties
+    // UID will be used, if nothing specified
     changeLogKey: "",
+    
+    // enable or disable changelog
+    logUserChanges: false,
 
     /**
-     * Is called by TbSync, if the standard "calendar" targetType is used, and a new calendar needs to be created.
+     * Is called by TargetData::getTarget() if  the standard "calendar" targetType is used, and a new calendar needs to be created.
      *
      * @param newname       [in] name of the new calendar
      * @param folderData  [in] folderData
@@ -619,6 +637,7 @@ var calendar = {
 }
 
 
+// either implement the full folderList object or use the standardFolderList
 var standardFolderList = {
     /**
      * Is called before the context menu of the folderlist is shown, allows to

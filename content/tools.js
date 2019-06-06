@@ -825,14 +825,13 @@ var tools = {
             list.setProperty("ListDescription", "description");
             list.setProperty("ListNickName", "listNickName");
             syncData.target.add(list);
+
             list.setProperty("ListName", "3: " + id);
             syncData.target.modify(list);
-//prevent to set UID
-//getCardFromProperty        -> getItemFromProperty        
-            //let list2 = syncData.target.getCardFromProperty("UID", list.UID);
-            //list2.setProperty("ListName", "4: " + id);
-            //syncData.target.modify(list2);
-            
+
+            let list2 = syncData.target.getItemFromProperty("UID", list.UID);
+            list2.setProperty("ListName", "4: " + id);
+            syncData.target.modify(list2);
         }
     },
 
@@ -841,7 +840,7 @@ var tools = {
         let vCardData = dav.vCard.parse(vCard);
 
         //get card
-        let card = syncData.target.getCardFromProperty("X-DAV-HREF", id);
+        let card = syncData.target.getItemFromProperty("X-DAV-HREF", id);
         if (card) {
             //check if contact or mailinglist to update card
             if (!dav.tools.vCardIsMailingList (syncData, id, card, vCard, vCardData, etag)) {          
@@ -870,7 +869,7 @@ var tools = {
             for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
                 let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
                 //this is the only place where we have to look up a card based on its UID
-                let memberCard = addressBook.getCardFromProperty("X-DAV-UID", member);
+                let memberCard = addressBook.getItemFromProperty("X-DAV-UID", member);
                 if (memberCard) members.push(memberCard.getProperty("X-DAV-HREF", ""));
             }
         }
@@ -1495,7 +1494,7 @@ var tools = {
         vCardData["X-ADDRESSBOOKSERVER-MEMBER"]=[];
         for (let i=0; i < syncData.foundMailingListsDuringUpSync[cardID].members.length; i++) {
             //the X-DAV-UID differs from X-DAV-HREF (following the specs)
-            let memberCard = syncData.target.getCardFromProperty("X-DAV-HREF", syncData.foundMailingListsDuringUpSync[cardID].members[i]);
+            let memberCard = syncData.target.getItemFromProperty("X-DAV-HREF", syncData.foundMailingListsDuringUpSync[cardID].members[i]);
             let uid = memberCard.getProperty("X-DAV-UID");
             if (!uid) {
                 uid = tbSync.generateUUID();

@@ -428,7 +428,7 @@ var sync = {
             let id = cards.multi[c].href;
             if (id !==null) {
                 //valid
-                let card = syncData.target.getCardFromProperty("X-DAV-HREF", id);
+                let card = syncData.target.getItemFromProperty("X-DAV-HREF", id);
                 if (cards.multi[c].status == "200") {
                     //MOD or ADD
                     let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
@@ -523,7 +523,7 @@ var sync = {
 
                 if (cards.multi[c].status == "200" && etag !== null && id !== null /* && ctype !== null */) { //we do not actually check the content of ctype - but why do we request it? iCloud seems to send cards without ctype
                     vCardsFoundOnServer.push(id);
-                    let card = syncData.target.getCardFromProperty("X-DAV-HREF", id);
+                    let card = syncData.target.getItemFromProperty("X-DAV-HREF", id);
                     if (!card) {
                         //if the user deleted this card (not yet send to server), do not add it again
                         if (!localDeletes.includes(id)) {
@@ -633,7 +633,7 @@ var sync = {
                 if (syncData.foundMailingListsDuringDownSync.hasOwnProperty(mailListCardID)) {
                     listcount++;
                     let locked = 0;
-                    let mailListCard = syncData.target.getCardFromProperty("X-DAV-HREF", mailListCardID);
+                    let mailListCard = syncData.target.getItemFromProperty("X-DAV-HREF", mailListCardID);
                     let mailListDirectory = MailServices.ab.getDirectory(mailListCard.mailListURI);
                     
                     //smart merge: oCardInfo contains the state during last sync, vCardInfo is the current state
@@ -650,7 +650,7 @@ var sync = {
                     //remove requested members from list
                     for (let i=0; i < removedMembers.length; i++) {
                         if (removedMembers[i]) {
-                        let card = syncData.target.getCardFromProperty("X-DAV-HREF", removedMembers[i]);
+                        let card = syncData.target.getItemFromProperty("X-DAV-HREF", removedMembers[i]);
                             if (card) {
                                 let idx = tbSync.addressbook.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-HREF", removedMembers[i]);
                                 if (idx != -1) {
@@ -665,7 +665,7 @@ var sync = {
                     //add requested members to list (make sure it has an email as long that bug is not fixed in TB!)
                     for (let i=0; i < addedMembers.length; i++) {
                         if (addedMembers[i]) {
-                            let card = syncData.target.getCardFromProperty("X-DAV-HREF", addedMembers[i]);
+                            let card = syncData.target.getItemFromProperty("X-DAV-HREF", addedMembers[i]);
                             if (card) {
                                 let idx = tbSync.addressbook.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-HREF", addedMembers[i]);
                                 if (idx == -1) {
