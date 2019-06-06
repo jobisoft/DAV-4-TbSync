@@ -821,17 +821,14 @@ var tools = {
 
             let list  = syncData.target.createNewList();
             list.setProperty("X-DAV-HREF", "LIST::"+id);
-            list.setProperty("ListName", "2: " + id);
+            list.setProperty("ListName", card.getProperty("DisplayName"));
             list.setProperty("ListDescription", "description");
             list.setProperty("ListNickName", "listNickName");
             syncData.target.add(list);
-
-            list.setProperty("ListName", "3: " + id);
-            syncData.target.modify(list);
-
-            let list2 = syncData.target.getItemFromProperty("UID", list.UID);
-            list2.setProperty("ListName", "4: " + id);
-            syncData.target.modify(list2);
+            
+            if (!syncData.testlist) syncData.testlist = [];
+            if (!syncData.testlist.includes(id)) syncData.testlist.push(id);
+            list.setMembersByPropertyList("X-DAV-HREF", syncData.testlist);
         }
     },
 
@@ -861,20 +858,7 @@ var tools = {
     },
 
     
-    getGroupInfoFromCardData: function (vCardData, addressBook, getMembers = true) {
-        let members = [];
-        let name = vCardData.hasOwnProperty("fn") ? vCardData["fn"][0].value : "Unlabled Group";
-
-        if (getMembers && vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER")) {
-            for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
-                let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
-                //this is the only place where we have to look up a card based on its UID
-                let memberCard = addressBook.getItemFromProperty("X-DAV-UID", member);
-                if (memberCard) members.push(memberCard.getProperty("X-DAV-HREF", ""));
-            }
-        }
-        return {members, name};
-    },
+    
     
     //check if vCard is a mailinglist and handle it
     vCardIsMailingList: function (syncData, id, _card, vCard, vCardData, etag) {
@@ -1472,6 +1456,23 @@ var tools = {
         }
         return {members, name};
     },
+    
+    getGroupInfoFromCardData: function (vCardData, addressBook, getMembers = true) {
+        let members = [];
+        let name = vCardData.hasOwnProperty("fn") ? vCardData["fn"][0].value : "Unlabled Group";
+
+        if (getMembers && vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER")) {
+            for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
+                let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
+                //this is the only place where we have to look up a card based on its UID
+                let memberCard = addressBook.getItemFromProperty("X-DAV-UID", member);
+                if (memberCard) members.push(memberCard.getProperty("X-DAV-HREF", ""));
+            }
+        }
+        return {members, name};
+    },
+
+    
     
     //build group card
     getVCardFromThunderbirdListCard: function(syncData, card, generateUID = false) {
