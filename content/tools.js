@@ -818,17 +818,6 @@ var tools = {
 
             dav.tools.setThunderbirdCardFromVCard(syncData, card, vCardData);
             syncData.target.add(card);
-
-            let list  = syncData.target.createNewList();
-            list.setProperty("X-DAV-HREF", "LIST::"+id);
-            list.setProperty("ListName", card.getProperty("DisplayName"));
-            list.setProperty("ListDescription", "description");
-            list.setProperty("ListNickName", "listNickName");
-            syncData.target.add(list);
-            
-            if (!syncData.testlist) syncData.testlist = [];
-            if (!syncData.testlist.includes(id)) syncData.testlist.push(id);
-            list.setMembersByPropertyList("X-DAV-HREF", syncData.testlist);
         }
     },
 
@@ -861,7 +850,7 @@ var tools = {
     
     
     //check if vCard is a mailinglist and handle it
-    vCardIsMailingList: function (syncData, id, _card, vCard, vCardData, etag) {
+    vCardIsMailingList: function (syncData, id, _list, vCard, vCardData, etag) {
         if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-KIND") && vCardData["X-ADDRESSBOOKSERVER-KIND"][0].value == "group") { 
             if (syncData.accountData.getAccountSetting("syncGroups") != "1") {
                 //user did not enable group sync, so do nothing, but return true so this card does not get added as a real card
@@ -871,22 +860,24 @@ var tools = {
             let vCardInfo = dav.tools.getGroupInfoFromCardData(vCardData, syncData.target, false); //just get the name, not the members
 
             //if no card provided, create a new one
-            let card = _card ? _card : tbSync.addressbook.createMailingListCard(addressBook, vCardInfo.name, id);
-            
-            //if this card was created with an older version of TbSync, which did not have groups support, handle as normal card
-            if (!card.isMailList) {
-                tbSync.errorlog.add("info", syncData.errorOwnerData, "ignoredgroup::" + vCardInfo.name, "dav");
-                return false;
+            let list = _list;
+            if (!list) {
+                list  = syncData.target.createNewList();
+                list.setProperty("X-DAV-HREF", id);
+                list.setProperty("ListName",  vCardInfo.name);
+                syncData.target.add(list);
             }
-                
+
+            
             //get original vCardData from last server contact, needed for "smart merge" on changes on both sides
-            let oCardData = dav.vCard.parse(card.getProperty("X-DAV-VCARD"));
+            let oCardData = dav.vCard.parse(list.getProperty("X-DAV-VCARD"));
             //store all old and new vCards for later processing (cannot do it here, because it is not guaranteed, that all members exists already)
             syncData.foundMailingListsDuringDownSync[id] = {oCardData, vCardData};
 
             //update properties
-            card.setProperty("X-DAV-ETAG", etag.textContent);
-            card.setProperty("X-DAV-VCARD", vCard);            
+            list.setProperty("X-DAV-ETAG", etag.textContent);
+            list.setProperty("X-DAV-VCARD", vCard);            
+            // AbCard implementation: Custom properties of lists are updated instantly, no need to call target.modify(list);
             return true;
 
         } else {
@@ -1443,20 +1434,7 @@ var tools = {
         }
     },
 
-    getGroupInfoFromList: function (listUri) {
-        let listDir = MailServices.ab.getDirectory(listUri);
-        let name = listDir.dirName;
-        let members = [];
-        
-        let memberCards = listDir.addressLists;
-        for (let i=0; i < memberCards.length; i++) {
-            let memberCard = memberCards.queryElementAt(i, Components.interfaces.nsIAbCard); //not a TbSync Card - generalize?
-            let memberUID = memberCard.getProperty("X-DAV-UID", ""); 
-            members.push(memberUID);
-        }
-        return {members, name};
-    },
-    
+   
     getGroupInfoFromCardData: function (vCardData, addressBook, getMembers = true) {
         let members = [];
         let name = vCardData.hasOwnProperty("fn") ? vCardData["fn"][0].value : "Unlabled Group";
@@ -1464,9 +1442,8 @@ var tools = {
         if (getMembers && vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER")) {
             for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
                 let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
-                //this is the only place where we have to look up a card based on its UID
-                let memberCard = addressBook.getItemFromProperty("X-DAV-UID", member);
-                if (memberCard) members.push(memberCard.getProperty("X-DAV-HREF", ""));
+                // "member" is the X-DAV-UID property of the member vCard
+                members.push(member);
             }
         }
         return {members, name};

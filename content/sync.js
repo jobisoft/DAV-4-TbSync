@@ -205,7 +205,7 @@ var sync = {
                             if (!folderData) {
                                 // create a new folder entry
                                 folderData = syncData.accountData.createNewFolder();
-                                // this MUST be set to either "addressbook" or "calendar" to use tbsync own target support, or any other value, which 
+                                // this MUST be set to either "addressbook" or "calendar" to use the standard target support, or any other value, which 
                                 // requires a corresponding targets implementation by this provider
                                 folderData.setFolderSetting("targetType", (job == "card") ? "addressbook" : "calendar");
                                 
@@ -621,81 +621,50 @@ var sync = {
                 }
             }
         }
-        //Feedback from users: They want to see the final count
+        // Feedback from users: They want to see the final count.
         syncData.setSyncState("eval.response.remotechanges");		
         await tbSync.tools.sleep(200, false);
     
         let syncGroups = (syncData.accountData.getAccountSetting("syncGroups") == "1");
         if (syncGroups) {
-            //mailinglists (we need to do that at the very end so all member data is avail)
-            let listcount = 0;
-            for (let mailListCardID in syncData.foundMailingListsDuringDownSync) {
-                if (syncData.foundMailingListsDuringDownSync.hasOwnProperty(mailListCardID)) {
-                    listcount++;
-                    let locked = 0;
-                    let mailListCard = syncData.target.getItemFromProperty("X-DAV-HREF", mailListCardID);
-                    let mailListDirectory = MailServices.ab.getDirectory(mailListCard.mailListURI);
+            // Mailinglists, we need to do that at the very end so all member data is avail.
+            for (let listID in syncData.foundMailingListsDuringDownSync) {
+                if (syncData.foundMailingListsDuringDownSync.hasOwnProperty(listID)) {
+                    let list = syncData.target.getItemFromProperty("X-DAV-HREF", listID);
+                    if (!list.isMailList)
+                        continue;
                     
-                    //smart merge: oCardInfo contains the state during last sync, vCardInfo is the current state
-                    //by comparing we can learn, what was added on the server (in new but not in old) and what was deleted (in old but not in new)
-                    //when adding, we need to check, if it is already part of local list (added by user as well)
-                    //when deleting, we need to check, if it has been deleted already in the local list (deleted by user as well)
-                    //all other local changes remain untouched and will be send back to the server as local changes
-                     let vCardInfo = dav.tools.getGroupInfoFromCardData(syncData.foundMailingListsDuringDownSync[mailListCardID].vCardData, syncData.target);
-                     let oCardInfo = dav.tools.getGroupInfoFromCardData(syncData.foundMailingListsDuringDownSync[mailListCardID].oCardData, syncData.target);
+                    let currentMembers = list.getMembersPropertyList("X-DAV-UID");
                     
-                    let addedMembers = vCardInfo.members.filter(e => !oCardInfo.members.includes(e));
-                    let removedMembers = oCardInfo.members.filter(e => !vCardInfo.members.includes(e));
-                    
-                    //remove requested members from list
-                    for (let i=0; i < removedMembers.length; i++) {
-                        if (removedMembers[i]) {
-                        let card = syncData.target.getItemFromProperty("X-DAV-HREF", removedMembers[i]);
-                            if (card) {
-                                let idx = tbSync.addressbook.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-HREF", removedMembers[i]);
-                                if (idx != -1) {
-                                    tbSync.db.addItemToChangeLog(syncData.currentFolderData.getFolderSetting("target"), removedMembers[i], "locked_by_mailinglist_operations");
-                                    locked++;
-                                    mailListDirectory.addressLists.removeElementAt(idx);  
-                                }                                
-                            }
-                        }
-                    }
-                    
-                    //add requested members to list (make sure it has an email as long that bug is not fixed in TB!)
-                    for (let i=0; i < addedMembers.length; i++) {
-                        if (addedMembers[i]) {
-                            let card = syncData.target.getItemFromProperty("X-DAV-HREF", addedMembers[i]);
-                            if (card) {
-                                let idx = tbSync.addressbook.findIndexOfMailingListMemberWithProperty(mailListDirectory, "X-DAV-HREF", addedMembers[i]);
-                                if (idx == -1) {
-                                    tbSync.db.addItemToChangeLog(syncData.currentFolderData.getFolderSetting("target"), addedMembers[i], "locked_by_mailinglist_operations");
-                                    locked++;
-                                    //fix for bug 1522453
-                                    let email = card.getProperty("PrimaryEmail", "");
-                                    if (!email) {
-                                        let email = Date.now() + "." +listcount + "." + i + "@bug1522453";
-                                        card.setProperty("PrimaryEmail", email);
-                                        card.setProperty("X-DAV-JSON-Emails", JSON.stringify([{meta: [], value: email}]));
-                                        syncData.target.modify(card);
-                                    }
-                                    mailListDirectory.addressLists.appendElement(card, false);
-                                }
-                            }
-                        }
-                    }
+                    //CardInfo contains the name and the X-DAV-UID list of the members
+                    let vCardInfo = dav.tools.getGroupInfoFromCardData(syncData.foundMailingListsDuringDownSync[listID].vCardData, syncData.target);
+                    let oCardInfo = dav.tools.getGroupInfoFromCardData(syncData.foundMailingListsDuringDownSync[listID].oCardData, syncData.target);
 
-                    //if at least one member (or the name) has been changed, we need to call 
-                    //editMailListToDatabase to update the directory, which will modify all members
-                    if (locked > 0 || vCardInfo.name != oCardInfo.name) {
-                        tbSync.db.addItemToChangeLog(syncData.currentFolderData.getFolderSetting("target"), mailListCardID, "locked_by_mailinglist_operations");
-                        mailListDirectory.dirName = vCardInfo.name;                    
-                        //editMailListToDatabase will mod all members of this list, so we need to lock all of them
-                        for (let i=0; i < vCardInfo.members.length; i++) {
-                            tbSync.db.addItemToChangeLog(syncData.currentFolderData.getFolderSetting("target"), vCardInfo.members[i], "locked_by_mailinglist_operations");
-                        }
-                        mailListDirectory.editMailListToDatabase(mailListCard);
+                    // Smart merge: oCardInfo contains the state during last sync, vCardInfo is the current state.
+                    // By comparing we can learn, which member was deleted by the server (in old but not in new).
+                    let removedMembers = oCardInfo.members.filter(e => !vCardInfo.members.includes(e));
+                     
+                    // The new list from the server is taken.
+                    let newMembers = vCardInfo.members;
+        Services.console.logStringMessage("[1] " + newMembers.toString());
+                    
+                    // Any member in current but not in new is added.
+                    for (let member of currentMembers) {
+                        if (!newMembers.includes(member) && !removedMembers.includes(member)) 
+                            newMembers.push(member);
                     }
+        Services.console.logStringMessage("[2] " + newMembers.toString());
+
+                    // Remove local deletes.
+                    for (let member of oCardInfo.members) {
+                        if (!currentMembers.includes(member)) 
+                            newMembers = newMembers.filter(e => e != member);
+                    }
+                    
+                    //let addedMembers = vCardInfo.members.filter(e => !oCardInfo.members.includes(e));
+        Services.console.logStringMessage("[3] " + newMembers.toString());
+                    
+                    list.setMembersByPropertyList("X-DAV-UID", newMembers);
                 }
             }
         }            
@@ -740,7 +709,7 @@ var sync = {
         }; 
         
         let syncGroups = (syncData.accountData.getAccountSetting("syncGroups") == "1");
-        if (syncGroups) {
+        if (syncGroups && 1==2) {
             //special handling of lists/groups
             //ADD/MOD of the list cards itself is not detectable, we only detect the change of its member cards when membership changes
             //DEL is handled like a normal card, no special handling needed        
