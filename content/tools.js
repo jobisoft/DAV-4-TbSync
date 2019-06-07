@@ -1451,39 +1451,47 @@ var tools = {
     
     
     //build group card
-    getVCardFromThunderbirdListCard: function(syncData, card, generateUID = false) {
-        // may not exist
-        let cardID = card.getProperty("X-DAV-HREF");
-        
-        let currentCard = card.getProperty("X-DAV-VCARD").trim();
+    getVCardFromThunderbirdListCard: function(syncData, list, generateUID = false) {        
+        let currentCard = list.getProperty("X-DAV-VCARD").trim();
         let vCardData = dav.vCard.parse(currentCard);        
         let members = list.getMembersPropertyList("X-DAV-UID");
 
         if (!vCardData.hasOwnProperty("version")) vCardData["version"] = [{"value": "3.0"}];
 
-        vCardData["fn"] = [{"value": list.getProperty("ListName")}];
-        vCardData["n"] = [{"value": list.getProperty("ListName")}];
+        vCardData["fn"] = [{"value": list.getProperty("ListName", "Unlabled List")}];
+        vCardData["n"] = [{"value": list.getProperty("ListName", "Unlabled List")}];
         vCardData["X-ADDRESSBOOKSERVER-KIND"] = [{"value": "group"}];
 
-        if (generateUID && !card.getProperty("X-DAV-UID")) {
-            Services.console.logStringMessage("[generateUID] LIST !!!");
+        let uid = list.getProperty("X-DAV-UID");
+        if (!uid) {
+            Services.console.logStringMessage("[generate UID ("+generateUID+")] LIST ("+uid+") !!!");
             // the UID differs from the href/X-DAV-HREF (following the specs)
-            let uid = tbSync.generateUUID();
-            card.setProperty("X-DAV-UID", uid);
-            syncData.target.modify(card);
-            vCardData["uid"] = [{"value": uid}];
+            uid = tbSync.generateUUID();
+            list.setProperty("X-DAV-UID", uid);
+            //not needed for lists
+            //syncData.target.modify(list);
         }
+        vCardData["uid"] = [{"value": uid}];
         
+        let href = list.getProperty("X-DAV-HREF");
+        if (!href) {
+            Services.console.logStringMessage("[generate HREF] LIST !!!");
+            // the UID differs from the href/X-DAV-HREF (following the specs)
+            href = syncData.currentFolderData.getFolderSetting("href") + tbSync.generateUUID() + ".vcf";
+            list.setProperty("X-DAV-HREF", href);
+            //not needed for lists
+            //syncData.target.modify(list);
+        }
+
         //build memberlist from scratch  
         vCardData["X-ADDRESSBOOKSERVER-MEMBER"]=[];
         for (let member of members) {
             // member has the UID (X-DAV-UID) of each member
-            Services.console.logStringMessage("[member] " + member);
             vCardData["X-ADDRESSBOOKSERVER-MEMBER"].push({"value": "urn:uuid:" + member});
         }
         
         let newCard = dav.vCard.generate(vCardData).trim();
-        return {data: newCard, etag: card.getProperty("X-DAV-ETAG"), modified: (currentCard != newCard)};
+        return {data: newCard, etag: list.getProperty("X-DAV-ETAG"), modified: (currentCard != newCard)};
     },
 
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
@@ -1611,14 +1619,29 @@ var tools = {
             }
         }
 
-        if (generateUID && !card.getProperty("X-DAV-UID")) {
-            Services.console.logStringMessage("[generateUID] CARD !!!");
+        let cardHasBeenModified = false;
+        let uid = card.getProperty("X-DAV-UID");
+        if (!uid) {
+            Services.console.logStringMessage("[generate UID] CARD !!!");
             // the UID differs from the href/X-DAV-HREF (following the specs)
-            let uid = tbSync.generateUUID();
+            uid = tbSync.generateUUID();
             card.setProperty("X-DAV-UID", uid);
-            syncData.target.modify(card);
-            vCardData["uid"] = [{"value": uid}];
+            cardHasBeenModified = true;
         }
+        vCardData["uid"] = [{"value": uid}];
+        
+        let href = card.getProperty("X-DAV-HREF");
+        if (!href) {
+            Services.console.logStringMessage("[generate HREF] CARD !!!");
+            // the UID differs from the href/X-DAV-HREF (following the specs)
+            href = syncData.currentFolderData.getFolderSetting("href") + tbSync.generateUUID() + ".vcf";
+            card.setProperty("X-DAV-HREF", href);
+            cardHasBeenModified = true;        
+        }        
+        
+        if (cardHasBeenModified)
+            syncData.target.modify(card);
+
 
         //add required fields
         if (!vCardData.hasOwnProperty("version")) vCardData["version"] = [{"value": "3.0"}];

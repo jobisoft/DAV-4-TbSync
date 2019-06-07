@@ -470,8 +470,12 @@ var addressbook = {
 
     // define a card property, which should be used for the changelog
     // basically your primary key for the abItem properties
-    // UID will be used, if nothing specified
-    changeLogKey: "X-DAV-HREF",
+    // UID will be used, if the card does not have the specified key, or no key has been specified
+    primaryKeyField: "X-DAV-HREF",
+    
+    generatePrimaryKey: function (folderData) {
+         return folderData.getFolderSetting("href") + tbSync.generateUUID() + ".vcf";
+    },
     
     // enable or disable changelog
     logUserChanges: true,
@@ -481,26 +485,24 @@ var addressbook = {
             case "addrbook-removed":
             case "addrbook-updated":
                 Services.console.logStringMessage("["+ aTopic + "] " + folderData.getFolderSetting("name"));
-            break;
+                break;
         }
     },
     
     cardObserver: function (aTopic, folderData, abCardItem) {
         switch (aTopic) {
-            case "addrbook-contact-created":
-            {
-                // Each new card needs a X-DAV-UID for local id (mailing lists)
-                let uid = abCardItem.getProperty("X-DAV-UID");
-                if (!uid) {
-                    abCardItem.setProperty("X-DAV-UID", tbSync.generateUUID());
-                    abCardItem.abDirectory.modify(abCardItem);
-                    return;
-                }
-            }
             case "addrbook-contact-updated":
             case "addrbook-contact-removed":
                 Services.console.logStringMessage("["+ aTopic + "] " + abCardItem.getProperty("DisplayName"));
-            break;
+                break;
+
+            case "addrbook-contact-created":
+            {
+                Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for Card <"+ abCardItem.getProperty("DisplayName")+">");
+                abCardItem.setProperty("X-DAV-UID", tbSync.generateUUID());
+                abCardItem.abDirectory.modify(abCardItem);
+                break;
+            }
         }
     },
     
@@ -508,13 +510,19 @@ var addressbook = {
         switch (aTopic) {
             case "addrbook-list-member-added":
             case "addrbook-list-member-removed":
-                Services.console.logStringMessage("["+ aTopic + "] " + abListMember.getProperty("DisplayName"));
-
-            case "addrbook-list-created": 
+                Services.console.logStringMessage("["+ aTopic + "] MemberName: " + abListMember.getProperty("DisplayName"));
+                break;
+            
             case "addrbook-list-removed":
             case "addrbook-list-updated":
-                Services.console.logStringMessage("["+ aTopic + "] " + abListItem.getProperty("ListName"));
-            break;
+                Services.console.logStringMessage("["+ aTopic + "] ListName: " + abListItem.getProperty("ListName"));
+                break;
+            
+            case "addrbook-list-created": 
+                Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for List <"+abListItem.getProperty("ListName")+">");
+                abListItem.setProperty("X-DAV-UID", tbSync.generateUUID());
+                // custom props of lists get updated directly, no need to call .modify()            
+                break;
         }
     },
     
@@ -552,7 +560,7 @@ var calendar = {
     // define a card property, which should be used for the changelog
     // basically your primary key for the abItem properties
     // UID will be used, if nothing specified
-    changeLogKey: "",
+    primaryKeyField: "",
     
     // enable or disable changelog
     logUserChanges: false,
