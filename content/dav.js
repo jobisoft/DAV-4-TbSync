@@ -114,21 +114,21 @@ function onSettingsGUILoad(window, accountID) {
     }
 };
 
-function stripHost(document, account, field) {
+function stripHost(document, accountID, field) {
     let host = document.getElementById('tbsync.accountsettings.pref.' + field).value;
     if (host.indexOf("https://") == 0) {
         host = host.replace("https://","");
         document.getElementById('tbsync.accountsettings.pref.https').checked = true;
-        tbSync.db.setAccountSetting(account, "https", "1");
+        tbSync.db.setAccountSetting(accountID, "https", true);
     } else if (host.indexOf("http://") == 0) {
         host = host.replace("http://","");
         document.getElementById('tbsync.accountsettings.pref.https').checked = false;
-        tbSync.db.setAccountSetting(account, "https", "0");
+        tbSync.db.setAccountSetting(accountID, "https", false);
     }
     
     while (host.endsWith("/")) { host = host.slice(0,-1); }        
     document.getElementById('tbsync.accountsettings.pref.' + field).value = host
-    tbSync.db.setAccountSetting(account, field, host);
+    tbSync.db.setAccountSetting(accountID, field, host);
 };
 
 
@@ -155,30 +155,6 @@ var api = {
         if (lightningIsAvail) {
             //cal.getCalendarManager().addObserver(dav.calendarManagerObserver);    
             //cal.getCalendarManager().addCalendarObserver(dav.calendarObserver);            
-        }
-        
-        //Migration - accounts without a serviceprovider setting only have a value in host
-        //is it a discovery setting (only fqdn) or a custom value?
-        let providerData = new tbSync.ProviderData("dav");
-        let allAccounts = providerData.getAllAccounts();
-        
-        for (let accountData of allAccounts) {                
-            let serviceprovider = accountData.getAccountSetting("serviceprovider");
-        
-            if (serviceprovider == "") {
-                let host = accountData.getAccountSetting("host");
-                let hostparts = host.split("/").filter(i => i != "");
-                let fqdn = hostparts.splice(0,1).toString();
-                if (hostparts.length == 0) {
-                    accountData.setAccountSetting("host", fqdn + "/.well-known/caldav");
-                    accountData.setAccountSetting("host2", fqdn + "/.well-known/carddav");
-                    accountData.setAccountSetting("serviceprovider", "discovery");
-                } else {
-                    accountData.setAccountSetting("host", fqdn + "/" + hostparts.join("/"));
-                    accountData.setAccountSetting("host2", fqdn + "/" + hostparts.join("/"));
-                    accountData.setAccountSetting("serviceprovider", "custom");
-                }
-            }
         }
     },
 
@@ -298,15 +274,14 @@ var api = {
      */
     getDefaultAccountEntries: function () {
         let row = {
-            "useCache" : "1",
-            "host" : "",            
-            "host2" : "",
+            "useCalendarCache" : true,
+            "calDavHost" : "",            
+            "cardDavHost" : "",
             "serviceprovider" : "",
             "user" : "",
-            "https" : "1",
+            "https" : true,
             "createdWithProviderVersion" : "0",
-            "syncGroups" : "0",
-            "useCardBook" : "0",
+            "syncGroups" : false,
             }; 
         return row;
     },
@@ -317,13 +292,13 @@ var api = {
      */
     getDefaultFolderEntries: function () { //TODO: shadow more standard entries
         let folder = {
-            "selected" : "",
-            "lastsynctime" : "",
+            "selected" : false,
+            "lastsynctime" : 0,
             "status" : "",
             "name" : "",
             "target" : "",
             "targetName" : "",
-            "downloadonly" : "0",
+            "downloadonly" : false,
 
             //different folders can be stored on different servers (yahoo, icloud, gmx, ...), 
             //so we need to store the fqdn information per folders
@@ -331,7 +306,7 @@ var api = {
             "fqdn" : "",
 
             "type" : "", //cladav, carddav or ics
-            "shared": "", //identify shared resources
+            "shared": false, //identify shared resources
             "acl": "", //acl send from server
             "targetColor" : "",
             "ctag" : "",
@@ -386,11 +361,11 @@ var api = {
      *
      * TbSync will execute this only for queries longer than 3 chars.
      *
-     * @param account       [in] id of the account which should be searched
+     * @param accountID       [in] id of the account which should be searched
      * @param currentQuery  [in] search query
      * @param caller        [in] "autocomplete" or "search" //TODO
      */
-    abServerSearch: async function (account, currentQuery, caller)  {
+    abServerSearch: async function (accountID, currentQuery, caller)  {
         return null;
     },
 
@@ -426,7 +401,7 @@ var api = {
                     break;
             }
 
-            if (folder.getFolderSetting("shared") == "1") {
+            if (folder.getFolderSetting("shared")) {
                 t+=100;
             }
             
@@ -480,8 +455,8 @@ var passwordAuth = {
     },
     
     getHostField4PasswordManager : function (accountData) {
-        let host = accountData.getAccountSetting("host");
-        return host ? "host" : "host2";
+        let host = accountData.getAccountSetting("calDavHost");
+        return host ? "calDavHost" : "cardDavHost";
     },
 }
 
@@ -583,11 +558,10 @@ var calendar = {
         let auth = new tbSync.PasswordAuthData(folderData.accountData);
         
         let caltype = folderData.getFolderSetting("type");
-        let downloadonly = (folderData.getFolderSetting("downloadonly") == "1");
 
         let baseUrl = "";
         if (caltype != "ics") {
-            baseUrl =  "http" + (folderData.accountData.getAccountSetting("https") == "1" ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(auth.getUsername()) + ":" + encodeURIComponent(auth.getPassword()) + "@" : "") + folderData.getFolderSetting("fqdn");
+            baseUrl =  "http" + (folderData.accountData.getAccountSetting("https") ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(auth.getUsername()) + ":" + encodeURIComponent(auth.getPassword()) + "@" : "") + folderData.getFolderSetting("fqdn");
         }
 
         let url = dav.tools.parseUri(baseUrl + folderData.getFolderSetting("href"));        
@@ -613,10 +587,10 @@ var calendar = {
             newCalendar.setProperty("user", auth.getUsername());
             newCalendar.setProperty("color", folderData.getFolderSetting("targetColor"));
             newCalendar.setProperty("calendar-main-in-composite", true);
-            newCalendar.setProperty("cache.enabled", (folderData.accountData.getAccountSetting("useCache") == "1"));
+            newCalendar.setProperty("cache.enabled", folderData.accountData.getAccountSetting("useCalendarCache"));
         }
         
-        if (downloadonly) newCalendar.setProperty("readOnly", true);
+        if (folderData.getFolderSetting("downloadonly")) newCalendar.setProperty("readOnly", true);
 
         //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
         if (!dav.prefSettings.getBoolPref("addCredentialsToUrl") && caltype != "ics") {
@@ -658,13 +632,13 @@ var standardFolderList = {
         let src = "";
         switch (folderData.getFolderSetting("type")) {
             case "carddav":
-                if (folderData.getFolderSetting("shared") == "1") {
+                if (folderData.getFolderSetting("shared")) {
                     return "chrome://tbsync/skin/contacts16_shared.png";
                 } else {
                     return "chrome://tbsync/skin/contacts16.png";
                 }
             case "caldav":
-                if (folderData.getFolderSetting("shared") == "1") {
+                if (folderData.getFolderSetting("shared")) {
                     return "chrome://tbsync/skin/calendar16_shared.png";
                 } else {
                     return "chrome://tbsync/skin/calendar16.png";

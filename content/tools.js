@@ -852,7 +852,7 @@ var tools = {
     //check if vCard is a mailinglist and handle it
     vCardIsMailingList: function (syncData, id, _list, vCard, vCardData, etag) {
         if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-KIND") && vCardData["X-ADDRESSBOOKSERVER-KIND"][0].value == "group") { 
-            if (syncData.accountData.getAccountSetting("syncGroups") != "1") {
+            if (!syncData.accountData.getAccountSetting("syncGroups")) {
                 //user did not enable group sync, so do nothing, but return true so this card does not get added as a real card
                 return true;
             }

@@ -35,7 +35,7 @@
 <!ENTITY pref.useCardBook "Create CardBook address books instead of Thunderbird's default address books">
 
 <!ENTITY pref.calendaroptions "Calendar options">
-<!ENTITY pref.useCache "Offline Support">
+<!ENTITY pref.useCalendarCache "Offline Support">
 
 <!ENTITY abCard.MiddleName "Middle:">
 <!ENTITY abCard.PrefixName "Prefix:">

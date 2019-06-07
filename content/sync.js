@@ -53,13 +53,13 @@ var sync = {
             //get server urls from account setup - update urls of serviceproviders
             let serviceprovider = syncData.accountData.getAccountSetting("serviceprovider");
             if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
-                syncData.accountData.setAccountSetting("host", dav.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
-                syncData.accountData.setAccountSetting("host2", dav.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
+                syncData.accountData.setAccountSetting("calDavHost", dav.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
+                syncData.accountData.setAccountSetting("cardDavHost", dav.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
             }
 
             let davjobs = {
-                cal : {server: syncData.accountData.getAccountSetting("host")},
-                card : {server: syncData.accountData.getAccountSetting("host2")},
+                cal : {server: syncData.accountData.getAccountSetting("calDavHost")},
+                card : {server: syncData.accountData.getAccountSetting("cardDavHost")},
             };
             
             for (let job in davjobs) {
@@ -212,9 +212,9 @@ var sync = {
                                 folderData.setFolderSetting("href", href);
                                 folderData.setFolderSetting("name", name);
                                 folderData.setFolderSetting("type", resourcetype);
-                                folderData.setFolderSetting("shared", (own.includes(home[h])) ? "0" : "1");
+                                folderData.setFolderSetting("shared", !own.includes(home[h]));
                                 folderData.setFolderSetting("acl", acl.toString());
-                                folderData.setFolderSetting("downloadonly", (acl == 0x1) ? "1" : "0"); //if any write access is granted, setup as writeable
+                                folderData.setFolderSetting("downloadonly", (acl == 0x1)); //if any write access is granted, setup as writeable
 
                                 //we assume the folder has the same fqdn as the homeset, otherwise href must contain the full URL and the fqdn is ignored
                                 folderData.setFolderSetting("fqdn", syncData.connectionData.fqdn);
@@ -225,7 +225,6 @@ var sync = {
                                     // copy fields from cache which we want to re-use
                                     folderData.setFolderSetting("targetColor", cachedFolderData.getFolderSetting("targetColor"));
                                     folderData.setFolderSetting("targetName", cachedFolderData.getFolderSetting("targetName"));
-                                    let cachedDownloadOnly = cachedFolderData.getFolderSetting("downloadonly");
                                     //if we have only READ access, do not restore cached value for downloadonly
                                     if (acl > 0x1) folderData.setFolderSetting("downloadonly", cachedFolderData.getFolderSetting("downloadonly"));
                                 }
@@ -236,7 +235,7 @@ var sync = {
                                 folderData.setFolderSetting("acl", acl);
                                 //if the acl changed from RW to RO we need to update the downloadonly setting
                                 if (acl == 0x1) {
-                                    folderData.setFolderSetting("downloadonly", "1");
+                                    folderData.setFolderSetting("downloadonly", true);
                                 }
                             }
 
@@ -316,7 +315,7 @@ var sync = {
                 case "ics":
                     {
                         //update downloadonly
-                        if (syncData.currentFolderData.getFolderSetting("downloadonly") == "1") syncData.target.setProperty("readOnly", true);
+                        if (syncData.currentFolderData.getFolderSetting("downloadonly")) syncData.target.setProperty("readOnly", true);
 
                         //init sync via lightning
                         syncData.target.refresh();
@@ -344,7 +343,7 @@ var sync = {
 
 
     singleFolder: async function (syncData)  {
-        let downloadonly = (syncData.currentFolderData.getFolderSetting("downloadonly") == "1");
+        let downloadonly = syncData.currentFolderData.getFolderSetting("downloadonly");
         
         await dav.sync.remoteChanges(syncData);
         let numOfLocalChanges = await dav.sync.localChanges(syncData);
@@ -625,8 +624,7 @@ var sync = {
         syncData.setSyncState("eval.response.remotechanges");		
         await tbSync.tools.sleep(200, false);
     
-        let syncGroups = (syncData.accountData.getAccountSetting("syncGroups") == "1");
-        if (syncGroups) {
+        if (syncData.accountData.getAccountSetting("syncGroups")) {
             // Mailinglists, we need to do that at the very end so all member data is avail.
             for (let listID in syncData.foundMailingListsDuringDownSync) {
                 if (syncData.foundMailingListsDuringDownSync.hasOwnProperty(listID)) {
@@ -646,23 +644,18 @@ var sync = {
                      
                     // The new list from the server is taken.
                     let newMembers = vCardInfo.members;
-        Services.console.logStringMessage("[1] " + newMembers.toString());
                     
                     // Any member in current but not in new is added.
                     for (let member of currentMembers) {
                         if (!newMembers.includes(member) && !removedMembers.includes(member)) 
                             newMembers.push(member);
                     }
-        Services.console.logStringMessage("[2] " + newMembers.toString());
 
                     // Remove local deletes.
                     for (let member of oCardInfo.members) {
                         if (!currentMembers.includes(member)) 
                             newMembers = newMembers.filter(e => e != member);
                     }
-                    
-                    //let addedMembers = vCardInfo.members.filter(e => !oCardInfo.members.includes(e));
-        Services.console.logStringMessage("[3] " + newMembers.toString());
                     
                     list.setMembersByPropertyList("X-DAV-UID", newMembers);
                 }
@@ -699,7 +692,7 @@ var sync = {
         //define how many entries can be send in one request
         let maxitems = dav.prefSettings.getIntPref("maxitems");
 
-        let downloadonly = (syncData.currentFolderData.getFolderSetting("downloadonly") == "1");
+        let downloadonly = syncData.currentFolderData.getFolderSetting("downloadonly");
 
         let permissionErrors = 0;
         let permissionError = { //keep track of permission errors - preset with downloadonly status to skip sync in that case
@@ -708,8 +701,8 @@ var sync = {
             "deleted_by_user": downloadonly
         }; 
         
-        let syncGroups = (syncData.accountData.getAccountSetting("syncGroups") == "1");
-        if (syncGroups && 1==2) {
+        let syncGroups = syncData.accountData.getAccountSetting("syncGroups");
+        if (syncGroups) {
             //special handling of lists/groups
             //ADD/MOD of the list cards itself is not detectable, we only detect the change of its member cards when membership changes
             //DEL is handled like a normal card, no special handling needed        
@@ -731,7 +724,7 @@ var sync = {
                     }
                 } else {
                     //that listcard has no id yet (because the general TbSync addressbook listener cannot catch it)
-                    let folder = tbSync.db.getFolder(syncData.account, syncData.folderID); //M种种諴
+                    let folder = tbSync.db.getFolder(syncData.accountID, syncData.folderID); //M种种諴
                     mailListCardId = dav.getNewCardID(mailListCard, folder);
                     mailListCard.setProperty("X-DAV-HREF", mailListCardId);                
                     tbSync.db.addItemToChangeLog(syncData.currentFolderData.getFolderSetting("target"), mailListCardId, "added_by_user");

@@ -40,15 +40,15 @@
                         
                         <row>
                             <vbox pack="center">
-                                <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CalDavServer;" />
+                                <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.calDavHost" value="&pref.CalDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.host"  onblur="tbSync.providers.dav.stripHost(document, tbSyncAccountSettings.accountID, 'host');"/>
+                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.calDavHost"  onblur="tbSync.providers.dav.stripHost(document, tbSyncAccountSettings.accountID, 'calDavHost');"/>
                         </row>
                         <row>
                             <vbox pack="center">
-                                <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CardDavServer;" />
+                                <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.cardDavHost" value="&pref.CardDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.host2" onblur="tbSync.providers.dav.stripHost(document, tbSyncAccountSettings.accountID, 'host2');" />
+                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.cardDavHost" onblur="tbSync.providers.dav.stripHost(document, tbSyncAccountSettings.accountID, 'cardDavHost');" />
                         </row>
                         <row>
                             <hbox/>
@@ -82,7 +82,7 @@
 
                 <label style="margin-left:0; margin-bottom: 1ex; margin-top: 3ex" class="header lockIfConnected" value="&pref.calendaroptions;"/>
                 <vbox>                            
-                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useCache" label="&pref.useCache;" />
+                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useCalendarCache" label="&pref.useCalendarCache;" />
                 </vbox>
 
                 <vbox flex="1" />

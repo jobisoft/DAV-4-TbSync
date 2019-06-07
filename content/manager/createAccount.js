@@ -199,7 +199,7 @@ var tbSyncDavNewAccount = {
         }
 
         //HTTP or HTTPS? Default to https, if http is not explicitly specified
-        this.newAccountInfo.https = (this.newAccountInfo.caldavserver.toLowerCase().substring(0,7) == "http://") ? "0" : "1";
+        this.newAccountInfo.https = !(this.newAccountInfo.caldavserver.toLowerCase().substring(0,7) == "http://");
         this.newAccountInfo.caldavserver = this.newAccountInfo.caldavserver.replace("https://","").replace("http://","");
         this.newAccountInfo.carddavserver = this.newAccountInfo.carddavserver.replace("https://","").replace("http://","");
 
@@ -225,7 +225,7 @@ var tbSyncDavNewAccount = {
             connectionData.errorOwnerData = new tbSync.ErrorOwnerData("dav", accountname);
 
             //build full url, so we do not need fqdn
-            let url = "http" + (connectionData.https == "1" ? "s" : "") + "://" + davjobs[job].server;
+            let url = "http" + (connectionData.https ? "s" : "") + "://" + davjobs[job].server;
             
             try {
                 let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", url , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return-minimal"});
@@ -292,8 +292,8 @@ var tbSyncDavNewAccount = {
 
         newAccountEntry.https = newAccountInfo.https
         newAccountEntry.serviceprovider = newAccountInfo.serviceprovider;
-        newAccountEntry.host = newAccountInfo.caldavserver;
-        newAccountEntry.host2 = newAccountInfo.carddavserver;
+        newAccountEntry.calDavHost = newAccountInfo.caldavserver;
+        newAccountEntry.cardDavHost = newAccountInfo.carddavserver;
     
         // add the new account
         let newAccountData = this.providerData.addAccount(accountname, newAccountEntry);

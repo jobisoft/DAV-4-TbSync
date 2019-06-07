@@ -159,7 +159,7 @@ var network = {
  
     sendRequest: async function (requestData, path, method, connectionData, headers = {}, options = {softfail: []}, aUseStreamLoader = true) {            
         //path could be absolute or relative, we may need to rebuild the full url
-        let url = (path.startsWith("http://") || path.startsWith("https://")) ? path : "http" + (connectionData.https == "1" ? "s" : "") + "://" + connectionData.fqdn + path;
+        let url = (path.startsWith("http://") || path.startsWith("https://")) ? path : "http" + (connectionData.https ? "s" : "") + "://" + connectionData.fqdn + path;
 
         //a few bugs in TB and in client implementations require to retry a connection on certain failures
         for (let i=1; i < 5; i++) { //max number of retries
@@ -185,7 +185,7 @@ var network = {
                 }
 
                 //there might have been a redirect, rebuild url
-                url = "http" + (connectionData.https == "1" ? "s" : "") + "://" + connectionData.fqdn + r.path;
+                url = "http" + (connectionData.https ? "s" : "") + "://" + connectionData.fqdn + r.path;
             } else {
                 return r;
             }
@@ -280,7 +280,7 @@ var network = {
                     
                     //Redirected? Update connection settings from current URL
                     if (aChannel.URI) {
-                        let newHttps = (aChannel.URI.scheme == "https") ? "1" : "0";
+                        let newHttps = (aChannel.URI.scheme == "https");
                         if (connectionData.https != newHttps) {
                             tbSync.dump("Updating HTTPS", connectionData.https + " -> " + newHttps);
                             connectionData.https = newHttps;

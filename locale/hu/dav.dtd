@@ -35,7 +35,7 @@
 <!ENTITY pref.useCardBook "A Thunderbird alapértelmezett címjegyzéke helyett hozzon létre CardBook címjegyzékeket">
 
 <!ENTITY pref.calendaroptions "Naptár beállításai">
-<!ENTITY pref.useCache "Kapcsolat nélküli munka">
+<!ENTITY pref.useCalendarCache "Kapcsolat nélküli munka">
 
 <!ENTITY abCard.MiddleName "Egyéb név:">
 <!ENTITY abCard.PrefixName "előtagja:">
