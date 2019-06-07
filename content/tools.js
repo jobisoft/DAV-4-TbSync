@@ -867,7 +867,6 @@ var tools = {
                 list.setProperty("ListName",  vCardInfo.name);
                 syncData.target.add(list);
             }
-
             
             //get original vCardData from last server contact, needed for "smart merge" on changes on both sides
             let oCardData = dav.vCard.parse(list.getProperty("X-DAV-VCARD"));
@@ -1453,34 +1452,34 @@ var tools = {
     
     //build group card
     getVCardFromThunderbirdListCard: function(syncData, card, generateUID = false) {
-        let cardID  = card.getProperty("X-DAV-HREF");
-        let currentCard = card.getProperty("X-DAV-VCARD").trim();
-        let vCardData = dav.vCard.parse(currentCard);
+        // may not exist
+        let cardID = card.getProperty("X-DAV-HREF");
         
+        let currentCard = card.getProperty("X-DAV-VCARD").trim();
+        let vCardData = dav.vCard.parse(currentCard);        
+        let members = list.getMembersPropertyList("X-DAV-UID");
+
         if (!vCardData.hasOwnProperty("version")) vCardData["version"] = [{"value": "3.0"}];
 
-        vCardData["fn"] = [{"value": syncData.foundMailingListsDuringUpSync[cardID].name}];
-        vCardData["n"] = [{"value": syncData.foundMailingListsDuringUpSync[cardID].name}];
+        vCardData["fn"] = [{"value": list.getProperty("ListName")}];
+        vCardData["n"] = [{"value": list.getProperty("ListName")}];
         vCardData["X-ADDRESSBOOKSERVER-KIND"] = [{"value": "group"}];
 
-        if (generateUID) {
-            //add required UID, it is not used for maillist 
-            vCardData["uid"] = [{"value": tbSync.generateUUID()}];
+        if (generateUID && !card.getProperty("X-DAV-UID")) {
+            Services.console.logStringMessage("[generateUID] LIST !!!");
+            // the UID differs from the href/X-DAV-HREF (following the specs)
+            let uid = tbSync.generateUUID();
+            card.setProperty("X-DAV-UID", uid);
+            syncData.target.modify(card);
+            vCardData["uid"] = [{"value": uid}];
         }
         
         //build memberlist from scratch  
         vCardData["X-ADDRESSBOOKSERVER-MEMBER"]=[];
-        for (let i=0; i < syncData.foundMailingListsDuringUpSync[cardID].members.length; i++) {
-            //the X-DAV-UID differs from X-DAV-HREF (following the specs)
-            let memberCard = syncData.target.getItemFromProperty("X-DAV-HREF", syncData.foundMailingListsDuringUpSync[cardID].members[i]);
-            let uid = memberCard.getProperty("X-DAV-UID");
-            if (!uid) {
-                uid = tbSync.generateUUID();
-                memberCard.setProperty("X-DAV-UID", uid);
-                //this card has added_by_user status and thus this mod will not trigger a UI notification
-                syncData.target.modify(memberCard);
-            }
-            vCardData["X-ADDRESSBOOKSERVER-MEMBER"].push({"value": "urn:uuid:" + uid});
+        for (let member of members) {
+            // member has the UID (X-DAV-UID) of each member
+            Services.console.logStringMessage("[member] " + member);
+            vCardData["X-ADDRESSBOOKSERVER-MEMBER"].push({"value": "urn:uuid:" + member});
         }
         
         let newCard = dav.vCard.generate(vCardData).trim();
@@ -1612,11 +1611,11 @@ var tools = {
             }
         }
 
-        if (generateUID) {
-            //the UID differs from the href/X-DAV-HREF (following the specs)
+        if (generateUID && !card.getProperty("X-DAV-UID")) {
+            Services.console.logStringMessage("[generateUID] CARD !!!");
+            // the UID differs from the href/X-DAV-HREF (following the specs)
             let uid = tbSync.generateUUID();
             card.setProperty("X-DAV-UID", uid);
-            //this card has added_by_user status and thus this mod will not trigger a UI notification
             syncData.target.modify(card);
             vCardData["uid"] = [{"value": uid}];
         }

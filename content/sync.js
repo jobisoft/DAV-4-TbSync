@@ -624,8 +624,8 @@ var sync = {
         syncData.setSyncState("eval.response.remotechanges");		
         await tbSync.tools.sleep(200, false);
     
+        // On down sync, mailinglists need to be done at the very end so all member data is avail.
         if (syncData.accountData.getAccountSetting("syncGroups")) {
-            // Mailinglists, we need to do that at the very end so all member data is avail.
             for (let listID in syncData.foundMailingListsDuringDownSync) {
                 if (syncData.foundMailingListsDuringDownSync.hasOwnProperty(listID)) {
                     let list = syncData.target.getItemFromProperty("X-DAV-HREF", listID);
@@ -686,9 +686,6 @@ var sync = {
 
 
     localChanges: async function (syncData) {
-        //keep track of found mailing lists and its members
-        syncData.foundMailingListsDuringUpSync = {};
-
         //define how many entries can be send in one request
         let maxitems = dav.prefSettings.getIntPref("maxitems");
 
@@ -702,36 +699,6 @@ var sync = {
         }; 
         
         let syncGroups = syncData.accountData.getAccountSetting("syncGroups");
-        if (syncGroups) {
-            //special handling of lists/groups
-            //ADD/MOD of the list cards itself is not detectable, we only detect the change of its member cards when membership changes
-            //DEL is handled like a normal card, no special handling needed        
-            let result = MailServices.ab.getDirectory(syncData.target.URI +  "?(or(IsMailList,=,TRUE))").childCards;
-            while (result.hasMoreElements()) {
-                let mailListCard = result.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-                let mailListInfo = dav.tools.getGroupInfoFromList(mailListCard.mailListURI);           
-
-                let mailListCardId = mailListCard.getProperty("X-DAV-HREF");
-                if (mailListCardId) {
-                    //get old data from vCard to find changes
-                    let oCardInfo = dav.tools.getGroupInfoFromCardData(dav.vCard.parse(mailListCard.getProperty("X-DAV-VCARD")), syncData.target);            
-                    
-                    let addedMembers = mailListInfo.members.filter(e => !oCardInfo.members.includes(e));
-                    let removedMembers = oCardInfo.members.filter(e => !mailListInfo.members.includes(e));
-                    
-                    if (oCardInfo.name != mailListInfo.name || addedMembers.length > 0 || removedMembers.length > 0) {
-                        tbSync.db.addItemToChangeLog(syncData.currentFolderData.getFolderSetting("target"), mailListCardId, "modified_by_user");
-                    }
-                } else {
-                    //that listcard has no id yet (because the general TbSync addressbook listener cannot catch it)
-                    let folder = tbSync.db.getFolder(syncData.accountID, syncData.folderID); //MÖÖÖÖÖP
-                    mailListCardId = dav.getNewCardID(mailListCard, folder);
-                    mailListCard.setProperty("X-DAV-HREF", mailListCardId);                
-                    tbSync.db.addItemToChangeLog(syncData.currentFolderData.getFolderSetting("target"), mailListCardId, "added_by_user");
-                }
-                syncData.foundMailingListsDuringUpSync[mailListCardId] = mailListInfo;
-            }
-        }
         
         //access changelog to get local modifications (done and todo are used for UI to display progress)
         syncData.progressData.reset(0, syncData.target.getItemsFromChangeLog().length);

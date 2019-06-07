@@ -450,13 +450,16 @@ var api = {
 
 // this provider is using the default authPrompt, so it must implement passwordAuth
 var passwordAuth = {    
-    getUserField4PasswordManager : function (accountData) {
-        return "user";
+    getUsername : function (accountData) {
+        return accountData.getAccountSetting("user");
     },
     
-    getHostField4PasswordManager : function (accountData) {
-        let host = accountData.getAccountSetting("calDavHost");
-        return host ? "calDavHost" : "cardDavHost";
+    setUsername : function (accountData, newUserName) {
+        accountData.setAccountSetting("user", newUserName);
+    },
+
+    getHost : function (accountData) {
+        return accountData.getAccountSetting("calDavHost") ? accountData.getAccountSetting("calDavHost") : accountData.getAccountSetting("cardDavHost");
     },
 }
 
@@ -485,6 +488,15 @@ var addressbook = {
     cardObserver: function (aTopic, folderData, abCardItem) {
         switch (aTopic) {
             case "addrbook-contact-created":
+            {
+                // Each new card needs a X-DAV-UID for local id (mailing lists)
+                let uid = abCardItem.getProperty("X-DAV-UID");
+                if (!uid) {
+                    abCardItem.setProperty("X-DAV-UID", tbSync.generateUUID());
+                    abCardItem.abDirectory.modify(abCardItem);
+                    return;
+                }
+            }
             case "addrbook-contact-updated":
             case "addrbook-contact-removed":
                 Services.console.logStringMessage("["+ aTopic + "] " + abCardItem.getProperty("DisplayName"));
