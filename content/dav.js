@@ -500,6 +500,7 @@ var addressbook = {
             {
                 //Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for Card <"+ abCardItem.getProperty("DisplayName")+">");
                 abCardItem.setProperty("X-DAV-UID", tbSync.generateUUID());
+                // the card is tagged with "_by_user" so it will not be changed to "_by_server" by the following modify
                 abCardItem.abDirectory.modify(abCardItem);
                 break;
             }
