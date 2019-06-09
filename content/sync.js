@@ -350,7 +350,7 @@ var sync = {
 
         //revert all local changes on permission error by doing a clean sync
         if (numOfLocalChanges < 0) {
-            dav.onResetTarget(syncData);
+            dav.api.onResetTarget(syncData.currentFolderData);
             await dav.sync.remoteChanges(syncData);
 
             if (!downloadonly) throw dav.sync.failed("info.restored");
@@ -381,7 +381,7 @@ var sync = {
             if (tokenSyncSucceeded) return;
 
             //token sync failed, reset ctag and token and do a full sync
-            dav.onResetTarget(syncData);
+            dav.api.onResetTarget(syncData.currentFolderData);
         }
 
         //Either token sync did not work or there is no token (initial sync)
@@ -728,7 +728,7 @@ var sync = {
                                                         ? dav.tools.getVCardFromThunderbirdListCard(syncData, card, isAdding)
                                                         : dav.tools.getVCardFromThunderbirdContactCard(syncData, card, isAdding);
                                     let headers = {"Content-Type": "text/vcard; charset=utf-8"};
-                                    //if (!isAdding) options["If-Match"] = vcard.etag;
+                                    //if (!isAdding) headers["If-Match"] = vcard.etag;
 
                                     syncData.setSyncState("send.request.localchanges");
                                     if (isAdding || vcard.modified) {
@@ -747,7 +747,7 @@ var sync = {
 
                             if (permissionError[changes[i].status]) {
                                 //we where not allowed to add or modify that card, remove it, we will get a fresh copy on the following revert
-                                syncData.target.remove(card);
+                                if (changes[i].card) syncData.target.remove(changes[i].card);
                                 permissionErrors++;
                             }
                         }

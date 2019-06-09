@@ -484,7 +484,7 @@ var addressbook = {
         switch (aTopic) {
             case "addrbook-removed":
             case "addrbook-updated":
-                Services.console.logStringMessage("["+ aTopic + "] " + folderData.getFolderSetting("name"));
+                //Services.console.logStringMessage("["+ aTopic + "] " + folderData.getFolderSetting("name"));
                 break;
         }
     },
@@ -493,12 +493,12 @@ var addressbook = {
         switch (aTopic) {
             case "addrbook-contact-updated":
             case "addrbook-contact-removed":
-                Services.console.logStringMessage("["+ aTopic + "] " + abCardItem.getProperty("DisplayName"));
+                //Services.console.logStringMessage("["+ aTopic + "] " + abCardItem.getProperty("DisplayName"));
                 break;
 
             case "addrbook-contact-created":
             {
-                Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for Card <"+ abCardItem.getProperty("DisplayName")+">");
+                //Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for Card <"+ abCardItem.getProperty("DisplayName")+">");
                 abCardItem.setProperty("X-DAV-UID", tbSync.generateUUID());
                 abCardItem.abDirectory.modify(abCardItem);
                 break;
@@ -510,16 +510,16 @@ var addressbook = {
         switch (aTopic) {
             case "addrbook-list-member-added":
             case "addrbook-list-member-removed":
-                Services.console.logStringMessage("["+ aTopic + "] MemberName: " + abListMember.getProperty("DisplayName"));
+                //Services.console.logStringMessage("["+ aTopic + "] MemberName: " + abListMember.getProperty("DisplayName"));
                 break;
             
             case "addrbook-list-removed":
             case "addrbook-list-updated":
-                Services.console.logStringMessage("["+ aTopic + "] ListName: " + abListItem.getProperty("ListName"));
+                //Services.console.logStringMessage("["+ aTopic + "] ListName: " + abListItem.getProperty("ListName"));
                 break;
             
             case "addrbook-list-created": 
-                Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for List <"+abListItem.getProperty("ListName")+">");
+                //Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for List <"+abListItem.getProperty("ListName")+">");
                 abListItem.setProperty("X-DAV-UID", tbSync.generateUUID());
                 // custom props of lists get updated directly, no need to call .modify()            
                 break;

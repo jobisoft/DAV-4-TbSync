@@ -864,8 +864,12 @@ var tools = {
             if (!list) {
                 list  = syncData.target.createNewList();
                 list.setProperty("X-DAV-HREF", id);
+                list.setProperty("X-DAV-UID", id);
                 list.setProperty("ListName",  vCardInfo.name);
                 syncData.target.add(list);
+            } else {
+                list.setProperty("ListName",  vCardInfo.name);
+                syncData.target.modify(list);
             }
             
             //get original vCardData from last server contact, needed for "smart merge" on changes on both sides
@@ -875,7 +879,9 @@ var tools = {
 
             //update properties
             list.setProperty("X-DAV-ETAG", etag.textContent);
-            list.setProperty("X-DAV-VCARD", vCard);            
+            list.setProperty("X-DAV-VCARD", vCard);      
+            list.setProperty("ListName",  vCardInfo.name);
+            
             // AbCard implementation: Custom properties of lists are updated instantly, no need to call target.modify(list);
             return true;
 
@@ -1453,7 +1459,8 @@ var tools = {
     //build group card
     getVCardFromThunderbirdListCard: function(syncData, list, generateUID = false) {        
         let currentCard = list.getProperty("X-DAV-VCARD").trim();
-        let vCardData = dav.vCard.parse(currentCard);        
+        let cCardData = dav.vCard.parse(currentCard);
+        let vCardData = dav.vCard.parse(currentCard);
         let members = list.getMembersPropertyList("X-DAV-UID");
 
         if (!vCardData.hasOwnProperty("version")) vCardData["version"] = [{"value": "3.0"}];
@@ -1462,7 +1469,7 @@ var tools = {
         vCardData["n"] = [{"value": list.getProperty("ListName", "Unlabled List")}];
         vCardData["X-ADDRESSBOOKSERVER-KIND"] = [{"value": "group"}];
 
-        let uid = list.getProperty("X-DAV-UID");
+        /*let uid = list.getProperty("X-DAV-UID");
         if (!uid) {
             Services.console.logStringMessage("[generate UID ("+generateUID+")] LIST ("+uid+") !!!");
             // the UID differs from the href/X-DAV-HREF (following the specs)
@@ -1481,7 +1488,7 @@ var tools = {
             list.setProperty("X-DAV-HREF", href);
             //not needed for lists
             //syncData.target.modify(list);
-        }
+        }*/
 
         //build memberlist from scratch  
         vCardData["X-ADDRESSBOOKSERVER-MEMBER"]=[];
@@ -1489,9 +1496,18 @@ var tools = {
             // member has the UID (X-DAV-UID) of each member
             vCardData["X-ADDRESSBOOKSERVER-MEMBER"].push({"value": "urn:uuid:" + member});
         }
-        
+
         let newCard = dav.vCard.generate(vCardData).trim();
-        return {data: newCard, etag: list.getProperty("X-DAV-ETAG"), modified: (currentCard != newCard)};
+        let oldCard = dav.vCard.generate(cCardData).trim();
+
+        let modified = false;
+        if (oldCard != newCard) {
+            tbSync.dump("List has been modified!","");
+            tbSync.dump("currentCard", oldCard);
+            tbSync.dump("newCard", newCard);
+            modified = true;
+        }        
+        return {data: newCard, etag: list.getProperty("X-DAV-ETAG"), modified: modified};
     },
 
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
@@ -1620,7 +1636,9 @@ var tools = {
         }
 
         let cardHasBeenModified = false;
-        let uid = card.getProperty("X-DAV-UID");
+        //THE X-DAV-UID prop is not important, the actual prop in the vcard (uid) is, is there a valid one?
+        
+        /* let uid = card.getProperty("X-DAV-UID");
         if (!uid) {
             Services.console.logStringMessage("[generate UID] CARD !!!");
             // the UID differs from the href/X-DAV-HREF (following the specs)
@@ -1638,7 +1656,7 @@ var tools = {
             card.setProperty("X-DAV-HREF", href);
             cardHasBeenModified = true;        
         }        
-        
+        */
         if (cardHasBeenModified)
             syncData.target.modify(card);
 
