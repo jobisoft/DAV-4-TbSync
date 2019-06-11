@@ -538,14 +538,9 @@ var sync = {
 
             //FIND DELETES: loop over current addressbook and check each local card if it still exists on the server
             let vCardsDeletedOnServer = [];
-            cards = syncData.target.childCards;
             let localAdditions = syncData.target.getAddedItemsFromChangeLog();
-            while (true) {
-                let more = false;
-                try { more = cards.hasMoreElements() } catch (ex) {}
-                if (!more) break;
-
-                let card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+            let allItems = syncData.target.getAllItems()
+            for (let card of allItems) {
                 let id = card.getProperty("X-DAV-HREF");
                 if (id && !vCardsFoundOnServer.includes(id) && !localAdditions.includes(id)) {
                     //delete request from server

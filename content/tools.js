@@ -880,7 +880,6 @@ var tools = {
             //update properties
             list.setProperty("X-DAV-ETAG", etag.textContent);
             list.setProperty("X-DAV-VCARD", vCard);      
-            list.setProperty("ListName",  vCardInfo.name);
             
             // AbCard implementation: Custom properties of lists are updated instantly, no need to call target.modify(list);
             return true;
@@ -1465,30 +1464,29 @@ var tools = {
 
         if (!vCardData.hasOwnProperty("version")) vCardData["version"] = [{"value": "3.0"}];
 
-        vCardData["fn"] = [{"value": list.getProperty("ListName", "Unlabled List")}];
-        vCardData["n"] = [{"value": list.getProperty("ListName", "Unlabled List")}];
+        let listName = list.getProperty("ListName", "Unlabled List");
+        vCardData["fn"] = [{"value": listName}];
+        vCardData["n"] = [{"value": listName}];
         vCardData["X-ADDRESSBOOKSERVER-KIND"] = [{"value": "group"}];
 
-        /*let uid = list.getProperty("X-DAV-UID");
-        if (!uid) {
-            Services.console.logStringMessage("[generate UID ("+generateUID+")] LIST ("+uid+") !!!");
-            // the UID differs from the href/X-DAV-HREF (following the specs)
-            uid = tbSync.generateUUID();
+        // check UID status
+        let uidProp = list.getProperty("X-DAV-UID");
+        let uidItem = ""; try { uidItem = vCardData["uid"][0].value; } catch (e) {}
+        if (!uidItem && !uidProp) {
+            tbSync.errorlog.add("info", syncData.errorOwnerData, "Generated missing UID for list <"+listName+">");
+            let uid = tbSync.generateUUID();
             list.setProperty("X-DAV-UID", uid);
-            //not needed for lists
-            //syncData.target.modify(list);
+            vCardData["uid"] = [{"value": uid}];
+        } else if (!uidItem && uidProp) {
+            vCardData["uid"] = [{"value": uidProp}];
+            tbSync.errorlog.add("info", syncData.errorOwnerData, "Updating item uid from uid property for list <"+listName+">", JSON.stringify({uidProp, uidItem}));
+        } else if (uidItem && !uidProp) {
+            list.setProperty("X-DAV-UID", uidItem);
+            tbSync.errorlog.add("info", syncData.errorOwnerData, "Updating uid property from item uid of list <"+listName+">", JSON.stringify({uidProp, uidItem}));
+        } else if (uidItem != uidProp) {
+            list.setProperty("X-DAV-UID", uidItem);
+            tbSync.errorlog.add("info", syncData.errorOwnerData, "Updating uid property from item uid of list <"+listName+">", JSON.stringify({uidProp, uidItem}));
         }
-        vCardData["uid"] = [{"value": uid}];
-        
-        let href = list.getProperty("X-DAV-HREF");
-        if (!href) {
-            Services.console.logStringMessage("[generate HREF] LIST !!!");
-            // the UID differs from the href/X-DAV-HREF (following the specs)
-            href = syncData.currentFolderData.getFolderSetting("href") + tbSync.generateUUID() + ".vcf";
-            list.setProperty("X-DAV-HREF", href);
-            //not needed for lists
-            //syncData.target.modify(list);
-        }*/
 
         //build memberlist from scratch  
         vCardData["X-ADDRESSBOOKSERVER-MEMBER"]=[];
@@ -1635,31 +1633,27 @@ var tools = {
             }
         }
 
-        let cardHasBeenModified = false;
-        //THE X-DAV-UID prop is not important, the actual prop in the vcard (uid) is, is there a valid one?
-        
-        /* let uid = card.getProperty("X-DAV-UID");
-        if (!uid) {
-            Services.console.logStringMessage("[generate UID] CARD !!!");
-            // the UID differs from the href/X-DAV-HREF (following the specs)
-            uid = tbSync.generateUUID();
+        // check UID status
+        let uidProp = card.getProperty("X-DAV-UID");
+        let uidItem = ""; try { uidItem = vCardData["uid"][0].value; } catch (e) {}
+        if (!uidItem && !uidProp) {
+            tbSync.errorlog.add("info", syncData.errorOwnerData, "Generated missing UID for card <"+listName+">");
+            let uid = tbSync.generateUUID();
             card.setProperty("X-DAV-UID", uid);
-            cardHasBeenModified = true;
-        }
-        vCardData["uid"] = [{"value": uid}];
-        
-        let href = card.getProperty("X-DAV-HREF");
-        if (!href) {
-            Services.console.logStringMessage("[generate HREF] CARD !!!");
-            // the UID differs from the href/X-DAV-HREF (following the specs)
-            href = syncData.currentFolderData.getFolderSetting("href") + tbSync.generateUUID() + ".vcf";
-            card.setProperty("X-DAV-HREF", href);
-            cardHasBeenModified = true;        
-        }        
-        */
-        if (cardHasBeenModified)
+            vCardData["uid"] = [{"value": uid}];
             syncData.target.modify(card);
-
+        } else if (!uidItem && uidProp) {
+            vCardData["uid"] = [{"value": uidProp}];
+            tbSync.errorlog.add("info", syncData.errorOwnerData, "Updating item uid from uid property for card <"+listName+">", JSON.stringify({uidProp, uidItem}));
+        } else if (uidItem && !uidProp) {
+            card.setProperty("X-DAV-UID", uidItem);
+            tbSync.errorlog.add("info", syncData.errorOwnerData, "Updating uid property from item uid of card <"+listName+">", JSON.stringify({uidProp, uidItem}));
+            syncData.target.modify(card);
+        } else if (uidItem != uidProp) {
+            card.setProperty("X-DAV-UID", uidItem);
+            tbSync.errorlog.add("info", syncData.errorOwnerData, "Updating uid property from item uid of card <"+listName+">", JSON.stringify({uidProp, uidItem}));
+            syncData.target.modify(card);
+        }
 
         //add required fields
         if (!vCardData.hasOwnProperty("version")) vCardData["version"] = [{"value": "3.0"}];
