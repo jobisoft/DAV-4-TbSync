@@ -8,8 +8,10 @@
 ]>
 <overlay 
     id="tbSyncAccountConfig" 
-    oninject="tbSync.providers.dav.onSettingsGUILoad(window, tbSyncAccountSettings.accountID);"
+    oninject="tbSyncDavEditAccount.onSettingsGUILoad(window, tbSyncAccountSettings.accountID);"
     xmlns:html="http://www.w3.org/1999/xhtml">
+
+  <script type="application/javascript" src="chrome://dav4tbsync/content/manager/editAccountOverlay.js"/>
 
     <tab id="manager.tabs.accountsettings" label="&manager.tabs.accountsettings;" appendto="manager.tabs" />
     <tab id="manager.tabs.syncsettings" label="&manager.tabs.syncsettings;" appendto="manager.tabs" />
@@ -42,13 +44,13 @@
                             <vbox pack="center">
                                 <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.calDavHost" value="&pref.CalDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.calDavHost"  onblur="tbSync.providers.dav.stripHost(document, tbSyncAccountSettings.accountID, 'calDavHost');"/>
+                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.calDavHost"  onblur="tbSyncDavEditAccount.stripHost(document, tbSyncAccountSettings.accountID, 'calDavHost');"/>
                         </row>
                         <row>
                             <vbox pack="center">
                                 <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.cardDavHost" value="&pref.CardDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.cardDavHost" onblur="tbSync.providers.dav.stripHost(document, tbSyncAccountSettings.accountID, 'cardDavHost');" />
+                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.cardDavHost" onblur="tbSyncDavEditAccount.stripHost(document, tbSyncAccountSettings.accountID, 'cardDavHost');" />
                         </row>
                         <row>
                             <hbox/>

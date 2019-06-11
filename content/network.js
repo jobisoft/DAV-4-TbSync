@@ -11,7 +11,7 @@
 var network = {
 
     ConnectionData: class {
-        constructor(syncData) {            
+        constructor(data) {            
             this._password = "";
             this._user = "";
             this._https = "";
@@ -23,18 +23,42 @@ var network = {
             //for error logging
             this._errorOwnerData = null;
             
-            if (syncData) {
-                let auth = new tbSync.PasswordAuthData(syncData.accountData);
+            //typof syncdata?
+            let folderData = null;
+            let accountData = null;            
+            
+            if (data instanceof tbSync.SyncData) {
+                folderData = data.currentFolderData;
+                accountData = data.accountData;
+                this._errorOwnerData = data.errorOwnerData;                
+            } else if (data instanceof tbSync.FolderData) {
+                folderData = data;
+                accountData = data.accountData;
+                this._errorOwnerData =  new tbSync.ErrorOwnerData(
+                    accountData.getAccountSetting("provider"),
+                    accountData.getAccountSetting("accountname"),
+                    accountData.accountID,
+                    folderData.getFolderSetting("name"));
+            } else if (data instanceof tbSync.AccountData) {
+                accountData = data;
+                this._errorOwnerData =  new tbSync.ErrorOwnerData(
+                    accountData.getAccountSetting("provider"),
+                    accountData.getAccountSetting("accountname"),
+                    accountData.accountID,
+                    "");
+            }
+            
+            if (accountData) {
+                let auth = new tbSync.PasswordAuthData(accountData);
                 this._password = auth.getPassword();
                 this._user = auth.getUsername();
 
-                this._https = syncData.accountData.getAccountSetting("https");
-                this._accountname = syncData.accountData.getAccountSetting("accountname");
-                if (syncData.currentFolderData) {
-                    this._type = syncData.currentFolderData.getFolderSetting("type");
-                    this._fqdn = syncData.currentFolderData.getFolderSetting("fqdn");
+                this._https = accountData.getAccountSetting("https");
+                this._accountname = accountData.getAccountSetting("accountname");
+                if (folderData) {
+                    this._type = folderData.getFolderSetting("type");
+                    this._fqdn = folderData.getFolderSetting("fqdn");
                 }
-                this._errorOwnerData = syncData.errorOwnerData;
             }            
         }
         

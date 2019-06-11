@@ -36,102 +36,6 @@ var serviceproviders = {
 //non permanent cache
 var problematicHosts = [];
 
-/*var calendarManagerObserver = {
-    onCalendarRegistered : function (aCalendar) {
-        //this observer can go stale, if something bad happens during load and the unload is never called
-        if (tbSync) {
-            //identify a calendar which has been deleted and is now being recreated by lightning (not TbSync) - which is probably due to changing the offline support option
-            let folders =  tbSync.db.findFoldersWithSetting(["status"], ["aborted"]); //if it is pending status, we are creating it, not someone else
-            for (let f=0; f < folders.length; f++) {
-                let provider = tbSync.db.getAccountSetting(folders[f].account, "provider");
-            
-                //only act on dav calendars which have the same uri
-                if (provider == "dav" && folders[f].selected == "1" && folders[f].url == aCalendar.uri.spec) {
-                    tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "status", tbSync.StatusData.SUCCESS);
-                    //add target to re-take control
-                    tbSync.db.setFolderSetting(folders[f].account, folders[f].folderID, "target", aCalendar.id);
-                    //update settings window, if open
-                    Services.obs.notifyObservers(null, "tbsync.observer.manager.updateSyncstate", folders[f].account);
-                }
-            }
-        }
-    },
-    onCalendarUnregistering : function (aCalendar) {},
-    onCalendarDeleting : function (aCalendar) {},
-};
-
-var calendarObserver = { 
-    onStartBatch : function () {},
-    onEndBatch : function () {},
-    onLoad : function (aCalendar) {},
-    onAddItem : function (aItem) {},
-    onModifyItem : function (aNewItem, aOldItem) {},
-    onDeleteItem : function (aDeletedItem) {},
-    onError : function (aCalendar, aErrNo, aMessage) {},
-    onPropertyDeleting : function (aCalendar, aName) {},
-
-    //Properties of the calendar itself (name, color etc.)
-    onPropertyChanged : function (aCalendar, aName, aValue, aOldValue) {
-        //this observer can go stale, if something bad happens during load and the unload is never called
-        if (tbSync) {
-            let folders = tbSync.db.findFoldersWithSetting(["target"], [aCalendar.id]);
-            if (folders.length == 1) {
-                switch (aName) {
-                    case "color":
-                        //prepare connection data
-                        let accountData = new tbSync.AccountData(folders[0].account, folders[0].folderID);
-                        let connection = new dav.network.Connection(accountData);
-
-                        //update stored color to recover after disable
-                        dav.network.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folders[0].href, "PROPPATCH", connection);
-                        break;
-                }
-            }
-        }
-    },
-};*/
-
-function onSettingsGUILoad(window, accountID) {
-    let serviceprovider = tbSync.db.getAccountSetting(accountID, "serviceprovider");
-    let isServiceProvider = dav.serviceproviders.hasOwnProperty(serviceprovider);
-    
-    // special treatment for configuration label, which is a permanent setting and will not change by switching modes
-    let configlabel = window.document.getElementById("tbsync.accountsettings.label.config");
-    if (configlabel) {
-        let extra = "";
-        if (isServiceProvider) {
-            extra = " [" + tbSync.getString("add.serverprofile." + serviceprovider, "dav") + "]";
-        }
-        configlabel.setAttribute("value", tbSync.getString("config.custom", "dav") + extra);
-    }
-
-    //set certain elements as "alwaysDisable", if locked by service provider (alwaysDisabled is honored by main SettingsUpdate, so we do not have to do that in our own onSettingsGUIUpdate
-    if (isServiceProvider) {
-        let items = window.document.getElementsByClassName("lockIfServiceProvider");
-        for (let i=0; i < items.length; i++) {
-            items[i].setAttribute("alwaysDisabled", "true");
-        }
-    }
-};
-
-function stripHost(document, accountID, field) {
-    let host = document.getElementById('tbsync.accountsettings.pref.' + field).value;
-    if (host.indexOf("https://") == 0) {
-        host = host.replace("https://","");
-        document.getElementById('tbsync.accountsettings.pref.https').checked = true;
-        tbSync.db.setAccountSetting(accountID, "https", true);
-    } else if (host.indexOf("http://") == 0) {
-        host = host.replace("http://","");
-        document.getElementById('tbsync.accountsettings.pref.https').checked = false;
-        tbSync.db.setAccountSetting(accountID, "https", false);
-    }
-    
-    while (host.endsWith("/")) { host = host.slice(0,-1); }        
-    document.getElementById('tbsync.accountsettings.pref.' + field).value = host
-    tbSync.db.setAccountSetting(accountID, field, host);
-};
-
-
 /**
  * Implementation the TbSync interfaces for external provider extensions.
  */
@@ -305,6 +209,8 @@ var api = {
             "href" : "",
             "fqdn" : "",
 
+            "url" : "", // used by calendar to store the full url of this folder
+            
             "type" : "", //cladav, carddav or ics
             "shared": false, //identify shared resources
             "acl": "", //acl send from server
@@ -561,10 +467,60 @@ var calendar = {
     // define a card property, which should be used for the changelog
     // basically your primary key for the abItem properties
     // UID will be used, if nothing specified
-    primaryKeyField: "",
+    //primaryKeyField: "",
     
     // enable or disable changelog
-    logUserChanges: false,
+    //logUserChanges: false,
+
+    // The calendarObserver::onCalendarReregistered needs to know, which field
+    // of the folder is used to store the full url of a calendar, to be able to
+    // find calendars, which could be connected to other accounts.
+    calendarUrlField: "url",
+    
+    calendarObserver: function (aTopic, folderData, aCalendar, aPropertyName, aPropertyValue, aOldPropertyValue) {
+        switch (aTopic) {
+            case "onCalendarPropertyChanged":
+            {
+                switch (aPropertyName) {
+                    case "color":
+                        if (aOldPropertyValue.toString().toUpperCase() != aPropertyValue.toString().toUpperCase()) {
+                            //prepare connection data
+                            let connection = new dav.network.ConnectionData(folderData);
+                            //update stored color to recover after disable
+                            dav.network.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aPropertyValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folderData.getFolderSetting("href"), "PROPPATCH", connection);
+                        }
+                        break;
+                }
+            }
+            break;
+
+            case "onCalendarReregistered": 
+            {
+                folderData.setFolderSetting("selected", true);
+                folderData.setFolderSetting("status", tbSync.StatusData.SUCCESS);
+                //add target to re-take control
+                folderData.setFolderSetting("target", aCalendar.id);
+                //update settings window, if open
+                Services.obs.notifyObservers(null, "tbsync.observer.manager.updateSyncstate", folderData.accountID);
+            }
+            break;
+            
+            case "onCalendarDeleted":
+            case "onCalendarPropertyDeleted":
+                //Services.console.logStringMessage("["+ aTopic + "] " + aCalendar.name);
+                break;
+        }
+    },
+    
+    itemObserver: function (aTopic, folderData, aItem, aOldItem) {
+        switch (aTopic) {
+            case "onAddItem":
+            case "onModifyItem":
+            case "onDeleteItem":
+                //Services.console.logStringMessage("["+ aTopic + "] " + aItem.title);
+                break;
+        }
+    },
 
     /**
      * Is called by TargetData::getTarget() if  the standard "calendar" targetType is used, and a new calendar needs to be created.
