@@ -864,7 +864,7 @@ var tools = {
             if (!list) {
                 list  = syncData.target.createNewList();
                 list.setProperty("X-DAV-HREF", id);
-                list.setProperty("X-DAV-UID", id);
+                list.setProperty("X-DAV-UID", vCardInfo.uid);
                 list.setProperty("ListName",  vCardInfo.name);
                 syncData.target.add(list);
             } else {
@@ -1441,8 +1441,9 @@ var tools = {
    
     getGroupInfoFromCardData: function (vCardData, addressBook, getMembers = true) {
         let members = [];
-        let name = vCardData.hasOwnProperty("fn") ? vCardData["fn"][0].value : "Unlabled Group";
-
+        let name = "Unlabled Group"; try { name = vCardData["fn"][0].value; } catch (e) {}
+        let uid = ""; try { uid = vCardData["uid"][0].value; } catch (e) {}
+        
         if (getMembers && vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-MEMBER")) {
             for (let i=0; i < vCardData["X-ADDRESSBOOKSERVER-MEMBER"].length; i++) {
                 let member = vCardData["X-ADDRESSBOOKSERVER-MEMBER"][i].value.replace(/^(urn:uuid:)/,"");
@@ -1450,7 +1451,7 @@ var tools = {
                 members.push(member);
             }
         }
-        return {members, name};
+        return {members, name, uid};
     },
 
     
