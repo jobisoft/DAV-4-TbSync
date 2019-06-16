@@ -99,7 +99,7 @@ var api = {
     getProviderIcon: function (size, accountData = null) {
         let base = "sabredav";
         if (accountData) {
-            let serviceprovider = accountData.getAccountSetting("serviceprovider");
+            let serviceprovider = accountData.getAccountProperty("serviceprovider");
             if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
                 base = dav.serviceproviders[serviceprovider].icon;
             }
@@ -251,9 +251,9 @@ var api = {
      * @param accountData  [in] FolderData
      */
     onResetTarget: function (folderData) {
-        folderData.resetFolderSetting("ctag");
-        folderData.resetFolderSetting("token");
-        folderData.setFolderSetting("createdWithProviderVersion", folderData.accountData.providerData.getVersion());
+        folderData.resetFolderProperty("ctag");
+        folderData.resetFolderProperty("token");
+        folderData.setFolderProperty("createdWithProviderVersion", folderData.accountData.providerData.getVersion());
     },
 
 
@@ -292,7 +292,7 @@ var api = {
         let toBeSorted = [];
         for (let folder of folders) {
             let t = 100;
-            switch (folder.getFolderSetting("type")) {
+            switch (folder.getFolderProperty("type")) {
                 case "carddav": 
                     t+=0; 
                     break;
@@ -307,11 +307,11 @@ var api = {
                     break;
             }
 
-            if (folder.getFolderSetting("shared")) {
+            if (folder.getFolderProperty("shared")) {
                 t+=100;
             }
             
-            toBeSorted.push({"key": t.toString() + folder.getFolderSetting("name"), "folder": folder});
+            toBeSorted.push({"key": t.toString() + folder.getFolderProperty("name"), "folder": folder});
         }
         
         //sort
@@ -357,15 +357,15 @@ var api = {
 // this provider is using the default authPrompt, so it must implement passwordAuth
 var passwordAuth = {    
     getUsername : function (accountData) {
-        return accountData.getAccountSetting("user");
+        return accountData.getAccountProperty("user");
     },
     
     setUsername : function (accountData, newUserName) {
-        accountData.setAccountSetting("user", newUserName);
+        accountData.setAccountProperty("user", newUserName);
     },
 
     getHost : function (accountData) {
-        return accountData.getAccountSetting("calDavHost") ? accountData.getAccountSetting("calDavHost") : accountData.getAccountSetting("cardDavHost");
+        return accountData.getAccountProperty("calDavHost") ? accountData.getAccountProperty("calDavHost") : accountData.getAccountProperty("cardDavHost");
     },
 }
 
@@ -380,7 +380,7 @@ var addressbook = {
     primaryKeyField: "X-DAV-HREF",
     
     generatePrimaryKey: function (folderData) {
-         return folderData.getFolderSetting("href") + tbSync.generateUUID() + ".vcf";
+         return folderData.getFolderProperty("href") + tbSync.generateUUID() + ".vcf";
     },
     
     // enable or disable changelog
@@ -390,7 +390,7 @@ var addressbook = {
         switch (aTopic) {
             case "addrbook-removed":
             case "addrbook-updated":
-                //Services.console.logStringMessage("["+ aTopic + "] " + folderData.getFolderSetting("name"));
+                //Services.console.logStringMessage("["+ aTopic + "] " + folderData.getFolderProperty("name"));
                 break;
         }
     },
@@ -447,7 +447,7 @@ var addressbook = {
         let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
 
         if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
-            let serviceprovider = folderData.accountData.getAccountSetting("serviceprovider");
+            let serviceprovider = folderData.accountData.getAccountProperty("serviceprovider");
             let icon = "custom";
             if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
                 icon = dav.serviceproviders[serviceprovider].icon;
@@ -487,7 +487,7 @@ var calendar = {
                             //prepare connection data
                             let connection = new dav.network.ConnectionData(folderData);
                             //update stored color to recover after disable
-                            dav.network.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aPropertyValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folderData.getFolderSetting("href"), "PROPPATCH", connection);
+                            dav.network.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aPropertyValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folderData.getFolderProperty("href"), "PROPPATCH", connection);
                         }
                         break;
                 }
@@ -496,10 +496,10 @@ var calendar = {
 
             case "onCalendarReregistered": 
             {
-                folderData.setFolderSetting("selected", true);
-                folderData.setFolderSetting("status", tbSync.StatusData.SUCCESS);
+                folderData.setFolderProperty("selected", true);
+                folderData.setFolderProperty("status", tbSync.StatusData.SUCCESS);
                 //add target to re-take control
-                folderData.setFolderSetting("target", aCalendar.id);
+                folderData.setFolderProperty("target", aCalendar.id);
                 //update settings window, if open
                 Services.obs.notifyObservers(null, "tbsync.observer.manager.updateSyncstate", folderData.accountID);
             }
@@ -534,15 +534,15 @@ var calendar = {
         let calManager = cal.getCalendarManager();
         let auth = new tbSync.PasswordAuthData(folderData.accountData);
         
-        let caltype = folderData.getFolderSetting("type");
+        let caltype = folderData.getFolderProperty("type");
 
         let baseUrl = "";
         if (caltype != "ics") {
-            baseUrl =  "http" + (folderData.accountData.getAccountSetting("https") ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(auth.getUsername()) + ":" + encodeURIComponent(auth.getPassword()) + "@" : "") + folderData.getFolderSetting("fqdn");
+            baseUrl =  "http" + (folderData.accountData.getAccountProperty("https") ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(auth.getUsername()) + ":" + encodeURIComponent(auth.getPassword()) + "@" : "") + folderData.getFolderProperty("fqdn");
         }
 
-        let url = dav.tools.parseUri(baseUrl + folderData.getFolderSetting("href"));        
-        folderData.setFolderSetting("url", url.spec);
+        let url = dav.tools.parseUri(baseUrl + folderData.getFolderProperty("href"));        
+        folderData.setFolderProperty("url", url.spec);
 
         //check if that calendar already exists
         let cals = calManager.getCalendars({});
@@ -562,12 +562,12 @@ var calendar = {
             newCalendar.name = newname;
 
             newCalendar.setProperty("user", auth.getUsername());
-            newCalendar.setProperty("color", folderData.getFolderSetting("targetColor"));
+            newCalendar.setProperty("color", folderData.getFolderProperty("targetColor"));
             newCalendar.setProperty("calendar-main-in-composite", true);
-            newCalendar.setProperty("cache.enabled", folderData.accountData.getAccountSetting("useCalendarCache"));
+            newCalendar.setProperty("cache.enabled", folderData.accountData.getAccountProperty("useCalendarCache"));
         }
         
-        if (folderData.getFolderSetting("downloadonly")) newCalendar.setProperty("readOnly", true);
+        if (folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
 
         //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
         if (!dav.prefSettings.getBoolPref("addCredentialsToUrl") && caltype != "ics") {
@@ -607,15 +607,15 @@ var standardFolderList = {
      */
     getTypeImage: function (folderData) {
         let src = "";
-        switch (folderData.getFolderSetting("type")) {
+        switch (folderData.getFolderProperty("type")) {
             case "carddav":
-                if (folderData.getFolderSetting("shared")) {
+                if (folderData.getFolderProperty("shared")) {
                     return "chrome://tbsync/skin/contacts16_shared.png";
                 } else {
                     return "chrome://tbsync/skin/contacts16.png";
                 }
             case "caldav":
-                if (folderData.getFolderSetting("shared")) {
+                if (folderData.getFolderProperty("shared")) {
                     return "chrome://tbsync/skin/calendar16_shared.png";
                 } else {
                     return "chrome://tbsync/skin/calendar16.png";
@@ -632,7 +632,7 @@ var standardFolderList = {
     },
     
     getAttributesRwAcl: function (folderData) {
-        let acl = parseInt(folderData.getFolderSetting("acl"));
+        let acl = parseInt(folderData.getFolderProperty("acl"));
         let acls = [];
         if (acl & 0x2) acls.push(tbSync.getString("acl.modify", "dav"));
         if (acl & 0x4) acls.push(tbSync.getString("acl.add", "dav"));

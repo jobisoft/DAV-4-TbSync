@@ -44,22 +44,22 @@ var sync = {
             let folders = syncData.accountData.getAllFolders();
             for (let folder of folders) {
                 //just in case
-                if (!unhandledFolders.hasOwnProperty(folder.getFolderSetting("type"))) {
-                    unhandledFolders[folder.getFolderSetting("type")] = [];
+                if (!unhandledFolders.hasOwnProperty(folder.getFolderProperty("type"))) {
+                    unhandledFolders[folder.getFolderProperty("type")] = [];
                 }
-                unhandledFolders[folder.getFolderSetting("type")].push(folder);
+                unhandledFolders[folder.getFolderProperty("type")].push(folder);
             }
 
             //get server urls from account setup - update urls of serviceproviders
-            let serviceprovider = syncData.accountData.getAccountSetting("serviceprovider");
+            let serviceprovider = syncData.accountData.getAccountProperty("serviceprovider");
             if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
-                syncData.accountData.setAccountSetting("calDavHost", dav.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
-                syncData.accountData.setAccountSetting("cardDavHost", dav.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
+                syncData.accountData.setAccountProperty("calDavHost", dav.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
+                syncData.accountData.setAccountProperty("cardDavHost", dav.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
             }
 
             let davjobs = {
-                cal : {server: syncData.accountData.getAccountSetting("calDavHost")},
-                card : {server: syncData.accountData.getAccountSetting("cardDavHost")},
+                cal : {server: syncData.accountData.getAccountProperty("calDavHost")},
+                card : {server: syncData.accountData.getAccountProperty("cardDavHost")},
             };
             
             for (let job in davjobs) {
@@ -196,7 +196,7 @@ var sync = {
                             let color = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["apple","calendar-color"]]);
 
                             //remove found folder from list of unhandled folders
-                            unhandledFolders[resourcetype] = unhandledFolders[resourcetype].filter(item => item.getFolderSetting("href") !== href);
+                            unhandledFolders[resourcetype] = unhandledFolders[resourcetype].filter(item => item.getFolderProperty("href") !== href);
 
                             
                             // interaction with TbSync
@@ -207,42 +207,42 @@ var sync = {
                                 folderData = syncData.accountData.createNewFolder();
                                 // this MUST be set to either "addressbook" or "calendar" to use the standard target support, or any other value, which 
                                 // requires a corresponding targets implementation by this provider
-                                folderData.setFolderSetting("targetType", (job == "card") ? "addressbook" : "calendar");
+                                folderData.setFolderProperty("targetType", (job == "card") ? "addressbook" : "calendar");
                                 
-                                folderData.setFolderSetting("href", href);
-                                folderData.setFolderSetting("name", name);
-                                folderData.setFolderSetting("type", resourcetype);
-                                folderData.setFolderSetting("shared", !own.includes(home[h]));
-                                folderData.setFolderSetting("acl", acl.toString());
-                                folderData.setFolderSetting("downloadonly", (acl == 0x1)); //if any write access is granted, setup as writeable
+                                folderData.setFolderProperty("href", href);
+                                folderData.setFolderProperty("name", name);
+                                folderData.setFolderProperty("type", resourcetype);
+                                folderData.setFolderProperty("shared", !own.includes(home[h]));
+                                folderData.setFolderProperty("acl", acl.toString());
+                                folderData.setFolderProperty("downloadonly", (acl == 0x1)); //if any write access is granted, setup as writeable
 
                                 //we assume the folder has the same fqdn as the homeset, otherwise href must contain the full URL and the fqdn is ignored
-                                folderData.setFolderSetting("fqdn", syncData.connectionData.fqdn);
+                                folderData.setFolderProperty("fqdn", syncData.connectionData.fqdn);
                                 
                                 //do we have a cached folder?
                                 let cachedFolderData = syncData.accountData.getFolderFromCache("href", href);
                                 if (cachedFolderData) {
                                     // copy fields from cache which we want to re-use
-                                    folderData.setFolderSetting("targetColor", cachedFolderData.getFolderSetting("targetColor"));
-                                    folderData.setFolderSetting("targetName", cachedFolderData.getFolderSetting("targetName"));
+                                    folderData.setFolderProperty("targetColor", cachedFolderData.getFolderProperty("targetColor"));
+                                    folderData.setFolderProperty("targetName", cachedFolderData.getFolderProperty("targetName"));
                                     //if we have only READ access, do not restore cached value for downloadonly
-                                    if (acl > 0x1) folderData.setFolderSetting("downloadonly", cachedFolderData.getFolderSetting("downloadonly"));
+                                    if (acl > 0x1) folderData.setFolderProperty("downloadonly", cachedFolderData.getFolderProperty("downloadonly"));
                                 }
                             } else {
                                 //Update name & color
-                                folderData.setFolderSetting("name", name);
-                                folderData.setFolderSetting("fqdn", syncData.connectionData.fqdn);
-                                folderData.setFolderSetting("acl", acl);
+                                folderData.setFolderProperty("name", name);
+                                folderData.setFolderProperty("fqdn", syncData.connectionData.fqdn);
+                                folderData.setFolderProperty("acl", acl);
                                 //if the acl changed from RW to RO we need to update the downloadonly setting
                                 if (acl == 0x1) {
-                                    folderData.setFolderSetting("downloadonly", true);
+                                    folderData.setFolderProperty("downloadonly", true);
                                 }
                             }
 
                             //update color from server
                             if (color && job == "cal") {
                                 color = color.textContent.substring(0,7);
-                                folderData.setFolderSetting("targetColor", color);
+                                folderData.setFolderProperty("targetColor", color);
                                 
                                 //do we have to update the calendar? Get the raw cal object
                                 let targetCal = folderData.targetData.checkTarget();
@@ -315,7 +315,7 @@ var sync = {
                 case "ics":
                     {
                         //update downloadonly
-                        if (syncData.currentFolderData.getFolderSetting("downloadonly")) syncData.target.setProperty("readOnly", true);
+                        if (syncData.currentFolderData.getFolderProperty("downloadonly")) syncData.target.setProperty("readOnly", true);
 
                         //init sync via lightning
                         syncData.target.refresh();
@@ -343,7 +343,7 @@ var sync = {
 
 
     singleFolder: async function (syncData)  {
-        let downloadonly = syncData.currentFolderData.getFolderSetting("downloadonly");
+        let downloadonly = syncData.currentFolderData.getFolderProperty("downloadonly");
         
         await dav.sync.remoteChanges(syncData);
         let numOfLocalChanges = await dav.sync.localChanges(syncData);
@@ -374,7 +374,7 @@ var sync = {
 
     remoteChanges: async function (syncData) {
         //Do we have a sync token? No? -> Initial Sync (or WebDAV sync not supported) / Yes? -> Get updates only (token only present if WebDAV sync is suported)
-        let token = syncData.currentFolderData.getFolderSetting("token");
+        let token = syncData.currentFolderData.getFolderProperty("token");
         if (token) {
             //update via token sync
             let tokenSyncSucceeded = await dav.sync.remoteChangesByTOKEN(syncData);
@@ -399,9 +399,9 @@ var sync = {
     remoteChangesByTOKEN: async function (syncData) {
         syncData.progressData.reset();
 
-        let token = syncData.currentFolderData.getFolderSetting("token");
+        let token = syncData.currentFolderData.getFolderProperty("token");
         syncData.setSyncState("send.request.remotechanges");
-        let cards = await dav.network.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncData.currentFolderData.getFolderSetting("href"), "REPORT", syncData.connectionData, {}, {softfail: [415,403]});
+        let cards = await dav.network.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncData.currentFolderData.getFolderProperty("href"), "REPORT", syncData.connectionData, {}, {softfail: [415,403]});
 
         //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book), 415 & 403
         //https://github.com/sabre-io/dav/issues/1075
@@ -462,7 +462,7 @@ var sync = {
         await dav.sync.deleteContacts (syncData, vCardsDeletedOnServer);
 
         //update token
-        syncData.currentFolderData.setFolderSetting("token", tokenNode.textContent);
+        syncData.currentFolderData.setFolderProperty("token", tokenNode.textContent);
 
         return true;
     },
@@ -472,28 +472,28 @@ var sync = {
 
         //Request ctag and token
         syncData.setSyncState("send.request.remotechanges");
-        let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d", "cs"])+"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>", syncData.currentFolderData.getFolderSetting("href"), "PROPFIND", syncData.connectionData, {"Depth": "0"});
+        let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d", "cs"])+"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "0"});
 
         syncData.setSyncState("eval.response.remotechanges");
-        let ctag = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["cs", "getctag"]], syncData.currentFolderData.getFolderSetting("href"));
-        let token = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d", "sync-token"]], syncData.currentFolderData.getFolderSetting("href"));
+        let ctag = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["cs", "getctag"]], syncData.currentFolderData.getFolderProperty("href"));
+        let token = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d", "sync-token"]], syncData.currentFolderData.getFolderProperty("href"));
 
         let localDeletes = syncData.target.getDeletedItemsFromChangeLog();
 
         //if CTAG changed, we need to sync everything and compare
-        if (ctag === null || ctag != syncData.currentFolderData.getFolderSetting("ctag")) {
+        if (ctag === null || ctag != syncData.currentFolderData.getFolderProperty("ctag")) {
             let vCardsFoundOnServer = [];
             let vCardsChangedOnServer = {};
 
             //get etags of all cards on server and find the changed cards
             syncData.setSyncState("send.request.remotechanges");
-            let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncData.currentFolderData.getFolderSetting("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"});
+            let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"});
             
             //to test other impl
-            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncData.currentFolderData.getFolderSetting("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: []}, false);
+            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: []}, false);
 
             //this is the same request, but includes getcontenttype, do we need it? icloud send contacts without
-            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /><d:getcontenttype /></d:prop></d:propfind>", syncData.currentFolderData.getFolderSetting("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"});
+            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /><d:getcontenttype /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"});
 
             //play with filters and limits for synology
             /*
@@ -505,13 +505,13 @@ var sync = {
             additional += "</card:filter>";*/
         
             //addressbook-query does not work on older servers (zimbra)
-            //let cards = await dav.network.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncData.currentFolderData.getFolderSetting("href"), "REPORT", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"});
+            //let cards = await dav.network.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncData.currentFolderData.getFolderProperty("href"), "REPORT", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"});
 
             syncData.setSyncState("eval.response.remotechanges");
             let cardsFound = 0;
             for (let c=0; cards.multi && c < cards.multi.length; c++) {
                 let id =  cards.multi[c].href;
-                if (id == syncData.currentFolderData.getFolderSetting("href")) {
+                if (id == syncData.currentFolderData.getFolderProperty("href")) {
                     //some servers (Radicale) report the folder itself and a querry to that would return everything again
                     continue;
                 }
@@ -560,8 +560,8 @@ var sync = {
 
             //update ctag and token (if there is one)
             if (ctag === null) return false; //if server does not support ctag, "it did not change"
-            syncData.currentFolderData.setFolderSetting("ctag", ctag);
-            if (token) syncData.currentFolderData.setFolderSetting("token", token);
+            syncData.currentFolderData.setFolderProperty("ctag", ctag);
+            if (token) syncData.currentFolderData.setFolderProperty("token", token);
 
             //ctag did change
             return true;
@@ -587,7 +587,7 @@ var sync = {
             let request = dav.tools.getMultiGetRequest(cards2catch.slice(i, i+maxitems));
             if (request) {
                 syncData.setSyncState("send.request.remotechanges");
-                let cards = await dav.network.sendRequest(request, syncData.currentFolderData.getFolderSetting("href"), "REPORT", syncData.connectionData, {"Depth": "1"});
+                let cards = await dav.network.sendRequest(request, syncData.currentFolderData.getFolderProperty("href"), "REPORT", syncData.connectionData, {"Depth": "1"});
 
                 syncData.setSyncState("eval.response.remotechanges");
                 for (let c=0; c < cards.multi.length; c++) {
@@ -620,7 +620,7 @@ var sync = {
         await tbSync.tools.sleep(200, false);
     
         // On down sync, mailinglists need to be done at the very end so all member data is avail.
-        if (syncData.accountData.getAccountSetting("syncGroups")) {
+        if (syncData.accountData.getAccountProperty("syncGroups")) {
             for (let listID in syncData.foundMailingListsDuringDownSync) {
                 if (syncData.foundMailingListsDuringDownSync.hasOwnProperty(listID)) {
                     let list = syncData.target.getItemFromProperty("X-DAV-HREF", listID);
@@ -684,7 +684,7 @@ var sync = {
         //define how many entries can be send in one request
         let maxitems = dav.prefSettings.getIntPref("maxitems");
 
-        let downloadonly = syncData.currentFolderData.getFolderSetting("downloadonly");
+        let downloadonly = syncData.currentFolderData.getFolderProperty("downloadonly");
 
         let permissionErrors = 0;
         let permissionError = { //keep track of permission errors - preset with downloadonly status to skip sync in that case
@@ -693,7 +693,7 @@ var sync = {
             "deleted_by_user": downloadonly
         }; 
         
-        let syncGroups = syncData.accountData.getAccountSetting("syncGroups");
+        let syncGroups = syncData.accountData.getAccountProperty("syncGroups");
         
         //access changelog to get local modifications (done and todo are used for UI to display progress)
         syncData.progressData.reset(0, syncData.target.getItemsFromChangeLog().length);

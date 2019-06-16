@@ -17,20 +17,20 @@ var tbSyncDavEditAccount = {
         if (host.indexOf("https://") == 0) {
             host = host.replace("https://","");
             document.getElementById('tbsync.accountsettings.pref.https').checked = true;
-            tbSync.db.setAccountSetting(accountID, "https", true);
+            tbSync.db.setAccountProperty(accountID, "https", true);
         } else if (host.indexOf("http://") == 0) {
             host = host.replace("http://","");
             document.getElementById('tbsync.accountsettings.pref.https').checked = false;
-            tbSync.db.setAccountSetting(accountID, "https", false);
+            tbSync.db.setAccountProperty(accountID, "https", false);
         }
         
         while (host.endsWith("/")) { host = host.slice(0,-1); }        
         document.getElementById('tbsync.accountsettings.pref.' + field).value = host
-        tbSync.db.setAccountSetting(accountID, field, host);
+        tbSync.db.setAccountProperty(accountID, field, host);
     },
 
     onSettingsGUILoad: function (window, accountID) {
-        let serviceprovider = tbSync.db.getAccountSetting(accountID, "serviceprovider");
+        let serviceprovider = tbSync.db.getAccountProperty(accountID, "serviceprovider");
         let isServiceProvider = dav.serviceproviders.hasOwnProperty(serviceprovider);
         
         // special treatment for configuration label, which is a permanent setting and will not change by switching modes

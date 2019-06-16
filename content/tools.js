@@ -264,7 +264,7 @@ var tools = {
     //check if vCard is a mailinglist and handle it
     vCardIsMailingList: function (syncData, id, _list, vCard, vCardData, etag) {
         if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-KIND") && vCardData["X-ADDRESSBOOKSERVER-KIND"][0].value == "group") { 
-            if (!syncData.accountData.getAccountSetting("syncGroups")) {
+            if (!syncData.accountData.getAccountProperty("syncGroups")) {
                 //user did not enable group sync, so do nothing, but return true so this card does not get added as a real card
                 return true;
             }
@@ -564,7 +564,7 @@ var tools = {
             case "WorkAddress":
                 {
                     let field = property.substring(4);
-                    let adr = (Services.vc.compare("0.8.11", syncData.currentFolderData.getFolderSetting("createdWithProviderVersion")) > 0)
+                    let adr = (Services.vc.compare("0.8.11", syncData.currentFolderData.getFolderProperty("createdWithProviderVersion")) > 0)
                                     ?  ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"] //WRONG
                                     : ["OfficeBox","ExtAddr","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
 
@@ -665,7 +665,7 @@ var tools = {
             case "WorkAddress":
                 {
                     let field = property.substring(4);
-                    let adr = (Services.vc.compare("0.8.11", syncData.currentFolderData.getFolderSetting("createdWithProviderVersion")) > 0)
+                    let adr = (Services.vc.compare("0.8.11", syncData.currentFolderData.getFolderProperty("createdWithProviderVersion")) > 0)
                                     ?  ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"] //WRONG
                                     : ["OfficeBox","ExtAddr","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
 
@@ -760,7 +760,7 @@ var tools = {
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
-            if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncData.currentFolderData.getFolderSetting("createdWithProviderVersion"))> 0) continue;
+            if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncData.currentFolderData.getFolderProperty("createdWithProviderVersion"))> 0) continue;
 
             let property = dav.tools.supportedProperties[f].name;
             let vCardField = dav.tools.getVCardField(syncData, property, vCardData);
@@ -929,7 +929,7 @@ var tools = {
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
-            if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncData.currentFolderData.getFolderSetting("createdWithProviderVersion"))> 0) continue;
+            if (Services.vc.compare(dav.tools.supportedProperties[f].minversion, syncData.currentFolderData.getFolderProperty("createdWithProviderVersion"))> 0) continue;
 
             let property = dav.tools.supportedProperties[f].name;
             let vCardField = dav.tools.getVCardField(syncData, property, vCardData);

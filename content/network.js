@@ -35,15 +35,15 @@ var network = {
                 folderData = data;
                 accountData = data.accountData;
                 this._errorOwnerData =  new tbSync.ErrorOwnerData(
-                    accountData.getAccountSetting("provider"),
-                    accountData.getAccountSetting("accountname"),
+                    accountData.getAccountProperty("provider"),
+                    accountData.getAccountProperty("accountname"),
                     accountData.accountID,
-                    folderData.getFolderSetting("name"));
+                    folderData.getFolderProperty("name"));
             } else if (data instanceof tbSync.AccountData) {
                 accountData = data;
                 this._errorOwnerData =  new tbSync.ErrorOwnerData(
-                    accountData.getAccountSetting("provider"),
-                    accountData.getAccountSetting("accountname"),
+                    accountData.getAccountProperty("provider"),
+                    accountData.getAccountProperty("accountname"),
                     accountData.accountID,
                     "");
             }
@@ -53,11 +53,11 @@ var network = {
                 this._password = auth.getPassword();
                 this._user = auth.getUsername();
 
-                this._https = accountData.getAccountSetting("https");
-                this._accountname = accountData.getAccountSetting("accountname");
+                this._https = accountData.getAccountProperty("https");
+                this._accountname = accountData.getAccountProperty("accountname");
                 if (folderData) {
-                    this._type = folderData.getFolderSetting("type");
-                    this._fqdn = folderData.getFolderSetting("fqdn");
+                    this._type = folderData.getFolderProperty("type");
+                    this._fqdn = folderData.getFolderProperty("fqdn");
                 }
             }            
         }
