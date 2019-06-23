@@ -121,6 +121,66 @@ var network = {
         }
     },
 
+    Redirect: {
+        // nsIChannelEventSink implementation
+        asyncOnChannelRedirect: function(aOldChannel, aNewChannel, aFlags, aCallback) {
+            let uploadData;
+            let uploadContent;
+            if (aOldChannel instanceof Ci.nsIUploadChannel &&
+                aOldChannel instanceof Ci.nsIHttpChannel &&
+                aOldChannel.uploadStream) {
+                uploadData = aOldChannel.uploadStream;
+                uploadContent = aOldChannel.getRequestHeader("Content-Type");
+            }
+
+            cal.provider.prepHttpChannel(null,
+                                uploadData,
+                                uploadContent,
+                                this,
+                                aNewChannel);
+
+            // Make sure we can get/set headers on both channels.
+            aNewChannel.QueryInterface(Ci.nsIHttpChannel);
+            aOldChannel.QueryInterface(Ci.nsIHttpChannel);
+
+           /* try {
+                this.mLastRedirectStatus = aOldChannel.responseStatus;
+            } catch (e) {
+                this.mLastRedirectStatus = null;
+            }*/
+
+            function copyHeader(aHdr) {
+                try {
+                    let hdrValue = aOldChannel.getRequestHeader(aHdr);
+                    if (hdrValue) {
+                        aNewChannel.setRequestHeader(aHdr, hdrValue, false);
+                    }
+                } catch (e) {
+                    if (e.code != Components.results.NS_ERROR_NOT_AVAILIBLE) {
+                        // The header could possibly not be available, ignore that
+                        // case but throw otherwise
+                        throw e;
+                    }
+                }
+            }
+
+            // If any other header is used, it should be added here. We might want
+            // to just copy all headers over to the new channel.
+            copyHeader("Depth");
+            copyHeader("Originator");
+            copyHeader("Recipient");
+            copyHeader("If-None-Match");
+            copyHeader("If-Match");
+            if (aNewChannel.URI.host == "apidata.googleusercontent.com") {
+                copyHeader("Authorization");
+            }
+
+            aNewChannel.requestMethod = aOldChannel.requestMethod;
+
+            aCallback.onRedirectVerifyCallback(Components.results.NS_OK);
+        }
+    },
+    
     prepHttpChannel: function(aUploadData, aHeaders, aMethod, aConnection, aNotificationCallbacks=null, aExisting=null) {
         let userContextId = tbSync.network.getContainerIdForUser(aConnection.user);
         let channel = aExisting || Services.io.newChannelFromURI2(
@@ -464,6 +524,7 @@ var network = {
                         //tbSync.dump("GET","nsIProgressEventSink");
                     } else if (aIID.equals(Components.interfaces.nsIChannelEventSink)) {
                         //tbSync.dump("GET","nsIChannelEventSink");
+                        return dav.network.Redirect;
                     }
 
                     throw Components.results.NS_ERROR_NO_INTERFACE;
