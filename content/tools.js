@@ -117,6 +117,65 @@ var tools = {
 
 
 
+    getEmailsFromJSON: function (emailDataJSON) {
+        let emailFields = {};
+
+        if (emailDataJSON) {
+            try {
+                //we pack the first entry into PrimaryEmail and all other into SecondEmail
+                let emailData = JSON.parse(emailDataJSON);
+                emailFields = {PrimaryEmail:[], SecondEmail:[]};
+                
+                for (let d=0; d < emailData.length; d++) {
+                    let field = (d==0) ? "PrimaryEmail" : "SecondEmail";
+                    emailFields[field].push(emailData[d].value);
+                }
+            } catch(e) {
+                //something went wrong
+                Components.utils.reportError(e);                
+            }
+        }
+        
+        //object with TB field names as keys and array of numbers as values
+        return emailFields; 
+    },
+
+
+    getPhoneNumbersFromJSON: function (phoneDataJSON) {
+        let phoneFields = {};
+
+        if (phoneDataJSON) {
+            try {
+                //we first search and remove CELL, FAX, PAGER and WORK from the list and put the remains into HOME
+                let phoneData = JSON.parse(phoneDataJSON);
+                let phoneMap = [
+                    {meta: "CELL", field: "CellularNumber"},
+                    {meta: "FAX", field: "FaxNumber"},
+                    {meta: "PAGER", field: "PagerNumber"},
+                    {meta: "WORK", field: "WorkPhone"},
+                    {meta: "", field: "HomePhone"},
+                    ];
+                
+                for (let m=0; m < phoneMap.length; m++) {
+                    phoneFields[phoneMap[m].field] = [];            
+                    for (let d=phoneData.length-1; d >= 0; d--) {
+                        if (phoneData[d].meta.includes(phoneMap[m].meta) || phoneMap[m].meta == "") {
+                            phoneFields[phoneMap[m].field].unshift(phoneData[d].value);
+                            phoneData.splice(d,1);
+                        }
+                    }
+                }
+            } catch(e) {
+                //something went wrong
+                Components.utils.reportError(e);                
+            }
+        }
+        
+        //object with TB field names as keys and array of numbers as values
+        return phoneFields; 
+    },
+
+
     //* * * * * * * * * * * * * *
     //* EVALUATE XML RESPONSES  *
     //* * * * * * * * * * * * * *
