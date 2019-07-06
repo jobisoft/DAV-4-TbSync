@@ -19,7 +19,7 @@ let onInitDoneObserver = {
             Components.utils.import("chrome://tbsync/content/tbsync.jsm");
             valid = tbSync.enabled;
         } catch (e) {
-            //if this fails, tbSync is not loaded yet and we will get the notification later again
+            // If this fails, tbSync is not loaded yet and we will get the notification later again.
         }
         
         //load this provider add-on into TbSync
@@ -36,30 +36,39 @@ function uninstall(data, reason) {
 }
 
 function startup(data, reason) {
-    //possible reasons: APP_STARTUP, ADDON_ENABLE, ADDON_INSTALL, ADDON_UPGRADE, or ADDON_DOWNGRADE.
+    // Possible reasons: APP_STARTUP, ADDON_ENABLE, ADDON_INSTALL, ADDON_UPGRADE, or ADDON_DOWNGRADE.
 
-    //set default prefs (examples)
+    // Set default prefs
     let branch = Services.prefs.getDefaultBranch("extensions.dav4tbsync.");
     branch.setIntPref("maxitems", 50);
     branch.setCharPref("clientID.type", "TbSync");
     branch.setCharPref("clientID.useragent", "Thunderbird CalDAV/CardDAV");    
-    branch.setBoolPref("addCredentialsToUrl", false);
 
     thisID = data.id;
     Services.obs.addObserver(onInitDoneObserver, "tbsync.observer.initialized", false);
 
-    //during app startup, the load of the provider will be triggered by a "tbsync.observer.initialized" notification, 
-    //if load happens later, we need load manually 
+    // The startup of TbSync is delayed until all add-ons have called their startup(),
+    // so all providers have registered the "tbsync.observer.initialized" observer.
+    // Once TbSync has finished its startup, all providers will be notified (also if
+    // TbSync itself is restarted) to load themself.
+    // If this is not startup, we need load manually.
     if (reason != APP_STARTUP) {
         onInitDoneObserver.observe();
     }
 }
 
 function shutdown(data, reason) {
-    Services.obs.removeObserver(onInitDoneObserver, "tbsync.observer.initialized");
+    // Possible reasons: APP_SHUTDOWN, ADDON_DISABLE, ADDON_UNINSTALL, ADDON_UPGRADE, or ADDON_DOWNGRADE.
 
+    // When the application is shutting down we normally don't have to clean up.
+    if (reason == APP_SHUTDOWN) {
+        return;
+    }
+
+    Services.obs.removeObserver(onInitDoneObserver, "tbsync.observer.initialized");
     //unload this provider add-on from TbSync
     try {
+        var { tbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
         tbSync.providers.unloadProvider("dav");
     } catch (e) {
         //if this fails, tbSync has been unloaded already and has unloaded this addon as well

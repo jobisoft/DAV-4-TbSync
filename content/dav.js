@@ -211,7 +211,7 @@ var api = {
 
             "url" : "", // used by calendar to store the full url of this folder
             
-            "type" : "", //cladav, carddav or ics
+            "type" : "", //caldav, carddav or ics
             "shared": false, //identify shared resources
             "acl": "", //acl send from server
             "targetColor" : "",
@@ -376,7 +376,7 @@ var addressbook = {
 
     // define a card property, which should be used for the changelog
     // basically your primary key for the abItem properties
-    // UID will be used, if the card does not have the specified key, or no key has been specified
+    // UID will be used, if nothing specified
     primaryKeyField: "X-DAV-HREF",
     
     generatePrimaryKey: function (folderData) {
@@ -538,7 +538,7 @@ var calendar = {
 
         let baseUrl = "";
         if (caltype != "ics") {
-            baseUrl =  "http" + (folderData.accountData.getAccountProperty("https") ? "s" : "") + "://" + (dav.prefSettings.getBoolPref("addCredentialsToUrl") ? encodeURIComponent(auth.getUsername()) + ":" + encodeURIComponent(auth.getPassword()) + "@" : "") + folderData.getFolderProperty("fqdn");
+            baseUrl =  "http" + (folderData.accountData.getAccountProperty("https") ? "s" : "") + "://" + folderData.getFolderProperty("fqdn");
         }
 
         let url = dav.tools.parseUri(baseUrl + folderData.getFolderProperty("href"));        
@@ -569,8 +569,8 @@ var calendar = {
         
         if (folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
 
-        //only add credentials to password manager if they are not added to the URL directly - only for caldav calendars, not for plain ics files
-        if (!dav.prefSettings.getBoolPref("addCredentialsToUrl") && caltype != "ics") {
+        // ICS urls do not need a password
+        if (caltype != "ics") {
             tbSync.dump("Searching CalDAV authRealm for", url.host);
             let realm = (dav.listOfRealms.hasOwnProperty(url.host)) ? dav.listOfRealms[url.host] : "";
             if (realm !== "") {
@@ -588,7 +588,7 @@ var calendar = {
 }
 
 
-// this provider is using the standardFolderList (instead of this it could also implement the full folderList)
+// This provider is using the standardFolderList (instead of this it could also implement the full folderList).
 var standardFolderList = {
     /**
      * Is called before the context menu of the folderlist is shown, allows to

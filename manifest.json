@@ -1,0 +1,21 @@
+{
+  "applications": {
+    "gecko": {
+      "id": "dav4tbsync@jobisoft.de",
+      "strict_min_version": "68.0"
+    }
+  },
+  "manifest_version": 2,
+  "name": "Provider for CalDAV & CardDAV",
+  "version": "68.1",
+  "author": "John Bieling",
+  "homepage_url": "https://github.com/jobisoft/DAV-4-TbSync/",
+  "default_locale": "en-US",
+  "description": "__MSG_extensionDescription__",
+  "icons": {
+    "32": "skin/sabredav32.png"
+  },
+  "legacy": {
+    "type": "bootstrap"
+  }
+}
