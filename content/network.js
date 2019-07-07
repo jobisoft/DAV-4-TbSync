@@ -188,7 +188,7 @@ var network = {
     
     prepHttpChannel: function(aUploadData, aHeaders, aMethod, aConnection, aNotificationCallbacks=null, aExisting=null) {
         let userContextId = tbSync.network.getContainerIdForUser(aConnection.user);
-        let channel = aExisting || Services.io.newChannelFromURI2(
+        let channel = aExisting || Services.io.newChannelFromURI(
                                                                 aConnection.uri,
                                                                 null,
                                                                 Services.scriptSecurityManager.createCodebasePrincipal(aConnection.uri, { userContextId }),
@@ -347,7 +347,7 @@ var network = {
             
                 //nsIStreamLoaderObserver (aUseStreamLoader = true)
                 onStreamComplete: function(aLoader, aContext, aStatus, aResultLength, aResult) {
-                    let result = dav.tools.convertByteArray(aResult, aResultLength);  
+                    let result = dav.tools.convertByteArray(aResult);  
                     this.processResponse(aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel), aContext, aStatus, result);
                 },
                 

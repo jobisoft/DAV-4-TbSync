@@ -18,19 +18,14 @@ var tools = {
      * Convert a byte array to a string - copied from lightning
      *
      * @param {octet[]} aResult         The bytes to convert
-     * @param {Number} aResultLength    The number of bytes
      * @param {String} aCharset         The character set of the bytes, defaults to utf-8
      * @param {Boolean} aThrow          If true, the function will raise an exception on error
      * @return {?String}                The string result, or null on error
      */
-    convertByteArray: function(aResult, aResultLength, aCharset, aThrow) {
+    convertByteArray: function(aResult, aCharset="utf-8", aThrow) {
         try {
-            let resultConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
-                                            .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
-            resultConverter.charset = aCharset || "UTF-8";
-            return resultConverter.convertFromByteArray(aResult, aResultLength);
+            return new TextDecoder(aCharset).decode(Uint8Array.from(aResult));
         } catch (e) {
-            Components.utils.reportError(e);
             if (aThrow) {
                 throw e;
             }

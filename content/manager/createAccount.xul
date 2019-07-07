@@ -15,20 +15,18 @@
       onload="tbSyncDavNewAccount.onLoad();"
       onunload="tbSyncDavNewAccount.onUnload();"
       onclose="return tbSyncDavNewAccount.onClose()"
-      onwizardfinish="return tbSyncDavNewAccount.onFinish()"
-      onwizardcancel="return tbSyncDavNewAccount.onCancel()"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <script type="application/javascript" src="chrome://dav4tbsync/content/manager/createAccount.js"/>
 
-  <wizardpage onFirstPage="true" label="&add.serverprofile.title;" onpageshow="tbSyncDavNewAccount.showFirstPage();">
+  <wizardpage id="firstPage" onFirstPage="true" label="&add.serverprofile.title;">
     <vbox flex="1">
         <description style="width: 450px; margin-top:1em;">&add.serverprofile.description;</description>
         <richlistbox id="tbsync.newaccount.serviceproviderlist" flex="1" seltype="single" style="margin-top:1ex" onselect="tbSyncDavNewAccount.clearValues();" ondblclick="tbSyncDavNewAccount.advance()"/>
     </vbox>
   </wizardpage>
 
-  <wizardpage label="&add.data.title;" onpageshow="tbSyncDavNewAccount.showSecondPage();">
+  <wizardpage id="secondPage" label="&add.data.title;">
     <vbox flex="1">
         <description style="width: 450px; margin-top:1em;">&add.data.description;</description>
         <grid style="margin-top:1ex">

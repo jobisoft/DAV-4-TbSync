@@ -35,6 +35,11 @@ var tbSyncDavNewAccount = {
         }
         this.serviceproviderlist.selectedIndex = 0;
         this.validating = false;
+        
+        document.addEventListener("wizardfinish", tbSyncDavNewAccount.onFinish.bind(this));
+        document.addEventListener("wizardcancel", tbSyncDavNewAccount.onCancel.bind(this));
+        document.getElementById("firstPage").addEventListener("pageshow", tbSyncDavNewAccount.showFirstPage.bind(this));
+        document.getElementById("secondPage").addEventListener("pageshow", tbSyncDavNewAccount.showSecondPage.bind(this));
     },
     
     addProviderEntry: function (icon, serviceprovider) {
@@ -162,7 +167,7 @@ var tbSyncDavNewAccount = {
         document.documentElement.getButton("finish").disabled = (this.elementServer.value.trim() + this.elementCalDavServer.value.trim() + this.elementCardDavServer.value.trim() == "" || this.elementName.value.trim() == "" || this.elementUser.value == "" || this.elementPass.value == "");
     },
 
-    onFinish: function () {
+    onFinish: function (event) {
         if (document.documentElement.getButton("finish").disabled == false) {
             //initiate validation of server connection,
             document.getElementById("tbsync.newaccount.wizard").canRewind = false;
@@ -170,7 +175,7 @@ var tbSyncDavNewAccount = {
             this.validating = true;                
             this.validate();
         }
-        return false;
+        event.preventDefault();
     },
 
     validate: async function () {
@@ -279,9 +284,11 @@ var tbSyncDavNewAccount = {
         return !this.validating;
     },
 
-    onCancel: function () {
+    onCancel: function (event) {
         //disallow closing of wizard while validating
-        return !this.validating;
+        if (this.validating) {
+            event.preventDefault();
+        }
     },
     
 
