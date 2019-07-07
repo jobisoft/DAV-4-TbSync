@@ -11,36 +11,11 @@
 // every object in here will be loaded into tbSync.providers.<providername> namespace
 const dav = tbSync.providers.dav;
 
-var prefSettings = Services.prefs.getBranch("extensions.dav4tbsync.");
-var listOfRealms = {};
-
-var ns = {
-    d: "DAV:",
-    cal: "urn:ietf:params:xml:ns:caldav" ,
-    card: "urn:ietf:params:xml:ns:carddav" ,
-    cs: "http://calendarserver.org/ns/",
-    s: "http://sabredav.org/ns",
-    apple: "http://apple.com/ns/ical/"
-};
-
-var serviceproviders = {
-    "fruux" : {icon: "fruux", caldav: "https://dav.fruux.com", carddav: "https://dav.fruux.com"},
-    "icloud" : {icon: "icloud", caldav: "https://caldav.icloud.com", carddav: "https://contacts.icloud.com"},
-    "yahoo" : {icon: "yahoo", caldav: "https://caldav.calendar.yahoo.com", carddav: "https://carddav.address.yahoo.com"},
-    "gmx.net" : {icon: "gmx", caldav: "https://caldav.gmx.net", carddav: "https://carddav.gmx.net/.well-known/carddav"},
-    "gmx.com" : {icon: "gmx", caldav: "https://caldav.gmx.com", carddav: "https://carddav.gmx.com/.well-known/carddav"},
-    "posteo" : {icon: "posteo", caldav: "https://posteo.de:8443", carddav: "posteo.de:8843"},
-};
-
-//https://bugzilla.mozilla.org/show_bug.cgi?id=669675
-//non permanent cache
-var problematicHosts = [];
-
 /**
  * Implementation the TbSync interfaces for external provider extensions.
  */
 
-var api = {    
+var api = {    // better name? generall? core? basic? system?
     /**
      * Called during load of external provider extension to init provider.
      *
@@ -100,8 +75,8 @@ var api = {
         let base = "sabredav";
         if (accountData) {
             let serviceprovider = accountData.getAccountProperty("serviceprovider");
-            if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
-                base = dav.serviceproviders[serviceprovider].icon;
+            if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
+                base = dav.sync.serviceproviders[serviceprovider].icon;
             }
         }
         
@@ -149,17 +124,18 @@ var api = {
     
     
     /**
-     * Returns XUL URL of the authentication prompt window
+     * Returns URL of the authentication prompt window. The default TbSync
+     * password prompt will be used, if nothing specified. In that case, the
+     * provider must implement passwordAuth  object.
      */
-    getAuthPromptXulUrl: function () {
-        return "chrome://tbsync/content/manager/password.xul";
+    getAuthPromptWindowUrl: function () {
     },
 
     
     /**
-     * Returns XUL URL of the new account dialog.
+     * Returns URL of the new account window.
      */
-    getCreateAccountXulUrl: function () {
+    getCreateAccountWindowUrl: function () {
         return "chrome://dav4tbsync/content/manager/createAccount.xul";
     },
 
@@ -442,15 +418,15 @@ var addressbook = {
      * return the new directory
      */
     createAddressBook: function (newname, folderData) {
-        // maybe use target.create or something
+        // this is the standard target, should it not be created it like this?
         let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
         let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
 
         if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
             let serviceprovider = folderData.accountData.getAccountProperty("serviceprovider");
             let icon = "custom";
-            if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
-                icon = dav.serviceproviders[serviceprovider].icon;
+            if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
+                icon = dav.sync.serviceproviders[serviceprovider].icon;
             }
             directory.setStringValue("tbSyncIcon", "dav" + icon);
             return directory;
@@ -572,7 +548,7 @@ var calendar = {
         // ICS urls do not need a password
         if (caltype != "ics") {
             tbSync.dump("Searching CalDAV authRealm for", url.host);
-            let realm = (dav.listOfRealms.hasOwnProperty(url.host)) ? dav.listOfRealms[url.host] : "";
+            let realm = (dav.network.listOfRealms.hasOwnProperty(url.host)) ? dav.listOfRealms[url.host] : "";
             if (realm !== "") {
                 tbSync.dump("Found CalDAV authRealm",  realm);
                 //manually create a lightning style entry in the password manager

@@ -72,7 +72,7 @@ var tools = {
     xmlns: function (ns) {
         let _xmlns = [];
         for (let i=0; i < ns.length; i++) {
-            _xmlns.push('xmlns:'+ns[i]+'="'+dav.ns[ns[i]]+'"');
+            _xmlns.push('xmlns:'+ns[i]+'="'+dav.sync.ns[ns[i]]+'"');
         }
         return _xmlns.join(" ");
     },
@@ -209,7 +209,7 @@ var tools = {
             valid = false;
 
             for (let c=0; c < children.length; c++) {
-                if (children[c].localName == path[i][1] && children[c].namespaceURI == dav.ns[path[i][0]]) {
+                if (children[c].localName == path[i][1] && children[c].namespaceURI == dav.sync.ns[path[i][0]]) {
                     node = children[c];
                     valid = true;
                     break;
@@ -245,7 +245,7 @@ var tools = {
             let node = dav.tools.evaluateNode(response.multi[i].node, path);
             if (node !== null && (href === null || response.multi[i].href == href || decodeURIComponent(response.multi[i].href) == href || response.multi[i].href == decodeURIComponent(href)) && response.multi[i].status == status) {
                 //get all children
-                let children = node.getElementsByTagNameNS(dav.ns[lastPathElement[0]], lastPathElement[1]);
+                let children = node.getElementsByTagNameNS(dav.sync.ns[lastPathElement[0]], lastPathElement[1]);
                 for (let c=0; c < children.length; c++) {
                     if (children[c].textContent) rv.push(children[c].textContent);
                 }

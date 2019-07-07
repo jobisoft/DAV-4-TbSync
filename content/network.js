@@ -10,6 +10,11 @@
 
 var network = {
 
+    //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
+    //non permanent cache
+    problematicHosts: [],
+    listOfRealms: {},
+
     ConnectionData: class {
         constructor(data) {            
             this._password = "";
@@ -104,7 +109,7 @@ var network = {
 
             if (this.mConnection.type == "cal") {
                 tbSync.dump("Found CalDAV authRealm for <"+aChannel.URI.host+">", aAuthInfo.realm);
-                dav.listOfRealms[aChannel.URI.host] = aAuthInfo.realm;
+                dav.network.listOfRealms[aChannel.URI.host] = aAuthInfo.realm;
             }
             
             if (this.mConnection.password !== null) {
@@ -252,7 +257,7 @@ var network = {
             connectionData.uri = Services.io.newURI(url);
 
             //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
-            if (dav.problematicHosts.includes(connectionData.uri.host)) {
+            if (dav.network.problematicHosts.includes(connectionData.uri.host)) {
                 headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connectionData.user + ":" + connectionData.password);
             }
             
@@ -263,9 +268,9 @@ var network = {
                 if (r.addBasicAuthHeaderOnce) {
                     tbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + connectionData.user + "@" + connectionData.fqdn + ">");
                     headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connectionData.user + ":" + connectionData.password);
-                } else if (!dav.problematicHosts.includes(connectionData.fqdn) ) {
+                } else if (!dav.network.problematicHosts.includes(connectionData.fqdn) ) {
                     tbSync.dump("BUG 669675", "Adding <" + connectionData.fqdn + "> to list of problematic hosts.");
-                    dav.problematicHosts.push(connectionData.fqdn)
+                    dav.network.problematicHosts.push(connectionData.fqdn)
                 }
 
                 //there might have been a redirect, rebuild url
@@ -431,7 +436,7 @@ var network = {
                                 if (xml === null) return reject(dav.sync.failed("maiformed-xml", "URL:\n" + connectionData.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData));
 
                                 //the specs allow to  return a 207 with DAV:unauthenticated if not authenticated 
-                                if (xml.documentElement.getElementsByTagNameNS(dav.ns.d, "unauthenticated").length != 0) {
+                                if (xml.documentElement.getElementsByTagNameNS(dav.sync.ns.d, "unauthenticated").length != 0) {
                                     let response = {};
                                     response.retry = true;
                                     response.path = aChannel.URI.pathQueryRef;
@@ -442,12 +447,12 @@ var network = {
                                     let response = {};
                                     response.node = xml.documentElement;
 
-                                    let multi = xml.documentElement.getElementsByTagNameNS(dav.ns.d, "response");
+                                    let multi = xml.documentElement.getElementsByTagNameNS(dav.sync.ns.d, "response");
                                     response.multi = [];
                                     for (let i=0; i < multi.length; i++) {
                                         let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
                                         let responseStatusNode = dav.tools.evaluateNode(multi[i], [["d", "status"]]);
-                                        let propstats = multi[i].getElementsByTagNameNS(dav.ns.d, "propstat");
+                                        let propstats = multi[i].getElementsByTagNameNS(dav.sync.ns.d, "propstat");
                                         if (propstats.length > 0) {
                                             //response contains propstats, push each as single entry
                                             for (let p=0; p < propstats.length; p++) {

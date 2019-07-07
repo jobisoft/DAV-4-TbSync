@@ -30,8 +30,8 @@ var tbSyncDavNewAccount = {
         //init list
         this.serviceproviderlist.appendChild(this.addProviderEntry("sabredav32.png", "discovery"));
         this.serviceproviderlist.appendChild(this.addProviderEntry("sabredav32.png", "custom"));
-        for (let p in dav.serviceproviders) {
-            this.serviceproviderlist.appendChild(this.addProviderEntry(dav.serviceproviders[p].icon +"32.png", p));
+        for (let p in dav.sync.serviceproviders) {
+            this.serviceproviderlist.appendChild(this.addProviderEntry(dav.sync.serviceproviders[p].icon +"32.png", p));
         }
         this.serviceproviderlist.selectedIndex = 0;
         this.validating = false;
@@ -141,8 +141,8 @@ var tbSyncDavNewAccount = {
                 document.getElementById("tbsync.newaccount.carddavserver.row").hidden = true;
                 this.elementCalDavServer.disabled = true;
                 this.elementCardDavServer.disabled = true;
-                this.elementCalDavServer.value = dav.serviceproviders[serviceprovider].caldav;
-                this.elementCardDavServer.value = dav.serviceproviders[serviceprovider].carddav;
+                this.elementCalDavServer.value = dav.sync.serviceproviders[serviceprovider].caldav;
+                this.elementCardDavServer.value = dav.sync.serviceproviders[serviceprovider].carddav;
             }            
         }
         

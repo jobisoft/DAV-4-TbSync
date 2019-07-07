@@ -28,8 +28,26 @@ var sync = {
     },
 
 
+    prefSettings: Services.prefs.getBranch("extensions.dav4tbsync."),
 
+    ns: {
+        d: "DAV:",
+        cal: "urn:ietf:params:xml:ns:caldav" ,
+        card: "urn:ietf:params:xml:ns:carddav" ,
+        cs: "http://calendarserver.org/ns/",
+        s: "http://sabredav.org/ns",
+        apple: "http://apple.com/ns/ical/"
+    },
 
+    serviceproviders: {
+        "fruux" : {icon: "fruux", caldav: "https://dav.fruux.com", carddav: "https://dav.fruux.com"},
+        "icloud" : {icon: "icloud", caldav: "https://caldav.icloud.com", carddav: "https://contacts.icloud.com"},
+        "yahoo" : {icon: "yahoo", caldav: "https://caldav.calendar.yahoo.com", carddav: "https://carddav.address.yahoo.com"},
+        "gmx.net" : {icon: "gmx", caldav: "https://caldav.gmx.net", carddav: "https://carddav.gmx.net/.well-known/carddav"},
+        "gmx.com" : {icon: "gmx", caldav: "https://caldav.gmx.com", carddav: "https://carddav.gmx.com/.well-known/carddav"},
+        "posteo" : {icon: "posteo", caldav: "https://posteo.de:8443", carddav: "posteo.de:8843"},
+    },
+    
 
     folderList: async function (syncData) {
         //Method description: http://sabre.io/dav/building-a-caldav-client/
@@ -52,9 +70,9 @@ var sync = {
 
             //get server urls from account setup - update urls of serviceproviders
             let serviceprovider = syncData.accountData.getAccountProperty("serviceprovider");
-            if (dav.serviceproviders.hasOwnProperty(serviceprovider)) {
-                syncData.accountData.setAccountProperty("calDavHost", dav.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
-                syncData.accountData.setAccountProperty("cardDavHost", dav.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
+            if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
+                syncData.accountData.setAccountProperty("calDavHost", dav.sync.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
+                syncData.accountData.setAccountProperty("cardDavHost", dav.sync.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
             }
 
             let davjobs = {
@@ -168,16 +186,16 @@ var sync = {
                             let acl = 0;
                             let privilegNode = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","current-user-privilege-set"]]);
                             if (privilegNode) {
-                                if (privilegNode.getElementsByTagNameNS(dav.ns.d, "all").length > 0) { 
+                                if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "all").length > 0) { 
                                     acl = 0xF; //read=1, mod=2, create=4, delete=8 
-                                } else if (privilegNode.getElementsByTagNameNS(dav.ns.d, "read").length > 0) { 
+                                } else if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "read").length > 0) { 
                                     acl = 0x1;
-                                    if (privilegNode.getElementsByTagNameNS(dav.ns.d, "write").length > 0) {
+                                    if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "write").length > 0) {
                                         acl = 0xF; 
                                     } else {
-                                        if (privilegNode.getElementsByTagNameNS(dav.ns.d, "write-content").length > 0) acl |= 0x2;
-                                        if (privilegNode.getElementsByTagNameNS(dav.ns.d, "bind").length > 0) acl |= 0x4;
-                                        if (privilegNode.getElementsByTagNameNS(dav.ns.d, "unbind").length > 0) acl |= 0x8;
+                                        if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "write-content").length > 0) acl |= 0x2;
+                                        if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "bind").length > 0) acl |= 0x4;
+                                        if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "unbind").length > 0) acl |= 0x8;
                                     }
                                 }
                             }
@@ -581,7 +599,7 @@ var sync = {
         
         //download all changed cards and process changes
         let cards2catch = Object.keys(vCardsChangedOnServer);
-        let maxitems = dav.prefSettings.getIntPref("maxitems");
+        let maxitems = dav.sync.prefSettings.getIntPref("maxitems");
 
         for (let i=0; i < cards2catch.length; i+=maxitems) {
             let request = dav.tools.getMultiGetRequest(cards2catch.slice(i, i+maxitems));
@@ -659,7 +677,7 @@ var sync = {
     },
 
     deleteContacts: async function (syncData, cards2delete) {
-        let maxitems = dav.prefSettings.getIntPref("maxitems");
+        let maxitems = dav.sync.prefSettings.getIntPref("maxitems");
 
         // try to show a progress based on maxitens during delete and not delete all at once
         for (let i=0; i < cards2delete.length; i+=maxitems) {
@@ -682,7 +700,7 @@ var sync = {
 
     localChanges: async function (syncData) {
         //define how many entries can be send in one request
-        let maxitems = dav.prefSettings.getIntPref("maxitems");
+        let maxitems = dav.sync.prefSettings.getIntPref("maxitems");
 
         let downloadonly = syncData.currentFolderData.getFolderProperty("downloadonly");
 
