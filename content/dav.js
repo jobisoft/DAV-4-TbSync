@@ -18,11 +18,8 @@ const dav = tbSync.providers.dav;
 var api = {    // better name? generall? core? basic? system?
     /**
      * Called during load of external provider extension to init provider.
-     *
-     * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
      */
-    load: async function (lightningIsAvail) {
-        //load overlays or do other init stuff, use lightningIsAvail to init stuff if lightning is installed
+    load: async function () {
         dav.overlayManager = new OverlayManager({verbose: 0});
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abNewCardWindow.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
@@ -30,25 +27,14 @@ var api = {    // better name? generall? core? basic? system?
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
         dav.overlayManager.startObserving();
-
-        if (lightningIsAvail) {
-            //cal.getCalendarManager().addObserver(dav.calendarManagerObserver);    
-            //cal.getCalendarManager().addCalendarObserver(dav.calendarObserver);            
-        }
     },
 
 
 
     /**
      * Called during unload of external provider extension to unload provider.
-     *
-     * @param lightningIsAvail       [in] indicate wheter lightning is installed/enabled
      */
-    unload: async function (lightningIsAvail) {
-        if (lightningIsAvail) {
-            //cal.getCalendarManager().removeObserver(dav.calendarManagerObserver);
-            //cal.getCalendarManager().removeCalendarObserver(dav.calendarObserver);                        
-        }
+    unload: async function () {
         dav.overlayManager.stopObserving();	
     },
 
@@ -507,7 +493,7 @@ var calendar = {
      * return the new calendar
      */
     createCalendar: function(newname, folderData) {
-        let calManager = cal.getCalendarManager();
+        let calManager = tbSync.lightning.cal.getCalendarManager();
         let auth = new tbSync.PasswordAuthData(folderData.accountData);
         
         let caltype = folderData.getFolderProperty("type");
@@ -534,10 +520,10 @@ var calendar = {
 
         if (!found) {
             newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
-            newCalendar.id = cal.getUUID();
+            newCalendar.id = tbSync.lightning.cal.getUUID();
             newCalendar.name = newname;
 
-            newCalendar.setProperty("user", auth.getUsername());
+            newCalendar.setProperty("username", auth.getUsername());
             newCalendar.setProperty("color", folderData.getFolderProperty("targetColor"));
             newCalendar.setProperty("calendar-main-in-composite", true);
             newCalendar.setProperty("cache.enabled", folderData.accountData.getAccountProperty("useCalendarCache"));
@@ -548,7 +534,7 @@ var calendar = {
         // ICS urls do not need a password
         if (caltype != "ics") {
             tbSync.dump("Searching CalDAV authRealm for", url.host);
-            let realm = (dav.network.listOfRealms.hasOwnProperty(url.host)) ? dav.listOfRealms[url.host] : "";
+            let realm = (dav.network.listOfRealms.hasOwnProperty(url.host)) ? dav.network.listOfRealms[url.host] : "";
             if (realm !== "") {
                 tbSync.dump("Found CalDAV authRealm",  realm);
                 //manually create a lightning style entry in the password manager
