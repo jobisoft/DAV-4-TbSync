@@ -15,7 +15,7 @@ const dav = tbSync.providers.dav;
  * Implementation the TbSync interfaces for external provider extensions.
  */
 
-var api = {    // better name? generall? core? basic? system?
+var api = {
     /**
      * Called during load of external provider extension to init provider.
      */
