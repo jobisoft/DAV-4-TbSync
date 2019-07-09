@@ -8,7 +8,7 @@
 
 "use strict";
 
-// every object in here will be loaded into tbSync.providers.<providername> namespace
+// Every object in here will be loaded into tbSync.providers.<providername> namespace.
 const dav = tbSync.providers.dav;
 
 /**
@@ -106,15 +106,6 @@ var api = {    // better name? generall? core? basic? system?
      */
     getStringBundleUrl: function () {
         return "chrome://dav4tbsync/locale/dav.strings";
-    },
-    
-    
-    /**
-     * Returns URL of the authentication prompt window. The default TbSync
-     * password prompt will be used, if nothing specified. In that case, the
-     * provider must implement passwordAuth  object.
-     */
-    getAuthPromptWindowUrl: function () {
     },
 
     
@@ -316,19 +307,36 @@ var api = {    // better name? generall? core? basic? system?
 
 
 
-// this provider is using the default authPrompt, so it must implement passwordAuth
-var passwordAuth = {    
-    getUsername : function (accountData) {
-        return accountData.getAccountProperty("user");
-    },
-    
-    setUsername : function (accountData, newUserName) {
-        accountData.setAccountProperty("user", newUserName);
-    },
-
-    getHost : function (accountData) {
-        return accountData.getAccountProperty("calDavHost") ? accountData.getAccountProperty("calDavHost") : accountData.getAccountProperty("cardDavHost");
-    },
+// This provider is using tbSync.passwordManager.passwordPrompt(), so it must implement the passwordAuth obj.
+var passwordAuth = {
+  getHost: function(accountData) {
+    return accountData.getAccountProperty("calDavHost") ? accountData.getAccountProperty("calDavHost") : accountData.getAccountProperty("cardDavHost");
+  },
+  
+  getUsername: function(accountData) {
+    return accountData.getAccountProperty("user");
+  },
+  
+  getPassword: function(accountData) {
+    return tbSync.passwordManager.getLoginInfo(this.getHost(accountData), "TbSync/DAV", this.getUsername(accountData));
+  },
+  
+  setUsername: function(accountData, newUsername) {
+    // as updating the username is a bit more work, only do it, if it changed
+    if (newUsername != this.getUsername(accountData)) {
+      //temp store the old password, as we have to remove the current entry from the password manager
+      let oldPassword = this.getPassword(accountData);
+      // try to remove the current/old entry
+      tbSync.passwordManager.removeLoginInfo(this.getHost(accountData), "TbSync/DAV", this.getUsername(accountData))
+      //update username
+      accountData.setAccountProperty("user", newUsername);
+      tbSync.passwordManager.setLoginInfo(this.getHost(accountData), "TbSync/DAV", newUsername, oldPassword);
+    }
+  },
+  
+  setPassword: function(accountData, newPassword) {
+    tbSync.passwordManager.setLoginInfo(this.getHost(accountData), "TbSync/DAV", this.getUsername(accountData), newPassword);
+  },
 }
 
 
@@ -494,8 +502,9 @@ var calendar = {
      */
     createCalendar: function(newname, folderData) {
         let calManager = tbSync.lightning.cal.getCalendarManager();
-        let auth = new tbSync.PasswordAuthData(folderData.accountData);
-        
+        let password = dav.passwordAuth.getPassword(folderData.accountData);
+        let username = dav.passwordAuth.getUsername(folderData.accountData);
+      
         let caltype = folderData.getFolderProperty("type");
 
         let baseUrl = "";
@@ -523,7 +532,7 @@ var calendar = {
             newCalendar.id = tbSync.lightning.cal.getUUID();
             newCalendar.name = newname;
 
-            newCalendar.setProperty("username", auth.getUsername());
+            newCalendar.setProperty("username", username);
             newCalendar.setProperty("color", folderData.getFolderProperty("targetColor"));
             newCalendar.setProperty("calendar-main-in-composite", true);
             newCalendar.setProperty("cache.enabled", folderData.accountData.getAccountProperty("useCalendarCache"));
@@ -538,7 +547,7 @@ var calendar = {
             if (realm !== "") {
                 tbSync.dump("Found CalDAV authRealm",  realm);
                 //manually create a lightning style entry in the password manager
-                tbSync.passwordAuth.setLoginInfo(url.prePath, realm, auth.getUsername(), auth.getPassword());
+                tbSync.passwordManager.setLoginInfo(url.prePath, realm, username, password);
             }
         }
 

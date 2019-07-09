@@ -55,9 +55,8 @@ var network = {
       }
       
       if (accountData) {
-        let auth = new tbSync.PasswordAuthData(accountData);
-        this._password = auth.getPassword();
-        this._user = auth.getUsername();
+        this._password = dav.passwordAuth.getPassword(accountData);
+        this._user = dav.passwordAuth.getUsername(accountData);
 
         this._https = accountData.getAccountProperty("https");
         this._accountname = accountData.getAccountProperty("accountname");
@@ -65,7 +64,9 @@ var network = {
           this._type = folderData.getFolderProperty("type");
           this._fqdn = folderData.getFolderProperty("fqdn");
         }
-      }            
+      }
+      
+      this.accountData = accountData;
     }
     
     startTimeout(aChannel) {
@@ -426,6 +427,9 @@ var network = {
                     return resolve(response);
                   }
                 }
+                
+                // Prompt for Password
+                tbSync.passwordManager.passwordPrompt(connectionData.accountData);
                 
                 return reject(dav.sync.failed(responseStatus, "URL:\n" + connectionData.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
               }

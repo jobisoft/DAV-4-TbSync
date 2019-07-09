@@ -302,12 +302,11 @@ var tbSyncDavNewAccount = {
         newAccountEntry.calDavHost = newAccountInfo.caldavserver;
         newAccountEntry.cardDavHost = newAccountInfo.carddavserver;
     
-        // add the new account
+        // Add the new account.
         let newAccountData = this.providerData.addAccount(accountname, newAccountEntry);
 
-        // update password in PasswordManager
-        let auth = new tbSync.PasswordAuthData(newAccountData);
-        auth.setPassword(newAccountInfo.password);
+        // Update password in PasswordManager using the method defined in our passwordAuth obj.
+        dav.passwordAuth.setPassword(newAccountData, newAccountInfo.password);
 
         window.close();
     }
