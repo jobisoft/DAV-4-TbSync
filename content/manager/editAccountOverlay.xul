@@ -8,7 +8,7 @@
 ]>
 <overlay 
     id="tbSyncAccountConfig" 
-    oninject="tbSyncDavEditAccount.onSettingsGUILoad(window, tbSyncAccountSettings.accountID);"
+    oninject="tbSyncDavEditAccount.onload(window, tbSyncAccountSettings.accountID);"
     xmlns:html="http://www.w3.org/1999/xhtml">
 
   <script type="application/javascript" src="chrome://dav4tbsync/content/manager/editAccountOverlay.js"/>

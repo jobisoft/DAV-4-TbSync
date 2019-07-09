@@ -321,21 +321,11 @@ var passwordAuth = {
     return tbSync.passwordManager.getLoginInfo(this.getHost(accountData), "TbSync/DAV", this.getUsername(accountData));
   },
   
-  setUsername: function(accountData, newUsername) {
-    // as updating the username is a bit more work, only do it, if it changed
-    if (newUsername != this.getUsername(accountData)) {
-      //temp store the old password, as we have to remove the current entry from the password manager
-      let oldPassword = this.getPassword(accountData);
-      // try to remove the current/old entry
-      tbSync.passwordManager.removeLoginInfo(this.getHost(accountData), "TbSync/DAV", this.getUsername(accountData))
-      //update username
-      accountData.setAccountProperty("user", newUsername);
-      tbSync.passwordManager.setLoginInfo(this.getHost(accountData), "TbSync/DAV", newUsername, oldPassword);
-    }
-  },
-  
-  setPassword: function(accountData, newPassword) {
-    tbSync.passwordManager.setLoginInfo(this.getHost(accountData), "TbSync/DAV", this.getUsername(accountData), newPassword);
+  setLogin: function(accountData, newUsername, newPassword) {
+    let oldUsername = this.getUsername(accountData);
+    tbSync.passwordManager.setLoginInfo(this.getHost(accountData), "TbSync/DAV", oldUsername, newUsername, newPassword);
+    // Also update the username of this account.
+    accountData.setAccountProperty("user", newUsername);
   },
 }
 
@@ -547,7 +537,7 @@ var calendar = {
             if (realm !== "") {
                 tbSync.dump("Found CalDAV authRealm",  realm);
                 //manually create a lightning style entry in the password manager
-                tbSync.passwordManager.setLoginInfo(url.prePath, realm, username, password);
+                tbSync.passwordManager.setLoginInfo(url.prePath, realm, /* old */ username, /* new */ username, password);
             }
         }
 

@@ -29,7 +29,7 @@ var tbSyncDavEditAccount = {
         tbSync.db.setAccountProperty(accountID, field, host);
     },
 
-    onSettingsGUILoad: function (window, accountID) {
+    onload: function (window, accountID) {
         let serviceprovider = tbSync.db.getAccountProperty(accountID, "serviceprovider");
         let isServiceProvider = dav.sync.serviceproviders.hasOwnProperty(serviceprovider);
         
