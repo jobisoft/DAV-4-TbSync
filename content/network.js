@@ -249,23 +249,24 @@ var network = {
   },
  
   sendRequest: async function (requestData, path, method, connectionData, headers = {}, options = {softfail: []}, aUseStreamLoader = true) {            
-    //path could be absolute or relative, we may need to rebuild the full url
+    // path could be absolute or relative, we may need to rebuild the full url.
     let url = (path.startsWith("http://") || path.startsWith("https://")) ? path : "http" + (connectionData.https ? "s" : "") + "://" + connectionData.fqdn + path;
 
-    //a few bugs in TB and in client implementations require to retry a connection on certain failures
-    for (let i=1; i < 5; i++) { //max number of retries
+    // A few bugs in TB and in client implementations require to retry a connection on certain failures.
+    const MAX_RETRIES = 5;
+    for (let i=1; i <= MAX_RETRIES; i++) {
       tbSync.dump("URL Request #" + i, url);
 
       connectionData.uri = Services.io.newURI(url);
 
-      //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=669675
       if (dav.network.problematicHosts.includes(connectionData.uri.host)) {
         headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connectionData.user + ":" + connectionData.password);
       }
       
       let r = await dav.network.useHttpChannel(requestData, method, connectionData, headers, options, aUseStreamLoader);
-    
-      //connectionData.uri.host may no longer be the correct value, as there might have been redirects, use connectionData.fqdn 
+      
+      // ConnectionData.uri.host may no longer be the correct value, as there might have been redirects, use connectionData.fqdn .
       if (r && r.retry && r.retry === true) {
         if (r.addBasicAuthHeaderOnce) {
           tbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + connectionData.user + "@" + connectionData.fqdn + ">");
@@ -275,52 +276,37 @@ var network = {
           dav.network.problematicHosts.push(connectionData.fqdn)
         }
 
-        //there might have been a redirect, rebuild url
+        // There might have been a redirect, rebuild url.
         url = "http" + (connectionData.https ? "s" : "") + "://" + connectionData.fqdn + r.path;
+        
+        // Request for password prompt?
+        if (r.passwordPrompt && r.passwordPrompt === true) {
+          if (i == MAX_RETRIES) {
+            // If this is the final retry, abort with error.
+            throw r.passwordError;
+          } else {
+            // Prompt.
+            let passwordPromptSucceeded = await tbSync.passwordManager.passwordPrompt(connectionData.accountData);
+            // If  prompt cancelled, abort with error.
+            if (!passwordPromptSucceeded) {
+              throw r.passwordError;
+            }
+          }
+        }
       } else {
         return r;
       }
     }
+
   },
   
   // Promisified implementation of Components.interfaces.nsIHttpChannel
-  useHttpChannel: async function (requestData, method, connectionData, headers, options, aUseStreamLoader) {
+  useHttpChannel: function (requestData, method, connectionData, headers, options, aUseStreamLoader) {
     let responseData = "";
     
     //do not log HEADERS, as it could contain an Authorization header
     //tbSync.dump("HEADERS", JSON.stringify(headers));
     if (tbSync.prefs.getIntPref("log.userdatalevel")>1) tbSync.dump("REQUEST", method + " : " + requestData);
-    
-    //testing with fetch()
-/*        if (!aUseStreamLoader) {
-      let fetchoptions = {};
-      fetchoptions.method = method;
-      fetchoptions.body = requestData;
-      fetchoptions.cache = "no-cache";
-      //do not include credentials, so we do not end up in a session, see https://github.com/owncloud/core/issues/27093
-      fetchoptions.credentials = "omit";
-      fetchoptions.redirect = "follow";// manual, *follow, error
-      fetchoptions.headers = headers;
-      fetchoptions.headers["Content-Length"] = requestData.length;
-
-      if (!fetchoptions.headers.hasOwnProperty("Content-Type"))
-        fetchoptions.headers["Content-Type"] = "application/xml; charset=utf-8";
-      
-      fetchoptions.headers["Authorization"] = "Basic " + btoa(connectionData.user + ':' + connectionData.password);
-      tbSync.dump("FETCH URL", connectionData.uri.spec);
-      tbSync.dump("FETCH OPTIONS", JSON.stringify(fetchoptions));
-
-      try {
-        let response = await tbSync.window.fetch(connectionData.uri.spec, fetchoptions);
-        tbSync.dump("FETCH STATUS", response.status);
-        let text = await response.text();
-        tbSync.dump("FETCH RESPONSE", response.status + " : " + text);
-      } catch (e) {
-        Components.utils.reportError(e);
-        tbSync.dump("FETCH FAILED", "");
-      }
-      return null;
-    }*/
   
     return new Promise(function(resolve, reject) {                  
       let listener = {
@@ -428,10 +414,15 @@ var network = {
                   }
                 }
                 
-                // Prompt for Password
-                tbSync.passwordManager.passwordPrompt(connectionData.accountData);
-                
-                return reject(dav.sync.failed(responseStatus, "URL:\n" + connectionData.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
+                // This (callback) function cannot be turned into an async
+                // function, so we resolve the overall Promise and do the
+                // password prompt in the outer (async) function.
+                let response = {};
+                response.retry = true;
+                response.path = aChannel.URI.pathQueryRef;
+                response.passwordPrompt = true;
+                response.passwordError = dav.sync.failed(responseStatus, "URL:\n" + connectionData.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
+                return resolve(response);                
               }
               break;
               
