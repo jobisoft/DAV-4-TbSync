@@ -286,9 +286,12 @@ var network = {
             throw r.passwordError;
           } else {
             // Prompt.
-            let passwordPromptSucceeded = await tbSync.passwordManager.passwordPrompt(connectionData.accountData);
-            // If  prompt cancelled, abort with error.
-            if (!passwordPromptSucceeded) {
+            let credentials = await tbSync.passwordManager.passwordPrompt(connectionData.accountData);
+            if (credentials) {
+              // update connection data
+              connectionData.user = credentials.username;
+              connectionData.password = credentials.password;
+            } else {
               throw r.passwordError;
             }
           }
