@@ -294,7 +294,6 @@ var tbSyncDavNewAccount = {
 
     addAccount (accountname, newAccountInfo) {        
         let newAccountEntry = this.providerData.getDefaultAccountEntries();
-        newAccountEntry.user = newAccountInfo.user;
         newAccountEntry.createdWithProviderVersion = this.providerData.getVersion();
 
         newAccountEntry.https = newAccountInfo.https
@@ -304,9 +303,7 @@ var tbSyncDavNewAccount = {
     
         // Add the new account.
         let newAccountData = this.providerData.addAccount(accountname, newAccountEntry);
-
-        // Store login in PasswordManager using the method defined in our passwordAuth obj.
-        dav.passwordAuth.setLogin(newAccountData, newAccountInfo.user, newAccountInfo.password);
+        dav.auth.updateLoginData(newAccountData, newAccountInfo.user, newAccountInfo.password);
 
         window.close();
     }

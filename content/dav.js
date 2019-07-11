@@ -27,6 +27,8 @@ var api = {
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
         dav.overlayManager.startObserving();
+
+        dav.openWindows = {};
     },
 
 
@@ -36,6 +38,13 @@ var api = {
      */
     unload: async function () {
         dav.overlayManager.stopObserving();	
+
+        // Close all open windows of this provider.
+        for (let id in dav.openWindows) {
+          if (dav.openWindows.hasOwnProperty(id)) {
+            dav.openWindows[id].close();
+          }
+        }
     },
 
 
@@ -305,32 +314,6 @@ var api = {
     },
 }
 
-
-
-// This provider is using tbSync.passwordManager.passwordPrompt(), so it must implement the passwordAuth obj.
-var passwordAuth = {
-  getHost: function(accountData) {
-    return accountData.getAccountProperty("calDavHost") ? accountData.getAccountProperty("calDavHost") : accountData.getAccountProperty("cardDavHost");
-  },
-  
-  getUsername: function(accountData) {
-    return accountData.getAccountProperty("user");
-  },
-  
-  getPassword: function(accountData) {
-    return tbSync.passwordManager.getLoginInfo(this.getHost(accountData), "TbSync/DAV", this.getUsername(accountData));
-  },
-  
-  setLogin: function(accountData, newUsername, newPassword) {
-    let oldUsername = this.getUsername(accountData);
-    tbSync.passwordManager.setLoginInfo(this.getHost(accountData), "TbSync/DAV", oldUsername, newUsername, newPassword);
-    // Also update the username of this account.
-    accountData.setAccountProperty("user", newUsername);
-  },
-}
-
-
-
 // this provider is using the standard "addressbook" targetType, so it must implement the addressbook object
 var addressbook = {
 
@@ -492,8 +475,8 @@ var calendar = {
      */
     createCalendar: function(newname, folderData) {
         let calManager = tbSync.lightning.cal.getCalendarManager();
-        let password = dav.passwordAuth.getPassword(folderData.accountData);
-        let username = dav.passwordAuth.getUsername(folderData.accountData);
+        let password = dav.auth.getPassword(folderData.accountData);
+        let username = dav.auth.getUsername(folderData.accountData);
       
         let caltype = folderData.getFolderProperty("type");
 
@@ -537,7 +520,7 @@ var calendar = {
             if (realm !== "") {
                 tbSync.dump("Found CalDAV authRealm",  realm);
                 //manually create a lightning style entry in the password manager
-                tbSync.passwordManager.setLoginInfo(url.prePath, realm, /* old */ username, /* new */ username, password);
+                tbSync.passwordManager.updateLoginInfo(url.prePath, realm, /* old */ username, /* new */ username, password);
             }
         }
 
@@ -609,5 +592,6 @@ var standardFolderList = {
 
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/sync.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/tools.js", this, "UTF-8");
+Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/auth.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/network.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/vcard/vcard.js", this, "UTF-8");

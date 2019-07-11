@@ -55,8 +55,8 @@ var network = {
       }
       
       if (accountData) {
-        this._password = dav.passwordAuth.getPassword(accountData);
-        this._user = dav.passwordAuth.getUsername(accountData);
+        this._password = dav.auth.getPassword(accountData);
+        this._user = dav.auth.getUsername(accountData);
 
         this._https = accountData.getAccountProperty("https");
         this._accountname = accountData.getAccountProperty("accountname");
@@ -286,8 +286,12 @@ var network = {
             throw r.passwordError;
           } else {
             // Prompt.
-            let credentials = await tbSync.passwordManager.passwordPrompt(connectionData.accountData);
+            let data = {};
+            let credentials = await tbSync.passwordManager.asyncPasswordPrompt(data, dav.openWindows);
+
             if (credentials) {
+              // update login data
+              dav.auth.updateLoginData(connectionData.accountData, credentials.username, credentials.password);
               // update connection data
               connectionData.user = credentials.username;
               connectionData.password = credentials.password;
