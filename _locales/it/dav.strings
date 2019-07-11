@@ -17,6 +17,7 @@ syncstate.eval.response.localchanges=Elaborazione riconoscimento modifiche local
 
 syncstate.send.request.remotechanges=In attesa delle modifiche remote
 syncstate.eval.response.remotechanges=Elaborazione modifiche remote in corso
+syncstate.passwordprompt=Richiesta di inserire le credenziali
 
 status.notsyncronized=L'account deve essere sincronizzato, almeno un elemento non è sincronizzato.
 status.disabled=L'account non è abilitato, la sincronizzazione è disabilitata.
@@ -29,7 +30,6 @@ status.403=Il server ha rifiutato la connessione (vietato).
 status.401=Impossibile autenticarsi, controllare nome utente e password.
 status.500=Errore server sconosciuto (errore HTTP 500).
 status.503=Servizio non disponibile.
-helplink.503=https://github.com/jobisoft/DAV-4-TbSync/issues/41
 status.httperror=Errore di comunicazione (stato HTTP ##replace.1##).
 status.success=OK
 status.nolightning=Componente aggiuntivo Lightning non installato, i calendari non sono supportati.

@@ -17,6 +17,7 @@ syncstate.eval.response.localchanges=Helyi változtatások igazolása feldolgoz�
 
 syncstate.send.request.remotechanges=Várakozás a távoli változtatások
 syncstate.eval.response.remotechanges=A távoli változtatások feldolgozása
+syncstate.passwordprompt=Hitelesítő adatok megadásának kérése
 
 status.notsyncronized=A fiókját összehangolni kell. Legalább egy elem összehangolatlan.
 status.disabled=A fiók nem engedélyezett, az összehangolás le van tiltva.
@@ -29,7 +30,6 @@ status.403=403-as HTTP hibakód (hozzáférés megtagadva/tiltott).
 status.401=Nem sikerült hitelesíteni, ellenőrizni a felhasználónevet és a jelszót.
 status.500=500-as hibakód (belső kiszolgálóhiba).
 status.503=503-as hibakód (a szolgáltatás nem érhető el).
-helplink.503=https://github.com/jobisoft/DAV-4-TbSync/issues/41
 status.httperror=Kommunikációs hiba (HTTP állapot ##replace.1##).
 status.success=Rendben
 status.nolightning=A Lightning-t kiegészítő nincs telepítve, a naptárak nem támogatottak.
