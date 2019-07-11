@@ -241,9 +241,10 @@ var tbSyncDavNewAccount = {
                 }
             } catch (e) {
                 davjobs[job].valid = false;
-                davjobs[job].error = e.message;
+                davjobs[job].error = e.statusData ? e.statusData.message : e.message;
+                
                 if (e.name == "dav4tbsync") {
-                    tbSync.errorlog.add("warning", connectionData.errorOwnerData, e.message, e.details ? e.details : null);
+                    tbSync.errorlog.add("warning", connectionData.errorOwnerData, e.statusData.message ,e.statusData.details);
                 } else {
                     Components.utils.reportError(e);
                 }
