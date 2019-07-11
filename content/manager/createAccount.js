@@ -238,6 +238,7 @@ var tbSyncDavNewAccount = {
                 davjobs[job].valid = (principal !== null);
                 if (!davjobs[job].valid) {
                     davjobs[job].error = job+"davservernotfound";
+                    tbSync.errorlog.add("warning", connectionData.errorOwnerData, davjobs[job].error, response.commLog);
                 }
             } catch (e) {
                 davjobs[job].valid = false;

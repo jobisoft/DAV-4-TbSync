@@ -375,6 +375,8 @@ var network = {
             }
           }
 
+          let commLog = "URL:\n" + connectionData.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData;
+          
           switch(responseStatus) {
             case 301:
             case 302:
@@ -428,7 +430,7 @@ var network = {
                 response.retry = true;
                 response.path = aChannel.URI.pathQueryRef;
                 response.passwordPrompt = true;
-                response.passwordError = dav.sync.failed(responseStatus, "URL:\n" + connectionData.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
+                response.passwordError = dav.sync.failed(responseStatus, commLog);
                 return resolve(response);                
               }
               break;
@@ -436,7 +438,7 @@ var network = {
             case 207: //preprocess multiresponse
               {
                 let xml = dav.tools.convertToXML(aResult);
-                if (xml === null) return reject(dav.sync.failed("maiformed-xml", "URL:\n" + connectionData.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData));
+                if (xml === null) return reject(dav.sync.failed("maiformed-xml", commLog));
 
                 //the specs allow to  return a 207 with DAV:unauthenticated if not authenticated 
                 if (xml.documentElement.getElementsByTagNameNS(dav.sync.ns.d, "unauthenticated").length != 0) {
@@ -448,6 +450,7 @@ var network = {
                   return resolve(response);
                 } else {
                   let response = {};
+                  response.commLog = commLog;
                   response.node = xml.documentElement;
 
                   let multi = xml.documentElement.getElementsByTagNameNS(dav.sync.ns.d, "response");
@@ -502,10 +505,10 @@ var network = {
                   }
                 }
                 //manually log this non-fatal error
-                tbSync.errorlog.add("info", connectionData.errorOwnerData, "softerror::"+responseStatus, "URL:\n" + connectionData.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData);
+                tbSync.errorlog.add("info", connectionData.errorOwnerData, "softerror::"+responseStatus, commLog);
                 return resolve(noresponse);
               } else {
-                return reject(dav.sync.failed(responseStatus, "URL:\n" + connectionData.uri.spec + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData)); 
+                return reject(dav.sync.failed(responseStatus, commLog)); 
               }                                
               break;
 
