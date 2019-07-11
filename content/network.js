@@ -285,9 +285,19 @@ var network = {
             // If this is the final retry, abort with error.
             throw r.passwordError;
           } else {
-            // Prompt.
-            let data = {};
-            let credentials = await tbSync.passwordManager.asyncPasswordPrompt(data, dav.openWindows);
+            let credentials = null;
+
+            // Prompt, if connection belongs to an account (and not from the create wizard)
+            if (connectionData.accountData) {
+              let promptData = {
+                windowID: "auth:" + connectionData.accountData.accountID,
+                accountname: connectionData.accountData.getAccountProperty("accountname"),
+                usernameLocked: connectionData.accountData.isConnected(),
+                username: connectionData.user,                
+              }
+              accountData.syncData.setSyncState("passwordprompt");
+              credentials = await tbSync.passwordManager.asyncPasswordPrompt(promptData, dav.openWindows);
+            }
 
             if (credentials) {
               // update login data
