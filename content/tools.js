@@ -178,7 +178,7 @@ var tools = {
     convertToXML: function(text) {
         //try to convert response body to xml
         let xml = null;
-        let oParser = (Services.vc.compare(Services.appinfo.platformVersion, "61.*") >= 0) ? new DOMParser() : Components.classes["@mozilla.org/xmlextras/domparser;1"].createInstance(Components.interfaces.nsIDOMParser);
+        let oParser = new DOMParser();
         try {
             xml = oParser.parseFromString(dav.tools.removeXMLInvalidChars(text), "application/xml");
         } catch (e) {
