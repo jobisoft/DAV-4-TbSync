@@ -2,11 +2,6 @@ menu.name = CalDAV & CardDAV
 
 defaultname.calendar=calendario
 defaultname.contacts=contatti
-	
-syncstate.syncing=Inizializzazione sincronizzazione in corso
-syncstate.preparing=Preparazione prossimo elemento per la sincronizzazione in corso
-syncstate.done=Preparazione prossimo elemento per la sincronizzazione in corso
-syncstate.accountdone=Sincronizzazione account completata
 
 syncstate.send.getfolders=Richiesta elenco cartelle in corso
 syncstate.eval.folders=Aggiornamento elenco cartelle in corso
@@ -19,30 +14,16 @@ syncstate.send.request.remotechanges=In attesa delle modifiche remote
 syncstate.eval.response.remotechanges=Elaborazione modifiche remote in corso
 syncstate.passwordprompt=Richiesta di inserire le credenziali
 
-status.notsyncronized=L'account deve essere sincronizzato, almeno un elemento non è sincronizzato.
-status.disabled=L'account non è abilitato, la sincronizzazione è disabilitata.
-status.notargets=Interruzione sincronizzazione in corso: non è possibile creare le destinazioni sincronizzazione.
-status.nouserhost=Nome utente e/o server mancanti. Fornire tali valori.
-status.timeout=Timeout durante la comunicazione.
 status.networkerror=Impossibile connettersi al server.
 status.404=Errore HTTP 404 (risorsa richiesta non trovata).
 status.403=Il server ha rifiutato la connessione (vietato).
 status.401=Impossibile autenticarsi, controllare nome utente e password.
 status.500=Errore server sconosciuto (errore HTTP 500).
 status.503=Servizio non disponibile.
-status.httperror=Errore di comunicazione (stato HTTP ##replace.1##).
-status.success=OK
-status.nolightning=Componente aggiuntivo Lightning non installato, i calendari non sono supportati.
 status.JavaScriptError=Errore JavaScript! Consultare il log di errore per i dettagli.
-status.foldererror=Almeno una risorsa ha riscontrato un errore di sincronizzazione.
 status.softerror=Errore saltato (##replace.1##)
 
-status.no-folders-found-on-server=Impossibile trovare calendari o rubriche sul server.
-status.invalid-response=Ricevuta risposta non valida, sincronizzazione interrotta.
-status.invalid-uri=Trovato URI non valido, sincronizzazione interrotta.
-status.unsupported_auth_method=Il server ha richiesto un metodo di autenticazione non supportato (##replace.1##).
 status.success.managed-by-lightning=Lightning
-status.success.caldav-calendar-already-exists=Il calendario esiste già
 status.info.restored=A causa della mancanza di permessi di scrittura, alcune azioni sono state respinte dal server e annullate localmente.
 status.maiformed-xml=La risposta contiene XML malformato, impossibile gestirla, sincronizzazione interrotta.
 helplink.maiformed-xml=https://github.com/jobisoft/DAV-4-TbSync/issues/59#issuecomment-459685281
@@ -50,16 +31,6 @@ status.service-discovery-failed=Rilevamento servizio Sabre/DAV non riuscito per 
 status.missing-permission=Permesso mancante: ##replace.1##
 status.caldavservernotfound=Impossibile trovare un server CalDAV.
 status.carddavservernotfound=Impossibile trovare un server CardDAV.
-
-status.security=Impossibile stabilire una connessione sicura. Si sta utilizzando un certificato autofirmato o non affidabile senza averlo importato in Thunderbird? (##replace.1##)
-helplink.security=https://github.com/jobisoft/TbSync/wiki/How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F
-status.network=Impossibile collegarsi al server (##replace.1##).
-
-status.syncing=Sincronizzazione in corso
-status.skipped=Non ancora supportato, omesso
-status.aborted=Non sincronizzato
-status.pending=In attesa di sincronizzazione
-status.modified=Modifiche locali presenti
 
 config.custom=Configurazione server CalDAV & CardDAV
 

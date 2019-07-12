@@ -3,11 +3,6 @@ menu.name = CalDAV & CardDAV
 defaultname.calendar=Calendar
 defaultname.contacts=Contacts
 
-syncstate.syncing=Initialize synchronization
-syncstate.preparing=Preparing next item for synchronization
-syncstate.done=Preparing next item for synchronization
-syncstate.accountdone=Finished account
-
 syncstate.send.getfolders=Requesting folder list
 syncstate.eval.folders=Updating folder list
 
@@ -19,30 +14,16 @@ syncstate.send.request.remotechanges=Waiting for remote changes
 syncstate.eval.response.remotechanges=Processing remote changes
 syncstate.passwordprompt=Prompting for credentials
 
-status.notsyncronized=Account needs to be synchronized, at least one item is out of sync.
-status.disabled=Account is not enabled, synchronization is disabled.
-status.notargets=Aborting synchronization, because sync targets could not be created.
-status.nouserhost=Missing username and/or server. Please provide those values.
-status.timeout=Communication timeout.
 status.networkerror=Could not connect to server.
 status.404=HTTP Error 404 (requested resource not found).
 status.403=Server rejected connection (forbidden).
 status.401=Could not authenticate, check username and password.
 status.500=Unknown Server Error (HTTP Error 500).
 status.503=Service unavailable.
-status.httperror=Communication error (HTTP status ##replace.1##).
-status.success=OK
-status.nolightning=Lightning add-on not installed, calendars are not supported.
 status.JavaScriptError=JavaScript error! Check error log for details.
-status.foldererror=At least one resource encountered a synchronization error.
 status.softerror=Non fatal error (##replace.1##)
 
-status.no-folders-found-on-server=Could not find any calendars or address books on the server.
-status.invalid-response=Received invalid response, aborting synchronization.
-status.invalid-uri=Found invalid URI, aborting synchronization.
-status.unsupported_auth_method=Server requested unsupported authentication method (##replace.1##).
 status.success.managed-by-lightning=Lightning
-status.success.caldav-calendar-already-exists=Calendar already exists
 status.info.restored=Due to partially missing write permissions, some actions were rejected by the server and reversed locally.
 status.maiformed-xml=Could not parse XML. Check error log for details. 
 helplink.maiformed-xml=https://github.com/jobisoft/DAV-4-TbSync/issues/59#issuecomment-459685281
@@ -50,16 +31,6 @@ status.service-discovery-failed=sabre/dav service discovery failed for this serv
 status.missing-permission=Missing permission: ##replace.1##
 status.caldavservernotfound=Could not find a CalDAV server.
 status.carddavservernotfound=Could not find a CardDAV server.
-
-status.security=Could not establish a secure connection. Are you using a self-signed or otherwise untrusted certificate without importing it into Thunderbird? (##replace.1##)
-helplink.security=https://github.com/jobisoft/TbSync/wiki/How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F
-status.network=Could not connect to server (##replace.1##).
-
-status.syncing=Synchronizing
-status.skipped=Not yet supported, skipped
-status.aborted=Not synchronized
-status.pending=Waiting to be synchronized
-status.modified=Local modifications
 
 config.custom=CalDAV & CardDAV server configuration
 
