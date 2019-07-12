@@ -295,7 +295,7 @@ var network = {
                 usernameLocked: connectionData.accountData.isConnected(),
                 username: connectionData.user,                
               }
-              accountData.syncData.setSyncState("passwordprompt");
+              connectionData.accountData.syncData.setSyncState("passwordprompt");
               credentials = await tbSync.passwordManager.asyncPasswordPrompt(promptData, dav.openWindows);
             }
 
