@@ -27,7 +27,7 @@ var network = {
                       Components.interfaces.nsITimer);
 
       //for error logging
-      this._errorOwnerData = null;
+      this._errorInfo = null;
       
       //typof syncdata?
       let folderData = null;
@@ -36,18 +36,18 @@ var network = {
       if (data instanceof tbSync.SyncData) {
         folderData = data.currentFolderData;
         accountData = data.accountData;
-        this._errorOwnerData = data.errorOwnerData;                
+        this._errorInfo = data.errorInfo;                
       } else if (data instanceof tbSync.FolderData) {
         folderData = data;
         accountData = data.accountData;
-        this._errorOwnerData =  new tbSync.ErrorOwnerData(
+        this._errorInfo =  new tbSync.ErrorInfo(
           accountData.getAccountProperty("provider"),
           accountData.getAccountProperty("accountname"),
           accountData.accountID,
           folderData.getFolderProperty("name"));
       } else if (data instanceof tbSync.AccountData) {
         accountData = data;
-        this._errorOwnerData =  new tbSync.ErrorOwnerData(
+        this._errorInfo =  new tbSync.ErrorInfo(
           accountData.getAccountProperty("provider"),
           accountData.getAccountProperty("accountname"),
           accountData.accountID,
@@ -88,7 +88,7 @@ var network = {
     set https(v) {this._https = v;}
     set type(v) {this._type = v;}
     set fqdn(v) {this._fqdn = v;}
-    set errorOwnerData(v) {this._errorOwnerData = v;}
+    set errorInfo(v) {this._errorInfo = v;}
 
     get password() {return this._password;}
     get user() {return this._user;}
@@ -96,7 +96,7 @@ var network = {
     get https() {return this._https;}
     get type() {return this._type;}
     get fqdn() {return this._fqdn;}
-    get errorOwnerData() {return this._errorOwnerData;}
+    get errorInfo() {return this._errorInfo;}
   },
   
   Prompt: class {
@@ -515,7 +515,7 @@ var network = {
                   }
                 }
                 //manually log this non-fatal error
-                tbSync.errorlog.add("info", connectionData.errorOwnerData, "softerror::"+responseStatus, commLog);
+                tbSync.errorlog.add("info", connectionData.errorInfo, "softerror::"+responseStatus, commLog);
                 return resolve(noresponse);
               } else {
                 return reject(dav.sync.failed(responseStatus, commLog)); 
