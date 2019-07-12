@@ -158,15 +158,7 @@ var base = {
      */
     getDefaultFolderEntries: function () { //TODO: shadow more standard entries
         let folder = {
-            "selected" : false,
-            "lastsynctime" : 0,
-            "status" : "",
-            "name" : "",
-            "target" : "",
-            "targetName" : "",
-            "downloadonly" : false,
-
-            //different folders can be stored on different servers (yahoo, icloud, gmx, ...), 
+            //different folders (caldav/carddav) can be stored on different servers (as with yahoo, icloud, gmx, ...), 
             //so we need to store the fqdn information per folders
             "href" : "",
             "fqdn" : "",
@@ -429,7 +421,7 @@ var calendar = {
                         if (aOldPropertyValue.toString().toUpperCase() != aPropertyValue.toString().toUpperCase()) {
                             //prepare connection data
                             let connection = new dav.network.ConnectionData(folderData);
-                            //update stored color to recover after disable
+                            //update color on server
                             dav.network.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aPropertyValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folderData.getFolderProperty("href"), "PROPPATCH", connection);
                         }
                         break;
