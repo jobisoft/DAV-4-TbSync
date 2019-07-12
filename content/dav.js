@@ -15,7 +15,7 @@ const dav = tbSync.providers.dav;
  * Implementation the TbSync interfaces for external provider extensions.
  */
 
-var api = {
+var base = {
     /**
      * Called during load of external provider extension to init provider.
      */
@@ -67,21 +67,21 @@ var api = {
      *
      */
     getProviderIcon: function (size, accountData = null) {
-        let base = "sabredav";
+        let root = "sabredav";
         if (accountData) {
             let serviceprovider = accountData.getAccountProperty("serviceprovider");
             if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
-                base = dav.sync.serviceproviders[serviceprovider].icon;
+                root = dav.sync.serviceproviders[serviceprovider].icon;
             }
         }
         
         switch (size) {
             case 16:
-                return "chrome://dav4tbsync/skin/"+base+"16.png";
+                return "chrome://dav4tbsync/skin/"+root+"16.png";
             case 32:
-                return "chrome://dav4tbsync/skin/"+base+"32.png";
+                return "chrome://dav4tbsync/skin/"+root+"32.png";
             default :
-                return "chrome://dav4tbsync/skin/"+base+"48.png";
+                return "chrome://dav4tbsync/skin/"+root+"48.png";
         }
     },
 
