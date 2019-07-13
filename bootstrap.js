@@ -41,6 +41,7 @@ function startup(data, reason) {
     // Set default prefs
     let branch = Services.prefs.getDefaultBranch("extensions.dav4tbsync.");
     branch.setIntPref("maxitems", 50);
+    branch.setIntPref("timeout", 90000);
     branch.setCharPref("clientID.type", "TbSync");
     branch.setCharPref("clientID.useragent", "Thunderbird CalDAV/CardDAV");    
 

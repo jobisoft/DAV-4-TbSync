@@ -13,12 +13,10 @@ Components.utils.import("chrome://tbsync/content/tbsync.jsm");
 const dav = tbSync.providers.dav;
 
 var tbSyncDavNewAccount = {
-
-    startTime: 0,
-    maxTimeout: 30,
     
     onLoad: function () {
         this.providerData = window.arguments[0];
+        
         this.elementName = document.getElementById('tbsync.newaccount.name');
         this.elementUser = document.getElementById('tbsync.newaccount.user');
         this.elementPass = document.getElementById('tbsync.newaccount.password');

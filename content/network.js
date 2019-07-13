@@ -22,7 +22,7 @@ var network = {
       this._https = "";
       this._type = "";
       this._fqdn = "";
-      this._timeout = tbSync.prefs.getIntPref("timeout");
+      this._timeout = dav.base.getConnectionTimeout();
       this._timer = Components.classes["@mozilla.org/timer;1"].createInstance(
                       Components.interfaces.nsITimer);
 

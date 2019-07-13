@@ -282,6 +282,19 @@ var base = {
 
 
     /**
+     * Return the connection timeout for an active sync, so TbSync can append
+     * a countdown to the connection timeout, while waiting for an answer from
+     * the server. Only syncstates which start with "send." will trigger this.
+     *
+     * @param syncData      [in] SyncData
+     *
+     * return timeout in milliseconds
+     */
+    getConnectionTimeout: function (syncData) {
+        return dav.sync.prefSettings.getIntPref("timeout");
+    },
+    
+    /**
      * Is called if TbSync needs to synchronize the folder list.
      *
      * @param syncData      [in] SyncData
