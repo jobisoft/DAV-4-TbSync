@@ -8,7 +8,7 @@
 
 // no need to create namespace, we are in a sandbox
 
-Components.utils.import("resource://gre/modules/Services.jsm");
+var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 
 let thisID = "";
 
@@ -16,7 +16,7 @@ let onInitDoneObserver = {
     observe: async function (aSubject, aTopic, aData) {        
         let valid = false;
         try {
-            Components.utils.import("chrome://tbsync/content/tbsync.jsm");
+            var { tbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
             valid = tbSync.enabled;
         } catch (e) {
             // If this fails, tbSync is not loaded yet and we will get the notification later again.
