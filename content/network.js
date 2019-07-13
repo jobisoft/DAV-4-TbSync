@@ -271,16 +271,7 @@ var network = {
         if (r.addBasicAuthHeaderOnce) {
           tbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + connectionData.user + "@" + connectionData.fqdn + ">");
           headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connectionData.user + ":" + connectionData.password);
-        } else if (!dav.network.problematicHosts.includes(connectionData.fqdn) ) {
-          tbSync.dump("BUG 669675", "Adding <" + connectionData.fqdn + "> to list of problematic hosts.");
-          dav.network.problematicHosts.push(connectionData.fqdn)
-        }
-
-        // There might have been a redirect, rebuild url.
-        url = "http" + (connectionData.https ? "s" : "") + "://" + connectionData.fqdn + r.path;
-        
-        // Request for password prompt?
-        if (r.passwordPrompt && r.passwordPrompt === true) {
+        } else if (r.passwordPrompt && r.passwordPrompt === true) {
           if (i == MAX_RETRIES) {
             // If this is the final retry, abort with error.
             throw r.passwordError;
@@ -309,7 +300,14 @@ var network = {
               throw r.passwordError;
             }
           }
+        } else if (r.addToProblematicHosts && r.addToProblematicHosts === true && !dav.network.problematicHosts.includes(connectionData.fqdn) ) {
+          tbSync.dump("BUG 669675", "Adding <" + connectionData.fqdn + "> to list of problematic hosts.");
+          dav.network.problematicHosts.push(connectionData.fqdn)
         }
+        
+        // There might have been a redirect, rebuild url.
+        url = "http" + (connectionData.https ? "s" : "") + "://" + connectionData.fqdn + r.path;
+        
       } else {
         return r;
       }
@@ -395,8 +393,8 @@ var network = {
             case 307:
             case 308:
               {
-                //Since the default nsIChannelEventSink handles the redirects, this should never be called.
-                //Just in case, do a retry with the updated connection settings.
+                // Since the default nsIChannelEventSink handles the redirects, this should never
+                // be called. Just in case, do a retry with the updated connection settings.
                 let response = {};
                 response.retry = true;
                 response.path = aChannel.URI.pathQueryRef;
@@ -406,29 +404,33 @@ var network = {
 
             case 401: //AuthError
               {                               
-                //handle nsIHttpChannel bug (https://bugzilla.mozilla.org/show_bug.cgi?id=669675)
+                // Handle nsIHttpChannel bug (https://bugzilla.mozilla.org/show_bug.cgi?id=669675):                
+                // TB will connect each server without any Authorization header first, to get the
+                // auth method. That first call will not end up here, UNLESS he is not able to
+                // extracts an auth method -> Unauthenticated.
                 
-                //these problematic hosts send a VALID Auth header, but TB is not able to parse it, we need to manually add a BASIC auth header
-                //since the header cannot be parsed, TB will also not get the realm for this
-                //currently there is no known CALDAV server, which is problematic (where we need the realm to pre-add the password so lightning does not prompt)
-                //if this changes, we need a hardcoded list of problematic servers and their realm
-                //I hope this bug gets fixed soon
+                // Problematic hosts send a VALID Auth header, but TB is not able to parse it.
+                // We need to manually add a BASIC auth header (best guess). TB
+                // TB will not get the realm for such a problematic host. Currently there is no
+                // known problematic CALDAV server (where we need the realm to pre-add the password
+                // so lightning does not prompt). If this changes, we need a hardcoded list of
+                // problematic servers and their realm. I hope this bug gets fixed soon.
 
-                //should the channel have been able to authenticate (password is stored)?
+                // Should the channel have been able to authenticate (password is stored)?
                 if (connectionData.password !== null) {                                    
-                  //did the channel try to authenticate?
-                  let triedToAuthenticate;
+                  let unauthenticated;
                   try {
                     let header = aChannel.getRequestHeader("Authorization");
-                    triedToAuthenticate = true;
+                    unauthenticated = false;
                   } catch (e) {
-                    triedToAuthenticate = false;
+                    unauthenticated = true;
                   }
                   
-                  if (!triedToAuthenticate) {
+                  if (unauthenticated) {
                     let response = {};
                     response.retry = true;
                     response.path = aChannel.URI.pathQueryRef;
+                    response.addToProblematicHosts = true;
                     return resolve(response);
                   }
                 }
