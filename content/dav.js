@@ -8,7 +8,7 @@
 
 "use strict";
 
-// Every object in here will be loaded into tbSync.providers.<providername> namespace.
+// Every object in here will be loaded into tbSync.providers.<providername>.
 const dav = tbSync.providers.dav;
 
 /**
@@ -52,7 +52,7 @@ var base = {
 
 
     /**
-     * Returns nice string for name of provider (is used in the add account menu).
+     * Returns nice string for the name of provider for the add account menu.
      */
     getNiceProviderName: function () {
         return tbSync.getString("menu.name", "dav");
@@ -110,8 +110,8 @@ var base = {
 
 
     /**
-     * Returns the URL of the string bundle file of this provider, it can be accessed by
-     * tbSync.getString(<key>, <provider>)
+     * Returns the URL of the string bundle file of this provider, it can be
+     * accessed by tbSync.getString(<key>, <provider>)
      */
     getStringBundleUrl: function () {
         return "chrome://dav4tbsync/locale/dav.strings";
@@ -127,7 +127,8 @@ var base = {
 
 
     /**
-     * Returns overlay XUL URL of the edit account dialog (chrome://tbsync/content/manager/editAccount.xul)
+     * Returns overlay XUL URL of the edit account dialog
+     * (chrome://tbsync/content/manager/editAccount.xul)
      */
     getEditAccountOverlayUrl: function () {
         return "chrome://dav4tbsync/content/manager/editAccountOverlay.xul";
@@ -136,7 +137,9 @@ var base = {
 
 
     /**
-     * Return object which contains all possible fields of a row in the accounts database with the default value if not yet stored in the database.
+     * Return object which contains all possible fields of a row in the
+     * accounts database with the default value if not yet stored in the 
+     * database.
      */
     getDefaultAccountEntries: function () {
         let row = {
@@ -154,16 +157,18 @@ var base = {
 
 
     /**
-     * Return object which contains all possible fields of a row in the folder database with the default value if not yet stored in the database.
+     * Return object which contains all possible fields of a row in the folder 
+     * database with the default value if not yet stored in the database.
      */
-    getDefaultFolderEntries: function () { //TODO: shadow more standard entries
+    getDefaultFolderEntries: function () {
         let folder = {
-            //different folders (caldav/carddav) can be stored on different servers (as with yahoo, icloud, gmx, ...), 
-            //so we need to store the fqdn information per folders
+            // different folders (caldav/carddav) can be stored on different 
+            // servers (as with yahoo, icloud, gmx, ...), so we need to store
+            // the fqdn information per folders
             "href" : "",
             "fqdn" : "",
 
-            "url" : "", // used by calendar to store the full url of this folder
+            "url" : "", // used by calendar to store the full url of this cal
             
             "type" : "", //caldav, carddav or ics
             "shared": false, //identify shared resources
@@ -179,7 +184,8 @@ var base = {
 
 
     /**
-     * Is called everytime an account of this provider is enabled in the manager UI, set/reset database fields as needed.
+     * Is called everytime an account of this provider is enabled in the
+     * manager UI.
      *
      * @param accountData  [in] AccountData
      */
@@ -189,8 +195,8 @@ var base = {
 
 
     /**
-     * Is called everytime an account of this provider is disabled in the manager UI, set/reset database fields as needed and
-     * remove/backup all sync targets of this account.
+     * Is called everytime an account of this provider is disabled in the
+     * manager UI.
      *
      * @param accountData  [in] AccountData
      */
@@ -200,7 +206,8 @@ var base = {
 
 
     /**
-     * Is called everytime an new target is created, intended to set a clean sync status.
+     * Is called everytime an new target is created, intended to set a clean
+     * sync status.
      *
      * @param accountData  [in] FolderData
      */
@@ -241,8 +248,8 @@ var base = {
     getSortedFolders: function (accountData) {
         let folders = accountData.getAllFolders();
 
-        //we can only sort arrays, so we need to create an array of objects and those objects 
-        //must contain the sort key and the associated folder
+        // we can only sort arrays, so we create an array of objects which must
+        // contain the sort key and the associated folder
         let toBeSorted = [];
         for (let folder of folders) {
             let t = 100;
@@ -302,7 +309,8 @@ var base = {
      * return StatusData
      */
     syncFolderList: async function (syncData) {
-        //update folders avail on server and handle added, removed, renamed folders
+        // update folders avail on server and handle added, removed and renamed
+        // folders
         return await dav.sync.folderList(syncData);
     },
     
@@ -316,10 +324,11 @@ var base = {
     syncFolder: async function (syncData) {
         //process a single folder
         return await dav.sync.folder(syncData);
-    },
+    },    
 }
 
-// this provider is using the standard "addressbook" targetType, so it must implement the addressbook object
+// This provider is using the standard "addressbook" targetType, so it must
+// implement the addressbook object.
 var addressbook = {
 
     // define a card property, which should be used for the changelog
@@ -382,7 +391,8 @@ var addressbook = {
     },
     
     /**
-     * Is called by TargetData::getTarget() if  the standard "addressbook" targetType is used, and a new addressbook needs to be created.
+     * Is called by TargetData::getTarget() if  the standard "addressbook"
+     * targetType is used, and a new addressbook needs to be created.
      *
      * @param newname       [in] name of the new address book
      * @param folderData  [in] FolderData
@@ -409,7 +419,8 @@ var addressbook = {
 
 
 
-// this provider is using the standard "calendar" targetType, so it must implement the calendar object
+// This provider is using the standard "calendar" targetType, so it must
+// implement the calendar object.
 var calendar = {
     
     // define a card property, which should be used for the changelog
@@ -537,11 +548,12 @@ var calendar = {
 }
 
 
-// This provider is using the standardFolderList (instead of this it could also implement the full folderList).
+// This provider is using the standardFolderList (instead of this it could also
+// implement the full folderList object).
 var standardFolderList = {
     /**
      * Is called before the context menu of the folderlist is shown, allows to
-     * show/hide custom menu options based on selected folder
+     * show/hide custom menu options based on selected folder.
      *
      * @param document       [in] document object of the account settings window
      * @param folderData         [in] FolderData of the selected folder
@@ -550,7 +562,8 @@ var standardFolderList = {
     },
 
     /**
-     * Return the icon used in the folderlist to represent the different folder types 
+     * Return the icon used in the folderlist to represent the different folder
+     * types.
      *
      * @param folderData         [in] FolderData of the selected folder
      */
