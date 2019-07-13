@@ -6,7 +6,7 @@
     }
   },
   "manifest_version": 2,
-  "name": "Provider for CalDAV & CardDAV",
+  "name": "__MSG_extensionName__",
   "version": "1.0",
   "author": "John Bieling",
   "homepage_url": "https://github.com/jobisoft/DAV-4-TbSync/",

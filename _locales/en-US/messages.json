@@ -1,4 +1,7 @@
 {
+  "extensionName": {
+    "message": "Provider for CalDAV & CardDAV"
+  },
   "extensionDescription": {
     "message": "Add sync support for CalDAV & CardDAV accounts to TbSync."
   }
