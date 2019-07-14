@@ -622,6 +622,5 @@ var standardFolderList = {
 
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/sync.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/tools.js", this, "UTF-8");
-Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/auth.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/network.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/vcard/vcard.js", this, "UTF-8");
