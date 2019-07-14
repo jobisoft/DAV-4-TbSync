@@ -8,7 +8,6 @@
 ]>
 <overlay 
     id="tbSyncAccountConfig" 
-    oninject="tbSyncDavEditAccount.onload(window, tbSyncAccountSettings.accountID);"
     xmlns:html="http://www.w3.org/1999/xhtml">
 
     <script type="application/javascript" src="chrome://dav4tbsync/content/manager/editAccountOverlay.js"/>
@@ -44,13 +43,13 @@
                             <vbox pack="center">
                                 <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.calDavHost" value="&pref.CalDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.calDavHost"  onblur="tbSyncDavEditAccount.stripHost(document, tbSyncAccountSettings.accountID, 'calDavHost');"/>
+                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.calDavHost"  onblur="tbSyncEditAccountOverlay.stripHost(document, 'calDavHost');"/>
                         </row>
                         <row>
                             <vbox pack="center">
                                 <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.cardDavHost" value="&pref.CardDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.cardDavHost" onblur="tbSyncDavEditAccount.stripHost(document, tbSyncAccountSettings.accountID, 'cardDavHost');" />
+                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.cardDavHost" onblur="tbSyncEditAccountOverlay.stripHost(document, 'cardDavHost');" />
                         </row>
                         <row>
                             <hbox/>
