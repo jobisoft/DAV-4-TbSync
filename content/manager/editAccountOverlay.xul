@@ -11,7 +11,7 @@
     oninject="tbSyncDavEditAccount.onload(window, tbSyncAccountSettings.accountID);"
     xmlns:html="http://www.w3.org/1999/xhtml">
 
-  <script type="application/javascript" src="chrome://dav4tbsync/content/manager/editAccountOverlay.js"/>
+    <script type="application/javascript" src="chrome://dav4tbsync/content/manager/editAccountOverlay.js"/>
 
     <tab id="manager.tabs.accountsettings" label="&manager.tabs.accountsettings;" appendto="manager.tabs" />
     <tab id="manager.tabs.syncsettings" label="&manager.tabs.syncsettings;" appendto="manager.tabs" />
