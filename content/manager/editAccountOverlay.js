@@ -43,7 +43,7 @@ var tbSyncDavEditAccount = {
             configlabel.setAttribute("value", tbSync.getString("config.custom", "dav") + extra);
         }
 
-        //set certain elements as "alwaysDisable", if locked by service provider (alwaysDisabled is honored by main SettingsUpdate, so we do not have to do that in our own onSettingsGUIUpdate
+        //set certain elements as "alwaysDisable", if locked by service provider
         if (isServiceProvider) {
             let items = window.document.getElementsByClassName("lockIfServiceProvider");
             for (let i=0; i < items.length; i++) {
