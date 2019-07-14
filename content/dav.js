@@ -504,8 +504,7 @@ var calendar = {
      */
     createCalendar: function(newname, folderData) {
         let calManager = tbSync.lightning.cal.getCalendarManager();
-        let password = dav.auth.getPassword(folderData.accountData);
-        let username = dav.auth.getUsername(folderData.accountData);
+        let authData = dav.network.getAuthData(folderData.accountData);
       
         let caltype = folderData.getFolderProperty("type");
 
@@ -534,7 +533,7 @@ var calendar = {
             newCalendar.id = tbSync.lightning.cal.getUUID();
             newCalendar.name = newname;
 
-            newCalendar.setProperty("username", username);
+            newCalendar.setProperty("username", authData.username);
             newCalendar.setProperty("color", folderData.getFolderProperty("targetColor"));
             newCalendar.setProperty("calendar-main-in-composite", true);
             newCalendar.setProperty("cache.enabled", folderData.accountData.getAccountProperty("useCalendarCache"));
@@ -549,7 +548,7 @@ var calendar = {
             if (realm !== "") {
                 tbSync.dump("Found CalDAV authRealm",  realm);
                 //manually create a lightning style entry in the password manager
-                tbSync.passwordManager.updateLoginInfo(url.prePath, realm, /* old */ username, /* new */ username, password);
+                tbSync.passwordManager.updateLoginInfo(url.prePath, realm, /* old */ authData.username, /* new */ authData.username, authData.password);
             }
         }
 

@@ -10,6 +10,30 @@
 
 var network = {
 
+  getAuthData: function(accountData) {
+      let connection = {
+        get host() {
+          return accountData.getAccountProperty("calDavHost") ? accountData.getAccountProperty("calDavHost") : accountData.getAccountProperty("cardDavHost");
+        },
+        
+        get username() {
+          return accountData.getAccountProperty("user");
+        },
+
+        get password() {
+          return tbSync.passwordManager.getLoginInfo(this.host, "TbSync/DAV", this.username);
+        },
+        
+        updateLoginData: function(newUsername, newPassword) {
+          let oldUsername = this.username;
+          tbSync.passwordManager.updateLoginInfo(this.host, "TbSync/DAV", oldUsername, newUsername, newPassword);
+          // Also update the username of this account.
+          accountData.setAccountProperty("user", newUsername);
+        },
+      };
+      return connection;
+  }, 
+
   //https://bugzilla.mozilla.org/show_bug.cgi?id=669675
   //non permanent cache
   problematicHosts: [],
@@ -18,7 +42,7 @@ var network = {
   ConnectionData: class {
     constructor(data) {            
       this._password = "";
-      this._user = "";
+      this._username = "";
       this._https = "";
       this._type = "";
       this._fqdn = "";
@@ -55,8 +79,9 @@ var network = {
       }
       
       if (accountData) {
-        this._password = dav.auth.getPassword(accountData);
-        this._user = dav.auth.getUsername(accountData);
+        let authData = dav.network.getAuthData(accountData);
+        this._password = authData.password;
+        this._username = authData.username;
 
         this._https = accountData.getAccountProperty("https");
         this._accountname = accountData.getAccountProperty("accountname");
@@ -83,7 +108,7 @@ var network = {
     }
         
     set password(v) {this._password = v;}
-    set user(v) {this._user = v;}
+    set username(v) {this._username = v;}
     set timeout(v) {this._timeout = v;}
     set https(v) {this._https = v;}
     set type(v) {this._type = v;}
@@ -91,7 +116,7 @@ var network = {
     set errorInfo(v) {this._errorInfo = v;}
 
     get password() {return this._password;}
-    get user() {return this._user;}
+    get username() {return this._username;}
     get timeout() {return this._timeout;}
     get https() {return this._https;}
     get type() {return this._type;}
@@ -118,7 +143,7 @@ var network = {
       }
       
       if (this.mConnection.password !== null) {
-        aAuthInfo.username = this.mConnection.user;
+        aAuthInfo.username = this.mConnection.username;
         aAuthInfo.password = this.mConnection.password;
       } else {
         // We have no password, request one by throwing a 401.
@@ -214,7 +239,7 @@ var network = {
   },
 
   prepHttpChannel: function(aUploadData, aHeaders, aMethod, aConnection, aNotificationCallbacks=null) {
-    let userContextId = tbSync.network.getContainerIdForUser(aConnection.user);
+    let userContextId = tbSync.network.getContainerIdForUser(aConnection.username);
     let channel = Services.io.newChannelFromURI(
             aConnection.uri,
             null,
@@ -261,7 +286,7 @@ var network = {
 
       // https://bugzilla.mozilla.org/show_bug.cgi?id=669675
       if (dav.network.problematicHosts.includes(connectionData.uri.host)) {
-        headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connectionData.user + ":" + connectionData.password);
+        headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connectionData.username + ":" + connectionData.password);
       }
       
       let r = await dav.network.useHttpChannel(requestData, method, connectionData, headers, options, aUseStreamLoader);
@@ -269,8 +294,8 @@ var network = {
       // ConnectionData.uri.host may no longer be the correct value, as there might have been redirects, use connectionData.fqdn .
       if (r && r.retry && r.retry === true) {
         if (r.addBasicAuthHeaderOnce) {
-          tbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + connectionData.user + "@" + connectionData.fqdn + ">");
-          headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connectionData.user + ":" + connectionData.password);
+          tbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + connectionData.username + "@" + connectionData.fqdn + ">");
+          headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connectionData.username + ":" + connectionData.password);
         } else if (r.passwordPrompt && r.passwordPrompt === true) {
           if (i == MAX_RETRIES) {
             // If this is the final retry, abort with error.
@@ -284,7 +309,7 @@ var network = {
                 windowID: "auth:" + connectionData.accountData.accountID,
                 accountname: connectionData.accountData.getAccountProperty("accountname"),
                 usernameLocked: connectionData.accountData.isConnected(),
-                username: connectionData.user,                
+                username: connectionData.username,                
               }
               connectionData.accountData.syncData.setSyncState("passwordprompt");
               credentials = await tbSync.passwordManager.asyncPasswordPrompt(promptData, dav.openWindows);
@@ -292,9 +317,9 @@ var network = {
 
             if (credentials) {
               // update login data
-              dav.auth.updateLoginData(connectionData.accountData, credentials.username, credentials.password);
+              dav.network.getAuthData(connectionData.accountData).updateLoginData(credentials.username, credentials.password);
               // update connection data
-              connectionData.user = credentials.username;
+              connectionData.username = credentials.username;
               connectionData.password = credentials.password;
             } else {
               throw r.passwordError;

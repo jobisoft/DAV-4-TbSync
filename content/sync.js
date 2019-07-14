@@ -96,7 +96,7 @@ var sync = {
                 syncData.connectionData = new dav.network.ConnectionData(syncData);
                 
                 //only do that, if a new calendar has been enabled
-                tbSync.network.resetContainerForUser(syncData.connectionData.user);
+                tbSync.network.resetContainerForUser(syncData.connectionData.username);
                 
                 syncData.setSyncState("send.getfolders");
                 {

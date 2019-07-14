@@ -184,7 +184,7 @@ var tbSyncDavNewAccount = {
         let accountname = this.elementName.value.trim();
 
         this.newAccountInfo = {};
-        this.newAccountInfo.user = this.elementUser.value;
+        this.newAccountInfo.username = this.elementUser.value;
         this.newAccountInfo.password = this.elementPass.value;
         this.newAccountInfo.caldavserver = this.elementCalDavServer.value.trim();
         this.newAccountInfo.carddavserver = this.elementCardDavServer.value.trim();
@@ -220,7 +220,7 @@ var tbSyncDavNewAccount = {
 
             let connectionData = new dav.network.ConnectionData();
             connectionData.password = this.newAccountInfo.password;
-            connectionData.user = this.newAccountInfo.user;
+            connectionData.username = this.newAccountInfo.username;
             connectionData.https = this.newAccountInfo.https;
             connectionData.timeout = 15000;
             connectionData.type = job;
@@ -305,7 +305,7 @@ var tbSyncDavNewAccount = {
     
         // Add the new account.
         let newAccountData = this.providerData.addAccount(accountname, newAccountEntry);
-        dav.auth.updateLoginData(newAccountData, newAccountInfo.user, newAccountInfo.password);
+        dav.network.getAuthData(newAccountData).updateLoginData(newAccountInfo.username, newAccountInfo.password);
 
         window.close();
     }
