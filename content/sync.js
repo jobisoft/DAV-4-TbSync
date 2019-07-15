@@ -288,7 +288,7 @@ var sync = {
             //remove unhandled old folders, (because they no longer exist on the server)
             for (let type of folderTypes) {
                 for (let folder of unhandledFolders[type]) {
-                    folder.targetData.decoupleTarget("[deleted on server]", /* cache em */ true);
+                    folder.targetData.decoupleTarget("[deleted on server]", /* move folder into cache */ true);
                 }
             }
         } catch (e) {
