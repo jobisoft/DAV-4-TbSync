@@ -599,6 +599,15 @@ var standardFolderList = {
         }
     },
     
+    /**
+     * Return the name of the folder shown in the folderlist.
+     *
+     * @param folderData         [in] FolderData of the selected folder
+     */ 
+    getFolderDisplayName: function (folderData) {
+        return folderData.getFolderProperty("name");
+    },
+
     getAttributesRoAcl: function (folderData) {
         return {
             label: tbSync.getString("acl.readonly", "dav"),
