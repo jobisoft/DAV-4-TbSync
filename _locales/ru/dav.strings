@@ -12,7 +12,6 @@ syncstate.eval.response.localchanges=Обработка подтверждени
 
 syncstate.send.request.remotechanges=Ожидание удаленных изменений
 syncstate.eval.response.remotechanges=Обработка удаленных изменений
-syncstate.passwordprompt=Запрос на ввод учетных данных
 
 status.networkerror=Не удалось подключиться к серверу.
 status.404=Запрошенный ресурс не найден (HTTP Ошибка 404).

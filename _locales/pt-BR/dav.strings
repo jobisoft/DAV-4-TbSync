@@ -12,7 +12,6 @@ syncstate.eval.response.localchanges=Processando reconhecimento de alterações 
 
 syncstate.send.request.remotechanges=Esperando por alterações remotas
 syncstate.eval.response.remotechanges=Processando alterações remotas
-syncstate.passwordprompt=Solicitação para inserir credenciais
 
 status.networkerror=Não foi possível conectar-se ao servidor.
 status.404=HTTP Erro 404 (recurso solicitado não encontrado).

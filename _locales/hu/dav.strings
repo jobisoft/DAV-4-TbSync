@@ -12,7 +12,6 @@ syncstate.eval.response.localchanges=Helyi változtatások igazolása feldolgoz�
 
 syncstate.send.request.remotechanges=Várakozás a távoli változtatások
 syncstate.eval.response.remotechanges=A távoli változtatások feldolgozása
-syncstate.passwordprompt=Hitelesítő adatok megadásának kérése
 
 status.networkerror=Nem tudott csatlakozni a kiszolgálóhoz.
 status.404=404-es HTTP hibakód (nem található).

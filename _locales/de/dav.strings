@@ -12,7 +12,6 @@ syncstate.eval.response.localchanges=Verarbeite Bestätigung der lokalen Änderu
 
 syncstate.send.request.remotechanges=Warte auf Daten vom Server
 syncstate.eval.response.remotechanges=Verarbeite Serverdaten
-syncstate.passwordprompt=Aufforderung zur Eingabe der Anmeldeinformationen
 
 status.networkerror=Verbindung zum Server fehlgeschlagen.
 status.404=HTTP Fehler 404 (angeforderte Resource nicht gefunden).
