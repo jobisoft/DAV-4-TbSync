@@ -318,10 +318,13 @@ var base = {
      * Is called if TbSync needs to synchronize the folder list.
      *
      * @param syncData      [in] SyncData
-     *
+     * @param syncJob       [in] String with a specific sync job. Defaults to
+     *                           "sync", but can be set by the syncDescription
+     *                           of AccountData.sync()
+     *                           
      * return StatusData
      */
-    syncFolderList: async function (syncData) {
+    syncFolderList: async function (syncData, syncJob) {
         // update folders avail on server and handle added, removed and renamed
         // folders
         return await dav.sync.folderList(syncData);
@@ -331,10 +334,13 @@ var base = {
      * Is called if TbSync needs to synchronize a folder.
      *
      * @param syncData      [in] SyncData
+     * @param syncJob       [in] String with a specific sync job. Defaults to
+     *                           "sync", but can be set by the syncDescription
+     *                           of AccountData.sync()
      *
      * return StatusData
      */
-    syncFolder: async function (syncData) {
+    syncFolder: async function (syncData, syncJob) {
         //process a single folder
         return await dav.sync.folder(syncData);
     },    
