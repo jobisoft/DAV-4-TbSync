@@ -732,7 +732,7 @@ var sync = {
                             let isAdding = (changes[i].status == "added_by_user");
                             if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
 
-                                let card = changes[i].card;
+                                let card = syncData.target.getItem(changes[i]);
                                 if (card) {
                                     if (card.isMailList && !syncGroups)
                                         continue;
@@ -760,7 +760,8 @@ var sync = {
 
                             if (permissionError[changes[i].status]) {
                                 //we where not allowed to add or modify that card, remove it, we will get a fresh copy on the following revert
-                                if (changes[i].card) syncData.target.deleteItem(changes[i].card);
+                                let card = syncData.target.getItem(changes[i]);
+                                if (card) syncData.target.deleteItem(card);
                                 permissionErrors++;
                             }
                         }
