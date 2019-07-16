@@ -332,11 +332,11 @@ var sync = {
                 case "caldav":
                 case "ics":
                     {
-                        //update downloadonly
-                        if (syncData.currentFolderData.getFolderProperty("downloadonly")) syncData.target.setProperty("readOnly", true);
+                        //update downloadonly - we do not use TbCalendar (syncData.target) but the underlying lightning calendar obj
+                        if (syncData.currentFolderData.getFolderProperty("downloadonly")) syncData.target.calendar.setProperty("readOnly", true);
 
                         //init sync via lightning
-                        syncData.target.refresh();
+                        syncData.target.calendar.refresh();
 
                         throw dav.sync.succeeded("managed-by-lightning");
                     }

@@ -20,6 +20,8 @@ var base = {
      * Called during load of external provider extension to init provider.
      */
     load: async function () {
+        dav.openWindows = {};
+
         dav.overlayManager = new OverlayManager({verbose: 0});
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abNewCardWindow.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
@@ -27,8 +29,6 @@ var base = {
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
         dav.overlayManager.startObserving();
-
-        dav.openWindows = {};
     },
 
 
@@ -447,11 +447,6 @@ var calendar = {
     
     // enable or disable changelog
     //logUserChanges: false,
-
-    // The calendarObserver::onCalendarReregistered needs to know, which field
-    // of the folder is used to store the full url of a calendar, to be able to
-    // find calendars, which could be connected to other accounts.
-    calendarUrlField: "url",
     
     calendarObserver: function (aTopic, folderData, aCalendar, aPropertyName, aPropertyValue, aOldPropertyValue) {
         switch (aTopic) {
@@ -467,17 +462,6 @@ var calendar = {
                         }
                         break;
                 }
-            }
-            break;
-
-            case "onCalendarReregistered": 
-            {
-                folderData.setFolderProperty("selected", true);
-                folderData.setFolderProperty("status", tbSync.StatusData.SUCCESS);
-                //add target to re-take control
-                folderData.setFolderProperty("target", aCalendar.id);
-                //update settings window, if open
-                Services.obs.notifyObservers(null, "tbsync.observer.manager.updateSyncstate", folderData.accountID);
             }
             break;
             
