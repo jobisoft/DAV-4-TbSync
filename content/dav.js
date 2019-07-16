@@ -121,10 +121,8 @@ var base = {
     /**
      * Returns URL of the new account window.
      *
-     * The URL will be opened via openDialog() and the tbSync.ProviderData of this
-     * provider will be passed as first argument. It can be accessed via:
-     *
-     *    providerData = window.arguments[0];
+     * The URL will be opened via openDialog(), when the user wants to create a
+     * new account of this provider.
      */
     getCreateAccountWindowUrl: function () {
         return "chrome://dav4tbsync/content/manager/createAccount.xul";

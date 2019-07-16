@@ -16,7 +16,7 @@ const dav = tbSync.providers.dav;
 var tbSyncDavNewAccount = {
     
     onLoad: function () {
-        this.providerData = window.arguments[0];
+        this.providerData = new tbSync.ProviderData("dav");
         
         this.elementName = document.getElementById('tbsync.newaccount.name');
         this.elementUser = document.getElementById('tbsync.newaccount.user');
