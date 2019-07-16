@@ -283,7 +283,7 @@ var tools = {
             card.setProperty("X-DAV-VCARD", vCard);
 
             dav.tools.setThunderbirdCardFromVCard(syncData, card, vCardData);
-            syncData.target.add(card);
+            syncData.target.addItem(card);
         }
     },
 
@@ -304,7 +304,7 @@ var tools = {
                 card.setProperty("X-DAV-VCARD", vCard);
                 
                 dav.tools.setThunderbirdCardFromVCard(syncData, card, vCardData, oCardData);
-                syncData.target.modify(card);
+                syncData.target.modifyItem(card);
             }        
 
         } else {
@@ -332,10 +332,10 @@ var tools = {
                 list.setProperty("X-DAV-HREF", id);
                 list.setProperty("X-DAV-UID", vCardInfo.uid);
                 list.setProperty("ListName",  vCardInfo.name);
-                syncData.target.add(list);
+                syncData.target.addItem(list);
             } else {
                 list.setProperty("ListName",  vCardInfo.name);
-                syncData.target.modify(list);
+                syncData.target.modifyItem(list);
             }
             
             //get original vCardData from last server contact, needed for "smart merge" on changes on both sides
@@ -347,7 +347,7 @@ var tools = {
             list.setProperty("X-DAV-ETAG", etag.textContent);
             list.setProperty("X-DAV-VCARD", vCard);      
             
-            // AbCard implementation: Custom properties of lists are updated instantly, no need to call target.modify(list);
+            // AbCard implementation: Custom properties of lists are updated instantly, no need to call target.modifyItem(list);
             return true;
 
         } else {
@@ -1108,18 +1108,18 @@ var tools = {
             let uid = tbSync.generateUUID();
             card.setProperty("X-DAV-UID", uid);
             vCardData["uid"] = [{"value": uid}];
-            syncData.target.modify(card);
+            syncData.target.modifyItem(card);
         } else if (!uidItem && uidProp) {
             vCardData["uid"] = [{"value": uidProp}];
             tbSync.errorlog.add("info", syncData.errorInfo, "Updating item uid from uid property for card <"+listName+">", JSON.stringify({uidProp, uidItem}));
         } else if (uidItem && !uidProp) {
             card.setProperty("X-DAV-UID", uidItem);
             tbSync.errorlog.add("info", syncData.errorInfo, "Updating uid property from item uid of card <"+listName+">", JSON.stringify({uidProp, uidItem}));
-            syncData.target.modify(card);
+            syncData.target.modifyItem(card);
         } else if (uidItem != uidProp) {
             card.setProperty("X-DAV-UID", uidItem);
             tbSync.errorlog.add("info", syncData.errorInfo, "Updating uid property from item uid of card <"+listName+">", JSON.stringify({uidProp, uidItem}));
-            syncData.target.modify(card);
+            syncData.target.modifyItem(card);
         }
 
         //add required fields

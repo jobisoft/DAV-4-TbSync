@@ -690,7 +690,7 @@ var sync = {
             await tbSync.tools.sleep(200); //we want the user to see, that deletes are happening
 
             for (let j=0; j < chunk; j++) {
-                syncData.target.remove(cards2delete[i+j]);
+                syncData.target.deleteItem(cards2delete[i+j]);
             }
         }
     },
@@ -760,7 +760,7 @@ var sync = {
 
                             if (permissionError[changes[i].status]) {
                                 //we where not allowed to add or modify that card, remove it, we will get a fresh copy on the following revert
-                                if (changes[i].card) syncData.target.remove(changes[i].card);
+                                if (changes[i].card) syncData.target.deleteItem(changes[i].card);
                                 permissionErrors++;
                             }
                         }
