@@ -440,10 +440,10 @@ var addressbook = {
 // implement the calendar object.
 var calendar = {
     
-    // define a card property, which should be used for the changelog
-    // basically your primary key for the abItem properties
-    // UID will be used, if nothing specified
-    //primaryKeyField: "",
+    // The calendar target does not support a custom primaryKeyField, because
+    // the lightning implementation only allows to search for items via UID.
+    // Like the addressbook target, the calendar target item element has a
+    // primaryKey getter/setter which - however - only works on the UID.
     
     // enable or disable changelog
     //logUserChanges: false,
