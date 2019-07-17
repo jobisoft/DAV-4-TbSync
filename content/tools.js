@@ -347,7 +347,7 @@ var tools = {
             list.setProperty("X-DAV-ETAG", etag.textContent);
             list.setProperty("X-DAV-VCARD", vCard);      
             
-            // AbCard implementation: Custom properties of lists are updated instantly, no need to call target.modifyItem(list);
+            // AbItem implementation: Custom properties of lists are updated instantly, no need to call target.modifyItem(list);
             return true;
 
         } else {
