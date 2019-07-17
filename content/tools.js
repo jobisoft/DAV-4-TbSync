@@ -832,7 +832,7 @@ var tools = {
                             if (newServerValue) {
                                 //set if supported
                                 if (vCardData[vCardField.item][0].meta && vCardData[vCardField.item][0].meta.encoding) {
-                                    card.addPhoto(tbSync.generateUUID() + '.jpg', syncData.target.UID, vCardData["photo"][0].value);
+                                    card.addPhoto(tbSync.generateUUID() + '.jpg', vCardData["photo"][0].value);
                                 }
                             } else {
                                 //clear
