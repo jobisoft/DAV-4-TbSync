@@ -228,7 +228,7 @@ var sync = {
                                 folderData.setFolderProperty("targetType", (job == "card") ? "addressbook" : "calendar");
                                 
                                 folderData.setFolderProperty("href", href);
-                                folderData.setFolderProperty("name", name);
+                                folderData.setFolderProperty("foldername", name);
                                 folderData.setFolderProperty("type", resourcetype);
                                 folderData.setFolderProperty("shared", !own.includes(home[h]));
                                 folderData.setFolderProperty("acl", acl.toString());
@@ -248,7 +248,7 @@ var sync = {
                                 }
                             } else {
                                 //Update name & color
-                                folderData.setFolderProperty("name", name);
+                                folderData.setFolderProperty("foldername", name);
                                 folderData.setFolderProperty("fqdn", syncData.connectionData.fqdn);
                                 folderData.setFolderProperty("acl", acl);
                                 //if the acl changed from RW to RO we need to update the downloadonly setting

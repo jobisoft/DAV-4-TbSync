@@ -68,7 +68,7 @@ var network = {
           accountData.getAccountProperty("provider"),
           accountData.getAccountProperty("accountname"),
           accountData.accountID,
-          folderData.getFolderProperty("name"));
+          folderData.getFolderProperty("foldername"));
       } else if (data instanceof tbSync.AccountData) {
         accountData = data;
         this._errorInfo =  new tbSync.ErrorInfo(

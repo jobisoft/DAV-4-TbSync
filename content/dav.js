@@ -283,7 +283,7 @@ var base = {
                 t+=100;
             }
             
-            toBeSorted.push({"key": t.toString() + folder.getFolderProperty("name"), "folder": folder});
+            toBeSorted.push({"key": t.toString() + folder.getFolderProperty("foldername"), "folder": folder});
         }
         
         //sort
@@ -364,7 +364,7 @@ var addressbook = {
         switch (aTopic) {
             case "addrbook-removed":
             case "addrbook-updated":
-                //Services.console.logStringMessage("["+ aTopic + "] " + folderData.getFolderProperty("name"));
+                //Services.console.logStringMessage("["+ aTopic + "] " + folderData.getFolderProperty("foldername"));
                 break;
         }
     },
@@ -605,7 +605,7 @@ var standardFolderList = {
      * @param folderData         [in] FolderData of the selected folder
      */ 
     getFolderDisplayName: function (folderData) {
-        return folderData.getFolderProperty("name");
+        return folderData.getFolderProperty("foldername");
     },
 
     getAttributesRoAcl: function (folderData) {
