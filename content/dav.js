@@ -317,12 +317,18 @@ var base = {
      *
      * @param syncData      [in] SyncData
      * @param syncJob       [in] String with a specific sync job. Defaults to
-     *                           "sync", but can be set by the syncDescription
-     *                           of AccountData.sync()
-     *                           
+     *                           "sync", but can be set via the syncDescription
+     *                           of AccountData.sync() or FolderData.sync()
+     * @param syncRunNr     [in] Indicates the n-th number the account is being synced.
+     *                           It starts with 1 and is limited by 
+     *                           syncDescription.maxAccountReruns.
+     *
+     * !!! NEVER CALL THIS FUNCTION DIRECTLY BUT USE !!!
+     *    tbSync.AccountData::sync()
+     *
      * return StatusData
      */
-    syncFolderList: async function (syncData, syncJob) {
+    syncFolderList: async function (syncData, syncJob, syncRunNr) {
         // update folders avail on server and handle added, removed and renamed
         // folders
         return await dav.sync.folderList(syncData);
@@ -333,12 +339,19 @@ var base = {
      *
      * @param syncData      [in] SyncData
      * @param syncJob       [in] String with a specific sync job. Defaults to
-     *                           "sync", but can be set by the syncDescription
-     *                           of AccountData.sync()
+     *                           "sync", but can be set via the syncDescription
+     *                           of AccountData.sync() or FolderData.sync()
+     * @param syncRunNr     [in] Indicates the n-th number the folder is being synced.
+     *                           It starts with 1 and is limited by 
+     *                           syncDescription.maxFolderReruns.
+     *
+     * !!! NEVER CALL THIS FUNCTION DIRECTLY BUT USE !!!
+     *    tbSync.AccountData::sync() or
+     *    tbSync.FolderData::sync()
      *
      * return StatusData
      */
-    syncFolder: async function (syncData, syncJob) {
+    syncFolder: async function (syncData, syncJob, syncRunNr) {
         //process a single folder
         return await dav.sync.folder(syncData);
     },    
