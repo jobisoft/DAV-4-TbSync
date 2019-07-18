@@ -49,14 +49,13 @@ var base = {
 
 
 
-
-
     /**
      * Returns nice string for the name of provider for the add account menu.
      */
     getNiceProviderName: function () {
         return tbSync.getString("menu.name", "dav");
     },
+
 
 
     /**
@@ -109,6 +108,7 @@ var base = {
     },
 
 
+
     /**
      * Returns the URL of the string bundle file of this provider, it can be
      * accessed by tbSync.getString(<key>, <provider>)
@@ -118,6 +118,7 @@ var base = {
     },
 
     
+
     /**
      * Returns URL of the new account window.
      *
@@ -127,6 +128,7 @@ var base = {
     getCreateAccountWindowUrl: function () {
         return "chrome://dav4tbsync/content/manager/createAccount.xul";
     },
+
 
 
     /**
@@ -165,6 +167,7 @@ var base = {
             }; 
         return row;
     },
+
 
 
     /**
@@ -299,6 +302,7 @@ var base = {
     },
 
 
+
     /**
      * Return the connection timeout for an active sync, so TbSync can append
      * a countdown to the connection timeout, while waiting for an answer from
@@ -312,6 +316,8 @@ var base = {
         return dav.sync.prefSettings.getIntPref("timeout");
     },
     
+
+
     /**
      * Is called if TbSync needs to synchronize the folder list.
      *
@@ -334,6 +340,8 @@ var base = {
         return await dav.sync.folderList(syncData);
     },
     
+
+
     /**
      * Is called if TbSync needs to synchronize a folder.
      *
@@ -357,6 +365,11 @@ var base = {
     },    
 }
 
+
+
+
+
+
 // This provider is using the standard "addressbook" targetType, so it must
 // implement the addressbook object.
 var addressbook = {
@@ -366,12 +379,18 @@ var addressbook = {
     // UID will be used, if nothing specified
     primaryKeyField: "X-DAV-HREF",
     
+
+
     generatePrimaryKey: function (folderData) {
          return folderData.getFolderProperty("href") + tbSync.generateUUID() + ".vcf";
     },
     
+
+
     // enable or disable changelog
     logUserChanges: true,
+
+
 
     directoryObserver: function (aTopic, folderData) {
         switch (aTopic) {
@@ -382,6 +401,8 @@ var addressbook = {
         }
     },
     
+
+
     cardObserver: function (aTopic, folderData, abCardItem) {
         switch (aTopic) {
             case "addrbook-contact-updated":
@@ -400,6 +421,8 @@ var addressbook = {
         }
     },
     
+
+
     listObserver: function (aTopic, folderData, abListItem, abListMember) {
         switch (aTopic) {
             case "addrbook-list-member-added":
@@ -420,6 +443,8 @@ var addressbook = {
         }
     },
     
+
+
     /**
      * Is called by TargetData::getTarget() if  the standard "addressbook"
      * targetType is used, and a new addressbook needs to be created.
@@ -449,6 +474,9 @@ var addressbook = {
 
 
 
+
+
+
 // This provider is using the standard "calendar" targetType, so it must
 // implement the calendar object.
 var calendar = {
@@ -459,12 +487,16 @@ var calendar = {
     // primaryKey getter/setter which - however - only works on the UID.
     
     // enable or disable changelog
-    //logUserChanges: false,
-    
+    logUserChanges: false,
+
+
+
+    calendarObserver: function (aTopic, folderData, tbCalendar, aPropertyName, aPropertyValue, aOldPropertyValue) {
     calendarObserver: function (aTopic, folderData, aCalendar, aPropertyName, aPropertyValue, aOldPropertyValue) {
         switch (aTopic) {
             case "onCalendarPropertyChanged":
             {
+                //Services.console.logStringMessage("["+ aTopic + "] " + tbCalendar.calendar.name + " : " + aPropertyName);
                 switch (aPropertyName) {
                     case "color":
                         if (aOldPropertyValue.toString().toUpperCase() != aPropertyValue.toString().toUpperCase()) {
@@ -480,20 +512,24 @@ var calendar = {
             
             case "onCalendarDeleted":
             case "onCalendarPropertyDeleted":
-                //Services.console.logStringMessage("["+ aTopic + "] " + aCalendar.name);
+                //Services.console.logStringMessage("["+ aTopic + "] " +tbCalendar.calendar.name);
                 break;
         }
     },
-    
-    itemObserver: function (aTopic, folderData, aItem, aOldItem) {
+
+
+
+    itemObserver: function (aTopic, folderData, tbItem, tbOldItem) {
         switch (aTopic) {
             case "onAddItem":
             case "onModifyItem":
             case "onDeleteItem":
-                //Services.console.logStringMessage("["+ aTopic + "] " + aItem.title);
+                //Services.console.logStringMessage("["+ aTopic + "] " + tbItem.nativeItem.title);
                 break;
         }
     },
+
+
 
     /**
      * Is called by TargetData::getTarget() if  the standard "calendar" targetType is used, and a new calendar needs to be created.
@@ -561,6 +597,10 @@ var calendar = {
 }
 
 
+
+
+
+
 /**
  * This provider is using the standardFolderList (instead of this it could also
  * implement the full folderList object).
@@ -585,6 +625,8 @@ var standardFolderList = {
      */
     onContextMenuShowing: function (window, folderData) {
     },
+
+
 
     /**
      * Return the icon used in the folderlist to represent the different folder
@@ -612,6 +654,8 @@ var standardFolderList = {
         }
     },
     
+
+
     /**
      * Return the name of the folder shown in the folderlist.
      *
@@ -621,12 +665,34 @@ var standardFolderList = {
         return folderData.getFolderProperty("foldername");
     },
 
+
+
+    /**
+     * Return the attributes for the ACL RO (readonly) menu element per folder.
+    * (label, disabled, hidden, style, ...)
+     *
+     * @param folderData         [in] FolderData of the selected folder
+     *
+     * Return a list of attributes and their values. If both (RO+RW) do
+     * not return any attributes, the ACL menu is not displayed at all.
+     */ 
     getAttributesRoAcl: function (folderData) {
         return {
             label: tbSync.getString("acl.readonly", "dav"),
         };
     },
     
+
+
+    /**
+     * Return the attributes for the ACL RW (readwrite) menu element per folder.
+    * (label, disabled, hidden, style, ...)
+     *
+     * @param folderData         [in] FolderData of the selected folder
+     *
+     * Return a list of attributes and their values. If both (RO+RW) do
+     * not return any attributes, the ACL menu is not displayed at all.
+     */ 
     getAttributesRwAcl: function (folderData) {
         let acl = parseInt(folderData.getFolderProperty("acl"));
         let acls = [];
