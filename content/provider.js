@@ -642,7 +642,7 @@ var standardFolderList = {
     },
 }
 
-Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/sync.js", this, "UTF-8");
-Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/tools.js", this, "UTF-8");
-Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/network.js", this, "UTF-8");
-Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/vcard/vcard.js", this, "UTF-8");
+Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/sync.js", this, "UTF-8");
+Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/tools.js", this, "UTF-8");
+Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/network.js", this, "UTF-8");
+Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/vcard/vcard.js", this, "UTF-8");
