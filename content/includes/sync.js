@@ -282,15 +282,20 @@ var sync = {
                             }
                         }
 
-                        //update color from server (skip if nolightning, no need to run into error when checkTarget() throws)
+                        // Update color from server (skip if nolightning, no
+                        // need to run into error when hasTarget() throws).
                         if (color && job == "cal" && tbSync.lightning.isAvailable()) {
                             color = color.textContent.substring(0,7);
                             folderData.setFolderProperty("targetColor", color);
                             
-                            //do we have to update the calendar? Get the raw cal object
-                            let targetCal = folderData.targetData.checkTarget();
-                            if (targetCal) {
-                                targetCal.setProperty("color", color);
+                            // Do we have to update the calendar?
+                            if (folderData.targetData.hasTarget()) {
+                                try {
+                                    let targetCal = folderData.targetData.getTarget();
+                                    targetCal.setProperty("color", color);
+                                } catch (e) {
+                                    Components.utils.reportError(e)
+                                }
                             }
                         }
                     }
@@ -310,10 +315,11 @@ var sync = {
             }
         }
 
-        //remove unhandled old folders, (because they no longer exist on the server)
+        // Remove unhandled old folders, (because they no longer exist on the server).
+        // Do not delete the targets, but keep them as stale/unconnected elements.
         for (let type of folderTypes) {
             for (let folder of unhandledFolders[type]) {
-                folder.targetData.decoupleTarget("[deleted on server]", /* move folder into cache */ true);
+                folder.remove("[deleted on server]");
             }
         }
     },
