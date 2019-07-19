@@ -11,22 +11,47 @@
 
 var sync = {
 
-    failed: function (msg = "", details = "") {
-        let e = new Error();
-        e.name = "dav4tbsync";
-        e.message = tbSync.StatusData.WARNING + ": " + msg.toString() + " (" + details.toString() + ")";
-        e.statusData = new tbSync.StatusData(tbSync.StatusData.WARNING, msg.toString(), details.toString());
-        return e;
-    },
+    finish: function (aStatus = "", msg = "", details = "") {
+        let status = tbSync.StatusData.SUCCESS
+        switch (aStatus) {
+            
+            case "":
+            case "ok":
+                status = tbSync.StatusData.SUCCESS;
+                break;
+            
+            case "info":
+                status = tbSync.StatusData.INFO;
+                break;
+            
+            case "resyncAccount":
+                status = tbSync.StatusData.ACCOUNT_RERUN;
+                break;
 
-    succeeded: function (msg = "") {
-        let e = new Error();
-        e.name = "dav4tbsync";
-        e.message = tbSync.StatusData.SUCCESS + ": " + msg.toString();
-        e.statusData = new tbSync.StatusData(tbSync.StatusData.SUCCESS, msg.toString());
-        return e;
-    },
+            case "resyncFolder":
+                status = tbSync.StatusData.FOLDER_RERUN;
+                break;
+            
+            case "warning":
+                status = tbSync.StatusData.WARNING;
+                break;
+            
+            case "error":
+                status = tbSync.StatusData.ERROR;
+                break;
 
+            default:
+                console.log("TbSync/DAV: Unknown status <"+aStatus+">");
+                status = tbSync.StatusData.ERROR;
+                break;
+        }
+        
+        let e = new Error(); 
+        e.name = "dav4tbsync";
+        e.message = status.toUpperCase() + ": " + msg.toString() + " (" + details.toString() + ")";
+        e.statusData = new tbSync.StatusData(status, msg.toString(), details.toString());        
+        return e; 
+    }, 
 
     prefSettings: Services.prefs.getBranch("extensions.dav4tbsync."),
 
@@ -51,256 +76,246 @@ var sync = {
 
     folderList: async function (syncData) {
         //Method description: http://sabre.io/dav/building-a-caldav-client/
-        try {
-            //get all folders currently known
-            let folderTypes = ["caldav", "carddav", "ics"];
-            let unhandledFolders = {};
-            for (let type of folderTypes) {
-                unhandledFolders[type] = [];
-            }
+        //get all folders currently known
+        let folderTypes = ["caldav", "carddav", "ics"];
+        let unhandledFolders = {};
+        for (let type of folderTypes) {
+            unhandledFolders[type] = [];
+        }
 
-            let folders = syncData.accountData.getAllFolders();
-            for (let folder of folders) {
-                //just in case
-                if (!unhandledFolders.hasOwnProperty(folder.getFolderProperty("type"))) {
-                    unhandledFolders[folder.getFolderProperty("type")] = [];
-                }
-                unhandledFolders[folder.getFolderProperty("type")].push(folder);
+        let folders = syncData.accountData.getAllFolders();
+        for (let folder of folders) {
+            //just in case
+            if (!unhandledFolders.hasOwnProperty(folder.getFolderProperty("type"))) {
+                unhandledFolders[folder.getFolderProperty("type")] = [];
             }
+            unhandledFolders[folder.getFolderProperty("type")].push(folder);
+        }
 
-            //get server urls from account setup - update urls of serviceproviders
-            let serviceprovider = syncData.accountData.getAccountProperty("serviceprovider");
-            if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
-                syncData.accountData.setAccountProperty("calDavHost", dav.sync.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
-                syncData.accountData.setAccountProperty("cardDavHost", dav.sync.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
-            }
+        //get server urls from account setup - update urls of serviceproviders
+        let serviceprovider = syncData.accountData.getAccountProperty("serviceprovider");
+        if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
+            syncData.accountData.setAccountProperty("calDavHost", dav.sync.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
+            syncData.accountData.setAccountProperty("cardDavHost", dav.sync.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
+        }
 
-            let davjobs = {
-                cal : {server: syncData.accountData.getAccountProperty("calDavHost")},
-                card : {server: syncData.accountData.getAccountProperty("cardDavHost")},
-            };
+        let davjobs = {
+            cal : {server: syncData.accountData.getAccountProperty("calDavHost")},
+            card : {server: syncData.accountData.getAccountProperty("cardDavHost")},
+        };
+        
+        for (let job in davjobs) {
+            if (!davjobs[job].server) continue;
             
-            for (let job in davjobs) {
-                if (!davjobs[job].server) continue;
-                
-                //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncData)
-                //example state "getfolders" to get folder information from server
-                //if you send a request to a server and thus have to wait for answer, use a "send." syncstate, which will give visual feedback to the user,
-                //that we are waiting for an answer with timeout countdown
+            //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncData)
+            //example state "getfolders" to get folder information from server
+            //if you send a request to a server and thus have to wait for answer, use a "send." syncstate, which will give visual feedback to the user,
+            //that we are waiting for an answer with timeout countdown
 
-                let home = [];
-                let own = [];
-                let principal = null;
+            let home = [];
+            let own = [];
+            let principal = null;
 
-                //add connection to syncData
-                syncData.connectionData = new dav.network.ConnectionData(syncData);
+            //add connection to syncData
+            syncData.connectionData = new dav.network.ConnectionData(syncData);
+            
+            //only do that, if a new calendar has been enabled
+            tbSync.network.resetContainerForUser(syncData.connectionData.username);
+            
+            syncData.setSyncState("send.getfolders");
+            {
+                //split server into fqdn and path
+                let parts = davjobs[job].server.split("/").filter(i => i != "");
+
+                syncData.connectionData.fqdn = parts.splice(0,1).toString();
+                syncData.connectionData.type = job;
                 
-                //only do that, if a new calendar has been enabled
-                tbSync.network.resetContainerForUser(syncData.connectionData.username);
-                
+                let path = "/" + parts.join("/");                
+                let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", path , "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return-minimal"});
+
+                syncData.setSyncState("eval.folders");
+                if (response && response.multi) principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]);
+            }
+
+            //principal now contains something like "/remote.php/carddav/principals/john.bieling/"
+            // -> get home/root of storage
+            if (principal !== null) {
                 syncData.setSyncState("send.getfolders");
-                {
-                    //split server into fqdn and path
-                    let parts = davjobs[job].server.split("/").filter(i => i != "");
+                
+                let homeset = (job == "cal")
+                                        ? "calendar-home-set"
+                                        : "addressbook-home-set";
 
-                    syncData.connectionData.fqdn = parts.splice(0,1).toString();
-                    syncData.connectionData.type = job;
-                    
-                    let path = "/" + parts.join("/");                
-                    let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", path , "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return-minimal"});
+                let request = (job == "cal")
+                                        ? "<d:propfind "+dav.tools.xmlns(["d", "cal", "cs"])+"><d:prop><cal:" + homeset + " /><cs:calendar-proxy-write-for /><cs:calendar-proxy-read-for /><d:group-membership /></d:prop></d:propfind>"
+                                        : "<d:propfind "+dav.tools.xmlns(["d", "card"])+"><d:prop><card:" + homeset + " /><d:group-membership /></d:prop></d:propfind>";
 
-                    syncData.setSyncState("eval.folders");
-                    if (response && response.multi) principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]);
+                let response = await dav.network.sendRequest(request, principal, "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return-minimal"});
+
+                syncData.setSyncState("eval.folders");
+                own = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], principal);
+                home = own.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["cs", "calendar-proxy-read-for" ], ["d","href"]], principal));
+                home = home.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["cs", "calendar-proxy-write-for" ], ["d","href"]], principal));
+
+                //Any groups we need to find? Only diving one level at the moment, 
+                let g = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["d", "group-membership" ], ["d","href"]], principal);
+                for (let gc=0; gc < g.length; gc++) {
+                    //SOGo reports a 403 if I request the provided resource, also since we do not dive, remove the request for group-membership                    
+                    response = await dav.network.sendRequest(request.replace("<d:group-membership />",""), g[gc], "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return-minimal"}, {softfail: [403, 404]});
+                    if (response && response.softerror) {
+                        continue;
+                    }		    
+                    home = home.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], g[gc]));
                 }
 
-                //principal now contains something like "/remote.php/carddav/principals/john.bieling/"
-                // -> get home/root of storage
-                if (principal !== null) {
+                //calendar-proxy and group-membership could have returned the same values, make the homeset unique
+                home = home.filter((v,i,a) => a.indexOf(v) == i);
+            } else {
+                // do not throw here, but log the error and skip this server
+                tbSync.errorlog.add("error", syncData.errorInfo, job+"davservernotfound", davjobs[job].serve);
+            }
+
+            //home now contains something like /remote.php/caldav/calendars/john.bieling/
+            // -> get all resources
+            if (home.length > 0) {
+                for (let h=0; h < home.length; h++) {
                     syncData.setSyncState("send.getfolders");
-                    
-                    let homeset = (job == "cal")
-                                            ? "calendar-home-set"
-                                            : "addressbook-home-set";
-
                     let request = (job == "cal")
-                                            ? "<d:propfind "+dav.tools.xmlns(["d", "cal", "cs"])+"><d:prop><cal:" + homeset + " /><cs:calendar-proxy-write-for /><cs:calendar-proxy-read-for /><d:group-membership /></d:prop></d:propfind>"
-                                            : "<d:propfind "+dav.tools.xmlns(["d", "card"])+"><d:prop><card:" + homeset + " /><d:group-membership /></d:prop></d:propfind>";
+                                            ? "<d:propfind "+dav.tools.xmlns(["d","apple","cs"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /><apple:calendar-color/><cs:source/></d:prop></d:propfind>"
+                                            : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
 
-                    let response = await dav.network.sendRequest(request, principal, "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return-minimal"});
-
-                    syncData.setSyncState("eval.folders");
-                    own = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], principal);
-                    home = own.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["cs", "calendar-proxy-read-for" ], ["d","href"]], principal));
-                    home = home.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["cs", "calendar-proxy-write-for" ], ["d","href"]], principal));
-
-                    //Any groups we need to find? Only diving one level at the moment, 
-                    let g = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["d", "group-membership" ], ["d","href"]], principal);
-                    for (let gc=0; gc < g.length; gc++) {
-                        //SOGo reports a 403 if I request the provided resource, also since we do not dive, remove the request for group-membership                    
-                        response = await dav.network.sendRequest(request.replace("<d:group-membership />",""), g[gc], "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return-minimal"}, {softfail: [403, 404]});
-                        if (response && response.softerror) {
-                            continue;
-                        }		    
-                        home = home.concat(dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], g[gc]));
+                    //some servers report to have calendar-proxy-read but return a 404 when that gets actually queried
+                    let response = await dav.network.sendRequest(request, home[h], "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: [403, 404]});
+                    if (response && response.softerror) {
+                        continue;
                     }
-
-                    //calendar-proxy and group-membership could have returned the same values, make the homeset unique
-                    home = home.filter((v,i,a) => a.indexOf(v) == i);
-                } else {
-                    throw dav.sync.failed(job+"davservernotfound", davjobs[job].server)
-                }
-
-                //home now contains something like /remote.php/caldav/calendars/john.bieling/
-                // -> get all resources
-                if (home.length > 0) {
-                    for (let h=0; h < home.length; h++) {
-                        syncData.setSyncState("send.getfolders");
-                        let request = (job == "cal")
-                                                ? "<d:propfind "+dav.tools.xmlns(["d","apple","cs"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /><apple:calendar-color/><cs:source/></d:prop></d:propfind>"
-                                                : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
-
-                        //some servers report to have calendar-proxy-read but return a 404 when that gets actually queried
-                        let response = await dav.network.sendRequest(request, home[h], "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: [403, 404]});
-                        if (response && response.softerror) {
-                            continue;
+                    
+                    for (let r=0; r < response.multi.length; r++) {
+                        if (response.multi[r].status != "200") continue;
+                        
+                        let resourcetype = null;
+                        //is this a result with a valid recourcetype? (the node must be present)
+                        switch (job) {
+                            case "card": 
+                                    if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["card", "addressbook"]]) !== null) resourcetype = "carddav";
+                                break;
+                                
+                            case "cal":
+                                    if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["cal", "calendar"]]) !== null) resourcetype = "caldav";
+                                    else if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["cs", "subscribed"]]) !== null) resourcetype = "ics";
+                                break;
+                        }
+                        if (resourcetype === null) continue;
+                        
+                        //get ACL
+                        let acl = 0;
+                        let privilegNode = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","current-user-privilege-set"]]);
+                        if (privilegNode) {
+                            if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "all").length > 0) { 
+                                acl = 0xF; //read=1, mod=2, create=4, delete=8 
+                            } else if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "read").length > 0) { 
+                                acl = 0x1;
+                                if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "write").length > 0) {
+                                    acl = 0xF; 
+                                } else {
+                                    if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "write-content").length > 0) acl |= 0x2;
+                                    if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "bind").length > 0) acl |= 0x4;
+                                    if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "unbind").length > 0) acl |= 0x8;
+                                }
+                            }
                         }
                         
-                        for (let r=0; r < response.multi.length; r++) {
-                            if (response.multi[r].status != "200") continue;
+                        //ignore this resource, if no read access
+                        if ((acl & 0x1) == 0) continue;
+
+                        let href = response.multi[r].href;
+                        if (resourcetype == "ics") href =  dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cs","source"], ["d","href"]]).textContent;
+                        
+                        let name_node = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","displayname"]]);
+                        let name = tbSync.getString("defaultname." +  ((job == "cal") ? "calendar" : "contacts") , "dav");
+                        if (name_node != null) {
+                            name = name_node.textContent;
+                        }
+                        let color = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["apple","calendar-color"]]);
+
+                        //remove found folder from list of unhandled folders
+                        unhandledFolders[resourcetype] = unhandledFolders[resourcetype].filter(item => item.getFolderProperty("href") !== href);
+
+                        
+                        // interaction with TbSync
+                        // do we have a folder for that href?
+                        let folderData = syncData.accountData.getFolder("href", href);
+                        if (!folderData) {
+                            // create a new folder entry
+                            folderData = syncData.accountData.createNewFolder();
+                            // this MUST be set to either "addressbook" or "calendar" to use the standard target support, or any other value, which 
+                            // requires a corresponding targets implementation by this provider
+                            folderData.setFolderProperty("targetType", (job == "card") ? "addressbook" : "calendar");
                             
-                            let resourcetype = null;
-                            //is this a result with a valid recourcetype? (the node must be present)
-                            switch (job) {
-                                case "card": 
-                                        if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["card", "addressbook"]]) !== null) resourcetype = "carddav";
-                                    break;
-                                    
-                                case "cal":
-                                        if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["cal", "calendar"]]) !== null) resourcetype = "caldav";
-                                        else if (dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","resourcetype"], ["cs", "subscribed"]]) !== null) resourcetype = "ics";
-                                    break;
+                            folderData.setFolderProperty("href", href);
+                            folderData.setFolderProperty("foldername", name);
+                            folderData.setFolderProperty("type", resourcetype);
+                            folderData.setFolderProperty("shared", !own.includes(home[h]));
+                            folderData.setFolderProperty("acl", acl.toString());
+                            folderData.setFolderProperty("downloadonly", (acl == 0x1)); //if any write access is granted, setup as writeable
+
+                            //we assume the folder has the same fqdn as the homeset, otherwise href must contain the full URL and the fqdn is ignored
+                            folderData.setFolderProperty("fqdn", syncData.connectionData.fqdn);
+                            
+                            //do we have a cached folder?
+                            let cachedFolderData = syncData.accountData.getFolderFromCache("href", href);
+                            if (cachedFolderData) {
+                                // copy fields from cache which we want to re-use
+                                folderData.setFolderProperty("targetColor", cachedFolderData.getFolderProperty("targetColor"));
+                                folderData.setFolderProperty("targetName", cachedFolderData.getFolderProperty("targetName"));
+                                //if we have only READ access, do not restore cached value for downloadonly
+                                if (acl > 0x1) folderData.setFolderProperty("downloadonly", cachedFolderData.getFolderProperty("downloadonly"));
                             }
-                            if (resourcetype === null) continue;
-                            
-                            //get ACL
-                            let acl = 0;
-                            let privilegNode = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","current-user-privilege-set"]]);
-                            if (privilegNode) {
-                                if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "all").length > 0) { 
-                                    acl = 0xF; //read=1, mod=2, create=4, delete=8 
-                                } else if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "read").length > 0) { 
-                                    acl = 0x1;
-                                    if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "write").length > 0) {
-                                        acl = 0xF; 
-                                    } else {
-                                        if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "write-content").length > 0) acl |= 0x2;
-                                        if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "bind").length > 0) acl |= 0x4;
-                                        if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "unbind").length > 0) acl |= 0x8;
-                                    }
-                                }
+                        } else {
+                            //Update name & color
+                            folderData.setFolderProperty("foldername", name);
+                            folderData.setFolderProperty("fqdn", syncData.connectionData.fqdn);
+                            folderData.setFolderProperty("acl", acl);
+                            //if the acl changed from RW to RO we need to update the downloadonly setting
+                            if (acl == 0x1) {
+                                folderData.setFolderProperty("downloadonly", true);
                             }
+                        }
+
+                        //update color from server (skip if nolightning, no need to run into error when checkTarget() throws)
+                        if (color && job == "cal" && tbSync.lightning.isAvailable()) {
+                            color = color.textContent.substring(0,7);
+                            folderData.setFolderProperty("targetColor", color);
                             
-                            //ignore this resource, if no read access
-                            if ((acl & 0x1) == 0) continue;
-
-                            let href = response.multi[r].href;
-                            if (resourcetype == "ics") href =  dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cs","source"], ["d","href"]]).textContent;
-                            
-                            let name_node = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","displayname"]]);
-                            let name = tbSync.getString("defaultname." +  ((job == "cal") ? "calendar" : "contacts") , "dav");
-                            if (name_node != null) {
-                                name = name_node.textContent;
-                            }
-                            let color = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["apple","calendar-color"]]);
-
-                            //remove found folder from list of unhandled folders
-                            unhandledFolders[resourcetype] = unhandledFolders[resourcetype].filter(item => item.getFolderProperty("href") !== href);
-
-                            
-                            // interaction with TbSync
-                            // do we have a folder for that href?
-                            let folderData = syncData.accountData.getFolder("href", href);
-                            if (!folderData) {
-                                // create a new folder entry
-                                folderData = syncData.accountData.createNewFolder();
-                                // this MUST be set to either "addressbook" or "calendar" to use the standard target support, or any other value, which 
-                                // requires a corresponding targets implementation by this provider
-                                folderData.setFolderProperty("targetType", (job == "card") ? "addressbook" : "calendar");
-                                
-                                folderData.setFolderProperty("href", href);
-                                folderData.setFolderProperty("foldername", name);
-                                folderData.setFolderProperty("type", resourcetype);
-                                folderData.setFolderProperty("shared", !own.includes(home[h]));
-                                folderData.setFolderProperty("acl", acl.toString());
-                                folderData.setFolderProperty("downloadonly", (acl == 0x1)); //if any write access is granted, setup as writeable
-
-                                //we assume the folder has the same fqdn as the homeset, otherwise href must contain the full URL and the fqdn is ignored
-                                folderData.setFolderProperty("fqdn", syncData.connectionData.fqdn);
-                                
-                                //do we have a cached folder?
-                                let cachedFolderData = syncData.accountData.getFolderFromCache("href", href);
-                                if (cachedFolderData) {
-                                    // copy fields from cache which we want to re-use
-                                    folderData.setFolderProperty("targetColor", cachedFolderData.getFolderProperty("targetColor"));
-                                    folderData.setFolderProperty("targetName", cachedFolderData.getFolderProperty("targetName"));
-                                    //if we have only READ access, do not restore cached value for downloadonly
-                                    if (acl > 0x1) folderData.setFolderProperty("downloadonly", cachedFolderData.getFolderProperty("downloadonly"));
-                                }
-                            } else {
-                                //Update name & color
-                                folderData.setFolderProperty("foldername", name);
-                                folderData.setFolderProperty("fqdn", syncData.connectionData.fqdn);
-                                folderData.setFolderProperty("acl", acl);
-                                //if the acl changed from RW to RO we need to update the downloadonly setting
-                                if (acl == 0x1) {
-                                    folderData.setFolderProperty("downloadonly", true);
-                                }
-                            }
-
-                            //update color from server (skip if nolightning, no need to run into error when checkTarget() throws)
-                            if (color && job == "cal" && tbSync.lightning.isAvailable()) {
-                                color = color.textContent.substring(0,7);
-                                folderData.setFolderProperty("targetColor", color);
-                                
-                                //do we have to update the calendar? Get the raw cal object
-                                let targetCal = folderData.targetData.checkTarget();
-                                if (targetCal) {
-                                    targetCal.setProperty("color", color);
-                                }
+                            //do we have to update the calendar? Get the raw cal object
+                            let targetCal = folderData.targetData.checkTarget();
+                            if (targetCal) {
+                                targetCal.setProperty("color", color);
                             }
                         }
                     }
-                } else {
-                    //home was not found - connection error? - do not delete unhandled folders
-                    switch (job) {
-                        case "card": 
-                                unhandledFolders.carddav = [];
-                            break;
-                            
-                        case "cal":
-                                unhandledFolders.caldav = [];
-                                unhandledFolders.ics = [];
-                            break;
-                    }
                 }
-            }
-
-            //remove unhandled old folders, (because they no longer exist on the server)
-            for (let type of folderTypes) {
-                for (let folder of unhandledFolders[type]) {
-                    folder.targetData.decoupleTarget("[deleted on server]", /* move folder into cache */ true);
-                }
-            }
-        } catch (e) {
-            if (e.name == "dav4tbsync") {
-                return e.statusData;
             } else {
-                Components.utils.reportError(e);
-                return new tbSync.StatusData(tbSync.StatusData.WARNING, "JavaScriptError", e.message + "\n\n" + e.stack);
+                //home was not found - connection error? - do not delete unhandled folders
+                switch (job) {
+                    case "card": 
+                            unhandledFolders.carddav = [];
+                        break;
+                        
+                    case "cal":
+                            unhandledFolders.caldav = [];
+                            unhandledFolders.ics = [];
+                        break;
+                }
             }
         }
-        // we fall through, if there was no error
-        return new tbSync.StatusData();
+
+        //remove unhandled old folders, (because they no longer exist on the server)
+        for (let type of folderTypes) {
+            for (let folder of unhandledFolders[type]) {
+                folder.targetData.decoupleTarget("[deleted on server]", /* move folder into cache */ true);
+            }
+        }
     },
 
 
@@ -309,54 +324,43 @@ var sync = {
 
 
     folder: async function (syncData) {
+        // add connection data to syncData
+        syncData.connectionData = new dav.network.ConnectionData(syncData);
+
+        // add target to syncData (getTarget() will throw "nolightning" if lightning missing)
         try {
-            
-            // add connection data to syncData
-            syncData.connectionData = new dav.network.ConnectionData(syncData);
-
-            // add target to syncData (getTarget() will throw "nolightning" if lightning missing)
-            try {
-                // accessing the target for the first time will check if it is avail and if not will create it (if possible)
-                syncData.target = syncData.currentFolderData.targetData.getTarget();
-            } catch (e) {
-                throw dav.sync.failed(e.message);
-            }
-            
-            switch (syncData.connectionData.type) {
-                case "carddav":
-                    {
-                        await dav.sync.singleFolder(syncData);
-                    }
-                    break;
-
-                case "caldav":
-                case "ics":
-                    {
-                        //update downloadonly - we do not use TbCalendar (syncData.target) but the underlying lightning calendar obj
-                        if (syncData.currentFolderData.getFolderProperty("downloadonly")) syncData.target.calendar.setProperty("readOnly", true);
-
-                        //init sync via lightning
-                        syncData.target.calendar.refresh();
-
-                        throw dav.sync.succeeded("managed-by-lightning");
-                    }
-                    break;
-
-                default:
-                    {
-                        throw dav.sync.failed("notsupported");
-                    }
-                    break;
-            }
+            // accessing the target for the first time will check if it is avail and if not will create it (if possible)
+            syncData.target = syncData.currentFolderData.targetData.getTarget();
         } catch (e) {
-            if (e.name == "dav4tbsync") {
-                return e.statusData;
-            } else {
-                Components.utils.reportError(e);
-                return new tbSync.StatusData(tbSync.StatusData.WARNING, "JavaScriptError", e.message + "\n\n" + e.stack);
-            }
+            throw dav.sync.finish("warning", e.message);
         }
-        throw new Error("Should not happen!");
+        
+        switch (syncData.connectionData.type) {
+            case "carddav":
+                {
+                    await dav.sync.singleFolder(syncData);
+                }
+                break;
+
+            case "caldav":
+            case "ics":
+                {
+                    //update downloadonly - we do not use TbCalendar (syncData.target) but the underlying lightning calendar obj
+                    if (syncData.currentFolderData.getFolderProperty("downloadonly")) syncData.target.calendar.setProperty("readOnly", true);
+
+                    //init sync via lightning
+                    syncData.target.calendar.refresh();
+
+                    throw dav.sync.finish("ok", "managed-by-lightning");
+                }
+                break;
+
+            default:
+                {
+                    throw dav.sync.finish("warning", "notsupported");
+                }
+                break;
+        }
     },
 
 
@@ -371,14 +375,11 @@ var sync = {
             dav.base.onResetTarget(syncData.currentFolderData);
             await dav.sync.remoteChanges(syncData);
 
-            if (!downloadonly) throw dav.sync.failed("info.restored");
+            if (!downloadonly) throw dav.sync.finish("info", "info.restored");
         } else if (numOfLocalChanges > 0){
             //we will get back our own changes and can store etags and vcards and also get a clean ctag/token
             await dav.sync.remoteChanges(syncData);
         }
-
-        //always finish sync by throwing failed or succeeded
-        throw dav.sync.succeeded();
     },
 
 
@@ -407,7 +408,7 @@ var sync = {
         let maxloops = 20;
         for (let i=0; i <= maxloops; i++) {
                 if (i == maxloops)
-                    throw dav.sync.failed("could-not-get-stable-ctag");
+                    throw dav.sync.finish("warning", "could-not-get-stable-ctag");
 
                 let ctagChanged = await dav.sync.remoteChangesByCTAG(syncData);
                 if (!ctagChanged) break;

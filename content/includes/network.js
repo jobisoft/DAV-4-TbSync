@@ -386,9 +386,9 @@ var network = {
           } catch (ex) {
             let error = tbSync.network.createTCPErrorFromFailedRequest(aChannel);
             if (!error) {
-              return reject(dav.sync.failed("networkerror", "URL:\n" + connectionData.uri.spec + " ("+method+")")); //reject/resolve do not terminate control flow
+              return reject(dav.sync.finish("error", "networkerror", "URL:\n" + connectionData.uri.spec + " ("+method+")")); //reject/resolve do not terminate control flow
             } else {
-              return reject(dav.sync.failed(error, "URL:\n" + connectionData.uri.spec + " ("+method+")"));
+              return reject(dav.sync.finish("error", error, "URL:\n" + connectionData.uri.spec + " ("+method+")"));
             }
           }
           
@@ -467,7 +467,7 @@ var network = {
                 response.retry = true;
                 response.path = aChannel.URI.pathQueryRef;
                 response.passwordPrompt = true;
-                response.passwordError = dav.sync.failed(responseStatus, commLog);
+                response.passwordError = dav.sync.finish("error", responseStatus, commLog);
                 return resolve(response);                
               }
               break;
@@ -475,7 +475,7 @@ var network = {
             case 207: //preprocess multiresponse
               {
                 let xml = dav.tools.convertToXML(aResult);
-                if (xml === null) return reject(dav.sync.failed("maiformed-xml", commLog));
+                if (xml === null) return reject(dav.sync.finish("warning", "maiformed-xml", commLog));
 
                 //the specs allow to  return a 207 with DAV:unauthenticated if not authenticated 
                 if (xml.documentElement.getElementsByTagNameNS(dav.sync.ns.d, "unauthenticated").length != 0) {
@@ -545,7 +545,7 @@ var network = {
                 tbSync.errorlog.add("info", connectionData.errorInfo, "softerror::"+responseStatus, commLog);
                 return resolve(noresponse);
               } else {
-                return reject(dav.sync.failed(responseStatus, commLog)); 
+                return reject(dav.sync.finish("warning", responseStatus, commLog)); 
               }                                
               break;
 

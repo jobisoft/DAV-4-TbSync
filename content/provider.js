@@ -337,10 +337,26 @@ var base = {
      *
      * return StatusData
      */
-    syncFolderList: async function (syncData, syncJob, syncRunNr) {
-        // update folders avail on server and handle added, removed and renamed
-        // folders
-        return await dav.sync.folderList(syncData);
+    syncFolderList: async function (syncData, syncJob, syncRunNr) {        
+        // Recommendation: Put the actual function call inside a try catch, to
+        // ensure returning a proper StatusData object, regardless of what
+        // happens inside that function. You may also throw custom errors
+        // in that function, which have the StatusData obj attached, which
+        // should be returned.
+        
+        try {
+            await dav.sync.folderList(syncData);
+        } catch (e) {
+            if (e.name == "dav4tbsync") {
+                return e.statusData;
+            } else {
+                Components.utils.reportError(e);
+                return new tbSync.StatusData(tbSync.StatusData.WARNING, "JavaScriptError", e.message + "\n\n" + e.stack);
+            }
+        }
+
+        // we fall through, if there was no error
+        return new tbSync.StatusData();
     },
     
 
@@ -363,8 +379,26 @@ var base = {
      * return StatusData
      */
     syncFolder: async function (syncData, syncJob, syncRunNr) {
+        // Recommendation: Put the actual function call inside a try catch, to
+        // ensure returning a proper StatusData object, regardless of what
+        // happens inside that function. You may also throw custom errors
+        // in that function, which have the StatusData obj attached, which
+        // should be returned.
         //process a single folder
-        return await dav.sync.folder(syncData);
+
+        try {
+            await dav.sync.folder(syncData);
+        } catch (e) {
+            if (e.name == "dav4tbsync") {
+                return e.statusData;
+            } else {
+                Components.utils.reportError(e);
+                return new tbSync.StatusData(tbSync.StatusData.WARNING, "JavaScriptError", e.message + "\n\n" + e.stack);
+            }
+        }
+
+        // we fall through, if there was no error
+        return new tbSync.StatusData();
     },    
 }
 
@@ -495,7 +529,6 @@ var calendar = {
 
 
     calendarObserver: function (aTopic, folderData, tbCalendar, aPropertyName, aPropertyValue, aOldPropertyValue) {
-    calendarObserver: function (aTopic, folderData, aCalendar, aPropertyName, aPropertyValue, aOldPropertyValue) {
         switch (aTopic) {
             case "onCalendarPropertyChanged":
             {
