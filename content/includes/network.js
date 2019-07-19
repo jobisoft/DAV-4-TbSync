@@ -355,11 +355,11 @@ var network = {
 
         //nsIStreamListener (aUseStreamLoader = false)
         onStartRequest: function(aRequest, aContext) {
-          Services.console.logStringMessage("[onStartRequest] ");
+          //Services.console.logStringMessage("[onStartRequest] ");
           this.data = "";
         },
         onDataAvailable: function (aRequest, aContext, aInputStream, aOffset, aCount) {
-          Services.console.logStringMessage("[onDataAvailable] " + aCount);
+          //Services.console.logStringMessage("[onDataAvailable] " + aCount);
           if (this._stream == null) {
             this._stream = Components.classes["@mozilla.org/scriptableinputstream;1"].createInstance(Components.interfaces.nsIScriptableInputStream);
             this._stream.init(aInputStream);
@@ -369,7 +369,7 @@ var network = {
           this._data += d;
         },        
         onStopRequest: function(aRequest, aContext, aStatusCode) {
-          Services.console.logStringMessage("[onStopRequest] " + aStatusCode);
+          //Services.console.logStringMessage("[onStopRequest] " + aStatusCode);
           this.processResponse(aRequest.QueryInterface(Components.interfaces.nsIHttpChannel), aContext, aStatusCode,  this._data);
         },
       

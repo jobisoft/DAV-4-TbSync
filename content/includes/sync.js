@@ -292,7 +292,7 @@ var sync = {
                             if (folderData.targetData.hasTarget()) {
                                 try {
                                     let targetCal = folderData.targetData.getTarget();
-                                    targetCal.setProperty("color", color);
+                                    targetCal.calendar.setProperty("color", color);
                                 } catch (e) {
                                     Components.utils.reportError(e)
                                 }
