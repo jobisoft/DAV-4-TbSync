@@ -252,7 +252,7 @@ var tbSyncDavNewAccount = {
             }
         }
         
-        if (davjobs.cal.valid && davjobs.card.valid) {
+        if (davjobs.cal.valid || davjobs.card.valid) {
             tbSyncDavNewAccount.addAccount(accountname, this.newAccountInfo);
             this.validating = false;
             document.getElementById("tbsync.newaccount.wizard").cancel();
