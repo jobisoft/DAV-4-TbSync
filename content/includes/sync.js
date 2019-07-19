@@ -633,7 +633,7 @@ var sync = {
                         }
                         //Feedback from users: They want to see the individual count
                         syncData.setSyncState("eval.response.remotechanges");		
-                        await tbSync.tools.sleep(100, false);
+                        await tbSync.tools.sleep(100);
                     } else {
                         tbSync.dump("Skipped Card", [id, cards.multi[c].status == "200", etag !== null, data !== null, id !== null, vCardsChangedOnServer.hasOwnProperty(id)].join(", "));
                     }
@@ -642,7 +642,7 @@ var sync = {
         }
         // Feedback from users: They want to see the final count.
         syncData.setSyncState("eval.response.remotechanges");		
-        await tbSync.tools.sleep(200, false);
+        await tbSync.tools.sleep(200);
     
         // On down sync, mailinglists need to be done at the very end so all member data is avail.
         if (syncData.accountData.getAccountProperty("syncGroups")) {
