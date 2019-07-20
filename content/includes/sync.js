@@ -173,7 +173,7 @@ var sync = {
                 home = home.filter((v,i,a) => a.indexOf(v) == i);
             } else {
                 // do not throw here, but log the error and skip this server
-                tbSync.errorlog.add("error", syncData.errorInfo, job+"davservernotfound", davjobs[job].serve);
+                tbSync.eventlog.add("error", syncData.eventLogInfo, job+"davservernotfound", davjobs[job].serve);
             }
 
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
@@ -473,7 +473,7 @@ var sync = {
                     vCardsDeletedOnServer.push(card);
                 } else {
                     //We received something, that is not a DEL, MOD or ADD
-                    tbSync.errorlog.add("warning", syncData.errorInfo, "Unknown XML", JSON.stringify(cards.multi[c]));
+                    tbSync.eventlog.add("warning", syncData.eventLogInfo, "Unknown XML", JSON.stringify(cards.multi[c]));
                 }
             }
         }
@@ -758,11 +758,11 @@ var sync = {
                                         syncData.setSyncState("eval.response.localchanges");
                                         if (response && response.softerror) {
                                             permissionError[changes[i].status] = true;
-                                            tbSync.errorlog.add("warning", syncData.errorInfo, "missing-permission::" + tbSync.getString(isAdding ? "acl.add" : "acl.modify", "dav"));
+                                            tbSync.eventlog.add("warning", syncData.eventLogInfo, "missing-permission::" + tbSync.getString(isAdding ? "acl.add" : "acl.modify", "dav"));
                                         }
                                     }
                                 } else {
-                                    tbSync.errorlog.add("warning", syncData.errorInfo, "cardnotfoundbutinchangelog::" + changes[i].itemId + "/" + changes[i].status);
+                                    tbSync.eventlog.add("warning", syncData.eventLogInfo, "cardnotfoundbutinchangelog::" + changes[i].itemId + "/" + changes[i].status);
                                 }
                             }
 
@@ -785,7 +785,7 @@ var sync = {
                                 if (response  && response.softerror) {
                                     if (response.softerror != 404) { //we cannot do anything about a 404 on delete, the card has been deleted here and is not avail on server
                                         permissionError[changes[i].status] = true;
-                                        tbSync.errorlog.add("warning", syncData.errorInfo, "missing-permission::" + tbSync.getString("acl.delete", "dav"));
+                                        tbSync.eventlog.add("warning", syncData.eventLogInfo, "missing-permission::" + tbSync.getString("acl.delete", "dav"));
                                     }
                                 }
                             }

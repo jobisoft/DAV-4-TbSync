@@ -227,7 +227,7 @@ var tbSyncDavNewAccount = {
             
             //only needed for proper error reporting - that dav needs this is beyond API - connectionData is not used by TbSync
             //connectionData is a structure which contains all the information needed to establish and evaluate a network connection
-            connectionData.errorInfo = new tbSync.ErrorInfo("dav", accountname);
+            connectionData.eventLogInfo = new tbSync.EventLogInfo("dav", accountname);
 
             //build full url, so we do not need fqdn
             let url = "http" + (connectionData.https ? "s" : "") + "://" + davjobs[job].server;
@@ -239,14 +239,14 @@ var tbSyncDavNewAccount = {
                 davjobs[job].valid = (principal !== null);
                 if (!davjobs[job].valid) {
                     davjobs[job].error = job+"davservernotfound";
-                    tbSync.errorlog.add("warning", connectionData.errorInfo, davjobs[job].error, response.commLog);
+                    tbSync.eventlog.add("warning", connectionData.eventLogInfo, davjobs[job].error, response.commLog);
                 }
             } catch (e) {
                 davjobs[job].valid = false;
                 davjobs[job].error = e.statusData ? e.statusData.message : e.message;
                 
                 if (e.name == "dav4tbsync") {
-                    tbSync.errorlog.add("warning", connectionData.errorInfo, e.statusData.message ,e.statusData.details);
+                    tbSync.eventlog.add("warning", connectionData.eventLogInfo, e.statusData.message ,e.statusData.details);
                 } else {
                     Components.utils.reportError(e);
                 }

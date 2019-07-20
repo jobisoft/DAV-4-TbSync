@@ -51,7 +51,7 @@ var network = {
                       Components.interfaces.nsITimer);
 
       //for error logging
-      this._errorInfo = null;
+      this._eventLogInfo = null;
       
       //typof syncdata?
       let folderData = null;
@@ -60,18 +60,18 @@ var network = {
       if (data instanceof tbSync.SyncData) {
         folderData = data.currentFolderData;
         accountData = data.accountData;
-        this._errorInfo = data.errorInfo;                
+        this._eventLogInfo = data.eventLogInfo;                
       } else if (data instanceof tbSync.FolderData) {
         folderData = data;
         accountData = data.accountData;
-        this._errorInfo =  new tbSync.ErrorInfo(
+        this._eventLogInfo =  new tbSync.EventLogInfo(
           accountData.getAccountProperty("provider"),
           accountData.getAccountProperty("accountname"),
           accountData.accountID,
           folderData.getFolderProperty("foldername"));
       } else if (data instanceof tbSync.AccountData) {
         accountData = data;
-        this._errorInfo =  new tbSync.ErrorInfo(
+        this._eventLogInfo =  new tbSync.EventLogInfo(
           accountData.getAccountProperty("provider"),
           accountData.getAccountProperty("accountname"),
           accountData.accountID,
@@ -113,7 +113,7 @@ var network = {
     set https(v) {this._https = v;}
     set type(v) {this._type = v;}
     set fqdn(v) {this._fqdn = v;}
-    set errorInfo(v) {this._errorInfo = v;}
+    set eventLogInfo(v) {this._eventLogInfo = v;}
 
     get password() {return this._password;}
     get username() {return this._username;}
@@ -121,7 +121,7 @@ var network = {
     get https() {return this._https;}
     get type() {return this._type;}
     get fqdn() {return this._fqdn;}
-    get errorInfo() {return this._errorInfo;}
+    get eventLogInfo() {return this._eventLogInfo;}
   },
   
   Prompt: class {
@@ -542,7 +542,7 @@ var network = {
                   }
                 }
                 //manually log this non-fatal error
-                tbSync.errorlog.add("info", connectionData.errorInfo, "softerror::"+responseStatus, commLog);
+                tbSync.eventlog.add("info", connectionData.eventLogInfo, "softerror::"+responseStatus, commLog);
                 return resolve(noresponse);
               } else {
                 return reject(dav.sync.finish("warning", responseStatus, commLog)); 
