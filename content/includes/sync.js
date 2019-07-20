@@ -761,13 +761,13 @@ var sync = {
                                         }
                                     }
                                 } else {
-                                    tbSync.errorlog.add("warning", syncData.errorInfo, "cardnotfoundbutinchangelog::" + changes[i].id + "/" + changes[i].status);
+                                    tbSync.errorlog.add("warning", syncData.errorInfo, "cardnotfoundbutinchangelog::" + changes[i].itemId + "/" + changes[i].status);
                                 }
                             }
 
                             if (permissionError[changes[i].status]) {
                                 //we where not allowed to add or modify that card, remove it, we will get a fresh copy on the following revert
-                                let card = syncData.target.getItem(changes[i]);
+                                let card = syncData.target.getItem(changes[i].itemId);
                                 if (card) syncData.target.deleteItem(card);
                                 permissionErrors++;
                             }
@@ -778,7 +778,7 @@ var sync = {
                         {
                             if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
                                 syncData.setSyncState("send.request.localchanges");
-                                let response = await dav.network.sendRequest("", changes[i].id , "DELETE", syncData.connectionData, {}, {softfail: [403, 404, 405]});
+                                let response = await dav.network.sendRequest("", changes[i].itemId , "DELETE", syncData.connectionData, {}, {softfail: [403, 404, 405]});
 
                                 syncData.setSyncState("eval.response.localchanges");
                                 if (response  && response.softerror) {
@@ -796,7 +796,7 @@ var sync = {
                         break;
                 }
 
-                syncData.target.removeItemFromChangeLog(changes[i].id);                
+                syncData.target.removeItemFromChangeLog(changes[i].itemId);                
                 syncData.progressData.inc(); //UI feedback
             }
 
