@@ -10,12 +10,24 @@
 
 var ui = {
 
+    getUriFromDirectoryId: function(ownerId) {
+        let directories = MailServices.ab.directories;
+        while (directories.hasMoreElements()) {
+          let directory = directories.getNext();
+          if (directory instanceof Components.interfaces.nsIAbDirectory) {
+                if (ownerId.startsWith(directory.dirPrefId)) return directory.URI;
+          }
+        }
+        return null;
+    },
+
+
     //function to get correct uri of current card for global book as well for mailLists
     getSelectedUri : function(aUri, aCard) {       
         if (aUri == "moz-abdirectory://?") {
             //get parent via card owner
             let ownerId = aCard.directoryId;
-            return tbSync.addressbook.getUriFromDirectoryId(ownerId);            
+            return dav.ui.getUriFromDirectoryId(ownerId);            
         } else if (MailServices.ab.getDirectory(aUri).isMailList) {
             //MailList suck, we have to cut the url to get the parent
             return aUri.substring(0, aUri.lastIndexOf("/"))     
@@ -120,37 +132,6 @@ var ui = {
     //* Functions to handle multiple email addresses in AB (UI)
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    getEmailsFromCard: function (aCard) { //return array of objects {meta, value}
-        let emails = aCard.getProperty("X-DAV-JSON-Emails","").trim();
-        if (emails) {
-            return JSON.parse(emails);
-        }
-
-        emails = [];
-        
-        //There is no X-DAV-JSON-Emails property (an empty JSON would not be "")
-        //Is there a stored VCARD we can fallback to?
-        let storedCard = aCard.getProperty("X-DAV-VCARD","").trim();
-        let sCardData = dav.vCard.parse(storedCard);
-        if (sCardData.hasOwnProperty("email")) {
-            let metaTypeData = dav.tools.getMetaTypeData(sCardData, "email", "type");
-            for (let i=0; i < metaTypeData.length; i++) {
-                emails.push({value: sCardData["email"][i].value, meta: metaTypeData[i]});
-            }
-            return emails;
-        }
-        
-        //So this card is not a "DAV" card: Get the emails from current emails stored in 
-        //PrimaryEmail and SecondEmail
-        for (let e of ["PrimaryEmail", "SecondEmail"]) {
-            let email = aCard.getProperty(e,"").trim();
-            if (email) {
-                emails.push({value: email, meta: []});
-            }
-        }    
-        return emails;
-    },
-
     getNewEmailDetailsRow: function (aWindow, aItemData) {
         let emailType = "other";
         if (aItemData.meta.includes("HOME")) emailType = "home";
@@ -198,15 +179,15 @@ var ui = {
         outerhbox.setAttribute("dragtarget", "true");
         outerhbox.setAttribute("flex", "1");
         outerhbox.setAttribute("align", "center");
-        outerhbox.updateFunction = dav.tools.updateEmails;
+        outerhbox.updateFunction = dav.ui.updateEmails;
         outerhbox.meta =  aItemData.meta;
 
-        outerhbox.addEventListener("dragenter", dav.tools.dragdrop);
-        outerhbox.addEventListener("dragover", dav.tools.dragdrop);
-        outerhbox.addEventListener("dragleave", dav.tools.dragdrop);
-        outerhbox.addEventListener("dragstart", dav.tools.dragdrop);
-        outerhbox.addEventListener("dragend", dav.tools.dragdrop);
-        outerhbox.addEventListener("drop", dav.tools.dragdrop);
+        outerhbox.addEventListener("dragenter", dav.ui.dragdrop);
+        outerhbox.addEventListener("dragover", dav.ui.dragdrop);
+        outerhbox.addEventListener("dragleave", dav.ui.dragdrop);
+        outerhbox.addEventListener("dragstart", dav.ui.dragdrop);
+        outerhbox.addEventListener("dragend", dav.ui.dragdrop);
+        outerhbox.addEventListener("drop", dav.ui.dragdrop);
         
         outerhbox.style["background-image"] = "url('chrome://dav4tbsync/skin/dragdrop.png')"; 
         outerhbox.style["background-position"] = "right";
@@ -230,8 +211,8 @@ var ui = {
             email.setAttribute("flex", "1");
             email.setAttribute("class", "plain");
             email.setAttribute("value", aItemData.value);
-            email.addEventListener("change", function(e) {dav.tools.updateEmails(aDocument)});
-            email.addEventListener("keydown", function(e) {if (e.key == "Enter") {e.stopPropagation(); e.preventDefault(); if (e.target.value != "") { dav.tools.addEmailEntry(e.target.ownerDocument); }}});
+            email.addEventListener("change", function(e) {dav.ui.updateEmails(aDocument)});
+            email.addEventListener("keydown", function(e) {if (e.key == "Enter") {e.stopPropagation(); e.preventDefault(); if (e.target.value != "") { dav.ui.addEmailEntry(e.target.ownerDocument); }}});
             emailbox.appendChild(email);        
             outerhbox.appendChild(emailbox);
         
@@ -240,7 +221,7 @@ var ui = {
             image.setAttribute("width", "11");
             image.setAttribute("height", "10");
             image.setAttribute("style", "margin:2px 20px 2px 1ex");
-            image.addEventListener("click", function(e) { dav.tools.updatePref(aDocument, e.target, true); });
+            image.addEventListener("click", function(e) { dav.ui.updatePref(aDocument, e.target, true); });
             outerhbox.appendChild(image);
         
         //richlistitem
@@ -269,13 +250,13 @@ var ui = {
     addEmailEntry: function(aDocument) {
         let list = aDocument.getElementById("X-DAV-EmailAddressList");
         let data = {value: "", meta: ["HOME"]};
-        let item = list.appendChild(dav.tools.getNewEmailListItem(aDocument, data));
+        let item = list.appendChild(dav.ui.getNewEmailListItem(aDocument, data));
         list.ensureElementIsVisible(item);
 
-        dav.tools.updateType(aDocument,  dav.tools.getEmailListItemElement(item, "button"));
-        dav.tools.updatePref(aDocument, dav.tools.getEmailListItemElement(item, "pref"));
+        dav.ui.updateType(aDocument,  dav.ui.getEmailListItemElement(item, "button"));
+        dav.ui.updatePref(aDocument, dav.ui.getEmailListItemElement(item, "pref"));
     
-        dav.tools.getEmailListItemElement(item, "email").focus();
+        dav.ui.getEmailListItemElement(item, "email").focus();
     },
     
 
@@ -286,10 +267,10 @@ var ui = {
         let emails = [];
         for (let i=0; i < list.children.length; i++) {
             let item = list.children[i];
-            let email = dav.tools.getEmailListItemElement(item, "email").value.trim();
+            let email = dav.ui.getEmailListItemElement(item, "email").value.trim();
             if (email != "") {
                 let json = {};
-                json.meta = dav.tools.getEmailListItemElement(item, "dataContainer").meta;
+                json.meta = dav.ui.getEmailListItemElement(item, "dataContainer").meta;
                 json.value = email;
                 emails.push(json);
             } 
@@ -311,46 +292,6 @@ var ui = {
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     //* Functions to handle multiple phone numbers in AB (UI)
     //* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-    getPhoneNumbersFromCard: function (aCard) { //return array of objects {meta, value}
-        let phones = aCard.getProperty("X-DAV-JSON-Phones","").trim();
-        if (phones) {
-            return JSON.parse(phones);
-        }
-                
-        phones = [];
-        
-        //There is no X-DAV-JSON-Phones property (an empty JSON would not be "")
-        //Is there a stored VCARD we can fallback to?
-        let storedCard = aCard.getProperty("X-DAV-VCARD","").trim();
-        let sCardData = dav.vCard.parse(storedCard);
-        if (sCardData.hasOwnProperty("tel")) {
-            let metaTypeData = dav.tools.getMetaTypeData(sCardData, "tel", "type");
-            for (let i=0; i < metaTypeData.length; i++) {
-                phones.push({value: sCardData["tel"][i].value, meta: metaTypeData[i]});
-            }
-            return phones;
-        }
-        
-        //So this card is not a "DAV" card: Get the phone numbers from current numbers stored in 
-        //CellularNumber, FaxNumber, PagerNumber, WorkPhone, HomePhone"},
-        let todo = [
-            {field: "CellularNumber", meta: ["CELL"]},
-            {field: "FaxNumber", meta: ["FAX"]}, 
-            {field: "PagerNumber", meta: ["PAGER"]}, 
-            {field: "WorkPhone", meta: ["WORK"]}, 
-            {field: "HomePhone", meta: ["HOME"]}
-        ];
-            
-        for (let data of todo) {
-            let phone = aCard.getProperty(data.field,"").trim();
-            if (phone) {
-                phones.push({value: phone, meta: data.meta});
-            }
-        }
-        return phones;
-    },
-
 
     getNewPhoneDetailsRow: function (aWindow, aItemData) {
         let phoneType1 = "";
@@ -416,15 +357,15 @@ var ui = {
         outerhbox.setAttribute("dragtarget", "true");
         outerhbox.setAttribute("flex", "1");
         outerhbox.setAttribute("align", "center");
-        outerhbox.updateFunction = dav.tools.updatePhoneNumbers;
+        outerhbox.updateFunction = dav.ui.updatePhoneNumbers;
         outerhbox.meta = aItemData.meta;
 
-        outerhbox.addEventListener("dragenter", dav.tools.dragdrop);
-        outerhbox.addEventListener("dragover", dav.tools.dragdrop);
-        outerhbox.addEventListener("dragleave", dav.tools.dragdrop);
-        outerhbox.addEventListener("dragstart", dav.tools.dragdrop);
-        outerhbox.addEventListener("dragend", dav.tools.dragdrop);
-        outerhbox.addEventListener("drop", dav.tools.dragdrop);
+        outerhbox.addEventListener("dragenter", dav.ui.dragdrop);
+        outerhbox.addEventListener("dragover", dav.ui.dragdrop);
+        outerhbox.addEventListener("dragleave", dav.ui.dragdrop);
+        outerhbox.addEventListener("dragstart", dav.ui.dragdrop);
+        outerhbox.addEventListener("dragend", dav.ui.dragdrop);
+        outerhbox.addEventListener("drop", dav.ui.dragdrop);
         
         outerhbox.style["background-image"] = "url('chrome://dav4tbsync/skin/dragdrop.png')"; 
         outerhbox.style["background-position"] = "right";
@@ -458,8 +399,8 @@ var ui = {
             phone.setAttribute("flex", "1");
             phone.setAttribute("class", "plain");
             phone.setAttribute("value", aItemData.value);
-            phone.addEventListener("change", function(e) {dav.tools.updatePhoneNumbers(aDocument)});
-            phone.addEventListener("keydown", function(e) {if (e.key == "Enter") {e.stopPropagation(); e.preventDefault(); if (e.target.value != "") { dav.tools.addPhoneEntry(e.target.ownerDocument); }}});
+            phone.addEventListener("change", function(e) {dav.ui.updatePhoneNumbers(aDocument)});
+            phone.addEventListener("keydown", function(e) {if (e.key == "Enter") {e.stopPropagation(); e.preventDefault(); if (e.target.value != "") { dav.ui.addPhoneEntry(e.target.ownerDocument); }}});
             phonebox.appendChild(phone);        
             outerhbox.appendChild(phonebox);
         
@@ -468,7 +409,7 @@ var ui = {
             image.setAttribute("width", "11");
             image.setAttribute("height", "10");
             image.setAttribute("style", "margin:2px 20px 2px 1ex");
-            image.addEventListener("click", function(e) { dav.tools.updatePref(aDocument, e.target, true); });
+            image.addEventListener("click", function(e) { dav.ui.updatePref(aDocument, e.target, true); });
             outerhbox.appendChild(image);
         
         //richlistitem
@@ -485,10 +426,10 @@ var ui = {
         let phones = [];
         for (let i=0; i < list.children.length; i++) {
             let item = list.children[i];
-            let phone = dav.tools.getPhoneListItemElement(item, "phone").value.trim();
+            let phone = dav.ui.getPhoneListItemElement(item, "phone").value.trim();
             if (phone != "") {
                 let json = {};
-                json.meta = dav.tools.getPhoneListItemElement(item, "dataContainer").meta;
+                json.meta = dav.ui.getPhoneListItemElement(item, "dataContainer").meta;
                 json.value = phone;
                 phones.push(json);
             } 
@@ -507,14 +448,14 @@ var ui = {
     addPhoneEntry: function(aDocument) {
         let list = aDocument.getElementById("X-DAV-PhoneNumberList");
         let data = {value: "", meta: ["VOICE"]};
-        let item = list.appendChild(dav.tools.getNewPhoneListItem(aDocument, data));
+        let item = list.appendChild(dav.ui.getNewPhoneListItem(aDocument, data));
         list.ensureElementIsVisible(item);
 
-        dav.tools.updateType(aDocument, dav.tools.getPhoneListItemElement(item, "button1"));
-        dav.tools.updateType(aDocument, dav.tools.getPhoneListItemElement(item, "button2"));
-        dav.tools.updatePref(aDocument, dav.tools.getPhoneListItemElement(item, "pref"));
+        dav.ui.updateType(aDocument, dav.ui.getPhoneListItemElement(item, "button1"));
+        dav.ui.updateType(aDocument, dav.ui.getPhoneListItemElement(item, "button2"));
+        dav.ui.updatePref(aDocument, dav.ui.getPhoneListItemElement(item, "pref"));
     
-        dav.tools.getPhoneListItemElement(item, "phone").focus();
+        dav.ui.getPhoneListItemElement(item, "phone").focus();
     },    
 
     getPhoneListItemElement: function(item, element) {

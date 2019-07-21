@@ -10,6 +10,76 @@
 
 var tools = {
 
+    getEmailsFromCard: function (aCard) { //return array of objects {meta, value}
+        let emails = aCard.getProperty("X-DAV-JSON-Emails","").trim();
+        if (emails) {
+            return JSON.parse(emails);
+        }
+
+        emails = [];
+        
+        //There is no X-DAV-JSON-Emails property (an empty JSON would not be "")
+        //Is there a stored VCARD we can fallback to?
+        let storedCard = aCard.getProperty("X-DAV-VCARD","").trim();
+        let sCardData = dav.vCard.parse(storedCard);
+        if (sCardData.hasOwnProperty("email")) {
+            let metaTypeData = dav.tools.getMetaTypeData(sCardData, "email", "type");
+            for (let i=0; i < metaTypeData.length; i++) {
+                emails.push({value: sCardData["email"][i].value, meta: metaTypeData[i]});
+            }
+            return emails;
+        }
+        
+        //So this card is not a "DAV" card: Get the emails from current emails stored in 
+        //PrimaryEmail and SecondEmail
+        for (let e of ["PrimaryEmail", "SecondEmail"]) {
+            let email = aCard.getProperty(e,"").trim();
+            if (email) {
+                emails.push({value: email, meta: []});
+            }
+        }    
+        return emails;
+    },
+    
+    getPhoneNumbersFromCard: function (aCard) { //return array of objects {meta, value}
+        let phones = aCard.getProperty("X-DAV-JSON-Phones","").trim();
+        if (phones) {
+            return JSON.parse(phones);
+        }
+                
+        phones = [];
+        
+        //There is no X-DAV-JSON-Phones property (an empty JSON would not be "")
+        //Is there a stored VCARD we can fallback to?
+        let storedCard = aCard.getProperty("X-DAV-VCARD","").trim();
+        let sCardData = dav.vCard.parse(storedCard);
+        if (sCardData.hasOwnProperty("tel")) {
+            let metaTypeData = dav.tools.getMetaTypeData(sCardData, "tel", "type");
+            for (let i=0; i < metaTypeData.length; i++) {
+                phones.push({value: sCardData["tel"][i].value, meta: metaTypeData[i]});
+            }
+            return phones;
+        }
+        
+        //So this card is not a "DAV" card: Get the phone numbers from current numbers stored in 
+        //CellularNumber, FaxNumber, PagerNumber, WorkPhone, HomePhone"},
+        let todo = [
+            {field: "CellularNumber", meta: ["CELL"]},
+            {field: "FaxNumber", meta: ["FAX"]}, 
+            {field: "PagerNumber", meta: ["PAGER"]}, 
+            {field: "WorkPhone", meta: ["WORK"]}, 
+            {field: "HomePhone", meta: ["HOME"]}
+        ];
+            
+        for (let data of todo) {
+            let phone = aCard.getProperty(data.field,"").trim();
+            if (phone) {
+                phones.push({value: phone, meta: data.meta});
+            }
+        }
+        return phones;
+    },    
+
     //* * * * * * * * * * * * *
     //* UTILS
     //* * * * * * * * * * * * *
