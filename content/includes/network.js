@@ -475,7 +475,7 @@ var network = {
             case 207: //preprocess multiresponse
               {
                 let xml = dav.tools.convertToXML(aResult);
-                if (xml === null) return reject(dav.sync.finish("warning", "maiformed-xml", commLog));
+                if (xml === null) return reject(dav.sync.finish("warning", "malformed-xml", commLog));
 
                 //the specs allow to  return a 207 with DAV:unauthenticated if not authenticated 
                 if (xml.documentElement.getElementsByTagNameNS(dav.sync.ns.d, "unauthenticated").length != 0) {
