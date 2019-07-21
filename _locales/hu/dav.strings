@@ -19,7 +19,6 @@ status.403=403-as HTTP hibakód (hozzáférés megtagadva/tiltott).
 status.401=Nem sikerült hitelesíteni, ellenőrizni a felhasználónevet és a jelszót.
 status.500=500-as hibakód (belső kiszolgálóhiba).
 status.503=503-as hibakód (a szolgáltatás nem érhető el).
-status.JavaScriptError=JavaScript hiba! Ellenőrizze a hibakeresési naplót a részletekért.
 status.softerror=Kihagyta a hibát (##replace.1##)
 
 status.success.managed-by-lightning=Lightning

@@ -19,7 +19,6 @@ status.403=Conexão rejeitada pelo servidor (proibida).
 status.401=Não foi possível autenticar, verifique o nome de usuário e a senha.
 status.500=Erro de servidor desconhecido (HTTP Erro 500).
 status.503=Serviço indisponível.
-status.JavaScriptError=Erro de JavaScript! Verifique o log de erros para mais detalhes.
 status.softerror=Erro não fatal (##replace.1##)
 
 status.success.managed-by-lightning=Lightning

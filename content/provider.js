@@ -351,7 +351,8 @@ var base = {
                 return e.statusData;
             } else {
                 Components.utils.reportError(e);
-                return new tbSync.StatusData(tbSync.StatusData.WARNING, "JavaScriptError", e.message + "\n\n" + e.stack);
+                // re-throw any other error and let TbSync handle it
+                throw (e);
             }
         }
 
@@ -393,7 +394,8 @@ var base = {
                 return e.statusData;
             } else {
                 Components.utils.reportError(e);
-                return new tbSync.StatusData(tbSync.StatusData.WARNING, "JavaScriptError", e.message + "\n\n" + e.stack);
+                // re-throw any other error and let TbSync handle it
+                throw (e);
             }
         }
 
