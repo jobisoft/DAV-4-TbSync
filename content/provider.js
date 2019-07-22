@@ -29,6 +29,7 @@ var base = {
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
 
         // The abCSS.xul overlay is just adding a CSS file.
         await dav.overlayManager.registerOverlay("chrome://messenger/content/messengercompose/messengercompose.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
@@ -259,7 +260,7 @@ var base = {
      * Return arrary of AutoCompleteData entries.
      */
     abAutoComplete: async function (accountData, currentQuery)  {
-        // Instead of using accountData.getAllFolders() to get all fodlers of this account
+        // Instead of using accountData.getAllFolders() to get all folders of this account
         // and then request and check the targets of each, we simply run over all address
         // books and check for the directory property "tbSyncAccountID".
         let entries = [];
