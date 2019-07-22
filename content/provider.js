@@ -30,7 +30,7 @@ var base = {
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
 
-    // The abCSS.xul overlay is just adding a CSS file.
+        // The abCSS.xul overlay is just adding a CSS file.
         await dav.overlayManager.registerOverlay("chrome://messenger/content/messengercompose/messengercompose.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");

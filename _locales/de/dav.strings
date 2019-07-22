@@ -68,3 +68,5 @@ acl.none=keine
 autocomplete.WORK=dienstlich
 autocomplete.HOME=privat
 autocomplete.PREF=bevorzugt
+
+status.gContactSync=Es besteht eine Inkompatibilität mit gContactSync bei aktivierter Synchronisation der Kontaktgruppen. Bitte deaktivieren eines von beiden, solange der Fehler nicht behoben ist.

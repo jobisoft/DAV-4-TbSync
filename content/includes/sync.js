@@ -374,6 +374,14 @@ var sync = {
     singleFolder: async function (syncData)  {
         let downloadonly = syncData.currentFolderData.getFolderProperty("downloadonly");
         
+        // we have to abort sync of this folder, if it is contact, has groupSync enabled and gContactSync is enabled
+        let syncGroups = syncData.accountData.getAccountProperty("syncGroups");
+        let gContactSync = await AddonManager.getAddonByID("gContactSync@pirules.net") ;
+        let contactSync = (syncData.currentFolderData.getFolderProperty("type") == "carddav");
+        if (syncGroups && contactSync && gContactSync && gContactSync.isActive) {
+            throw dav.sync.finish("warning", "gContactSync");
+        }
+        
         await dav.sync.remoteChanges(syncData);
         let numOfLocalChanges = await dav.sync.localChanges(syncData);
 

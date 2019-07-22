@@ -68,3 +68,5 @@ acl.none=никто
 autocomplete.WORK=business
 autocomplete.HOME=private
 autocomplete.PREF=preferred
+
+status.gContactSync=There is an incompatibility with gContactSync with activated contact group synchronization. Please deactivate one of them as long as the error is not resolved.
