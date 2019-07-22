@@ -32,6 +32,7 @@ var base = {
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
 
+    // The abCSS.xul overlay is just adding a CSS file.
         await dav.overlayManager.registerOverlay("chrome://messenger/content/messengercompose/messengercompose.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
@@ -257,7 +258,7 @@ var base = {
      *                           searched
      * @param currentQuery  [in] search query
      *
-     * Return arrary of email entries like "Name <email>" or just plain emails.
+     * Return arrary of AutoCompleteData entries.
      */
     abAutoComplete: async function (accountData, currentQuery)  {
         // Instead of using accountData.getAllFolders() to get all fodlers of this account
@@ -281,7 +282,9 @@ var base = {
                                                     .map(entry => entry.toUpperCase() != "PREF" ? entry.toUpperCase() : entry.toLowerCase()).sort()
                                                     .map(entry => tbSync.getString("autocomplete." + entry.toUpperCase() , "dav"))
                                                     .join(", "),
-                                });
+                                icon: dav.base.getProviderIcon(16, accountData),
+                                style: "",				    
+                            });
                         }
                     }
                 }
