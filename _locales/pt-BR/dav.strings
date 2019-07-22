@@ -64,3 +64,7 @@ acl.modify=modificar
 acl.add=adicionar
 acl.delete=excluir
 acl.none=nenhum
+
+autocomplete.WORK=business
+autocomplete.HOME=private
+autocomplete.PREF=preferred

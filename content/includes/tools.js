@@ -11,34 +11,20 @@
 var tools = {
 
     getEmailsFromCard: function (aCard) { //return array of objects {meta, value}
-        let emails = aCard.getProperty("X-DAV-JSON-Emails","").trim();
-        if (emails) {
-            return JSON.parse(emails);
-        }
+        let emailData = JSON.parse(aCard.getProperty("X-DAV-JSON-Emails","[]").trim());
 
-        emails = [];
-        
-        //There is no X-DAV-JSON-Emails property (an empty JSON would not be "")
-        //Is there a stored VCARD we can fallback to?
-        let storedCard = aCard.getProperty("X-DAV-VCARD","").trim();
-        let sCardData = dav.vCard.parse(storedCard);
-        if (sCardData.hasOwnProperty("email")) {
-            let metaTypeData = dav.tools.getMetaTypeData(sCardData, "email", "type");
-            for (let i=0; i < metaTypeData.length; i++) {
-                emails.push({value: sCardData["email"][i].value, meta: metaTypeData[i]});
-            }
-            return emails;
-        }
-        
-        //So this card is not a "DAV" card: Get the emails from current emails stored in 
-        //PrimaryEmail and SecondEmail
-        for (let e of ["PrimaryEmail", "SecondEmail"]) {
-            let email = aCard.getProperty(e,"").trim();
+        // always use the core email field values, they could have been mod outside by the user,
+        // not knowing that we store our stuff in X-DAV-JSON-Emails
+        let emailFields = ["PrimaryEmail", "SecondEmail"];
+        for (let i = 0; i < emailFields.length; i++) {
+            let email = aCard.getProperty(emailFields[i],"").trim();
             if (email) {
-                emails.push({value: email, meta: []});
+                if (emailData.length > i) emailData[i].value = email;
+                else emailData.push({value: email, meta: []});
             }
         }    
-        return emails;
+           
+        return emailData;
     },
     
     getPhoneNumbersFromCard: function (aCard) { //return array of objects {meta, value}
@@ -49,17 +35,6 @@ var tools = {
                 
         phones = [];
         
-        //There is no X-DAV-JSON-Phones property (an empty JSON would not be "")
-        //Is there a stored VCARD we can fallback to?
-        let storedCard = aCard.getProperty("X-DAV-VCARD","").trim();
-        let sCardData = dav.vCard.parse(storedCard);
-        if (sCardData.hasOwnProperty("tel")) {
-            let metaTypeData = dav.tools.getMetaTypeData(sCardData, "tel", "type");
-            for (let i=0; i < metaTypeData.length; i++) {
-                phones.push({value: sCardData["tel"][i].value, meta: metaTypeData[i]});
-            }
-            return phones;
-        }
         
         //So this card is not a "DAV" card: Get the phone numbers from current numbers stored in 
         //CellularNumber, FaxNumber, PagerNumber, WorkPhone, HomePhone"},
@@ -78,7 +53,11 @@ var tools = {
             }
         }
         return phones;
-    },    
+    },
+
+
+
+
 
     //* * * * * * * * * * * * *
     //* UTILS
@@ -187,11 +166,13 @@ var tools = {
 
         if (emailDataJSON) {
             try {
-                //we pack the first entry into PrimaryEmail and all other into SecondEmail
+                // We pack the first entry into PrimaryEmail and the second one into SecondEmail.
+                // For compatibility with the Phones, we return arrays, even though we only return
+                // one element per array.
                 let emailData = JSON.parse(emailDataJSON);
                 emailFields = {PrimaryEmail:[], SecondEmail:[]};
                 
-                for (let d=0; d < emailData.length; d++) {
+                for (let d=0; d < emailData.length && d < 2; d++) {
                     let field = (d==0) ? "PrimaryEmail" : "SecondEmail";
                     emailFields[field].push(emailData[d].value);
                 }
@@ -201,7 +182,7 @@ var tools = {
             }
         }
         
-        //object with TB field names as keys and array of numbers as values
+        //object with TB field names as keys and array of emails as values
         return emailFields; 
     },
 
@@ -933,21 +914,21 @@ var tools = {
                         {
                             //This field contains all the JSON encoded values and TbSync has its own UI to display them.
                             //However, we also want to fill the standard TB fields.
-                            let jsonData;
+                            let tbData;
                             switch (property) {
                                 case "X-DAV-JSON-Emails" : 
-                                    jsonData = dav.tools.getEmailsFromJSON(newServerValue);
+                                    tbData = dav.tools.getEmailsFromJSON(newServerValue);
                                     break;
                                 case "X-DAV-JSON-Phones" : 
-                                    jsonData = dav.tools.getPhoneNumbersFromJSON(newServerValue);
+                                    tbData = dav.tools.getPhoneNumbersFromJSON(newServerValue);
                                     break;
                             }
                                 
-                            for (let field in jsonData) {
-                                if (jsonData.hasOwnProperty(field)) {
+                            for (let field in tbData) {
+                                if (tbData.hasOwnProperty(field)) {
                                     //set or delete TB Property
-                                    if (  jsonData[field].length > 0 ) {
-                                        card.setProperty(field, jsonData[field].join(", "));
+                                    if (  tbData[field].length > 0 ) {
+                                        card.setProperty(field, tbData[field].join(", "));
                                     } else {
                                         card.deleteProperty(field);
                                     }                            

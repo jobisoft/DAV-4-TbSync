@@ -7,6 +7,10 @@
  */
 
 "use strict";
+// dav.tools.getPhoneNumbersFromCard is not a function
+// UI impl
+// addressbook icons must use db check and not just directory property, to see "decoupled" folders
+// check if getItem returns an array because of recursions!
 
 // Every object in here will be loaded into tbSync.providers.<providername>.
 const dav = tbSync.providers.dav;
@@ -27,7 +31,12 @@ var base = {
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
+
+    // The abCSS.xul overlay is just adding a CSS file.
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/messengercompose/messengercompose.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
+
         dav.overlayManager.startObserving();
     },
 
@@ -234,23 +243,55 @@ var base = {
 
 
     /**
-     * Implement this method, if the provider should autocomplete emails from
-     * an additional source (a company directory or a global address list).
-     * Results returned by this method will be used for autocompletion while
-     * typing something into the address field of the message composer.
+     * Implement this method, if this provider should add additional entries
+     * to the autocomplete list while typing something into the address field
+     * of the message composer.
      *
-     * If this provider does not support this kind of lookup, it is berrer
-     * to not implement this method instead of returning an empty array.
+     * When creating directories, you can set:
      *
-     * TbSync will execute this only for queries longer than 3 chars.
+     *    directory.setBoolValue("enable_autocomplete", false);
+     *
+     * to disable the default autocomplete for this directory and have full
+     * control over the autocomplete.
      *
      * @param accountData   [in] AccountData of the account which should be
      *                           searched
      * @param currentQuery  [in] search query
      *
-     * Return arrary of email entries like "Name <email>" or just plain emails.
+     * Return arrary of AutoCompleteData entries.
      */
     abAutoComplete: async function (accountData, currentQuery)  {
+        // Instead of using accountData.getAllFolders() to get all fodlers of this account
+        // and then request and check the targets of each, we simply run over all address
+        // books and check for the directory property "tbSyncAccountID".
+        let entries = [];
+        let allAddressBooks = MailServices.ab.directories;
+        while (allAddressBooks.hasMoreElements()) {
+            let abook = allAddressBooks.getNext().QueryInterface(Components.interfaces.nsIAbDirectory);
+            if (abook instanceof Components.interfaces.nsIAbDirectory) { // or nsIAbItem or nsIAbCollection
+                if (abook.getStringValue("tbSyncAccountID","") == accountData.accountID) {
+                    let cards = MailServices.ab.getDirectory(abook.URI + "?(or(NickName,c,"+currentQuery+")(FirstName,c,"+currentQuery+")(LastName,c,"+currentQuery+")(DisplayName,c,"+currentQuery+")(PrimaryEmail,c,"+currentQuery+")(SecondEmail,c,"+currentQuery+")(X-DAV-JSON-Emails,c,"+currentQuery+"))").childCards;
+                    while (cards.hasMoreElements()) {
+                        let card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+                        let emailData = JSON.parse(card.getProperty("X-DAV-JSON-Emails","[]").trim());
+                        for (let i = 0; i < emailData.length; i++) { 
+                            entries.push({
+                                value: card.getProperty("DisplayName", [card.getProperty("FirstName",""), card.getProperty("LastName","")].join(" ")) + " <"+emailData[i].value+">", 
+                                comment: emailData[i].meta
+                                                    .filter(entry => ["PREF","HOME","WORK"].includes(entry))
+                                                    .map(entry => entry.toUpperCase() != "PREF" ? entry.toUpperCase() : entry.toLowerCase()).sort()
+                                                    .map(entry => tbSync.getString("autocomplete." + entry.toUpperCase() , "dav"))
+                                                    .join(", "),
+                                icon: dav.base.getProviderIcon(16, accountData),
+                                style: "",				    
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        
+        return entries;
     },
 
 
@@ -494,7 +535,6 @@ var addressbook = {
      * return the new directory
      */
     createAddressBook: function (newname, folderData) {
-        // this is the standard target, should it not be created it like this?
         let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
         let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
 
@@ -505,6 +545,11 @@ var addressbook = {
                 icon = dav.sync.serviceproviders[serviceprovider].icon;
             }
             directory.setStringValue("tbSyncIcon", "dav" + icon);
+            
+            // Disable AutoComplete, so we can have full control over the auto completion of our own directories.
+            // Implemented by me in https://bugzilla.mozilla.org/show_bug.cgi?id=1546425
+            directory.setBoolValue("enable_autocomplete", false);
+            
             return directory;
         }
         return null;

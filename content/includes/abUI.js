@@ -277,7 +277,7 @@ var ui = {
         }
         aDocument.getElementById("X-DAV-JSON-Emails").value = JSON.stringify(emails);
         
-        //now update all other TB enail fields based on the new JSON data
+        //now update all other TB email fields based on the new JSON data
         let emailData = dav.tools.getEmailsFromJSON(aDocument.getElementById("X-DAV-JSON-Emails").value);
         for (let field in emailData) {
             if (emailData.hasOwnProperty(field)) {
