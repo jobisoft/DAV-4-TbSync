@@ -91,7 +91,8 @@ dav.sync = {
                 let response = await dav.tools.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", path , "PROPFIND", syncdata, {"Depth": "0", "Prefer": "return-minimal"});
 
                 tbSync.setSyncState("eval.folders", syncdata.account);
-                if (response && response.multi) principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]);
+                // allow 404 because iCloud sends it on valid answer (yeah!)
+                if (response && response.multi) principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]], null, ["200","404"]);
             }
 
             //principal now contains something like "/remote.php/carddav/principals/john.bieling/"

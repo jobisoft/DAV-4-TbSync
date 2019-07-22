@@ -227,7 +227,8 @@ var tbSyncDavNewAccount = {
             
             try {
                 let response = await tbSync.dav.tools.sendRequest("<d:propfind "+tbSync.dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", url , "PROPFIND", connection, {"Depth": "0", "Prefer": "return-minimal"});
-                let principal = (response && response.multi) ? tbSync.dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]]) : null;
+                // allow 404 because iCloud sends it on valid answer (yeah!)
+                let principal = (response && response.multi) ? tbSync.dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]], null, ["200","404"]) : null;
                 davjobs[job].valid = (principal !== null);
                 if (!davjobs[job].valid) {
                     davjobs[job].error = job+"davservernotfound";
@@ -243,7 +244,7 @@ var tbSyncDavNewAccount = {
             }
         }
         
-        if (davjobs.cal.valid && davjobs.card.valid) {
+        if (davjobs.cal.valid || davjobs.card.valid) {
             tbSyncDavNewAccount.addAccount(this.accountdata);
             this.validating = false;
             document.getElementById("tbsync.newaccount.wizard").cancel();
