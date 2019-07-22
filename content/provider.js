@@ -7,8 +7,6 @@
  */
 
 "use strict";
-// dav.tools.getPhoneNumbersFromCard is not a function
-// UI impl
 // addressbook icons must use db check and not just directory property, to see "decoupled" folders
 // check if getItem returns an array because of recursions!
 
