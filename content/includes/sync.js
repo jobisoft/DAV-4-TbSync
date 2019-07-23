@@ -435,8 +435,9 @@ var sync = {
 
         let token = syncData.currentFolderData.getFolderProperty("token");
         syncData.setSyncState("send.request.remotechanges");
-        let cards = await dav.network.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncData.currentFolderData.getFolderProperty("href"), "REPORT", syncData.connectionData, {}, {softfail: [415,403]});
-
+        let cards = await dav.network.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncData.currentFolderData.getFolderProperty("href"), "REPORT", syncData.connectionData, {}, {softfail: [415,403,409]});
+        
+        //EteSync throws 409 because it does not support sync-token
         //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book), 415 & 403
         //https://github.com/sabre-io/dav/issues/1075
         //Sabre\DAV\Exception\InvalidSyncToken (403)
