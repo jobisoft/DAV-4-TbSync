@@ -8,19 +8,19 @@
  
  "use strict";
 
-Components.utils.import("chrome://tbsync/content/tbsync.jsm");
+var { tbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
 
 var tbSyncDavAddressBook = {
 
     onInject: function (window) {
-        Services.obs.addObserver(tbSyncDavAddressBook.onAddressBookCreated, "tbsync.addressbook.created", false);
+        Services.obs.addObserver(tbSyncDavAddressBook.onAddressBookCreated, "tbsync.observer.addressbook.created", false);
         if (window.document.getElementById("dirTree")) {
             window.document.getElementById("dirTree").addEventListener("select", tbSyncDavAddressBook.onAbDirectorySelectionChanged, false);
         }
     },
 
     onRemove: function (window) {
-        Services.obs.removeObserver(tbSyncDavAddressBook.onAddressBookCreated, "tbsync.addressbook.created");
+        Services.obs.removeObserver(tbSyncDavAddressBook.onAddressBookCreated, "tbsync.observer.addressbook.created");
         if (window.document.getElementById("dirTree")) {
             window.document.getElementById("dirTree").removeEventListener("select", tbSyncDavAddressBook.onAbDirectorySelectionChanged, false);
         }
@@ -35,8 +35,8 @@ var tbSyncDavAddressBook = {
     onAbDirectorySelectionChanged: function () {
         //TODO: Do not do this, if provider did not change
         //remove our details injection (if injected)
-        tbSync.dav.overlayManager.removeOverlay(window, "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
+         tbSync.providers.dav.overlayManager.removeOverlay(window, "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
         //inject our details injection (if the new selected book is us)
-        tbSync.dav.overlayManager.injectOverlay(window, "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
+         tbSync.providers.dav.overlayManager.injectOverlay(window, "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
     }
 }

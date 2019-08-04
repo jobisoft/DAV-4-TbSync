@@ -1,0 +1,8 @@
+{
+  "extensionName": {
+    "message": "Provider for CalDAV & CardDAV"
+  },
+  "extensionDescription": {
+    "message": "Добавляет в TbSync поддержку базирующегося на http/https протокола синхронизации для учетных записей CalDAV & CardDAV (контакты, задачи и календари)."
+  }
+}

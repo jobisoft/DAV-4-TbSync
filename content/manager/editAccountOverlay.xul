@@ -8,8 +8,9 @@
 ]>
 <overlay 
     id="tbSyncAccountConfig" 
-    oninject="tbSync.dav.onSettingsGUILoad(window, tbSyncAccountSettings.account);"
     xmlns:html="http://www.w3.org/1999/xhtml">
+
+    <script type="application/javascript" src="chrome://dav4tbsync/content/manager/editAccountOverlay.js"/>
 
     <tab id="manager.tabs.accountsettings" label="&manager.tabs.accountsettings;" appendto="manager.tabs" />
     <tab id="manager.tabs.syncsettings" label="&manager.tabs.syncsettings;" appendto="manager.tabs" />
@@ -40,15 +41,15 @@
                         
                         <row>
                             <vbox pack="center">
-                                <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CalDavServer;" />
+                                <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.calDavHost" value="&pref.CalDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.host"  onblur="tbSync.dav.stripHost(document, tbSyncAccountSettings.account, 'host');"/>
+                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.calDavHost"  onblur="tbSyncEditAccountOverlay.stripHost(document, 'calDavHost');"/>
                         </row>
                         <row>
                             <vbox pack="center">
-                                <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.host" value="&pref.CardDavServer;" />
+                                <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.cardDavHost" value="&pref.CardDavServer;" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.host2" onblur="tbSync.dav.stripHost(document, tbSyncAccountSettings.account, 'host2');" />
+                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.cardDavHost" onblur="tbSyncEditAccountOverlay.stripHost(document, 'cardDavHost');" />
                         </row>
                         <row>
                             <hbox/>
@@ -82,7 +83,7 @@
 
                 <label style="margin-left:0; margin-bottom: 1ex; margin-top: 3ex" class="header lockIfConnected" value="&pref.calendaroptions;"/>
                 <vbox>                            
-                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useCache" label="&pref.useCache;" />
+                    <checkbox class="lockIfConnected" id="tbsync.accountsettings.pref.useCalendarCache" label="&pref.useCalendarCache;" />
                 </vbox>
 
                 <vbox flex="1" />

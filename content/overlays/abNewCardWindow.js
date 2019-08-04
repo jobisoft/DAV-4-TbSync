@@ -8,7 +8,7 @@
  
  "use strict";
 
-Components.utils.import("chrome://tbsync/content/tbsync.jsm");
+var { tbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
 
 var tbSyncDavAbNewCardWindow = {
 
@@ -22,9 +22,9 @@ var tbSyncDavAbNewCardWindow = {
 
     onAbSelectChangeNewCard: function () {        
         //remove our overlay (if injected)
-        tbSync.dav.overlayManager.removeOverlay(window, "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
+        tbSync.providers.dav.overlayManager.removeOverlay(window, "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
         //inject our overlay (if our card)
-        tbSync.dav.overlayManager.injectOverlay(window, "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
+        tbSync.providers.dav.overlayManager.injectOverlay(window, "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
     },
         
 }

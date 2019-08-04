@@ -3,11 +3,6 @@ menu.name = CalDAV e CardDAV
 defaultname.calendar=calendário
 defaultname.contacts=contatos
 
-syncstate.syncing=Inicializar sincronização
-syncstate.preparing=Preparando o próximo item para sincronização
-syncstate.done=Preparando o próximo item para sincronização
-syncstate.accountdone=Conta finalizada
-
 syncstate.send.getfolders=Solicitando lista de pastas
 syncstate.eval.folders=Atualizando lista de pastas
 
@@ -18,50 +13,22 @@ syncstate.eval.response.localchanges=Processando reconhecimento de alterações 
 syncstate.send.request.remotechanges=Esperando por alterações remotas
 syncstate.eval.response.remotechanges=Processando alterações remotas
 
-status.notsyncronized=Conta precisa ser sincronizada, pelo menos, um item não está sincronizado.
-status.disabled=A conta não está ativada, a sincronização está desativada.
-status.notargets=Anulando a sincronização, porque os destinos de sincronização não puderam ser criados.
-status.nouserhost=Nome de usuário e/ou servidor não informado. Por favor, forneça esses valores.
-status.timeout=Tempo limite de comunicação
 status.networkerror=Não foi possível conectar-se ao servidor.
 status.404=HTTP Erro 404 (recurso solicitado não encontrado).
 status.403=Conexão rejeitada pelo servidor (proibida).
 status.401=Não foi possível autenticar, verifique o nome de usuário e a senha.
 status.500=Erro de servidor desconhecido (HTTP Erro 500).
 status.503=Serviço indisponível.
-helplink.503=https://github.com/jobisoft/DAV-4-TbSync/issues/41
-status.httperror=Erro de comunicação (HTTP status ##replace.1##).
-status.OK=OK
-status.nolightning=O complemento Lightning não está instalado, os calendários não serão suportados.
-status.JavaScriptError=Erro de JavaScript! Verifique o log de erros para mais detalhes.
-status.foldererror=Pelo menos um recurso encontrou um erro de sincronização.
 status.softerror=Erro não fatal (##replace.1##)
 
-status.no-folders-found-on-server=Não foi possível encontrar calendários ou catálogos de endereços no servidor.
-status.invalid-response=Resposta inválida recebida, abortando a sincronização.
-status.invalid-uri=URL inválida, cancelando a sincronização.
-status.unsupported_auth_method=O servidor solicitou um método de autenticação não suportado (##replace.1##).
-status.OK.managed-by-lightning=Lightning
-status.OK.caldav-calendar-already-exists=O calendário já existe
+status.success.managed-by-lightning=Lightning
 status.info.restored=Devido à falta parcial de permissões de gravação, algumas ações foram rejeitadas pelo servidor e revertidas localmente.
-status.maiformed-xml=Não foi possível analisar o retorno XML. Verifique o log de erros para mais detalhes.
-helplink.maiformed-xml=https://github.com/jobisoft/DAV-4-TbSync/issues/59#issuecomment-459685281
+status.malformed-xml=Não foi possível analisar XML. Verifique o log de eventos para obter detalhes.
+helplink.malformed-xml=https://github.com/jobisoft/DAV-4-TbSync/issues/59#issuecomment-459685281
 status.service-discovery-failed=A descoberta do serviço sabre/dav falhou para este servidor.
 status.missing-permission=Permissão ausente: ##replace.1##
 status.caldavservernotfound=Não foi possível encontrar um servidor CalDAV.
 status.carddavservernotfound=Não foi possível encontrar um servidor CardDAV.
-
-status.OK.managedbylightning=Calendário gerenciado pelo Lightning.
-
-status.security=Não foi possível estabelecer uma conexão segura. Você está usando um certificado autoassinado ou não confiável sem importá-lo para o Thunderbird? (##replace.1##)
-helplink.security=https://github.com/jobisoft/TbSync/wiki/How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F
-status.network=Não foi possível conectar-se ao servidor (##replace.1##).
-
-status.syncing=Sincronizando
-status.skipped=Ainda não suportado, ignorado
-status.aborted=Não sincronizado
-status.pending=Aguardando para ser sincronizado
-status.modified=Modificações locais
 
 config.custom=Configurações do servidor CalDAV & CardDAV
 
@@ -97,3 +64,9 @@ acl.modify=modificar
 acl.add=adicionar
 acl.delete=excluir
 acl.none=nenhum
+
+autocomplete.WORK=business
+autocomplete.HOME=private
+autocomplete.PREF=preferred
+
+status.gContactSync=There is an incompatibility with gContactSync with activated contact group synchronization. Please deactivate one of them as long as the error is not resolved.

@@ -3,11 +3,6 @@ menu.name = CalDAV & CardDAV
 defaultname.calendar=Kalender
 defaultname.contacts=Kontakte
 
-syncstate.syncing=Initiiere Synchronisation
-syncstate.preparing=Bereite das nächste Element für die Synchronisation vor
-syncstate.done=Bereite das nächste Element für die Synchronisation vor
-syncstate.accountdone=Kontosynchronisation abgeschlossen
-
 syncstate.send.getfolders=Sende Anfrage bzgl. Ordnerliste
 syncstate.eval.folders=Verarbeite Ordnerliste
 
@@ -18,50 +13,22 @@ syncstate.eval.response.localchanges=Verarbeite Bestätigung der lokalen Änderu
 syncstate.send.request.remotechanges=Warte auf Daten vom Server
 syncstate.eval.response.remotechanges=Verarbeite Serverdaten
 
-status.notsyncronized=Konto muss synchronisiert werden.
-status.disabled=Konto ist deaktiviert, Synchronisation ist ausgeschaltet.
-status.notargets=Synchronisation abgebrochen da die Elemente zum Synchronisieren nicht erstellt werden konnten.
-status.nouserhost=Angabe des Benutzernamens und/oder des Servers fehlt. Bitte die korrekten Informationen eintragen.
-status.timeout=Kommunikations-Timeout.
 status.networkerror=Verbindung zum Server fehlgeschlagen.
 status.404=HTTP Fehler 404 (angeforderte Resource nicht gefunden).
 status.403=Verbindung vom Server abgelehnt (nicht erlaubt).
 status.401=Authentifizierung fehlgeschlagen, überprüfen Sie den Benutzernamen und das Passwort.
 status.500=Unbekannter Server Fehler (HTTP Fehler 500).
 status.503=Service nicht erreichbar.
-helplink.503=https://github.com/jobisoft/DAV-4-TbSync/issues/41
-status.httperror=Kommunikationsfehler (HTTP Status ##replace.1##).
-status.OK=OK
-status.nolightning=Lightning Add-On nicht installiert, Kalender nicht nutzbar.
-status.JavaScriptError=Javascript Fehler! Prüfen Sie bitte den Fehlerbericht für weitere Details.
-status.foldererror=Bei mindestens einer Resource trat ein Synchronisationsfehler auf.
 status.softerror=Ignorierter Fehler (##replace.1##)
 
-status.no-folders-found-on-server=Auf dem Server wurde weder Kalender noch Adressbücher gefunden.
-status.invalid-response=Fehlerhafte Antwort erhalten, Sync abgebrochen.
-status.invalid-uri=Fehlerhafte URI erhalten, Sync abgebrochen.
-status.unsupported_auth_method=Server verlangt unbekannte Authentifizierungsmethode (##replace.1##).
-status.OK.managed-by-lightning=Lightning
-status.OK.caldav-calendar-already-exists=Kalender existiert bereits
+status.success.managed-by-lightning=Lightning
 status.info.restored=Wegen teilweise fehlender Schreibrechte wurden einige Aktionen vom Server zurückgewiesen und lokal rückgängig gemacht.
-status.maiformed-xml=Antwort enthält fehlerhaftes XML, Sync abgebrochen. Prüfen Sie bitte den Fehlerbericht für weitere Details.
-helplink.maiformed-xml=https://github.com/jobisoft/DAV-4-TbSync/issues/59#issuecomment-459685281
+status.malformed-xml=Antwort enthält fehlerhaftes XML, Sync abgebrochen. Prüfen Sie bitte das Ereignisprotokoll für weitere Details.
+helplink.malformed-xml=https://github.com/jobisoft/DAV-4-TbSync/issues/59#issuecomment-459685281
 status.service-discovery-failed=Der sabre/dav service discovery funktioniert mit diesem Server nicht.
 status.missing-permission=Fehlende Berechtigung: ##replace.1##
 status.caldavservernotfound=Es wurde kein CalDAV Server gefunden.
 status.carddavservernotfound=Es wurde kein CardDAV Server gefunden.
-
-status.OK.managedbylightning=Kalender wird von lightning verwaltet.
-
-status.security=Fehler beim Aufbau einer sicherern Verbindung. Benutzen Sie eventuell ein selbst signiertes Zertifikat oder ein andersartiges nicht vertrauenswürdiges Zertifikat welches nicht in Thunderbird importiert ist? (##replace.1##)
-helplink.security=https://github.com/jobisoft/TbSync/wiki/How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F
-status.network=Verbindung zum Server fehlgeschlagen (##replace.1##).
-
-status.syncing=Synchronisierung
-status.skipped=Nicht unterstützt
-status.aborted=Nicht synchronisiert
-status.pending=Warten auf Synchronisation
-status.modified=Lokale Änderungen
 
 config.custom=CalDAV & CardDAV Server Konfiguration
 
@@ -97,3 +64,9 @@ acl.modify=bearbeiten
 acl.add=hinzufügen
 acl.delete=löschen
 acl.none=keine
+
+autocomplete.WORK=dienstlich
+autocomplete.HOME=privat
+autocomplete.PREF=bevorzugt
+
+status.gContactSync=Es besteht eine Inkompatibilität mit gContactSync bei aktivierter Synchronisation der Kontaktgruppen. Bitte deaktivieren eines von beiden, solange der Fehler nicht behoben ist.

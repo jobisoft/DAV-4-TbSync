@@ -301,4 +301,4 @@
         parse: parse,
         generate: generate
     };
-})(tbSync.dav);
+})(this);

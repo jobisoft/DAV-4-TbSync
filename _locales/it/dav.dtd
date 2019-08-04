@@ -35,7 +35,7 @@
 <!ENTITY pref.useCardBook "Crea rubriche di CardBook al posto delle rubriche di default di Thunderbird">
 
 <!ENTITY pref.calendaroptions "Opzioni calendario">
-<!ENTITY pref.useCache "Supporto non in linea">
+<!ENTITY pref.useCalendarCache "Supporto non in linea">
 
 <!ENTITY abCard.MiddleName "Secondo nome:">
 <!ENTITY abCard.PrefixName "Prefisso:">

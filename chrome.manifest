@@ -1,8 +1,10 @@
 content dav4tbsync  content/
-skin dav4tbsync  classic/1.0 skin/
-locale dav4tbsync  de    locale/de/
-locale dav4tbsync  en-US locale/en-US/
-locale dav4tbsync  hu locale/hu/
-locale dav4tbsync  it locale/it/
-locale dav4tbsync  ru locale/ru/
-locale dav4tbsync  pt-BR locale/pt-BR/
+
+skin    dav4tbsync  classic/1.0 skin/
+
+locale  dav4tbsync  de     _locales/de/
+locale  dav4tbsync  en-US  _locales/en-US/
+locale  dav4tbsync  hu     _locales/hu/
+locale  dav4tbsync  it     _locales/it/
+locale  dav4tbsync  ru     _locales/ru/
+locale  dav4tbsync  pt-BR  _locales/pt-BR/

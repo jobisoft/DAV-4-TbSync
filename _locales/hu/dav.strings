@@ -3,11 +3,6 @@ menu.name = CalDAV és CardDAV
 defaultname.calendar=naptár
 defaultname.contacts=kapcsolatok
 
-syncstate.syncing=Összehangolás előkészítése
-syncstate.preparing=Az összehangolás következő elem előkészítése
-syncstate.done=Az összehangolás következő elem előkészítése
-syncstate.accountdone=Fiók befejezve
-
 syncstate.send.getfolders=Mappalisták lekérése
 syncstate.eval.folders=Mappalisták frissítése
 
@@ -18,50 +13,22 @@ syncstate.eval.response.localchanges=Helyi változtatások igazolása feldolgoz�
 syncstate.send.request.remotechanges=Várakozás a távoli változtatások
 syncstate.eval.response.remotechanges=A távoli változtatások feldolgozása
 
-status.notsyncronized=A fiókját összehangolni kell. Legalább egy elem összehangolatlan.
-status.disabled=A fiók nem engedélyezett, az összehangolás le van tiltva.
-status.notargets=A összehangolás abbahagyása, mert a összehangolási célokat nem lehetett létrehozni.
-status.nouserhost=A felhasználónév és/vagy kiszolgáló hiányzik. Kérjük, adja meg ezeket az értékeket.
-status.timeout=Kapcsolat időtúllépés.
 status.networkerror=Nem tudott csatlakozni a kiszolgálóhoz.
 status.404=404-es HTTP hibakód (nem található).
 status.403=403-as HTTP hibakód (hozzáférés megtagadva/tiltott).
 status.401=Nem sikerült hitelesíteni, ellenőrizni a felhasználónevet és a jelszót.
 status.500=500-as hibakód (belső kiszolgálóhiba).
 status.503=503-as hibakód (a szolgáltatás nem érhető el).
-helplink.503=https://github.com/jobisoft/DAV-4-TbSync/issues/41
-status.httperror=Kommunikációs hiba (HTTP állapot ##replace.1##).
-status.OK=Rendben
-status.nolightning=A Lightning-t kiegészítő nincs telepítve, a naptárak nem támogatottak.
-status.JavaScriptError=JavaScript hiba! Ellenőrizze a hibakeresési naplót a részletekért.
-status.foldererror=Legalább egy erőforrás szinkronizálási hibát észlelt.
 status.softerror=Kihagyta a hibát (##replace.1##)
 
-status.no-folders-found-on-server=A kiszolgálón nem található semmilyen naptár vagy névjegyzék.
-status.invalid-response=Érvénytelen válasz érkezett, megszüntette az összehangolást.
-status.invalid-uri=Megtalálható érvénytelen URI, megszüntette az összehangolást.
-status.unsupported_auth_method=A kiszolgáló nem támogatott hitelesítési módot kér (##replace.1##).
-status.OK.managed-by-lightning=Lightning
-status.OK.caldav-calendar-already-exists=A naptár már létezik
+status.success.managed-by-lightning=Lightning
 status.info.restored=A hiányzó írási jogosultságok miatt egyes műveleteket a szerver elutasított, és helyileg visszafordított.
-status.maiformed-xml=A válasz hibás formátumú XML-t tartalmaz, amely nem tudja feldolgozni a összehangolást.
-helplink.maiformed-xml=https://github.com/jobisoft/DAV-4-TbSync/issues/59#issuecomment-459685281
+status.malformed-xml=Nem sikerült elemezni az XML-t. Ellenőrizze az eseménynaplót a részletekért.
+helplink.malformed-xml=https://github.com/jobisoft/DAV-4-TbSync/issues/59#issuecomment-459685281
 status.service-discovery-failed=A kiszolgálónak nem sikerült a sabre/dav szolgáltatási felderítése.
 status.missing-permission=Hiányzó engedély: ##replace.1##
 status.caldavservernotfound=Nem található CalDAV szerver.
 status.carddavservernotfound=Nem található CardDAV szerver.
-
-status.OK.managedbylightning=A Lightning-t által kezelt naptár.
-
-status.security=Biztonsági kapcsolat létrehozása nem sikerült. Ön aláírta vagy egyébként nem megbízható tanúsítványt importálta a Thunderbirdbe? (##replace.1##)
-helplink.security=https://github.com/jobisoft/TbSync/wiki/How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F
-status.network=Nem tudott csatlakozni a kiszolgálóhoz (##replace.1##).
-
-status.syncing=Összehangolás folyamatban
-status.skipped=Még nem támogatott, kimarad
-status.aborted=Nincs összehangolva
-status.pending=Várakozás összehangolásra
-status.modified=Helyi módosítások
 
 config.custom=A CalDAV és CardDAV kiszolgáló beállításai
 
@@ -97,3 +64,9 @@ acl.modify=módosít
 acl.add=hozzáad
 acl.delete=töröl
 acl.none=egyik sem
+
+autocomplete.WORK=business
+autocomplete.HOME=private
+autocomplete.PREF=preferred
+
+status.gContactSync=There is an incompatibility with gContactSync with activated contact group synchronization. Please deactivate one of them as long as the error is not resolved.
