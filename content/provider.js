@@ -643,7 +643,11 @@ var standardTargets = {
                 }
             }
 
-            if (!found) {
+            if (found) {
+                newCalendar.setProperty("username", authData.username);
+                newCalendar.setProperty("color", folderData.getFolderProperty("targetColor"));
+                newCalendar.name = newname;                
+            } else {
                 newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
                 newCalendar.id = tbSync.lightning.cal.getUUID();
                 newCalendar.name = newname;
