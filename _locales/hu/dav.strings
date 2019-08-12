@@ -57,6 +57,8 @@ add.serverprofile.gmx.net=GMX.net (Európa)
 add.serverprofile.gmx.net.description=https://www.gmx.net
 add.serverprofile.gmx.com=GMX.com (Amerikai egyesült államok)
 add.serverprofile.gmx.com.description=https://www.gmx.com
+add.serverprofile.web.de=WEB.de
+add.serverprofile.web.de.description=https://www.web.de
 
 acl.readwrite=írásjog: ##replace.1##
 acl.readonly=csak olvasható
