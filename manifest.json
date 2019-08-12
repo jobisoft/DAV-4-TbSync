@@ -1,0 +1,21 @@
+{
+  "applications": {
+    "gecko": {
+  "update_url": "https://tbsync.jobisoft.de/beta/TB68/update-dav.json",
+      "id": "dav4tbsync@jobisoft.de",
+      "strict_min_version": "68.0"
+    }
+  },
+  "manifest_version": 2,
+  "name": "DAV for TbSync [Beta Release Channel]",
+  "version": "0.15.16",
+  "author": "John Bieling",
+  "homepage_url": "https://github.com/jobisoft/DAV-4-TbSync/",
+  "description": "Please update your addons via the gear menu, to get the versions compatible with TB68.",
+  "icons": {
+    "32": "skin/sabredav32.png"
+  },
+  "legacy": {
+    "type": "bootstrap"
+  }
+}
