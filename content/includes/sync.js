@@ -353,9 +353,12 @@ var sync = {
             case "caldav":
             case "ics":
                 {
-                    //update downloadonly - we do not use TbCalendar (syncData.target) but the underlying lightning calendar obj
+                    // update downloadonly - we do not use TbCalendar (syncData.target) but the underlying lightning calendar obj
                     if (syncData.currentFolderData.getFolderProperty("downloadonly")) syncData.target.calendar.setProperty("readOnly", true);
-
+                    
+                    // update username of calendar
+                    syncData.target.calendar.setProperty("username", syncData.connectionData.username);
+                    
                     //init sync via lightning
                     syncData.target.calendar.refresh();
 
