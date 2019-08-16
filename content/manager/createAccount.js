@@ -46,33 +46,33 @@ var tbSyncDavNewAccount = {
         let description =  tbSync.getString("add.serverprofile."+serviceprovider+".description", "dav");
         
         //left column
-        let image = document.createElement("image");
+        let image = document.createXULElement("image");
         image.setAttribute("src", "chrome://dav4tbsync/skin/" + icon);
         image.setAttribute("style", "margin:1ex;");
 
-        let leftColumn = document.createElement("vbox");
+        let leftColumn = document.createXULElement("vbox");
         leftColumn.appendChild(image);
         
         //right column
-        let label = document.createElement("label");
+        let label = document.createXULElement("label");
         label.setAttribute("class", "header");
         label.setAttribute("value", name);
         
-        let desc = document.createElement("description");
+        let desc = document.createXULElement("description");
         desc.setAttribute("style", "width: 300px");
         desc.textContent = description;
         
-        let rightColumn = document.createElement("vbox");
+        let rightColumn = document.createXULElement("vbox");
         rightColumn.appendChild(label);
         rightColumn.appendChild(desc);
         
         //columns
-        let columns = document.createElement("hbox");
+        let columns = document.createXULElement("hbox");
         columns.appendChild(leftColumn);
         columns.appendChild(rightColumn);
         
         //richlistitem
-        let richlistitem = document.createElement("richlistitem");
+        let richlistitem = document.createXULElement("richlistitem");
         richlistitem.setAttribute("style", "padding:4px");
         richlistitem.setAttribute("value", serviceprovider);
         richlistitem.appendChild(columns);

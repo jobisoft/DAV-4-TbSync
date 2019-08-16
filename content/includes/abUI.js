@@ -138,17 +138,17 @@ var ui = {
         else if (aItemData.meta.includes("WORK")) emailType = "work";            
 
         //first column
-        let vbox = aWindow.document.createElement("vbox");
+        let vbox = aWindow.document.createXULElement("vbox");
         vbox.setAttribute("class","CardViewText");
         vbox.setAttribute("style","margin-right:1ex; margin-bottom:2px;");
-            let image = aWindow.document.createElement("image");
+            let image = aWindow.document.createXULElement("image");
             image.setAttribute("width","10");
             image.setAttribute("height","10");
             image.setAttribute("src", "chrome://dav4tbsync/skin/type."+emailType+"10.png");
         vbox.appendChild(image);
 
         //second column
-        let description = aWindow.document.createElement("description");
+        let description = aWindow.document.createXULElement("description");
         description.setAttribute("class","plain");
             let namespace = aWindow.document.lookupNamespaceURI("html");
             let a = aWindow.document.createElementNS(namespace, "a");
@@ -157,7 +157,7 @@ var ui = {
             description.appendChild(a);
 
             if (aItemData.meta.includes("PREF")) {
-                let pref = aWindow.document.createElement("image");
+                let pref = aWindow.document.createXULElement("image");
                 pref.setAttribute("style", "margin-left:1ex;");
                 pref.setAttribute("width", "11");
                 pref.setAttribute("height", "10");
@@ -166,7 +166,7 @@ var ui = {
             }
         
         //row
-        let row = aWindow.document.createElement("row");
+        let row = aWindow.document.createXULElement("row");
         row.setAttribute("align","end");        
         row.appendChild(vbox);
         row.appendChild(description);
@@ -175,7 +175,7 @@ var ui = {
     
     getNewEmailListItem: function (aDocument, aItemData) {
         //hbox
-        let outerhbox = aDocument.createElement("hbox");
+        let outerhbox = aDocument.createXULElement("hbox");
         outerhbox.setAttribute("dragtarget", "true");
         outerhbox.setAttribute("flex", "1");
         outerhbox.setAttribute("align", "center");
@@ -194,7 +194,7 @@ var ui = {
         outerhbox.style["background-repeat"] = "no-repeat";
         
             //button
-            let button = aDocument.createElement("button");
+            let button = aDocument.createXULElement("button");
             button.allowedValues = ["HOME", "WORK"];
             button.otherIcon = "other";
             button.setAttribute("type", "menu");
@@ -204,10 +204,10 @@ var ui = {
             outerhbox.appendChild(button);
 
             //email box
-            let emailbox = aDocument.createElement("hbox");
+            let emailbox = aDocument.createXULElement("hbox");
             emailbox.setAttribute("flex", "1");
             emailbox.setAttribute("style", "padding-bottom:1px");
-            let email = aDocument.createElement("textbox");
+            let email = aDocument.createXULElement("textbox");
             email.setAttribute("flex", "1");
             email.setAttribute("class", "plain");
             email.setAttribute("value", aItemData.value);
@@ -217,7 +217,7 @@ var ui = {
             outerhbox.appendChild(emailbox);
         
             //image
-            let image = aDocument.createElement("image");
+            let image = aDocument.createXULElement("image");
             image.setAttribute("width", "11");
             image.setAttribute("height", "10");
             image.setAttribute("style", "margin:2px 20px 2px 1ex");
@@ -225,7 +225,7 @@ var ui = {
             outerhbox.appendChild(image);
         
         //richlistitem
-        let richlistitem = aDocument.createElement("richlistitem");
+        let richlistitem = aDocument.createXULElement("richlistitem");
         richlistitem.setAttribute("id", "entry_" + tbSync.generateUUID());
         richlistitem.appendChild(outerhbox);
         
@@ -307,12 +307,12 @@ var ui = {
         else if (aItemData.meta.includes("VOICE")) phoneType2 = "voice";
         
         //first column
-        let vbox = aWindow.document.createElement("hbox");
+        let vbox = aWindow.document.createXULElement("hbox");
         vbox.setAttribute("pack","end");
         vbox.setAttribute("class","CardViewText");
         vbox.setAttribute("style","margin-bottom:3px;");
             if (phoneType1) {
-                let image = aWindow.document.createElement("image");
+                let image = aWindow.document.createXULElement("image");
                 image.setAttribute("style","margin-right:1ex;");
                 image.setAttribute("width","10");
                 image.setAttribute("height","10");
@@ -320,7 +320,7 @@ var ui = {
                 vbox.appendChild(image);
             }
             if (phoneType2) {
-                let image = aWindow.document.createElement("image");
+                let image = aWindow.document.createXULElement("image");
                 image.setAttribute("style","margin-right:1ex;");
                 image.setAttribute("width","10");
                 image.setAttribute("height","10");
@@ -329,13 +329,13 @@ var ui = {
             }
 
         //second column
-        let description = aWindow.document.createElement("description");
+        let description = aWindow.document.createXULElement("description");
         description.setAttribute("class","plain");
         description.setAttribute("style","-moz-user-select: text;");
         description.textContent = aItemData.value;
 
         if (aItemData.meta.includes("PREF")) {
-            let pref = aWindow.document.createElement("image");
+            let pref = aWindow.document.createXULElement("image");
             pref.setAttribute("style", "margin-left:1ex;");
             pref.setAttribute("width", "11");
             pref.setAttribute("height", "10");
@@ -344,7 +344,7 @@ var ui = {
         }
         
         //row
-        let row = aWindow.document.createElement("row");
+        let row = aWindow.document.createXULElement("row");
         row.setAttribute("align","end");        
         row.appendChild(vbox);
         row.appendChild(description);
@@ -353,7 +353,7 @@ var ui = {
     
     getNewPhoneListItem: function (aDocument, aItemData) {
         //hbox
-        let outerhbox = aDocument.createElement("hbox");
+        let outerhbox = aDocument.createXULElement("hbox");
         outerhbox.setAttribute("dragtarget", "true");
         outerhbox.setAttribute("flex", "1");
         outerhbox.setAttribute("align", "center");
@@ -372,7 +372,7 @@ var ui = {
         outerhbox.style["background-repeat"] = "no-repeat";
 
             //button1
-            let button1 = aDocument.createElement("button");
+            let button1 = aDocument.createXULElement("button");
             button1.allowedValues = ["HOME", "WORK"];
             button1.otherIcon = "none";
             button1.setAttribute("type", "menu");
@@ -382,7 +382,7 @@ var ui = {
             outerhbox.appendChild(button1);
 
             //button2
-            let button2 = aDocument.createElement("button");
+            let button2 = aDocument.createXULElement("button");
             button2.allowedValues = ["CELL", "FAX", "PAGER", "CAR", "VIDEO", "VOICE"] ; //same order as in getNewPhoneDetailsRow
             button2.otherIcon = "none";
             button2.setAttribute("type", "menu");
@@ -392,10 +392,10 @@ var ui = {
             outerhbox.appendChild(button2);
 
             //phone box
-            let phonebox = aDocument.createElement("hbox");
+            let phonebox = aDocument.createXULElement("hbox");
             phonebox.setAttribute("flex", "1");
             phonebox.setAttribute("style", "padding-bottom:1px");
-            let phone = aDocument.createElement("textbox");
+            let phone = aDocument.createXULElement("textbox");
             phone.setAttribute("flex", "1");
             phone.setAttribute("class", "plain");
             phone.setAttribute("value", aItemData.value);
@@ -405,7 +405,7 @@ var ui = {
             outerhbox.appendChild(phonebox);
         
             //image
-            let image = aDocument.createElement("image");
+            let image = aDocument.createXULElement("image");
             image.setAttribute("width", "11");
             image.setAttribute("height", "10");
             image.setAttribute("style", "margin:2px 20px 2px 1ex");
@@ -413,7 +413,7 @@ var ui = {
             outerhbox.appendChild(image);
         
         //richlistitem
-        let richlistitem = aDocument.createElement("richlistitem");
+        let richlistitem = aDocument.createXULElement("richlistitem");
         richlistitem.setAttribute("id", "entry_" + tbSync.generateUUID());
         richlistitem.appendChild(outerhbox);
         
