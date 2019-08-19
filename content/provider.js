@@ -21,6 +21,13 @@ var base = {
      * Called during load of external provider extension to init provider.
      */
     load: async function () {
+        // Set default prefs
+        let branch = Services.prefs.getDefaultBranch("extensions.dav4tbsync.");
+        branch.setIntPref("maxitems", 50);
+        branch.setIntPref("timeout", 90000);
+        branch.setCharPref("clientID.type", "TbSync");
+        branch.setCharPref("clientID.useragent", "Thunderbird CalDAV/CardDAV");    
+
         dav.openWindows = {};
 
         dav.overlayManager = new OverlayManager({verbose: 0});

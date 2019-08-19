@@ -38,13 +38,6 @@ function uninstall(data, reason) {
 function startup(data, reason) {
     // Possible reasons: APP_STARTUP, ADDON_ENABLE, ADDON_INSTALL, ADDON_UPGRADE, or ADDON_DOWNGRADE.
 
-    // Set default prefs
-    let branch = Services.prefs.getDefaultBranch("extensions.dav4tbsync.");
-    branch.setIntPref("maxitems", 50);
-    branch.setIntPref("timeout", 90000);
-    branch.setCharPref("clientID.type", "TbSync");
-    branch.setCharPref("clientID.useragent", "Thunderbird CalDAV/CardDAV");    
-
     thisID = data.id;
     Services.obs.addObserver(onInitDoneObserver, "tbsync.observer.initialized", false);
 
