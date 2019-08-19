@@ -13,14 +13,14 @@
 const dav = tbSync.providers.dav;
 
 /**
- * Implementation the TbSync interfaces for external provider extensions.
+ * Implementing the TbSync interface for external provider extensions.
  */
 
-var base = {
+var base = class {
     /**
      * Called during load of external provider extension to init provider.
      */
-    load: async function () {
+    static async load() {
         // Set default prefs
         let branch = Services.prefs.getDefaultBranch("extensions.dav4tbsync.");
         branch.setIntPref("maxitems", 50);
@@ -43,14 +43,14 @@ var base = {
         await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
 
         dav.overlayManager.startObserving();
-    },
+    }
 
 
 
     /**
      * Called during unload of external provider extension to unload provider.
      */
-    unload: async function () {
+    static async unload() {
         dav.overlayManager.stopObserving();	
 
         // Close all open windows of this provider.
@@ -59,16 +59,16 @@ var base = {
             dav.openWindows[id].close();
           }
         }
-    },
+    }
 
 
 
     /**
      * Returns nice string for the name of provider for the add account menu.
      */
-    getNiceProviderName: function () {
+    static getNiceProviderName() {
         return tbSync.getString("menu.name", "dav");
-    },
+    }
 
 
 
@@ -79,7 +79,7 @@ var base = {
      * @param accountData  [in] optional AccountData
      *
      */
-    getProviderIcon: function (size, accountData = null) {
+    static getProviderIcon(size, accountData = null) {
         let root = "sabredav";
         if (accountData) {
             let serviceprovider = accountData.getAccountProperty("serviceprovider");
@@ -96,30 +96,30 @@ var base = {
             default :
                 return "chrome://dav4tbsync/skin/"+root+"48.png";
         }
-    },
+    }
 
 
 
     /**
      * Returns a list of sponsors, they will be sorted by the index
      */
-    getSponsors: function () {
+    static getSponsors() {
         return {
             "Thoben, Marc" : {name: "Marc Thoben", description: "Zimbra", icon: "", link: "" },
             "Biebl, Michael" : {name: "Michael Biebl", description: "Nextcloud", icon: "", link: "" },
             "László, Kovács" : {name: "Kovács László", description : "Radicale", icon: "", link: "" },
             "Lütticke, David" : {name: "David Lütticke", description : "", icon: "", link: "" },
         };
-    },
+    }
 
 
 
     /**
      * Returns the email address of the maintainer (used for bug reports).
      */
-    getMaintainerEmail: function () {
+    static getMaintainerEmail() {
         return "john.bieling@gmx.de";
-    },
+    }
 
 
 
@@ -127,9 +127,9 @@ var base = {
      * Returns the URL of the string bundle file of this provider, it can be
      * accessed by tbSync.getString(<key>, <provider>)
      */
-    getStringBundleUrl: function () {
+    static getStringBundleUrl() {
         return "chrome://dav4tbsync/locale/dav.strings";
-    },
+    }
 
     
 
@@ -139,9 +139,9 @@ var base = {
      * The URL will be opened via openDialog(), when the user wants to create a
      * new account of this provider.
      */
-    getCreateAccountWindowUrl: function () {
+    static getCreateAccountWindowUrl() {
         return "chrome://dav4tbsync/content/manager/createAccount.xul";
-    },
+    }
 
 
 
@@ -157,9 +157,9 @@ var base = {
      * in the manager and provides the tbSync.AccountData of the corresponding
      * account.
      */
-    getEditAccountOverlayUrl: function () {
+    static getEditAccountOverlayUrl() {
         return "chrome://dav4tbsync/content/manager/editAccountOverlay.xul";
-    },
+    }
 
 
 
@@ -168,7 +168,7 @@ var base = {
      * accounts database with the default value if not yet stored in the 
      * database.
      */
-    getDefaultAccountEntries: function () {
+    static getDefaultAccountEntries() {
         let row = {
             "useCalendarCache" : true,
             "calDavHost" : "",            
@@ -180,7 +180,7 @@ var base = {
             "syncGroups" : false,
             }; 
         return row;
-    },
+    }
 
 
 
@@ -188,7 +188,7 @@ var base = {
      * Return object which contains all possible fields of a row in the folder 
      * database with the default value if not yet stored in the database.
      */
-    getDefaultFolderEntries: function () {
+    static getDefaultFolderEntries() {
         let folder = {
             // different folders (caldav/carddav) can be stored on different 
             // servers (as with yahoo, icloud, gmx, ...), so we need to store
@@ -207,7 +207,7 @@ var base = {
             "createdWithProviderVersion" : "0",
             };
         return folder;
-    },
+    }
 
 
 
@@ -217,8 +217,8 @@ var base = {
      *
      * @param accountData  [in] AccountData
      */
-    onEnableAccount: function (accountData) {
-    },
+    static onEnableAccount(accountData) {
+    }
 
 
 
@@ -228,8 +228,8 @@ var base = {
      *
      * @param accountData  [in] AccountData
      */
-    onDisableAccount: function (accountData) {
-    },
+    static onDisableAccount(accountData) {
+    }
 
 
 
@@ -239,11 +239,11 @@ var base = {
      *
      * @param accountData  [in] FolderData
      */
-    onResetTarget: function (folderData) {
+    static onResetTarget(folderData) {
         folderData.resetFolderProperty("ctag");
         folderData.resetFolderProperty("token");
         folderData.setFolderProperty("createdWithProviderVersion", folderData.accountData.providerData.getVersion());
-    },
+    }
 
 
 
@@ -265,7 +265,7 @@ var base = {
      *
      * Return arrary of AutoCompleteData entries.
      */
-    abAutoComplete: async function (accountData, currentQuery)  {
+    static async abAutoComplete(accountData, currentQuery)  {
         // Instead of using accountData.getAllFolders() to get all folders of this account
         // and then request and check the targets of each, we simply run over all address
         // books and check for the directory property "tbSyncAccountID".
@@ -297,7 +297,7 @@ var base = {
         }
         
         return entries;
-    },
+    }
 
 
 
@@ -308,7 +308,7 @@ var base = {
      * @param accountData         [in] AccountData for the account for which the 
      *                                 sorted folder should be returned
      */
-    getSortedFolders: function (accountData) {
+    static getSortedFolders(accountData) {
         let folders = accountData.getAllFolders();
 
         // we can only sort arrays, so we create an array of objects which must
@@ -348,7 +348,7 @@ var base = {
             sortedFolders.push(sortObj.folder);
         }
         return sortedFolders;
-    },
+    }
 
 
 
@@ -361,9 +361,9 @@ var base = {
      *
      * return timeout in milliseconds
      */
-    getConnectionTimeout: function (accountData) {
+    static getConnectionTimeout(accountData) {
         return dav.sync.prefSettings.getIntPref("timeout");
-    },
+    }
     
 
 
@@ -383,7 +383,7 @@ var base = {
      *
      * return StatusData
      */
-    syncFolderList: async function (syncData, syncJob, syncRunNr) {        
+    static async syncFolderList(syncData, syncJob, syncRunNr) {        
         // Recommendation: Put the actual function call inside a try catch, to
         // ensure returning a proper StatusData object, regardless of what
         // happens inside that function. You may also throw custom errors
@@ -404,7 +404,7 @@ var base = {
 
         // we fall through, if there was no error
         return new tbSync.StatusData();
-    },
+    }
     
 
 
@@ -425,7 +425,7 @@ var base = {
      *
      * return StatusData
      */
-    syncFolder: async function (syncData, syncJob, syncRunNr) {
+    static async syncFolder(syncData, syncJob, syncRunNr) {
         // Recommendation: Put the actual function call inside a try catch, to
         // ensure returning a proper StatusData object, regardless of what
         // happens inside that function. You may also throw custom errors
@@ -447,7 +447,7 @@ var base = {
 
         // we fall through, if there was no error
         return new tbSync.StatusData();
-    },    
+    }
 }
 
 
@@ -703,7 +703,7 @@ var standardTargets = {
  *    let folderData = folderList.selectedItem.folderData;
  *
  */
-var standardFolderList = {
+var standardFolderList = class {
     /**
      * Is called before the context menu of the folderlist is shown, allows to
      * show/hide custom menu options based on selected folder. During an active
@@ -712,8 +712,8 @@ var standardFolderList = {
      * @param window        [in] window object of the account settings window
      * @param folderData    [in] FolderData of the selected folder
      */
-    onContextMenuShowing: function (window, folderData) {
-    },
+    static onContextMenuShowing(window, folderData) {
+    }
 
 
 
@@ -723,7 +723,7 @@ var standardFolderList = {
      *
      * @param folderData         [in] FolderData of the selected folder
      */
-    getTypeImage: function (folderData) {
+    static getTypeImage(folderData) {
         let src = "";
         switch (folderData.getFolderProperty("type")) {
             case "carddav":
@@ -741,7 +741,7 @@ var standardFolderList = {
             case "ics":
                 return "chrome://dav4tbsync/skin/ics16.png";
         }
-    },
+    }
     
 
 
@@ -750,9 +750,9 @@ var standardFolderList = {
      *
      * @param folderData         [in] FolderData of the selected folder
      */ 
-    getFolderDisplayName: function (folderData) {
+    static getFolderDisplayName(folderData) {
         return folderData.getFolderProperty("foldername");
-    },
+    }
 
 
 
@@ -765,11 +765,11 @@ var standardFolderList = {
      * Return a list of attributes and their values. If both (RO+RW) do
      * not return any attributes, the ACL menu is not displayed at all.
      */ 
-    getAttributesRoAcl: function (folderData) {
+    static getAttributesRoAcl(folderData) {
         return {
             label: tbSync.getString("acl.readonly", "dav"),
         };
-    },
+    }
     
 
 
@@ -782,7 +782,7 @@ var standardFolderList = {
      * Return a list of attributes and their values. If both (RO+RW) do
      * not return any attributes, the ACL menu is not displayed at all.
      */ 
-    getAttributesRwAcl: function (folderData) {
+    static getAttributesRwAcl(folderData) {
         let acl = parseInt(folderData.getFolderProperty("acl"));
         let acls = [];
         if (acl & 0x2) acls.push(tbSync.getString("acl.modify", "dav"));
@@ -794,7 +794,7 @@ var standardFolderList = {
             label: tbSync.getString("acl.readwrite::"+acls.join(", "), "dav"),
             disabled: (acl & 0x7) != 0x7,
         }             
-    },
+    }
 }
 
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/sync.js", this, "UTF-8");
