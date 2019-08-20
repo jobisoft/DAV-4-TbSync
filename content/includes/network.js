@@ -46,7 +46,7 @@ var network = {
       this._https = "";
       this._type = "";
       this._fqdn = "";
-      this._timeout = dav.base.getConnectionTimeout();
+      this._timeout = dav.Base.getConnectionTimeout();
       this._timer = Components.classes["@mozilla.org/timer;1"].createInstance(
                       Components.interfaces.nsITimer);
 

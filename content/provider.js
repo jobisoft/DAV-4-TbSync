@@ -16,7 +16,7 @@ const dav = tbSync.providers.dav;
  * Implementing the TbSync interface for external provider extensions.
  */
 
-var base = class {
+var Base = class {
     /**
      * Called during load of external provider extension to init provider.
      */
@@ -287,7 +287,7 @@ var base = class {
                                                     .map(entry => entry.toUpperCase() != "PREF" ? entry.toUpperCase() : entry.toLowerCase()).sort()
                                                     .map(entry => tbSync.getString("autocomplete." + entry.toUpperCase() , "dav"))
                                                     .join(", "),
-                                icon: dav.base.getProviderIcon(16, accountData),
+                                icon: dav.Base.getProviderIcon(16, accountData),
                                 style: "",				    
                             });
                         }
@@ -691,7 +691,7 @@ var standardTargets = {
 
 
 /**
- * This provider is using the standardFolderList (instead of this it could also
+ * This provider is using the StandardFolderList (instead of this it could also
  * implement the full folderList object).
  *
  * The DOM of the folderlist can be accessed by
@@ -703,7 +703,7 @@ var standardTargets = {
  *    let folderData = folderList.selectedItem.folderData;
  *
  */
-var standardFolderList = class {
+var StandardFolderList = class {
     /**
      * Is called before the context menu of the folderlist is shown, allows to
      * show/hide custom menu options based on selected folder. During an active
