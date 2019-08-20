@@ -454,236 +454,232 @@ var Base = class {
 
 
 
-var standardTargets = {
-    // This provider is using the standard "addressbook" targetType, so it must
-    // implement the addressbook object.
-    addressbook : {
-
-        // define a card property, which should be used for the changelog
-        // basically your primary key for the abItem properties
-        // UID will be used, if nothing specified
-        primaryKeyField: "X-DAV-HREF",
-        
+// This provider is using the standard "addressbook" targetType, so it must
+// implement the addressbook object.
+var StandardAddressbookTarget = {        
+    // define a card property, which should be used for the changelog
+    // basically your primary key for the abItem properties
+    // UID will be used, if nothing specified
+    primaryKeyField: "X-DAV-HREF",
+    
 
 
-        generatePrimaryKey: function (folderData) {
-             return folderData.getFolderProperty("href") + tbSync.generateUUID() + ".vcf";
-        },
-        
+    generatePrimaryKey: function (folderData) {
+         return folderData.getFolderProperty("href") + tbSync.generateUUID() + ".vcf";
+    },
+    
 
 
-        // enable or disable changelog
-        logUserChanges: true,
+    // enable or disable changelog
+    logUserChanges: true,
 
 
 
-        directoryObserver: function (aTopic, folderData) {
-            switch (aTopic) {
-                case "addrbook-removed":
-                case "addrbook-updated":
-                    //Services.console.logStringMessage("["+ aTopic + "] " + folderData.getFolderProperty("foldername"));
-                    break;
+    directoryObserver: function (aTopic, folderData) {
+        switch (aTopic) {
+            case "addrbook-removed":
+            case "addrbook-updated":
+                //Services.console.logStringMessage("["+ aTopic + "] " + folderData.getFolderProperty("foldername"));
+                break;
+        }
+    },
+    
+
+
+    cardObserver: function (aTopic, folderData, abCardItem) {
+        switch (aTopic) {
+            case "addrbook-contact-updated":
+            case "addrbook-contact-removed":
+                //Services.console.logStringMessage("["+ aTopic + "] " + abCardItem.getProperty("DisplayName"));
+                break;
+
+            case "addrbook-contact-created":
+            {
+                //Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for Card <"+ abCardItem.getProperty("DisplayName")+">");
+                abCardItem.setProperty("X-DAV-UID", tbSync.generateUUID());
+                // the card is tagged with "_by_user" so it will not be changed to "_by_server" by the following modify
+                abCardItem.abDirectory.modifyItem(abCardItem);
+                break;
             }
-        },
-        
+        }
+    },
+    
 
 
-        cardObserver: function (aTopic, folderData, abCardItem) {
-            switch (aTopic) {
-                case "addrbook-contact-updated":
-                case "addrbook-contact-removed":
-                    //Services.console.logStringMessage("["+ aTopic + "] " + abCardItem.getProperty("DisplayName"));
-                    break;
+    listObserver: function (aTopic, folderData, abListItem, abListMember) {
+        switch (aTopic) {
+            case "addrbook-list-member-added":
+            case "addrbook-list-member-removed":
+                //Services.console.logStringMessage("["+ aTopic + "] MemberName: " + abListMember.getProperty("DisplayName"));
+                break;
+            
+            case "addrbook-list-removed":
+            case "addrbook-list-updated":
+                //Services.console.logStringMessage("["+ aTopic + "] ListName: " + abListItem.getProperty("ListName"));
+                break;
+            
+            case "addrbook-list-created": 
+                //Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for List <"+abListItem.getProperty("ListName")+">");
+                abListItem.setProperty("X-DAV-UID", tbSync.generateUUID());
+                // custom props of lists get updated directly, no need to call .modify()            
+                break;
+        }
+    },
+    
 
-                case "addrbook-contact-created":
-                {
-                    //Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for Card <"+ abCardItem.getProperty("DisplayName")+">");
-                    abCardItem.setProperty("X-DAV-UID", tbSync.generateUUID());
-                    // the card is tagged with "_by_user" so it will not be changed to "_by_server" by the following modify
-                    abCardItem.abDirectory.modifyItem(abCardItem);
-                    break;
+
+    /**
+     * Is called by TargetData::getTarget() if  the standard "addressbook"
+     * targetType is used, and a new addressbook needs to be created.
+     *
+     * @param newname       [in] name of the new address book
+     * @param folderData  [in] FolderData
+     *
+     * return the new directory
+     */
+    createAddressBook: function (newname, folderData) {
+        let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
+        let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
+
+        if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
+            let serviceprovider = folderData.accountData.getAccountProperty("serviceprovider");
+            let icon = "custom";
+            if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
+                icon = dav.sync.serviceproviders[serviceprovider].icon;
+            }
+            directory.setStringValue("tbSyncIcon", "dav" + icon);
+            
+            // Disable AutoComplete, so we can have full control over the auto completion of our own directories.
+            // Implemented by me in https://bugzilla.mozilla.org/show_bug.cgi?id=1546425
+            directory.setBoolValue("enable_autocomplete", false);
+            
+            return directory;
+        }
+        return null;
+    },    
+}
+
+
+
+// This provider is using the standard "calendar" targetType, so it must
+// implement the calendar object.
+var StandardCalendarTarget = {        
+    // The calendar target does not support a custom primaryKeyField, because
+    // the lightning implementation only allows to search for items via UID.
+    // Like the addressbook target, the calendar target item element has a
+    // primaryKey getter/setter which - however - only works on the UID.
+    
+    // enable or disable changelog
+    logUserChanges: false,
+
+
+
+    calendarObserver: function (aTopic, folderData, tbCalendar, aPropertyName, aPropertyValue, aOldPropertyValue) {
+        switch (aTopic) {
+            case "onCalendarPropertyChanged":
+            {
+                //Services.console.logStringMessage("["+ aTopic + "] " + tbCalendar.calendar.name + " : " + aPropertyName);
+                switch (aPropertyName) {
+                    case "color":
+                        if (aOldPropertyValue.toString().toUpperCase() != aPropertyValue.toString().toUpperCase()) {
+                            //prepare connection data
+                            let connection = new dav.network.ConnectionData(folderData);
+                            //update color on server
+                            dav.network.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aPropertyValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folderData.getFolderProperty("href"), "PROPPATCH", connection);
+                        }
+                        break;
                 }
             }
-        },
-        
-
-
-        listObserver: function (aTopic, folderData, abListItem, abListMember) {
-            switch (aTopic) {
-                case "addrbook-list-member-added":
-                case "addrbook-list-member-removed":
-                    //Services.console.logStringMessage("["+ aTopic + "] MemberName: " + abListMember.getProperty("DisplayName"));
-                    break;
-                
-                case "addrbook-list-removed":
-                case "addrbook-list-updated":
-                    //Services.console.logStringMessage("["+ aTopic + "] ListName: " + abListItem.getProperty("ListName"));
-                    break;
-                
-                case "addrbook-list-created": 
-                    //Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for List <"+abListItem.getProperty("ListName")+">");
-                    abListItem.setProperty("X-DAV-UID", tbSync.generateUUID());
-                    // custom props of lists get updated directly, no need to call .modify()            
-                    break;
-            }
-        },
-        
-
-
-        /**
-         * Is called by TargetData::getTarget() if  the standard "addressbook"
-         * targetType is used, and a new addressbook needs to be created.
-         *
-         * @param newname       [in] name of the new address book
-         * @param folderData  [in] FolderData
-         *
-         * return the new directory
-         */
-        createAddressBook: function (newname, folderData) {
-            let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
-            let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
-
-            if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
-                let serviceprovider = folderData.accountData.getAccountProperty("serviceprovider");
-                let icon = "custom";
-                if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
-                    icon = dav.sync.serviceproviders[serviceprovider].icon;
-                }
-                directory.setStringValue("tbSyncIcon", "dav" + icon);
-                
-                // Disable AutoComplete, so we can have full control over the auto completion of our own directories.
-                // Implemented by me in https://bugzilla.mozilla.org/show_bug.cgi?id=1546425
-                directory.setBoolValue("enable_autocomplete", false);
-                
-                return directory;
-            }
-            return null;
-        },    
+            break;
+            
+            case "onCalendarDeleted":
+            case "onCalendarPropertyDeleted":
+                //Services.console.logStringMessage("["+ aTopic + "] " +tbCalendar.calendar.name);
+                break;
+        }
     },
 
 
 
-    // This provider is using the standard "calendar" targetType, so it must
-    // implement the calendar object.
-    calendar : {
-        
-        // The calendar target does not support a custom primaryKeyField, because
-        // the lightning implementation only allows to search for items via UID.
-        // Like the addressbook target, the calendar target item element has a
-        // primaryKey getter/setter which - however - only works on the UID.
-        
-        // enable or disable changelog
-        logUserChanges: false,
-
-
-
-        calendarObserver: function (aTopic, folderData, tbCalendar, aPropertyName, aPropertyValue, aOldPropertyValue) {
-            switch (aTopic) {
-                case "onCalendarPropertyChanged":
-                {
-                    //Services.console.logStringMessage("["+ aTopic + "] " + tbCalendar.calendar.name + " : " + aPropertyName);
-                    switch (aPropertyName) {
-                        case "color":
-                            if (aOldPropertyValue.toString().toUpperCase() != aPropertyValue.toString().toUpperCase()) {
-                                //prepare connection data
-                                let connection = new dav.network.ConnectionData(folderData);
-                                //update color on server
-                                dav.network.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aPropertyValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folderData.getFolderProperty("href"), "PROPPATCH", connection);
-                            }
-                            break;
-                    }
-                }
+    itemObserver: function (aTopic, folderData, tbItem, tbOldItem) {
+        switch (aTopic) {
+            case "onAddItem":
+            case "onModifyItem":
+            case "onDeleteItem":
+                //Services.console.logStringMessage("["+ aTopic + "] " + tbItem.nativeItem.title);
                 break;
-                
-                case "onCalendarDeleted":
-                case "onCalendarPropertyDeleted":
-                    //Services.console.logStringMessage("["+ aTopic + "] " +tbCalendar.calendar.name);
-                    break;
+        }
+    },
+
+
+
+    /**
+     * Is called by TargetData::getTarget() if  the standard "calendar" targetType is used, and a new calendar needs to be created.
+     *
+     * @param newname       [in] name of the new calendar
+     * @param folderData  [in] folderData
+     *
+     * return the new calendar
+     */
+    createCalendar: function(newname, folderData) {
+        let calManager = tbSync.lightning.cal.getCalendarManager();
+        let authData = dav.network.getAuthData(folderData.accountData);
+      
+        let caltype = folderData.getFolderProperty("type");
+
+        let baseUrl = "";
+        if (caltype != "ics") {
+            baseUrl =  "http" + (folderData.accountData.getAccountProperty("https") ? "s" : "") + "://" + folderData.getFolderProperty("fqdn");
+        }
+
+        let url = dav.tools.parseUri(baseUrl + folderData.getFolderProperty("href"));        
+        folderData.setFolderProperty("url", url.spec);
+
+        //check if that calendar already exists
+        let cals = calManager.getCalendars({});
+        let newCalendar = null;
+        let found = false;
+        for (let calendar of calManager.getCalendars({})) {
+            if (calendar.uri.spec == url.spec) {
+                newCalendar = calendar;
+                found = true;
+                break;
             }
-        },
+        }
 
+        if (found) {
+            newCalendar.setProperty("username", authData.username);
+            newCalendar.setProperty("color", folderData.getFolderProperty("targetColor"));
+            newCalendar.name = newname;                
+        } else {
+            newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
+            newCalendar.id = tbSync.lightning.cal.getUUID();
+            newCalendar.name = newname;
 
+            newCalendar.setProperty("username", authData.username);
+            newCalendar.setProperty("color", folderData.getFolderProperty("targetColor"));
+            newCalendar.setProperty("calendar-main-in-composite", true);
+            newCalendar.setProperty("cache.enabled", folderData.accountData.getAccountProperty("useCalendarCache"));
+        }
+        
+        if (folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
 
-        itemObserver: function (aTopic, folderData, tbItem, tbOldItem) {
-            switch (aTopic) {
-                case "onAddItem":
-                case "onModifyItem":
-                case "onDeleteItem":
-                    //Services.console.logStringMessage("["+ aTopic + "] " + tbItem.nativeItem.title);
-                    break;
+        // ICS urls do not need a password
+        if (caltype != "ics") {
+            tbSync.dump("Searching CalDAV authRealm for", url.host);
+            let realm = (dav.network.listOfRealms.hasOwnProperty(url.host)) ? dav.network.listOfRealms[url.host] : "";
+            if (realm !== "") {
+                tbSync.dump("Found CalDAV authRealm",  realm);
+                //manually create a lightning style entry in the password manager
+                tbSync.passwordManager.updateLoginInfo(url.prePath, realm, /* old */ authData.username, /* new */ authData.username, authData.password);
             }
-        },
+        }
 
-
-
-        /**
-         * Is called by TargetData::getTarget() if  the standard "calendar" targetType is used, and a new calendar needs to be created.
-         *
-         * @param newname       [in] name of the new calendar
-         * @param folderData  [in] folderData
-         *
-         * return the new calendar
-         */
-        createCalendar: function(newname, folderData) {
-            let calManager = tbSync.lightning.cal.getCalendarManager();
-            let authData = dav.network.getAuthData(folderData.accountData);
-          
-            let caltype = folderData.getFolderProperty("type");
-
-            let baseUrl = "";
-            if (caltype != "ics") {
-                baseUrl =  "http" + (folderData.accountData.getAccountProperty("https") ? "s" : "") + "://" + folderData.getFolderProperty("fqdn");
-            }
-
-            let url = dav.tools.parseUri(baseUrl + folderData.getFolderProperty("href"));        
-            folderData.setFolderProperty("url", url.spec);
-
-            //check if that calendar already exists
-            let cals = calManager.getCalendars({});
-            let newCalendar = null;
-            let found = false;
-            for (let calendar of calManager.getCalendars({})) {
-                if (calendar.uri.spec == url.spec) {
-                    newCalendar = calendar;
-                    found = true;
-                    break;
-                }
-            }
-
-            if (found) {
-                newCalendar.setProperty("username", authData.username);
-                newCalendar.setProperty("color", folderData.getFolderProperty("targetColor"));
-                newCalendar.name = newname;                
-            } else {
-                newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
-                newCalendar.id = tbSync.lightning.cal.getUUID();
-                newCalendar.name = newname;
-
-                newCalendar.setProperty("username", authData.username);
-                newCalendar.setProperty("color", folderData.getFolderProperty("targetColor"));
-                newCalendar.setProperty("calendar-main-in-composite", true);
-                newCalendar.setProperty("cache.enabled", folderData.accountData.getAccountProperty("useCalendarCache"));
-            }
-            
-            if (folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
-
-            // ICS urls do not need a password
-            if (caltype != "ics") {
-                tbSync.dump("Searching CalDAV authRealm for", url.host);
-                let realm = (dav.network.listOfRealms.hasOwnProperty(url.host)) ? dav.network.listOfRealms[url.host] : "";
-                if (realm !== "") {
-                    tbSync.dump("Found CalDAV authRealm",  realm);
-                    //manually create a lightning style entry in the password manager
-                    tbSync.passwordManager.updateLoginInfo(url.prePath, realm, /* old */ authData.username, /* new */ authData.username, authData.password);
-                }
-            }
-
-            if (!found) {
-                calManager.registerCalendar(newCalendar);
-            }
-            return newCalendar;
-        },
-    }
+        if (!found) {
+            calManager.registerCalendar(newCalendar);
+        }
+        return newCalendar;
+    },
 }
 
 
