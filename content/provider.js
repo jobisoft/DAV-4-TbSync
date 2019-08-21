@@ -64,9 +64,9 @@ var Base = class {
 
 
     /**
-     * Returns nice string for the name of provider for the add account menu.
+     * Returns string for the name of provider for the add account menu.
      */
-    static getNiceProviderName() {
+    static getProviderName() {
         return tbSync.getString("menu.name", "dav");
     }
 
