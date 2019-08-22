@@ -753,7 +753,7 @@ var sync = {
                             let isAdding = (changes[i].status == "added_by_user");
                             if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
 
-                                let card = syncData.target.getItem(changes[i]);
+                                let card = syncData.target.getItem(changes[i].itemId);
                                 if (card) {
                                     if (card.isMailList && !syncGroups)
                                         continue;
