@@ -32,8 +32,8 @@ status.carddavservernotfound=Nem található CardDAV szerver.
 
 config.custom=A CalDAV és CardDAV kiszolgáló beállításai
 
-add.serverprofile.discovery=Felfedezés szolgáltatás
-add.serverprofile.discovery.description=Működik a legtöbb ownCloud, Nextcloud és más sabre/dav telepítésekkel.
+add.serverprofile.discovery=Automatikus konfigurálás
+add.serverprofile.discovery.description=A legtöbb ownCloud, Nextcloud és más saber / dav telepítések támogatják a felfedező szolgáltatást az automatikus konfiguráláshoz.
 add.serverprofile.discovery.details1=Ha a kiszolgáló támogatja a felfedezési szolgáltatást, adja meg a kiszolgáló URL-címét a kiszolgálónak. Például: „felhő.kiszolgálóm.hu”. Ha ez nem működik, menjen vissza, és válassza az "Kézi beállítás" lehetőséget.
 
 add.serverprofile.custom=Kézi beállítás

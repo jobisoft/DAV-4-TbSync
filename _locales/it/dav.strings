@@ -1,4 +1,4 @@
-menu.name = CalDAV & CardDAV
+menu.name=CalDAV & CardDAV
 
 defaultname.calendar=calendario
 defaultname.contacts=contatti
@@ -32,8 +32,8 @@ status.carddavservernotfound=Impossibile trovare un server CardDAV.
 
 config.custom=Configurazione server CalDAV & CardDAV
 
-add.serverprofile.discovery=Servizio individuazione
-add.serverprofile.discovery.description=Funziona con la maggior parte delle installazioni di ownCloud, Nextcloud e di altri server Sabre/DAV.
+add.serverprofile.discovery=Configurazione automatica
+add.serverprofile.discovery.description=La maggior parte delle installazioni ownCloud, Nextcloud e altre sciabole / dav supportano il servizio di rilevamento per la configurazione automatica.
 add.serverprofile.discovery.details1=Se il server supporta il servizio individuazione, immettere semplicemente il nome host come URL server. Ad esempio: cloud.myserver.com. Se non funziona, torna indietro e seleziona Configurazione personalizzata.
 
 add.serverprofile.custom=Configurazione personalizzata
