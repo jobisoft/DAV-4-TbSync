@@ -9,8 +9,8 @@
 "use strict";
 // check if getItem returns an array because of recursions!
 
-// Every object in here will be loaded into tbSync.providers.<providername>.
-const dav = tbSync.providers.dav;
+// Every object in here will be loaded into TbSync.providers.<providername>.
+const dav = TbSync.providers.dav;
 
 /**
  * Implementing the TbSync interface for external provider extensions.
@@ -67,7 +67,7 @@ var Base = class {
      * Returns string for the name of provider for the add account menu.
      */
     static getProviderName() {
-        return tbSync.getString("menu.name", "dav");
+        return TbSync.getString("menu.name", "dav");
     }
 
 
@@ -133,7 +133,7 @@ var Base = class {
 
     /**
      * Returns the URL of the string bundle file of this provider, it can be
-     * accessed by tbSync.getString(<key>, <provider>)
+     * accessed by TbSync.getString(<key>, <provider>)
      */
     static getStringBundleUrl() {
         return "chrome://dav4tbsync/locale/dav.strings";
@@ -162,7 +162,7 @@ var Base = class {
      *    tbSyncEditAccountOverlay.onload(window, accountData)
      *
      * which is called each time an account of this provider is viewed/selected
-     * in the manager and provides the tbSync.AccountData of the corresponding
+     * in the manager and provides the TbSync.AccountData of the corresponding
      * account.
      */
     static getEditAccountOverlayUrl() {
@@ -293,7 +293,7 @@ var Base = class {
                                 comment: emailData[i].meta
                                                     .filter(entry => ["PREF","HOME","WORK"].includes(entry))
                                                     .map(entry => entry.toUpperCase() != "PREF" ? entry.toUpperCase() : entry.toLowerCase()).sort()
-                                                    .map(entry => tbSync.getString("autocomplete." + entry.toUpperCase() , "dav"))
+                                                    .map(entry => TbSync.getString("autocomplete." + entry.toUpperCase() , "dav"))
                                                     .join(", "),
                                 icon: dav.Base.getProviderIcon(16, accountData),
                                 style: "",				    
@@ -387,7 +387,7 @@ var Base = class {
      *                           syncDescription.maxAccountReruns.
      *
      * !!! NEVER CALL THIS FUNCTION DIRECTLY BUT USE !!!
-     *    tbSync.AccountData::sync()
+     *    TbSync.AccountData::sync()
      *
      * return StatusData
      */
@@ -411,7 +411,7 @@ var Base = class {
         }
 
         // we fall through, if there was no error
-        return new tbSync.StatusData();
+        return new TbSync.StatusData();
     }
     
 
@@ -428,8 +428,8 @@ var Base = class {
      *                           syncDescription.maxFolderReruns.
      *
      * !!! NEVER CALL THIS FUNCTION DIRECTLY BUT USE !!!
-     *    tbSync.AccountData::sync() or
-     *    tbSync.FolderData::sync()
+     *    TbSync.AccountData::sync() or
+     *    TbSync.FolderData::sync()
      *
      * return StatusData
      */
@@ -454,7 +454,7 @@ var Base = class {
         }
 
         // we fall through, if there was no error
-        return new tbSync.StatusData();
+        return new TbSync.StatusData();
     }
 }
 
@@ -473,7 +473,7 @@ var StandardAddressbookTarget = {
 
 
     generatePrimaryKey: function (folderData) {
-         return folderData.getFolderProperty("href") + tbSync.generateUUID() + ".vcf";
+         return folderData.getFolderProperty("href") + TbSync.generateUUID() + ".vcf";
     },
     
 
@@ -504,7 +504,7 @@ var StandardAddressbookTarget = {
             case "addrbook-contact-created":
             {
                 //Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for Card <"+ abCardItem.getProperty("DisplayName")+">");
-                abCardItem.setProperty("X-DAV-UID", tbSync.generateUUID());
+                abCardItem.setProperty("X-DAV-UID", TbSync.generateUUID());
                 // the card is tagged with "_by_user" so it will not be changed to "_by_server" by the following modify
                 abCardItem.abDirectory.modifyItem(abCardItem);
                 break;
@@ -528,7 +528,7 @@ var StandardAddressbookTarget = {
             
             case "addrbook-list-created": 
                 //Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for List <"+abListItem.getProperty("ListName")+">");
-                abListItem.setProperty("X-DAV-UID", tbSync.generateUUID());
+                abListItem.setProperty("X-DAV-UID", TbSync.generateUUID());
                 // custom props of lists get updated directly, no need to call .modify()            
                 break;
         }
@@ -630,7 +630,7 @@ var StandardCalendarTarget = {
      * return the new calendar
      */
     createCalendar: function(newname, folderData) {
-        let calManager = tbSync.lightning.cal.getCalendarManager();
+        let calManager = TbSync.lightning.cal.getCalendarManager();
         let authData = dav.network.getAuthData(folderData.accountData);
       
         let caltype = folderData.getFolderProperty("type");
@@ -661,7 +661,7 @@ var StandardCalendarTarget = {
             newCalendar.name = newname;                
         } else {
             newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
-            newCalendar.id = tbSync.lightning.cal.getUUID();
+            newCalendar.id = TbSync.lightning.cal.getUUID();
             newCalendar.name = newname;
 
             newCalendar.setProperty("username", authData.username);
@@ -674,12 +674,12 @@ var StandardCalendarTarget = {
 
         // ICS urls do not need a password
         if (caltype != "ics") {
-            tbSync.dump("Searching CalDAV authRealm for", url.host);
+            TbSync.dump("Searching CalDAV authRealm for", url.host);
             let realm = (dav.network.listOfRealms.hasOwnProperty(url.host)) ? dav.network.listOfRealms[url.host] : "";
             if (realm !== "") {
-                tbSync.dump("Found CalDAV authRealm",  realm);
+                TbSync.dump("Found CalDAV authRealm",  realm);
                 //manually create a lightning style entry in the password manager
-                tbSync.passwordManager.updateLoginInfo(url.prePath, realm, /* old */ authData.username, /* new */ authData.username, authData.password);
+                TbSync.passwordManager.updateLoginInfo(url.prePath, realm, /* old */ authData.username, /* new */ authData.username, authData.password);
             }
         }
 
@@ -771,7 +771,7 @@ var StandardFolderList = class {
      */ 
     static getAttributesRoAcl(folderData) {
         return {
-            label: tbSync.getString("acl.readonly", "dav"),
+            label: TbSync.getString("acl.readonly", "dav"),
         };
     }
     
@@ -789,13 +789,13 @@ var StandardFolderList = class {
     static getAttributesRwAcl(folderData) {
         let acl = parseInt(folderData.getFolderProperty("acl"));
         let acls = [];
-        if (acl & 0x2) acls.push(tbSync.getString("acl.modify", "dav"));
-        if (acl & 0x4) acls.push(tbSync.getString("acl.add", "dav"));
-        if (acl & 0x8) acls.push(tbSync.getString("acl.delete", "dav"));
-        if (acls.length == 0)  acls.push(tbSync.getString("acl.none", "dav"));
+        if (acl & 0x2) acls.push(TbSync.getString("acl.modify", "dav"));
+        if (acl & 0x4) acls.push(TbSync.getString("acl.add", "dav"));
+        if (acl & 0x8) acls.push(TbSync.getString("acl.delete", "dav"));
+        if (acls.length == 0)  acls.push(TbSync.getString("acl.none", "dav"));
 
         return {
-            label: tbSync.getString("acl.readwrite::"+acls.join(", "), "dav"),
+            label: TbSync.getString("acl.readwrite::"+acls.join(", "), "dav"),
             disabled: (acl & 0x7) != 0x7,
         }             
     }

@@ -8,7 +8,7 @@
 
 "use strict";
 
-const dav = tbSync.providers.dav;
+const dav = TbSync.providers.dav;
 
 var tbSyncEditAccountOverlay = {
 
@@ -23,9 +23,9 @@ var tbSyncEditAccountOverlay = {
         if (configlabel) {
             let extra = "";
             if (isServiceProvider) {
-                extra = " [" + tbSync.getString("add.serverprofile." + serviceprovider, "dav") + "]";
+                extra = " [" + TbSync.getString("add.serverprofile." + serviceprovider, "dav") + "]";
             }
-            configlabel.setAttribute("value", tbSync.getString("config.custom", "dav") + extra);
+            configlabel.setAttribute("value", TbSync.getString("config.custom", "dav") + extra);
         }
 
         //set certain elements as "alwaysDisable", if locked by service provider

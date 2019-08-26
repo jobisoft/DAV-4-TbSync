@@ -8,7 +8,7 @@
  
  "use strict";
 
-var { tbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
+var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
 
 var tbSyncDavAddressBook = {
 
@@ -35,8 +35,8 @@ var tbSyncDavAddressBook = {
     onAbDirectorySelectionChanged: function () {
         //TODO: Do not do this, if provider did not change
         //remove our details injection (if injected)
-         tbSync.providers.dav.overlayManager.removeOverlay(window, "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
+         TbSync.providers.dav.overlayManager.removeOverlay(window, "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
         //inject our details injection (if the new selected book is us)
-         tbSync.providers.dav.overlayManager.injectOverlay(window, "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
+         TbSync.providers.dav.overlayManager.injectOverlay(window, "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
     }
 }

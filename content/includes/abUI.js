@@ -226,7 +226,7 @@ var ui = {
         
         //richlistitem
         let richlistitem = aDocument.createXULElement("richlistitem");
-        richlistitem.setAttribute("id", "entry_" + tbSync.generateUUID());
+        richlistitem.setAttribute("id", "entry_" + TbSync.generateUUID());
         richlistitem.appendChild(outerhbox);
         
         return richlistitem;
@@ -414,7 +414,7 @@ var ui = {
         
         //richlistitem
         let richlistitem = aDocument.createXULElement("richlistitem");
-        richlistitem.setAttribute("id", "entry_" + tbSync.generateUUID());
+        richlistitem.setAttribute("id", "entry_" + TbSync.generateUUID());
         richlistitem.appendChild(outerhbox);
         
         return richlistitem;

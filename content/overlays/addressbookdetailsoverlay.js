@@ -8,7 +8,7 @@
  
  "use strict";
 
-var { tbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
+var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
 
 var tbSyncDavAddressBookDetails = {
     
@@ -62,7 +62,7 @@ var tbSyncDavAddressBookDetails = {
             let aCard = cards[0];
 
             //function to get correct uri of current card for global book as well for mailLists
-            let abUri = tbSync.providers.dav.ui.getSelectedUri(window.GetSelectedDirectory(), aCard);
+            let abUri = TbSync.providers.dav.ui.getSelectedUri(window.GetSelectedDirectory(), aCard);
             if (MailServices.ab.getDirectory(abUri).getStringValue("tbSyncProvider", "") != "dav") {
                 window.document.getElementById("cvbEmails").collapsed = true;
                 window.document.getElementById("cvbPhoneNumbers").collapsed =true;
@@ -70,7 +70,7 @@ var tbSyncDavAddressBookDetails = {
             }
             
             //add emails
-            let emails = tbSync.providers.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
+            let emails = TbSync.providers.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
             let emailDetails = window.document.getElementById("cvbEmailRows");        
             if (emailDetails) {
                 //remove all rows
@@ -79,7 +79,7 @@ var tbSyncDavAddressBookDetails = {
                 }
 
                 for (let i=0; i < emails.length; i++) {
-                    emailDetails.appendChild(tbSync.providers.dav.ui.getNewEmailDetailsRow(window, emails[i]));
+                    emailDetails.appendChild(TbSync.providers.dav.ui.getNewEmailDetailsRow(window, emails[i]));
                 }
                 
                 if (window.document.getElementById("cvbEmails")) {
@@ -88,7 +88,7 @@ var tbSyncDavAddressBookDetails = {
             }
             
             //add phone numbers
-            let phones = tbSync.providers.dav.tools.getPhoneNumbersFromCard(aCard); //array of objects {meta, value}
+            let phones = TbSync.providers.dav.tools.getPhoneNumbersFromCard(aCard); //array of objects {meta, value}
             let phoneDetails = window.document.getElementById("cvbPhoneRows");        
             if (phoneDetails) {
                 //remove all rows
@@ -97,7 +97,7 @@ var tbSyncDavAddressBookDetails = {
                 }
 
                 for (let i=0; i < phones.length; i++) {
-                    phoneDetails.appendChild(tbSync.providers.dav.ui.getNewPhoneDetailsRow(window, phones[i])); 
+                    phoneDetails.appendChild(TbSync.providers.dav.ui.getNewPhoneDetailsRow(window, phones[i])); 
                 }
                 
                 if (window.document.getElementById("cvbPhoneNumbers")) {

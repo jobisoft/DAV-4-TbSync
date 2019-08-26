@@ -9,14 +9,14 @@
 "use strict";
 
 var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
-var { tbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
+var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
 
-const dav = tbSync.providers.dav;
+const dav = TbSync.providers.dav;
 
 var tbSyncDavNewAccount = {
     
     onLoad: function () {
-        this.providerData = new tbSync.ProviderData("dav");
+        this.providerData = new TbSync.ProviderData("dav");
         
         this.elementName = document.getElementById('tbsync.newaccount.name');
         this.elementUser = document.getElementById('tbsync.newaccount.user');
@@ -42,8 +42,8 @@ var tbSyncDavNewAccount = {
     },
     
     addProviderEntry: function (icon, serviceprovider) {
-        let name =  tbSync.getString("add.serverprofile."+serviceprovider, "dav");
-        let description =  tbSync.getString("add.serverprofile."+serviceprovider+".description", "dav");
+        let name =  TbSync.getString("add.serverprofile."+serviceprovider, "dav");
+        let description =  TbSync.getString("add.serverprofile."+serviceprovider+".description", "dav");
         
         //left column
         let image = document.createXULElement("image");
@@ -92,7 +92,7 @@ var tbSyncDavNewAccount = {
         if (serviceprovider == "discovery" || serviceprovider == "custom") {
             this.elementName.value = "";
         } else {
-            this.elementName.value = tbSync.getString("add.serverprofile."+serviceprovider, "dav");
+            this.elementName.value = TbSync.getString("add.serverprofile."+serviceprovider, "dav");
         }
     },
     
@@ -110,7 +110,7 @@ var tbSyncDavNewAccount = {
         for (let i=1; i < 4; i++) {
             let dElement = document.getElementById("tbsync.newaccount.details" + i);
             let dLocaleString = "add.serverprofile."+serviceprovider+".details" + i;
-            let dLocaleValue = tbSync.getString(dLocaleString, "dav");
+            let dLocaleValue = TbSync.getString(dLocaleString, "dav");
             
             if (dLocaleValue == dLocaleString) {
                 dElement.textContent = "";
@@ -227,7 +227,7 @@ var tbSyncDavNewAccount = {
             
             //only needed for proper error reporting - that dav needs this is beyond API - connectionData is not used by TbSync
             //connectionData is a structure which contains all the information needed to establish and evaluate a network connection
-            connectionData.eventLogInfo = new tbSync.EventLogInfo("dav", accountname);
+            connectionData.eventLogInfo = new TbSync.EventLogInfo("dav", accountname);
 
             //build full url, so we do not need fqdn
             let url = "http" + (connectionData.https ? "s" : "") + "://" + davjobs[job].server;
@@ -239,14 +239,14 @@ var tbSyncDavNewAccount = {
                 davjobs[job].valid = (principal !== null);
                 if (!davjobs[job].valid) {
                     davjobs[job].error = job+"davservernotfound";
-                    tbSync.eventlog.add("warning", connectionData.eventLogInfo, davjobs[job].error, response.commLog);
+                    TbSync.eventlog.add("warning", connectionData.eventLogInfo, davjobs[job].error, response.commLog);
                 }
             } catch (e) {
                 davjobs[job].valid = false;
                 davjobs[job].error = e.statusData ? e.statusData.message : e.message;
                 
                 if (e.name == "dav4tbsync") {
-                    tbSync.eventlog.add("warning", connectionData.eventLogInfo, e.statusData.message ,e.statusData.details);
+                    TbSync.eventlog.add("warning", connectionData.eventLogInfo, e.statusData.message ,e.statusData.details);
                 } else {
                     Components.utils.reportError(e);
                 }
@@ -268,10 +268,10 @@ var tbSyncDavNewAccount = {
                 case "503":
                 case "network":
                 case "security":
-                    document.getElementById("tbsync.error.message").textContent = tbSync.getString("info.error") + ": " + tbSync.getString("status."+davjobs[badjob].error, "dav");
+                    document.getElementById("tbsync.error.message").textContent = TbSync.getString("info.error") + ": " + TbSync.getString("status."+davjobs[badjob].error, "dav");
                     break;
                 default:
-                    document.getElementById("tbsync.error.message").textContent = tbSync.getString("info.error") + ": " + tbSync.getString("status.networkerror", "dav");
+                    document.getElementById("tbsync.error.message").textContent = TbSync.getString("info.error") + ": " + TbSync.getString("status.networkerror", "dav");
             }
                         
             document.getElementById("tbsync.spinner").hidden = true;

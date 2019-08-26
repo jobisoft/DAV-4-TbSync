@@ -12,44 +12,44 @@
 var sync = {
 
     finish: function (aStatus = "", msg = "", details = "") {
-        let status = tbSync.StatusData.SUCCESS
+        let status = TbSync.StatusData.SUCCESS
         switch (aStatus) {
             
             case "":
             case "ok":
-                status = tbSync.StatusData.SUCCESS;
+                status = TbSync.StatusData.SUCCESS;
                 break;
             
             case "info":
-                status = tbSync.StatusData.INFO;
+                status = TbSync.StatusData.INFO;
                 break;
             
             case "resyncAccount":
-                status = tbSync.StatusData.ACCOUNT_RERUN;
+                status = TbSync.StatusData.ACCOUNT_RERUN;
                 break;
 
             case "resyncFolder":
-                status = tbSync.StatusData.FOLDER_RERUN;
+                status = TbSync.StatusData.FOLDER_RERUN;
                 break;
             
             case "warning":
-                status = tbSync.StatusData.WARNING;
+                status = TbSync.StatusData.WARNING;
                 break;
             
             case "error":
-                status = tbSync.StatusData.ERROR;
+                status = TbSync.StatusData.ERROR;
                 break;
 
             default:
                 console.log("TbSync/DAV: Unknown status <"+aStatus+">");
-                status = tbSync.StatusData.ERROR;
+                status = TbSync.StatusData.ERROR;
                 break;
         }
         
         let e = new Error(); 
         e.name = "dav4tbsync";
         e.message = status.toUpperCase() + ": " + msg.toString() + " (" + details.toString() + ")";
-        e.statusData = new tbSync.StatusData(status, msg.toString(), details.toString());        
+        e.statusData = new TbSync.StatusData(status, msg.toString(), details.toString());        
         return e; 
     }, 
 
@@ -121,7 +121,7 @@ var sync = {
             syncData.connectionData = new dav.network.ConnectionData(syncData);
             
             //only do that, if a new calendar has been enabled
-            tbSync.network.resetContainerForUser(syncData.connectionData.username);
+            TbSync.network.resetContainerForUser(syncData.connectionData.username);
             
             syncData.setSyncState("send.getfolders");
             {
@@ -174,7 +174,7 @@ var sync = {
                 home = home.filter((v,i,a) => a.indexOf(v) == i);
             } else {
                 // do not throw here, but log the error and skip this server
-                tbSync.eventlog.add("error", syncData.eventLogInfo, job+"davservernotfound", davjobs[job].serve);
+                TbSync.eventlog.add("error", syncData.eventLogInfo, job+"davservernotfound", davjobs[job].serve);
             }
 
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
@@ -234,7 +234,7 @@ var sync = {
                         if (resourcetype == "ics") href =  dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cs","source"], ["d","href"]]).textContent;
                         
                         let name_node = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","displayname"]]);
-                        let name = tbSync.getString("defaultname." +  ((job == "cal") ? "calendar" : "contacts") , "dav");
+                        let name = TbSync.getString("defaultname." +  ((job == "cal") ? "calendar" : "contacts") , "dav");
                         if (name_node != null) {
                             name = name_node.textContent;
                         }
@@ -286,7 +286,7 @@ var sync = {
 
                         // Update color from server (skip if nolightning, no
                         // need to run into error when hasTarget() throws).
-                        if (color && job == "cal" && tbSync.lightning.isAvailable()) {
+                        if (color && job == "cal" && TbSync.lightning.isAvailable()) {
                             color = color.textContent.substring(0,7);
                             folderData.setFolderProperty("targetColor", color);
                             
@@ -486,7 +486,7 @@ var sync = {
                     vCardsDeletedOnServer.push(card);
                 } else {
                     //We received something, that is not a DEL, MOD or ADD
-                    tbSync.eventlog.add("warning", syncData.eventLogInfo, "Unknown XML", JSON.stringify(cards.multi[c]));
+                    TbSync.eventlog.add("warning", syncData.eventLogInfo, "Unknown XML", JSON.stringify(cards.multi[c]));
                 }
             }
         }
@@ -647,16 +647,16 @@ var sync = {
                         }
                         //Feedback from users: They want to see the individual count
                         syncData.setSyncState("eval.response.remotechanges");		
-                        await tbSync.tools.sleep(100);
+                        await TbSync.tools.sleep(100);
                     } else {
-                        tbSync.dump("Skipped Card", [id, cards.multi[c].status == "200", etag !== null, data !== null, id !== null, vCardsChangedOnServer.hasOwnProperty(id)].join(", "));
+                        TbSync.dump("Skipped Card", [id, cards.multi[c].status == "200", etag !== null, data !== null, id !== null, vCardsChangedOnServer.hasOwnProperty(id)].join(", "));
                     }
                 }
             }
         }
         // Feedback from users: They want to see the final count.
         syncData.setSyncState("eval.response.remotechanges");		
-        await tbSync.tools.sleep(200);
+        await TbSync.tools.sleep(200);
     
         // On down sync, mailinglists need to be done at the very end so all member data is avail.
         if (syncData.accountData.getAccountProperty("syncGroups")) {
@@ -708,7 +708,7 @@ var sync = {
 
             syncData.progressData.inc(chunk);
             syncData.setSyncState("eval.response.remotechanges");
-            await tbSync.tools.sleep(200); //we want the user to see, that deletes are happening
+            await TbSync.tools.sleep(200); //we want the user to see, that deletes are happening
 
             for (let j=0; j < chunk; j++) {
                 syncData.target.deleteItem(cards2delete[i+j]);
@@ -771,11 +771,11 @@ var sync = {
                                         syncData.setSyncState("eval.response.localchanges");
                                         if (response && response.softerror) {
                                             permissionError[changes[i].status] = true;
-                                            tbSync.eventlog.add("warning", syncData.eventLogInfo, "missing-permission::" + tbSync.getString(isAdding ? "acl.add" : "acl.modify", "dav"));
+                                            TbSync.eventlog.add("warning", syncData.eventLogInfo, "missing-permission::" + TbSync.getString(isAdding ? "acl.add" : "acl.modify", "dav"));
                                         }
                                     }
                                 } else {
-                                    tbSync.eventlog.add("warning", syncData.eventLogInfo, "cardnotfoundbutinchangelog::" + changes[i].itemId + "/" + changes[i].status);
+                                    TbSync.eventlog.add("warning", syncData.eventLogInfo, "cardnotfoundbutinchangelog::" + changes[i].itemId + "/" + changes[i].status);
                                 }
                             }
 
@@ -798,7 +798,7 @@ var sync = {
                                 if (response  && response.softerror) {
                                     if (response.softerror != 404) { //we cannot do anything about a 404 on delete, the card has been deleted here and is not avail on server
                                         permissionError[changes[i].status] = true;
-                                        tbSync.eventlog.add("warning", syncData.eventLogInfo, "missing-permission::" + tbSync.getString("acl.delete", "dav"));
+                                        TbSync.eventlog.add("warning", syncData.eventLogInfo, "missing-permission::" + TbSync.getString("acl.delete", "dav"));
                                     }
                                 }
                             }

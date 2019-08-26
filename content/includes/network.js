@@ -21,12 +21,12 @@ var network = {
         },
 
         get password() {
-          return tbSync.passwordManager.getLoginInfo(this.host, "TbSync/DAV", this.username);
+          return TbSync.passwordManager.getLoginInfo(this.host, "TbSync/DAV", this.username);
         },
         
         updateLoginData: function(newUsername, newPassword) {
           let oldUsername = this.username;
-          tbSync.passwordManager.updateLoginInfo(this.host, "TbSync/DAV", oldUsername, newUsername, newPassword);
+          TbSync.passwordManager.updateLoginInfo(this.host, "TbSync/DAV", oldUsername, newUsername, newPassword);
           // Also update the username of this account.
           accountData.setAccountProperty("user", newUsername);
         },
@@ -57,21 +57,21 @@ var network = {
       let folderData = null;
       let accountData = null;            
       
-      if (data instanceof tbSync.SyncData) {
+      if (data instanceof TbSync.SyncData) {
         folderData = data.currentFolderData;
         accountData = data.accountData;
         this._eventLogInfo = data.eventLogInfo;                
-      } else if (data instanceof tbSync.FolderData) {
+      } else if (data instanceof TbSync.FolderData) {
         folderData = data;
         accountData = data.accountData;
-        this._eventLogInfo =  new tbSync.EventLogInfo(
+        this._eventLogInfo =  new TbSync.EventLogInfo(
           accountData.getAccountProperty("provider"),
           accountData.getAccountProperty("accountname"),
           accountData.accountID,
           folderData.getFolderProperty("foldername"));
-      } else if (data instanceof tbSync.AccountData) {
+      } else if (data instanceof TbSync.AccountData) {
         accountData = data;
-        this._eventLogInfo =  new tbSync.EventLogInfo(
+        this._eventLogInfo =  new TbSync.EventLogInfo(
           accountData.getAccountProperty("provider"),
           accountData.getAccountProperty("accountname"),
           accountData.accountID,
@@ -135,10 +135,10 @@ var network = {
     //                    in nsIAuthInformation authInfo)
     promptAuth (aChannel, aLevel, aAuthInfo) {
       // Store aAuthInfo.realm, needed later to setup lightning passwords.
-      tbSync.dump("PROMPTING", (this.mConnection.type));
+      TbSync.dump("PROMPTING", (this.mConnection.type));
 
       if (this.mConnection.type == "cal") {
-        tbSync.dump("Found CalDAV authRealm for <"+aChannel.URI.host+">", aAuthInfo.realm);
+        TbSync.dump("Found CalDAV authRealm for <"+aChannel.URI.host+">", aAuthInfo.realm);
         dav.network.listOfRealms[aChannel.URI.host] = aAuthInfo.realm;
       }
       
@@ -239,7 +239,7 @@ var network = {
   },
 
   prepHttpChannel: function(aUploadData, aHeaders, aMethod, aConnection, aNotificationCallbacks=null) {
-    let userContextId = tbSync.network.getContainerIdForUser(aConnection.username);
+    let userContextId = TbSync.network.getContainerIdForUser(aConnection.username);
     let channel = Services.io.newChannelFromURI(
             aConnection.uri,
             null,
@@ -280,13 +280,13 @@ var network = {
     // A few bugs in TB and in client implementations require to retry a connection on certain failures.
     const MAX_RETRIES = 5;
     for (let i=1; i <= MAX_RETRIES; i++) {
-      tbSync.dump("URL Request #" + i, url);
+      TbSync.dump("URL Request #" + i, url);
 
       connectionData.uri = Services.io.newURI(url);
 
       // https://bugzilla.mozilla.org/show_bug.cgi?id=669675
       if (dav.network.problematicHosts.includes(connectionData.uri.host)) {
-        headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connectionData.username + ":" + connectionData.password);
+        headers["Authorization"] = "Basic " + TbSync.tools.b64encode(connectionData.username + ":" + connectionData.password);
       }
       
       let r = await dav.network.useHttpChannel(requestData, method, connectionData, headers, options, aUseStreamLoader);
@@ -294,8 +294,8 @@ var network = {
       // ConnectionData.uri.host may no longer be the correct value, as there might have been redirects, use connectionData.fqdn .
       if (r && r.retry && r.retry === true) {
         if (r.addBasicAuthHeaderOnce) {
-          tbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + connectionData.username + "@" + connectionData.fqdn + ">");
-          headers["Authorization"] = "Basic " + tbSync.tools.b64encode(connectionData.username + ":" + connectionData.password);
+          TbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + connectionData.username + "@" + connectionData.fqdn + ">");
+          headers["Authorization"] = "Basic " + TbSync.tools.b64encode(connectionData.username + ":" + connectionData.password);
         } else if (r.passwordPrompt && r.passwordPrompt === true) {
           if (i == MAX_RETRIES) {
             // If this is the final retry, abort with error.
@@ -312,7 +312,7 @@ var network = {
                 username: connectionData.username,                
               }
               connectionData.accountData.syncData.setSyncState("passwordprompt");
-              credentials = await tbSync.passwordManager.asyncPasswordPrompt(promptData, dav.openWindows);
+              credentials = await TbSync.passwordManager.asyncPasswordPrompt(promptData, dav.openWindows);
             }
 
             if (credentials) {
@@ -326,7 +326,7 @@ var network = {
             }
           }
         } else if (r.addToProblematicHosts && r.addToProblematicHosts === true && !dav.network.problematicHosts.includes(connectionData.fqdn) ) {
-          tbSync.dump("BUG 669675", "Adding <" + connectionData.fqdn + "> to list of problematic hosts.");
+          TbSync.dump("BUG 669675", "Adding <" + connectionData.fqdn + "> to list of problematic hosts.");
           dav.network.problematicHosts.push(connectionData.fqdn)
         }
         
@@ -345,8 +345,8 @@ var network = {
     let responseData = "";
     
     //do not log HEADERS, as it could contain an Authorization header
-    //tbSync.dump("HEADERS", JSON.stringify(headers));
-    if (tbSync.prefs.getIntPref("log.userdatalevel")>1) tbSync.dump("REQUEST", method + " : " + requestData);
+    //TbSync.dump("HEADERS", JSON.stringify(headers));
+    if (TbSync.prefs.getIntPref("log.userdatalevel")>1) TbSync.dump("REQUEST", method + " : " + requestData);
   
     return new Promise(function(resolve, reject) {                  
       let listener = {
@@ -365,7 +365,7 @@ var network = {
             this._stream.init(aInputStream);
           }
           let d = this._stream.read(aCount);
-          //tbSync.dump("STREAM", d);
+          //TbSync.dump("STREAM", d);
           this._data += d;
         },        
         onStopRequest: function(aRequest, aContext, aStatusCode) {
@@ -384,7 +384,7 @@ var network = {
           try {
             responseStatus = aChannel.responseStatus;
           } catch (ex) {
-            let error = tbSync.network.createTCPErrorFromFailedRequest(aChannel);
+            let error = TbSync.network.createTCPErrorFromFailedRequest(aChannel);
             if (!error) {
               return reject(dav.sync.finish("error", "networkerror", "URL:\n" + connectionData.uri.spec + " ("+method+")")); //reject/resolve do not terminate control flow
             } else {
@@ -392,18 +392,18 @@ var network = {
             }
           }
           
-          if (tbSync.prefs.getIntPref("log.userdatalevel")>1) tbSync.dump("RESPONSE", responseStatus + " ("+aChannel.responseStatusText+")" + " : " + aResult);
+          if (TbSync.prefs.getIntPref("log.userdatalevel")>1) TbSync.dump("RESPONSE", responseStatus + " ("+aChannel.responseStatusText+")" + " : " + aResult);
           responseData = aResult.split("><").join(">\n<");
           
           //Redirected? Update connection settings from current URL
           if (aChannel.URI) {
             let newHttps = (aChannel.URI.scheme == "https");
             if (connectionData.https != newHttps) {
-              tbSync.dump("Updating HTTPS", connectionData.https + " -> " + newHttps);
+              TbSync.dump("Updating HTTPS", connectionData.https + " -> " + newHttps);
               connectionData.https = newHttps;
             }
             if (connectionData.fqdn != aChannel.URI.hostPort) {
-              tbSync.dump("Updating FQDN", connectionData.fqdn + " -> " + aChannel.URI.hostPort);
+              TbSync.dump("Updating FQDN", connectionData.fqdn + " -> " + aChannel.URI.hostPort);
               connectionData.fqdn = aChannel.URI.hostPort;
             }
           }
@@ -542,7 +542,7 @@ var network = {
                   }
                 }
                 //manually log this non-fatal error
-                tbSync.eventlog.add("info", connectionData.eventLogInfo, "softerror::"+responseStatus, commLog);
+                TbSync.eventlog.add("info", connectionData.eventLogInfo, "softerror::"+responseStatus, commLog);
                 return resolve(noresponse);
               } else {
                 return reject(dav.sync.finish("warning", responseStatus, commLog)); 
@@ -557,21 +557,21 @@ var network = {
         // nsIInterfaceRequestor
         getInterface : function(aIID) {
           if (aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
-            tbSync.dump("GET","nsIAuthPrompt2");
+            TbSync.dump("GET","nsIAuthPrompt2");
             if (!this.authPrompt) {
               this.authPrompt = new dav.network.Prompt(connectionData);
             }
             return this.authPrompt;
           } else if (aIID.equals(Components.interfaces.nsIAuthPrompt)) {
-            //tbSync.dump("GET","nsIAuthPrompt");
+            //TbSync.dump("GET","nsIAuthPrompt");
           } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider)) {
-            //tbSync.dump("GET","nsIAuthPromptProvider");
+            //TbSync.dump("GET","nsIAuthPromptProvider");
           } else if (aIID.equals(Components.interfaces.nsIPrompt)) {
-            //tbSync.dump("GET","nsIPrompt");
+            //TbSync.dump("GET","nsIPrompt");
           } else if (aIID.equals(Components.interfaces.nsIProgressEventSink)) {
-            //tbSync.dump("GET","nsIProgressEventSink");
+            //TbSync.dump("GET","nsIProgressEventSink");
           } else if (aIID.equals(Components.interfaces.nsIChannelEventSink)) {
-            //tbSync.dump("GET","nsIChannelEventSink");
+            //TbSync.dump("GET","nsIChannelEventSink");
             return dav.network.Redirect;
           }
 

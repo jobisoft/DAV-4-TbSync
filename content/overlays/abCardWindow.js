@@ -8,7 +8,7 @@
  
  "use strict";
 
-var { tbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
+var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
 var { OS }  =ChromeUtils.import("resource://gre/modules/osfile.jsm");
 
 var tbSyncAbDavCardWindow = {
@@ -21,7 +21,7 @@ var tbSyncAbDavCardWindow = {
             aParentDirURI = window.document.getElementById("abPopup").value;
         } else {
             //function to get correct uri of current card for global book as well for mailLists
-            aParentDirURI = tbSync.providers.dav.ui.getSelectedUri(window.arguments[0].abURI, window.arguments[0].card);
+            aParentDirURI = TbSync.providers.dav.ui.getSelectedUri(window.arguments[0].abURI, window.arguments[0].card);
         }
         
         //returning false will prevent injection
@@ -101,28 +101,28 @@ var tbSyncAbDavCardWindow = {
         }
 
         //get all emails with metadata from card
-        let emails = tbSync.providers.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
+        let emails = TbSync.providers.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
         //add emails to list
         let emailList = aDocument.getElementById("X-DAV-EmailAddressList");
         for (let i=0; i < emails.length; i++) {
-            let item = tbSync.providers.dav.ui.getNewEmailListItem(aDocument, emails[i]);
+            let item = TbSync.providers.dav.ui.getNewEmailListItem(aDocument, emails[i]);
             emailList.appendChild(item);
 
-            tbSync.providers.dav.ui.updateType(aDocument,  tbSync.providers.dav.ui.getEmailListItemElement(item, "button"));
-            tbSync.providers.dav.ui.updatePref(aDocument, tbSync.providers.dav.ui.getEmailListItemElement(item, "pref"));		
+            TbSync.providers.dav.ui.updateType(aDocument,  TbSync.providers.dav.ui.getEmailListItemElement(item, "button"));
+            TbSync.providers.dav.ui.updatePref(aDocument, TbSync.providers.dav.ui.getEmailListItemElement(item, "pref"));		
         }
 
         //get all phone numbers with metadata from card
-        let phones = tbSync.providers.dav.tools.getPhoneNumbersFromCard(aCard); //array of objects {meta, value}
+        let phones = TbSync.providers.dav.tools.getPhoneNumbersFromCard(aCard); //array of objects {meta, value}
         //add phones to list
         let phoneList = aDocument.getElementById("X-DAV-PhoneNumberList");
         for (let i=0; i < phones.length; i++) {
-            let item = tbSync.providers.dav.ui.getNewPhoneListItem(aDocument, phones[i]);
+            let item = TbSync.providers.dav.ui.getNewPhoneListItem(aDocument, phones[i]);
             phoneList.appendChild(item);
 
-            tbSync.providers.dav.ui.updateType(aDocument,  tbSync.providers.dav.ui.getPhoneListItemElement(item, "button1"));
-            tbSync.providers.dav.ui.updateType(aDocument,  tbSync.providers.dav.ui.getPhoneListItemElement(item, "button2"));
-            tbSync.providers.dav.ui.updatePref(aDocument, tbSync.providers.dav.ui.getPhoneListItemElement(item, "pref"));		
+            TbSync.providers.dav.ui.updateType(aDocument,  TbSync.providers.dav.ui.getPhoneListItemElement(item, "button1"));
+            TbSync.providers.dav.ui.updateType(aDocument,  TbSync.providers.dav.ui.getPhoneListItemElement(item, "button2"));
+            TbSync.providers.dav.ui.updatePref(aDocument, TbSync.providers.dav.ui.getPhoneListItemElement(item, "pref"));		
         }
 
     },

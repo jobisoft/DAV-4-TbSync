@@ -860,8 +860,8 @@ var tools = {
 
     //update send from server to client
     setThunderbirdCardFromVCard: function(syncData, card, vCardData, oCardData = null) {
-        if (tbSync.prefs.getIntPref("log.userdatalevel")>1) tbSync.dump("JSON from vCard", JSON.stringify(vCardData));
-        //if (oCardData) tbSync.dump("JSON from oCard", JSON.stringify(oCardData));
+        if (TbSync.prefs.getIntPref("log.userdatalevel")>1) TbSync.dump("JSON from vCard", JSON.stringify(vCardData));
+        //if (oCardData) TbSync.dump("JSON from oCard", JSON.stringify(oCardData));
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
@@ -883,7 +883,7 @@ var tools = {
                             if (newServerValue) {
                                 //set if supported
                                 if (vCardData[vCardField.item][0].meta && vCardData[vCardField.item][0].meta.encoding) {
-                                    card.addPhoto(tbSync.generateUUID() + '.jpg', vCardData["photo"][0].value);
+                                    card.addPhoto(TbSync.generateUUID() + '.jpg', vCardData["photo"][0].value);
                                 }
                             } else {
                                 //clear
@@ -991,19 +991,19 @@ var tools = {
         let uidProp = list.getProperty("X-DAV-UID");
         let uidItem = ""; try { uidItem = vCardData["uid"][0].value; } catch (e) {}
         if (!uidItem && !uidProp) {
-            tbSync.eventlog.add("info", syncData.eventLogInfo, "Generated missing UID for list <"+listName+">");
-            let uid = tbSync.generateUUID();
+            TbSync.eventlog.add("info", syncData.eventLogInfo, "Generated missing UID for list <"+listName+">");
+            let uid = TbSync.generateUUID();
             list.setProperty("X-DAV-UID", uid);
             vCardData["uid"] = [{"value": uid}];
         } else if (!uidItem && uidProp) {
             vCardData["uid"] = [{"value": uidProp}];
-            tbSync.eventlog.add("info", syncData.eventLogInfo, "Updating item uid from uid property for list <"+listName+">", JSON.stringify({uidProp, uidItem}));
+            TbSync.eventlog.add("info", syncData.eventLogInfo, "Updating item uid from uid property for list <"+listName+">", JSON.stringify({uidProp, uidItem}));
         } else if (uidItem && !uidProp) {
             list.setProperty("X-DAV-UID", uidItem);
-            tbSync.eventlog.add("info", syncData.eventLogInfo, "Updating uid property from item uid of list <"+listName+">", JSON.stringify({uidProp, uidItem}));
+            TbSync.eventlog.add("info", syncData.eventLogInfo, "Updating uid property from item uid of list <"+listName+">", JSON.stringify({uidProp, uidItem}));
         } else if (uidItem != uidProp) {
             list.setProperty("X-DAV-UID", uidItem);
-            tbSync.eventlog.add("info", syncData.eventLogInfo, "Updating uid property from item uid of list <"+listName+">", JSON.stringify({uidProp, uidItem}));
+            TbSync.eventlog.add("info", syncData.eventLogInfo, "Updating uid property from item uid of list <"+listName+">", JSON.stringify({uidProp, uidItem}));
         }
 
         //build memberlist from scratch  
@@ -1018,9 +1018,9 @@ var tools = {
 
         let modified = false;
         if (oldCard != newCard) {
-            tbSync.dump("List has been modified!","");
-            tbSync.dump("currentCard", oldCard);
-            tbSync.dump("newCard", newCard);
+            TbSync.dump("List has been modified!","");
+            TbSync.dump("currentCard", oldCard);
+            TbSync.dump("newCard", newCard);
             modified = true;
         }        
         return {data: newCard, etag: list.getProperty("X-DAV-ETAG"), modified: modified};
@@ -1044,9 +1044,9 @@ var tools = {
                 case "Photo":
                     {
                         if (card.getProperty("PhotoType", "") == "file") {
-                            tbSync.eventlog.add("info", syncData.eventLogInfo, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
+                            TbSync.eventlog.add("info", syncData.eventLogInfo, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, card.getPhoto());
-                            tbSync.eventlog.add("info", syncData.eventLogInfo, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
+                            TbSync.eventlog.add("info", syncData.eventLogInfo, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             vCardData[vCardField.item][0].meta = {"encoding": ["b"], "type": ["JPEG"]};
                         }
                     }
@@ -1155,21 +1155,21 @@ var tools = {
         let uidProp = card.getProperty("X-DAV-UID");
         let uidItem = ""; try { uidItem = vCardData["uid"][0].value; } catch (e) {}
         if (!uidItem && !uidProp) {
-            tbSync.eventlog.add("info", syncData.eventLogInfo, "Generated missing UID for card <"+listName+">");
-            let uid = tbSync.generateUUID();
+            TbSync.eventlog.add("info", syncData.eventLogInfo, "Generated missing UID for card <"+listName+">");
+            let uid = TbSync.generateUUID();
             card.setProperty("X-DAV-UID", uid);
             vCardData["uid"] = [{"value": uid}];
             syncData.target.modifyItem(card);
         } else if (!uidItem && uidProp) {
             vCardData["uid"] = [{"value": uidProp}];
-            tbSync.eventlog.add("info", syncData.eventLogInfo, "Updating item uid from uid property for card <"+listName+">", JSON.stringify({uidProp, uidItem}));
+            TbSync.eventlog.add("info", syncData.eventLogInfo, "Updating item uid from uid property for card <"+listName+">", JSON.stringify({uidProp, uidItem}));
         } else if (uidItem && !uidProp) {
             card.setProperty("X-DAV-UID", uidItem);
-            tbSync.eventlog.add("info", syncData.eventLogInfo, "Updating uid property from item uid of card <"+listName+">", JSON.stringify({uidProp, uidItem}));
+            TbSync.eventlog.add("info", syncData.eventLogInfo, "Updating uid property from item uid of card <"+listName+">", JSON.stringify({uidProp, uidItem}));
             syncData.target.modifyItem(card);
         } else if (uidItem != uidProp) {
             card.setProperty("X-DAV-UID", uidItem);
-            tbSync.eventlog.add("info", syncData.eventLogInfo, "Updating uid property from item uid of card <"+listName+">", JSON.stringify({uidProp, uidItem}));
+            TbSync.eventlog.add("info", syncData.eventLogInfo, "Updating uid property from item uid of card <"+listName+">", JSON.stringify({uidProp, uidItem}));
             syncData.target.modifyItem(card);
         }
 
@@ -1184,9 +1184,9 @@ var tools = {
 
         let modified = false;
         if (oldCard != newCard) {
-            tbSync.dump("Card has been modified!","");
-            tbSync.dump("currentCard", oldCard);
-            tbSync.dump("newCard", newCard);
+            TbSync.dump("Card has been modified!","");
+            TbSync.dump("currentCard", oldCard);
+            TbSync.dump("newCard", newCard);
             modified = true;
         }
         return {data: newCard, etag: card.getProperty("X-DAV-ETAG"), modified: modified};
