@@ -69,7 +69,7 @@ var tools = {
      * @param {octet[]} aResult         The bytes to convert
      * @param {String} aCharset         The character set of the bytes, defaults to utf-8
      * @param {Boolean} aThrow          If true, the function will raise an exception on error
-     * @return {?String}                The string result, or null on error
+     * @returns {?String}                The string result, or null on error
      */
     convertByteArray: function(aResult, aCharset="utf-8", aThrow) {
         try {
@@ -86,7 +86,7 @@ var tools = {
      * Removes XML-invalid characters from a string.
      * @param {string} string - a string potentially containing XML-invalid characters, such as non-UTF8 characters, STX, EOX and so on.
      * @param {boolean} removeDiscouragedChars - a string potentially containing XML-invalid characters, such as non-UTF8 characters, STX, EOX and so on.
-     * @return : a sanitized string without all the XML-invalid characters.
+     * @returns : a sanitized string without all the XML-invalid characters.
      *
      * Source: https://www.ryadel.com/en/javascript-remove-xml-invalid-chars-characters-string-utf8-unicode-regex/
      */
