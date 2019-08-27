@@ -755,8 +755,12 @@ var sync = {
 
                                 let card = syncData.target.getItem(changes[i].itemId);
                                 if (card) {
-                                    if (card.isMailList && !syncGroups)
-                                        continue;
+                                    if (card.isMailList && !syncGroups) {                                        
+                                        // Conditionally break out of the switch early, but do
+                                        // execute the cleanup code below the switch. A continue would
+                                        // miss that.
+                                        break;
+                                    }
                                     
                                     let vcard = card.isMailList
                                                         ? dav.tools.getVCardFromThunderbirdListCard(syncData, card, isAdding)
