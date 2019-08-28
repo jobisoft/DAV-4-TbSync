@@ -297,7 +297,7 @@ var sync = {
                             folderData.setFolderProperty("targetColor", color);
                             
                             // Do we have to update the calendar?
-                            if (folderData.targetData.hasTarget()) {
+                            if (folderData.targetData && folderData.targetData.hasTarget()) {
                                 try {
                                     let targetCal = folderData.targetData.getTarget();
                                     targetCal.calendar.setProperty("color", color);
