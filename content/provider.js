@@ -188,6 +188,7 @@ var Base = class {
             "shared": false, //identify shared resources
             "acl": "", //acl send from server
             "targetColor" : "",
+            "targetName" : "",
             "ctag" : "",
             "token" : "",
             "createdWithProviderVersion" : "0",
