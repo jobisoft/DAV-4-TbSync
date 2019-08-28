@@ -384,8 +384,8 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
         return "X-DAV-HREF"
     }
 
-    generatePrimaryKey(folderData) {
-        return folderData.getFolderProperty("href") + TbSync.generateUUID() + ".vcf";
+    generatePrimaryKey() {
+        return this._folderData.getFolderProperty("href") + TbSync.generateUUID() + ".vcf";
     }
         
     // enable or disable changelog
@@ -393,16 +393,16 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
         return true;
     }
 
-    directoryObserver(aTopic, folderData) {
+    directoryObserver(aTopic) {
         switch (aTopic) {
             case "addrbook-removed":
             case "addrbook-updated":
-                //Services.console.logStringMessage("["+ aTopic + "] " + folderData.getFolderProperty("foldername"));
+                //Services.console.logStringMessage("["+ aTopic + "] " + this._folderData.getFolderProperty("foldername"));
                 break;
         }
     }
         
-    cardObserver(aTopic, folderData, abCardItem) {
+    cardObserver(aTopic, abCardItem) {
         switch (aTopic) {
             case "addrbook-contact-updated":
             case "addrbook-contact-removed":
@@ -420,7 +420,7 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
         }
     }
 
-    listObserver(aTopic, folderData, abListItem, abListMember) {
+    listObserver(aTopic, abListItem, abListMember) {
         switch (aTopic) {
             case "addrbook-list-member-added":
             case "addrbook-list-member-removed":
