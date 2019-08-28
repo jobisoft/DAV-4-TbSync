@@ -175,7 +175,6 @@ var Base = class {
      */
     static getDefaultFolderEntries() {
         let folder = {
-            "target" : "",
             // different folders (caldav/carddav) can be stored on different 
             // servers (as with yahoo, icloud, gmx, ...), so we need to store
             // the fqdn information per folders
@@ -187,6 +186,7 @@ var Base = class {
             "type" : "", //caldav, carddav or ics
             "shared": false, //identify shared resources
             "acl": "", //acl send from server
+            "target" : "",
             "targetColor" : "",
             "targetName" : "",
             "ctag" : "",
