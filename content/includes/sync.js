@@ -75,6 +75,12 @@ var sync = {
     },
     
 
+    resetFolderSyncInfo : function (folderData) {
+        folderData.resetFolderProperty("ctag");
+        folderData.resetFolderProperty("token");
+        folderData.setFolderProperty("createdWithProviderVersion", folderData.accountData.providerData.getVersion());
+    },
+    
     folderList: async function (syncData) {
         //Method description: http://sabre.io/dav/building-a-caldav-client/
         //get all folders currently known
@@ -340,6 +346,7 @@ var sync = {
             // accessing the target for the first time will check if it is avail and if not will create it (if possible)
             syncData.target = syncData.currentFolderData.targetData.getTarget();
         } catch (e) {
+            Components.utils.reportError(e);
             throw dav.sync.finish("warning", e.message);
         }
         
@@ -391,7 +398,7 @@ var sync = {
 
         //revert all local changes on permission error by doing a clean sync
         if (numOfLocalChanges < 0) {
-            dav.Base.onResetTarget(syncData.currentFolderData);
+            dav.sync.resetFolderSyncInfo(syncData.currentFolderData);
             await dav.sync.remoteChanges(syncData);
 
             if (!downloadonly) throw dav.sync.finish("info", "info.restored");
@@ -419,7 +426,7 @@ var sync = {
             if (tokenSyncSucceeded) return;
 
             //token sync failed, reset ctag and token and do a full sync
-            dav.Base.onResetTarget(syncData.currentFolderData);
+            dav.sync.resetFolderSyncInfo(syncData.currentFolderData);
         }
 
         //Either token sync did not work or there is no token (initial sync)
