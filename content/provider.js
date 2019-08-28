@@ -385,7 +385,7 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
     }
 
     generatePrimaryKey() {
-        return this._folderData.getFolderProperty("href") + TbSync.generateUUID() + ".vcf";
+        return this.folderData.getFolderProperty("href") + TbSync.generateUUID() + ".vcf";
     }
         
     // enable or disable changelog
@@ -397,7 +397,7 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
         switch (aTopic) {
             case "addrbook-removed":
             case "addrbook-updated":
-                //Services.console.logStringMessage("["+ aTopic + "] " + this._folderData.getFolderProperty("foldername"));
+                //Services.console.logStringMessage("["+ aTopic + "] " + this.folderData.getFolderProperty("foldername"));
                 break;
         }
     }
@@ -444,10 +444,10 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
         let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
         let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
       
-        dav.sync.resetFolderSyncInfo(this._folderData);
+        dav.sync.resetFolderSyncInfo(this.folderData);
         
         if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
-            let serviceprovider = this._folderData.accountData.getAccountProperty("serviceprovider");
+            let serviceprovider = this.folderData.accountData.getAccountProperty("serviceprovider");
             let icon = "custom";
             if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
                 icon = dav.sync.serviceproviders[serviceprovider].icon;
@@ -465,20 +465,26 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
 }
 
 
-// This provider is using the standard "calendar" targetType, so it must
-// implement the calendar object.
-var StandardCalendarTarget = {        
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// * TargetData implementation
+// * Using TbSyncs advanced calendar TargetData 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
+    constructor(folderData) {
+        super(folderData);
+    }       
     // The calendar target does not support a custom primaryKeyField, because
     // the lightning implementation only allows to search for items via UID.
     // Like the addressbook target, the calendar target item element has a
     // primaryKey getter/setter which - however - only works on the UID.
     
     // enable or disable changelog
-    logUserChanges: false,
+    get logUserChanges(){
+        return false;
+    }
 
-
-
-    calendarObserver: function (aTopic, folderData, tbCalendar, aPropertyName, aPropertyValue, aOldPropertyValue) {
+    calendarObserver(aTopic, tbCalendar, aPropertyName, aPropertyValue, aOldPropertyValue) {
         switch (aTopic) {
             case "onCalendarPropertyChanged":
             {
@@ -487,9 +493,9 @@ var StandardCalendarTarget = {
                     case "color":
                         if (aOldPropertyValue.toString().toUpperCase() != aPropertyValue.toString().toUpperCase()) {
                             //prepare connection data
-                            let connection = new dav.network.ConnectionData(folderData);
+                            let connection = new dav.network.ConnectionData(this.folderData);
                             //update color on server
-                            dav.network.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aPropertyValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", folderData.getFolderProperty("href"), "PROPPATCH", connection);
+                            dav.network.sendRequest("<d:propertyupdate "+dav.tools.xmlns(["d","apple"])+"><d:set><d:prop><apple:calendar-color>"+(aPropertyValue + "FFFFFFFF").slice(0,9)+"</apple:calendar-color></d:prop></d:set></d:propertyupdate>", this.folderData.getFolderProperty("href"), "PROPPATCH", connection);
                         }
                         break;
                 }
@@ -501,11 +507,9 @@ var StandardCalendarTarget = {
                 //Services.console.logStringMessage("["+ aTopic + "] " +tbCalendar.calendar.name);
                 break;
         }
-    },
+    }
 
-
-
-    itemObserver: function (aTopic, folderData, tbItem, tbOldItem) {
+    itemObserver(aTopic, tbItem, tbOldItem) {
         switch (aTopic) {
             case "onAddItem":
             case "onModifyItem":
@@ -513,31 +517,21 @@ var StandardCalendarTarget = {
                 //Services.console.logStringMessage("["+ aTopic + "] " + tbItem.nativeItem.title);
                 break;
         }
-    },
+    }
 
-
-
-    /**
-     * Is called by TargetData::getTarget() if  the standard "calendar" targetType is used, and a new calendar needs to be created.
-     *
-     * @param newname       [in] name of the new calendar
-     * @param folderData  [in] folderData
-     *
-     * return the new calendar
-     */
-    createCalendar: function(newname, folderData) {
+    createCalendar(newname) {
         let calManager = TbSync.lightning.cal.getCalendarManager();
-        let authData = dav.network.getAuthData(folderData.accountData);
+        let authData = dav.network.getAuthData(this.folderData.accountData);
       
-        let caltype = folderData.getFolderProperty("type");
+        let caltype = this.folderData.getFolderProperty("type");
 
         let baseUrl = "";
         if (caltype != "ics") {
-            baseUrl =  "http" + (folderData.accountData.getAccountProperty("https") ? "s" : "") + "://" + folderData.getFolderProperty("fqdn");
+            baseUrl =  "http" + (this.folderData.accountData.getAccountProperty("https") ? "s" : "") + "://" + this.folderData.getFolderProperty("fqdn");
         }
 
-        let url = dav.tools.parseUri(baseUrl + folderData.getFolderProperty("href"));        
-        folderData.setFolderProperty("url", url.spec);
+        let url = dav.tools.parseUri(baseUrl + this.folderData.getFolderProperty("href"));        
+        this.folderData.setFolderProperty("url", url.spec);
 
         //check if that calendar already exists
         let cals = calManager.getCalendars({});
@@ -553,7 +547,7 @@ var StandardCalendarTarget = {
 
         if (found) {
             newCalendar.setProperty("username", authData.username);
-            newCalendar.setProperty("color", folderData.getFolderProperty("targetColor"));
+            newCalendar.setProperty("color", this.folderData.getFolderProperty("targetColor"));
             newCalendar.name = newname;                
         } else {
             newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
@@ -561,12 +555,12 @@ var StandardCalendarTarget = {
             newCalendar.name = newname;
 
             newCalendar.setProperty("username", authData.username);
-            newCalendar.setProperty("color", folderData.getFolderProperty("targetColor"));
+            newCalendar.setProperty("color", this.folderData.getFolderProperty("targetColor"));
             newCalendar.setProperty("calendar-main-in-composite", true);
-            newCalendar.setProperty("cache.enabled", folderData.accountData.getAccountProperty("useCalendarCache"));
+            newCalendar.setProperty("cache.enabled", this.folderData.accountData.getAccountProperty("useCalendarCache"));
         }
         
-        if (folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
+        if (this.folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
 
         // ICS urls do not need a password
         if (caltype != "ics") {
@@ -583,7 +577,7 @@ var StandardCalendarTarget = {
             calManager.registerCalendar(newCalendar);
         }
         return newCalendar;
-    },
+    }
 }
 
 
