@@ -286,7 +286,8 @@ var network = {
       connectionData.uri = Services.io.newURI(url);
 
       // https://bugzilla.mozilla.org/show_bug.cgi?id=669675
-      if (dav.network.problematicHosts.includes(connectionData.uri.host)) {
+      // Set or update Authorization header
+      if (dav.network.problematicHosts.includes(connectionData.uri.host) || headers.hasOwnProperty("Authorization")) {
         headers["Authorization"] = "Basic " + TbSync.tools.b64encode(connectionData.username + ":" + connectionData.password);
       }
       
@@ -296,7 +297,7 @@ var network = {
       if (r && r.retry && r.retry === true) {
         if (r.addBasicAuthHeaderOnce) {
           TbSync.dump("DAV:unauthenticated", "Manually adding basic auth header for <" + connectionData.username + "@" + connectionData.fqdn + ">");
-          headers["Authorization"] = "Basic " + TbSync.tools.b64encode(connectionData.username + ":" + connectionData.password);
+          headers["Authorization"] = "Basic";
         } else if (r.passwordPrompt && r.passwordPrompt === true) {
           if (i == MAX_RETRIES) {
             // If this is the final retry, abort with error.
@@ -478,12 +479,22 @@ var network = {
                 let xml = dav.tools.convertToXML(aResult);
                 if (xml === null) return reject(dav.sync.finish("warning", "malformed-xml", commLog));
 
-                //the specs allow to  return a 207 with DAV:unauthenticated if not authenticated 
-                if (xml.documentElement.getElementsByTagNameNS(dav.sync.ns.d, "unauthenticated").length != 0) {
+                // Some servers allow unauthenticated requests and never return a 401.
+                // With the missing WWW-Authenticate header, we need to fallback to Basic Auth.
+                let unauthenticated;
+                try {
+                  let header = aChannel.getRequestHeader("Authorization");
+                  unauthenticated = false;
+                } catch (e) {
+                  unauthenticated = true;
+                }
+
+                // The specs allow to  return a 207 with DAV:unauthenticated if not authenticated 
+                if (unauthenticated || xml.documentElement.getElementsByTagNameNS(dav.sync.ns.d, "unauthenticated").length != 0) {
                   let response = {};
                   response.retry = true;
                   response.path = aChannel.URI.pathQueryRef;
-                  //we have no information at all about allowed auth methods, try basic auth
+                  // We have no information at all about allowed auth methods, try basic auth
                   response.addBasicAuthHeaderOnce = true;
                   return resolve(response);
                 }
