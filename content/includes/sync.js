@@ -121,23 +121,23 @@ var sync = {
 
             let home = [];
             let own = [];
-            let principal = null;
-
+            let principal = syncData.accountData.getAccountProperty(job + "DavPrincipal"); // defaults to null
+            
             //add connection to syncData
             syncData.connectionData = new dav.network.ConnectionData(syncData);
             
             //only do that, if a new calendar has been enabled
             TbSync.network.resetContainerForUser(syncData.connectionData.username);
             
+            //split server into fqdn and path
+            let parts = davjobs[job].server.split("/").filter(i => i != "");
+            syncData.connectionData.fqdn = parts.splice(0,1).toString();
+            syncData.connectionData.type = job;
+                            
             syncData.setSyncState("send.getfolders");
-            {
-                //split server into fqdn and path
-                let parts = davjobs[job].server.split("/").filter(i => i != "");
-
-                syncData.connectionData.fqdn = parts.splice(0,1).toString();
-                syncData.connectionData.type = job;
-                
-                let path = "/" + parts.join("/");                
+            if (principal === null) {
+          
+                let path = "/" + parts.join("/");      
                 let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", path , "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return-minimal"});
 
                 syncData.setSyncState("eval.folders");
@@ -186,6 +186,9 @@ var sync = {
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
             // -> get all resources
             if (home.length > 0) {
+                // the principal used returned valid resources, store it
+                syncData.accountData.setAccountProperty(job + "DavPrincipal", principal);
+
                 for (let h=0; h < home.length; h++) {
                     syncData.setSyncState("send.getfolders");
                     let request = (job == "cal")
@@ -320,6 +323,8 @@ var sync = {
                             unhandledFolders.ics = [];
                         break;
                 }
+                //reset stored principal
+                syncData.accountData.resetAccountProperty(job + "DavPrincipal");
             }
         }
 

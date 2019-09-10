@@ -159,6 +159,10 @@ var Base = class {
             "useCalendarCache" : true,
             "calDavHost" : "",            
             "cardDavHost" : "",
+            // these must return null if not defined
+            "calDavPrincipal" : null,
+            "cardDavPrincipal" : null,
+
             "serviceprovider" : "",
             "user" : "",
             "https" : true,
