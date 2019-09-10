@@ -206,6 +206,8 @@ var Base = class {
      * manager UI.
      */
     static onEnableAccount(accountData) {
+        accountData.resetAccountProperty("calDavPrincipal");
+        accountData.resetAccountProperty("cardDavPrincipal");
     }
 
 
