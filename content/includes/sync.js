@@ -138,7 +138,7 @@ var sync = {
             if (principal === null) {
           
                 let path = "/" + parts.join("/");      
-                let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", path , "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return-minimal"});
+                let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", path , "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return=minimal"});
 
                 syncData.setSyncState("eval.folders");
                 // allow 404 because iCloud sends it on valid answer (yeah!)
@@ -158,7 +158,7 @@ var sync = {
                                         ? "<d:propfind "+dav.tools.xmlns(["d", "cal", "cs"])+"><d:prop><cal:" + homeset + " /><cs:calendar-proxy-write-for /><cs:calendar-proxy-read-for /><d:group-membership /></d:prop></d:propfind>"
                                         : "<d:propfind "+dav.tools.xmlns(["d", "card"])+"><d:prop><card:" + homeset + " /><d:group-membership /></d:prop></d:propfind>";
 
-                let response = await dav.network.sendRequest(request, principal, "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return-minimal"});
+                let response = await dav.network.sendRequest(request, principal, "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return=minimal"});
 
                 syncData.setSyncState("eval.folders");
                 own = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], principal);
@@ -169,7 +169,7 @@ var sync = {
                 let g = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], ["d", "group-membership" ], ["d","href"]], principal);
                 for (let gc=0; gc < g.length; gc++) {
                     //SOGo reports a 403 if I request the provided resource, also since we do not dive, remove the request for group-membership                    
-                    response = await dav.network.sendRequest(request.replace("<d:group-membership />",""), g[gc], "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return-minimal"}, {softfail: [403, 404]});
+                    response = await dav.network.sendRequest(request.replace("<d:group-membership />",""), g[gc], "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return=minimal"}, {softfail: [403, 404]});
                     if (response && response.softerror) {
                         continue;
                     }		    
@@ -196,7 +196,7 @@ var sync = {
                                             : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
 
                     //some servers report to have calendar-proxy-read but return a 404 when that gets actually queried
-                    let response = await dav.network.sendRequest(request, home[h], "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: [403, 404]});
+                    let response = await dav.network.sendRequest(request, home[h], "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return=minimal"}, {softfail: [403, 404]});
                     if (response && response.softerror) {
                         continue;
                     }
@@ -538,13 +538,13 @@ var sync = {
 
             //get etags of all cards on server and find the changed cards
             syncData.setSyncState("send.request.remotechanges");
-            let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"});
+            let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return=minimal"});
             
             //to test other impl
-            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"}, {softfail: []}, false);
+            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return=minimal"}, {softfail: []}, false);
 
             //this is the same request, but includes getcontenttype, do we need it? icloud send contacts without
-            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /><d:getcontenttype /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"});
+            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /><d:getcontenttype /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return=minimal"});
 
             //play with filters and limits for synology
             /*
@@ -556,7 +556,7 @@ var sync = {
             additional += "</card:filter>";*/
         
             //addressbook-query does not work on older servers (zimbra)
-            //let cards = await dav.network.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncData.currentFolderData.getFolderProperty("href"), "REPORT", syncData.connectionData, {"Depth": "1", "Prefer": "return-minimal"});
+            //let cards = await dav.network.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncData.currentFolderData.getFolderProperty("href"), "REPORT", syncData.connectionData, {"Depth": "1", "Prefer": "return=minimal"});
 
             syncData.setSyncState("eval.response.remotechanges");
             let cardsFound = 0;
