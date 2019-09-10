@@ -486,42 +486,42 @@ var network = {
                   //we have no information at all about allowed auth methods, try basic auth
                   response.addBasicAuthHeaderOnce = true;
                   return resolve(response);
-                } else {
-                  let response = {};
-                  response.commLog = commLog;
-                  response.node = xml.documentElement;
+                }
+                
+                let response = {};
+                response.commLog = commLog;
+                response.node = xml.documentElement;
 
-                  let multi = xml.documentElement.getElementsByTagNameNS(dav.sync.ns.d, "response");
-                  response.multi = [];
-                  for (let i=0; i < multi.length; i++) {
-                    let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
-                    let responseStatusNode = dav.tools.evaluateNode(multi[i], [["d", "status"]]);
-                    let propstats = multi[i].getElementsByTagNameNS(dav.sync.ns.d, "propstat");
-                    if (propstats.length > 0) {
-                      //response contains propstats, push each as single entry
-                      for (let p=0; p < propstats.length; p++) {
-                        let statusNode = dav.tools.evaluateNode(propstats[p], [["d", "status"]]);
+                let multi = xml.documentElement.getElementsByTagNameNS(dav.sync.ns.d, "response");
+                response.multi = [];
+                for (let i=0; i < multi.length; i++) {
+                  let hrefNode = dav.tools.evaluateNode(multi[i], [["d","href"]]);
+                  let responseStatusNode = dav.tools.evaluateNode(multi[i], [["d", "status"]]);
+                  let propstats = multi[i].getElementsByTagNameNS(dav.sync.ns.d, "propstat");
+                  if (propstats.length > 0) {
+                    //response contains propstats, push each as single entry
+                    for (let p=0; p < propstats.length; p++) {
+                      let statusNode = dav.tools.evaluateNode(propstats[p], [["d", "status"]]);
 
-                        let resp = {};
-                        resp.node = propstats[p];
-                        resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
-                        resp.responsestatus = responseStatusNode === null ? null : responseStatusNode.textContent.split(" ")[1];
-                        resp.href = hrefNode === null ? null : hrefNode.textContent;
-                        response.multi.push(resp);
-                      }
-                    } else {
-                      //response does not contain any propstats, push raw response
                       let resp = {};
-                      resp.node = multi[i];
-                      resp.status = responseStatusNode === null ? null : responseStatusNode.textContent.split(" ")[1];
+                      resp.node = propstats[p];
+                      resp.status = statusNode === null ? null : statusNode.textContent.split(" ")[1];
                       resp.responsestatus = responseStatusNode === null ? null : responseStatusNode.textContent.split(" ")[1];
                       resp.href = hrefNode === null ? null : hrefNode.textContent;
                       response.multi.push(resp);
                     }
+                  } else {
+                    //response does not contain any propstats, push raw response
+                    let resp = {};
+                    resp.node = multi[i];
+                    resp.status = responseStatusNode === null ? null : responseStatusNode.textContent.split(" ")[1];
+                    resp.responsestatus = responseStatusNode === null ? null : responseStatusNode.textContent.split(" ")[1];
+                    resp.href = hrefNode === null ? null : hrefNode.textContent;
+                    response.multi.push(resp);
                   }
-
-                  return resolve(response);
                 }
+
+                return resolve(response);
               }
 
 
