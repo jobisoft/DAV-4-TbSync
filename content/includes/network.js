@@ -263,6 +263,9 @@ var network = {
       aHeaders["Accept"] = "*/*"; //"utf-8,*;q=0.1"
     }
 
+    // Set non-standard header to request authorization (https://github.com/jobisoft/DAV-4-TbSync/issues/106)
+    aHeaders["X-EnforceAuthentication"] = "True";
+    
     for (let header in aHeaders) {
       if (aHeaders.hasOwnProperty(header)) {
         httpchannel.setRequestHeader(header, aHeaders[header], false);
