@@ -189,6 +189,7 @@ var network = {
 
       // If any other header is used, it should be added here. We might want
       // to just copy all headers over to the new channel.
+      copyHeader("X-EnforceAuthentication");
       copyHeader("Prefer");
       copyHeader("Depth");
       copyHeader("Originator");
