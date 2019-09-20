@@ -224,8 +224,8 @@ var sync = {
                         if (privilegNode) {
                             if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "all").length > 0) { 
                                 acl = 0xF; //read=1, mod=2, create=4, delete=8 
-                            } else if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "read").length > 0) { 
-                                acl = 0x1;
+                            } else {
+                                // check for individual write permissions
                                 if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "write").length > 0) {
                                     acl = 0xF; 
                                 } else {
@@ -233,6 +233,9 @@ var sync = {
                                     if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "bind").length > 0) acl |= 0x4;
                                     if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "unbind").length > 0) acl |= 0x8;
                                 }
+                                
+                                // check for read permission (implying read if any write is given)
+                                if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "read").length > 0 || acl != 0) acl |= 0x1;
                             }
                         }
                         
