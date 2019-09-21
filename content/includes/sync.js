@@ -139,8 +139,13 @@ var sync = {
           
                 let path = "/" + parts.join("/");      
                 let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", path , "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return=minimal"});
-
                 syncData.setSyncState("eval.folders");
+
+                // keep track of permanent redirects
+                if (response && response.permanentRedirect) {
+                    davjobs[job].permanentRedirect = response.permanentRedirect;
+                }
+
                 // allow 404 because iCloud sends it on valid answer (yeah!)
                 if (response && response.multi) principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]], null, ["200","404"]);
             }
@@ -330,7 +335,26 @@ var sync = {
                 syncData.accountData.resetAccountProperty(job + "DavPrincipal");
             }
         }
+        
+        // analyze permanent redirects
+        let hasCalRedirect = davjobs.cal.hasOwnProperty("permanentRedirect");
+        let newCalSec = hasCalRedirect 
+            ? (davjobs.cal.permanentRedirect.scheme == "https")
+            : syncData.accountData.getAccountProperty("https");
 
+        let hasCardRedirect = davjobs.card.hasOwnProperty("permanentRedirect");
+        let newCardSec = hasCardRedirect
+            ? (davjobs.card.permanentRedirect.scheme == "https")
+            : syncData.accountData.getAccountProperty("https");
+        
+        // since we store only one https setting, both fields must still share the same security setting
+        if (newCalSec == newCardSec && (hasCalRedirect || hasCardRedirect)) {
+            // update sec
+            syncData.accountData.setAccountProperty("https", newCalSec);
+            if (hasCalRedirect) syncData.accountData.setAccountProperty("calDavHost", davjobs.cal.permanentRedirect.hostPort + davjobs.cal.permanentRedirect.pathQueryRef);
+            if (hasCardRedirect) syncData.accountData.setAccountProperty("cardDavHost", davjobs.card.permanentRedirect.hostPort + davjobs.card.permanentRedirect.pathQueryRef);
+        }
+        
         // Remove unhandled old folders, (because they no longer exist on the server).
         // Do not delete the targets, but keep them as stale/unconnected elements.
         for (let type of folderTypes) {
