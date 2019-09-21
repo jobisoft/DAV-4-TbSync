@@ -14,8 +14,12 @@ var network = {
   
   getAuthData: function(accountData) {
       let connection = {
-        get host() {
+        get oldHost() {
           return accountData.getAccountProperty("calDavHost") ? accountData.getAccountProperty("calDavHost") : accountData.getAccountProperty("cardDavHost");
+        },
+        
+        get host() {
+          return "TbSync#" + accountData.accountID;
         },
         
         get username() {
@@ -23,7 +27,18 @@ var network = {
         },
 
         get password() {
-          return TbSync.passwordManager.getLoginInfo(this.host, "TbSync/DAV", this.username);
+          // try new host first
+          let pw = TbSync.passwordManager.getLoginInfo(this.host, "TbSync/DAV", this.username);
+          if (pw) {
+            return pw;
+          }
+          // try old host as fallback
+          pw = TbSync.passwordManager.getLoginInfo(this.oldHost, "TbSync/DAV", this.username);
+          if (pw) {
+            //migrate
+            this.updateLoginData(this.username, pw);
+          }
+          return pw;
         },
         
         updateLoginData: function(newUsername, newPassword) {
