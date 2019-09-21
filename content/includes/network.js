@@ -170,6 +170,7 @@ var network = {
   // Promisified implementation of TbSync's HttpRequest (with XHR interface)
   promisifiedHttpRequest: function (requestData, method, connectionData, headers, options, aUseStreamLoader) {
     let responseData = "";
+    let permanentRedirect = "";
     
     //do not log HEADERS, as it could contain an Authorization header
     //TbSync.dump("HEADERS", JSON.stringify(headers));
@@ -191,8 +192,6 @@ var network = {
 
       req.realmCallback = function(username, realm, host) {
         // Store realm, needed later to setup lightning passwords.
-        TbSync.dump("PROMPTING", connectionData.type);
-
         if (connectionData.type == "cal") {
           TbSync.dump("Found CalDAV authRealm for <"+host+">", realm);
           dav.network.listOfRealms[host] = realm;
@@ -209,6 +208,12 @@ var network = {
       };
       
       req.ontimeout = req.onerror;
+      
+      req.onredirect = function(status, uri) {
+        if (status == 301) {
+          permanentRedirect = uri;
+        }
+      };
       
       req.onload = function() {
         if (TbSync.prefs.getIntPref("log.userdatalevel")>1) TbSync.dump("RESPONSE", req.status + " ("+req.statusText+")" + " : " + req.responseText);
@@ -265,6 +270,7 @@ var network = {
               if (xml === null) return reject(dav.sync.finish("warning", "malformed-xml", commLog));
               
               let response = {};
+              let response.permanentRedirect = permanentRedirect;
               response.commLog = commLog;
               response.node = xml.documentElement;
 
