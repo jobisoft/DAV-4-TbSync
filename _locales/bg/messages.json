@@ -1,0 +1,8 @@
+{
+  "extensionName": {
+    "message": "Доставчик за CalDAV и CardDAV"
+  },
+  "extensionDescription": {
+    "message": "Разширява TbSync и позволява синхронизацията с CalDAV и CardDAV регистрации (контакти, задачи, календари)."
+  }
+}
