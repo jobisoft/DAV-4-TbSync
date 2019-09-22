@@ -34,11 +34,11 @@ config.custom=CalDAV & CardDAV Server Konfiguration
 
 add.serverprofile.discovery=Automatische Konfiguration
 add.serverprofile.discovery.description=Die meisten ownCloud, Nextcloud und andere sabre/dav Installationen unterstützen den Discovery Service für eine automatische Konfiguration.
-add.serverprofile.discovery.details1=Wenn Ihr Server den Discovery Service unterstützt, sollte es ausreichen einfach nur den Host als Serveradresse anzugeben, z.B. “cloud.myserver.de”. Wenn das nicht funktioniert, gehen Sie bitte zurück und wählen “Benutzerdefinierte Konfiguration” aus.
+add.serverprofile.discovery.details1=Wenn Ihr Server den Discovery Service unterstützt, sollte es ausreichen einfach nur den Host als Serveradresse anzugeben, z.B. „cloud.myserver.de“. Wenn das nicht funktioniert, gehen Sie bitte zurück und wählen „Benutzerdefinierte Konfiguration“ aus.
 
 add.serverprofile.custom=Benutzerdefinierte Konfiguration
 add.serverprofile.custom.description=Die CalDAV und CardDAV Server können separat konfiguriert werden.
-add.serverprofile.custom.details1=Ihr CalDAV & CardDAV Serviceanbieter sollte Ihnen die notwendigen Serveradressen mitteilen. Für SOGo muss meistens “cloud.myserver.de/SOGo/dav” für beide Server angegeben werden, andere Serviceanbieter können für CalDAV und CardDAV jeweils andere Server benutzen.
+add.serverprofile.custom.details1=Ihr CalDAV & CardDAV Serviceanbieter sollte Ihnen die notwendigen Serveradressen mitteilen. Für SOGo muss meistens „cloud.myserver.de/SOGo/dav“ für beide Server angegeben werden, andere Serviceanbieter können für CalDAV und CardDAV jeweils andere Server benutzen.
 add.serverprofile.custom.details2=Wenn Sie eine der beiden Adressen leer lassen, wird der entsprechende Dienst für dieses Konto deaktiviert.
 
 add.serverprofile.fruux=fruux
