@@ -39,6 +39,10 @@
                     <vbox pack="center"><label value="&add.name;" /></vbox>
                     <textbox id="tbsync.newaccount.name" oninput="tbSyncDavNewAccount.onUserTextInput();"/>
                 </row>
+                <row>
+                    <vbox pack="center"><label value="&add.user;" /></vbox>
+                    <textbox id="tbsync.newaccount.user" oninput="tbSyncDavNewAccount.onUserTextInput();" onchange="tbSyncDavNewAccount.onUserNameInput()"/>
+                </row>
                 <row id="tbsync.newaccount.server.row">
                     <vbox pack="center"><label value="&add.server;" /></vbox>
                     <textbox id="tbsync.newaccount.server" oninput="tbSyncDavNewAccount.onUserTextInput();"/>
@@ -50,10 +54,6 @@
                 <row id="tbsync.newaccount.carddavserver.row">
                     <vbox pack="center"><label value="&add.carddavserver;" /></vbox>
                     <textbox id="tbsync.newaccount.carddavserver" oninput="tbSyncDavNewAccount.onUserTextInput();"/>
-                </row>
-                <row>
-                    <vbox pack="center"><label value="&add.user;" /></vbox>
-                    <textbox id="tbsync.newaccount.user" oninput="tbSyncDavNewAccount.onUserTextInput(); tbSyncDavNewAccount.onUserNameInput()"/>
                 </row>
                 <row>
                     <vbox pack="center"><label value="&add.password;" /></vbox>

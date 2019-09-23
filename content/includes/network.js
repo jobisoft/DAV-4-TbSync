@@ -224,8 +224,8 @@ var network = {
       
       req.ontimeout = req.onerror;
       
-      req.onredirect = function(status, uri) {
-        if (status == 301) {
+      req.onredirect = function(flags, uri) {
+        if (flags & Ci.nsIChannelEventSink.REDIRECT_PERMANENT) {
           permanentRedirect = uri;
         }
       };
