@@ -10,6 +10,7 @@
 
 var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
+const { DNS } = ChromeUtils.import("resource:///modules/DNS.jsm");
 
 const dav = TbSync.providers.dav;
 
@@ -160,6 +161,19 @@ var tbSyncDavNewAccount = {
 
     advance: function () {
         document.getElementById("tbsync.newaccount.wizard").advance(null);
+    },
+
+    onUserNameInput: function () {
+        let parts = this.elementUser.value.split("@");
+        if (parts.length == 2) {
+            console.log("DNS LOOKUP: _caldavs._tcp." + parts[1]);
+            DNS.lookup("_caldavs._tcp." + parts[1], DNS.SRV).then(rv => console.log("DNS: " + JSON.stringify(rv)));
+            DNS.lookup("_carddavs._tcp." + parts[1], DNS.SRV).then(rv => console.log("DNS: " + JSON.stringify(rv)));
+            DNS.txt("_caldavs._tcp." + parts[1]).then(rv => console.log("DNS TXT: " + JSON.stringify(rv)));
+            DNS.txt("_carddavs._tcp." + parts[1]).then(rv => console.log("DNS TXT: " + JSON.stringify(rv)));
+            DNS.srv("_caldavs._tcp." + parts[1]).then(rv => console.log("DNS SRV: " + JSON.stringify(rv)));
+            DNS.srv("_carddavs._tcp." + parts[1]).then(rv => console.log("DNS SRV: " + JSON.stringify(rv)));
+        }
     },
     
     onUserTextInput: function () {

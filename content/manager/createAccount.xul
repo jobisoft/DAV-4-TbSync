@@ -53,7 +53,7 @@
                 </row>
                 <row>
                     <vbox pack="center"><label value="&add.user;" /></vbox>
-                    <textbox id="tbsync.newaccount.user" oninput="tbSyncDavNewAccount.onUserTextInput();"/>
+                    <textbox id="tbsync.newaccount.user" oninput="tbSyncDavNewAccount.onUserTextInput(); tbSyncDavNewAccount.onUserNameInput()"/>
                 </row>
                 <row>
                     <vbox pack="center"><label value="&add.password;" /></vbox>
