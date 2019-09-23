@@ -163,8 +163,7 @@ var tbSyncDavNewAccount = {
     },
     
     onUserTextInput: function () {
-        let userWithoutPass = (this.elementUser.value != "" && this.elementPass.value == ""); 
-        document.documentElement.getButton("finish").disabled = (this.elementServer.value.trim() + this.elementCalDavServer.value.trim() + this.elementCardDavServer.value.trim() == "" || this.elementName.value.trim() == "" || userWithoutPass);
+        document.documentElement.getButton("finish").disabled = (this.elementServer.value.trim() + this.elementCalDavServer.value.trim() + this.elementCardDavServer.value.trim() == "" || this.elementName.value.trim() == "");
     },
 
     onFinish: function (event) {
