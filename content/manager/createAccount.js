@@ -171,6 +171,7 @@ var tbSyncDavNewAccount = {
         let parts = this.elementUser.value.split("@");
         if (parts.length == 2) {
                 
+            let domain = parts[1];
             let result = {
                 caldav: {},
                 carddav: {}
@@ -180,7 +181,7 @@ var tbSyncDavNewAccount = {
                 result[type].candidates = [];
                 
                 for (let sec of [true, false]) {
-                    let request = "_" + type + (sec ? "s" : "") + "._tcp." + parts[1];
+                    let request = "_" + type + (sec ? "s" : "") + "._tcp." + domain;
 
                     // get host from SRV record
                     let rv = await DNS.srv(request);                     
@@ -203,8 +204,8 @@ var tbSyncDavNewAccount = {
                 
                 // we now have an educated guess for the initial request (or not)
                 // in addition, we use the domain part of the email to do a lookup
-                result[type].candidates.push("https://" + parts[1] + "/.well-known/"+type);
-                result[type].candidates.push("http://" + parts[1] + "/.well-known/"+type);
+                result[type].candidates.push("https://" + domain + "/.well-known/"+type);
+                result[type].candidates.push("http://" + domain + "/.well-known/"+type);
             }
         }
     },
