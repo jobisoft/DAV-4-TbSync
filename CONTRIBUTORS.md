@@ -14,3 +14,4 @@
 * Alessandro Menti (it)
 * Óvári (hu)
 * Alexey Sinitsyn (ru)
+* Jérémie Parisel (fr)
