@@ -10,6 +10,7 @@
 
 var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
+const { DNS } = ChromeUtils.import("resource:///modules/DNS.jsm");
 
 const dav = TbSync.providers.dav;
 
@@ -162,8 +163,55 @@ var tbSyncDavNewAccount = {
         document.getElementById("tbsync.newaccount.wizard").advance(null);
     },
     
+    onUserNameInput: async function () {
+        function checkDefaultSecPort (sec) {
+            return sec ? "443" : "80";
+        }
+        
+        let parts = this.elementUser.value.split("@");
+        if (parts.length == 2) {
+                
+            let domain = parts[1];
+            let result = {
+                caldav: {},
+                carddav: {}
+            };
+            
+            for (let type of Object.keys(result)) {
+                result[type].candidates = [];
+                
+                for (let sec of [true, false]) {
+                    let request = "_" + type + (sec ? "s" : "") + "._tcp." + domain;
+
+                    // get host from SRV record
+                    let rv = await DNS.srv(request);                     
+                    if (rv && Array.isArray(rv) && rv.length>0 && rv[0].host) {
+                        result[type].secure = sec;
+                        result[type].host = rv[0].host + ((checkDefaultSecPort(sec) == rv[0].port) ? "" : ":" + rv[0].port);
+
+                        // Now try to get path from TXT
+                        rv = await DNS.txt(request);   
+                        if (rv && Array.isArray(rv) && rv.length>0 && rv[0].data && rv[0].data.toLowerCase().startsWith("path=")) {
+                            result[type].path = rv[0].data.substring(5);
+                        } else {
+                            result[type].path = "/.well-known/"+type;
+                        }
+
+                        result[type].candidates.push("http" + (result[type].secure ? "s" : "") + "://" + result[type].host +  result[type].path);
+                        break;
+                    }
+                }
+                
+                // we now have an educated guess for the initial request (or not)
+                // in addition, we use the domain part of the email to do a lookup
+                result[type].candidates.push("https://" + domain + "/.well-known/"+type);
+                result[type].candidates.push("http://" + domain + "/.well-known/"+type);
+            }
+        }
+    },
+    
     onUserTextInput: function () {
-        document.documentElement.getButton("finish").disabled = (this.elementServer.value.trim() + this.elementCalDavServer.value.trim() + this.elementCardDavServer.value.trim() == "" || this.elementName.value.trim() == "" || this.elementUser.value == "" || this.elementPass.value == "");
+        document.documentElement.getButton("finish").disabled = (this.elementServer.value.trim() + this.elementCalDavServer.value.trim() + this.elementCardDavServer.value.trim() == "" || this.elementName.value.trim() == "");
     },
 
     onFinish: function (event) {

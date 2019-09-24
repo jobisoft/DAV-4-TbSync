@@ -1,0 +1,60 @@
+<!ENTITY add.title "Добавяне на CalDAV и CardDAV регистрация">
+<!ENTITY add.ok "Добавяне на регистрация">
+<!ENTITY add.name "Име на регистрация:">
+<!ENTITY add.user "Потребителско име:">
+<!ENTITY add.password "Парола:">
+<!ENTITY add.server "Адрес на сървър:">
+<!ENTITY add.carddavserver "CardDAV сървър:">
+<!ENTITY add.caldavserver "CalDAV сървър:">
+<!ENTITY add.verify "Проверяване на връзката със сървъра">
+
+<!ENTITY add.serverprofile.title "Избор на сървърен профил">
+<!ENTITY add.serverprofile.description "Изберете един от наличните сървърни профили:">
+<!ENTITY add.serverprofile.verifyconnection "Връзката със сървъра се проверява.">
+<!ENTITY add.serverprofile.receivederror "При свързването със сървъра възникна грешка:">
+<!ENTITY add.serverprofile.verifydata "Проверете данните за регистрацията.">
+
+<!ENTITY add.data.title "Въвеждане на регистрацията">
+<!ENTITY add.data.description "Въведете име за новата TbSync регистрация и данните за връзка със сървъра ви:">
+<!ENTITY add.data.notes "Бележка:">
+
+<!ENTITY pref.AccountName "Име на регистрация">
+<!ENTITY pref.UserName "Потребителско име">
+<!ENTITY pref.CardDavServer "Адрес на CardDAV сървъра:">
+<!ENTITY pref.CardDavDescription "н.пр. carddav.example.bg">
+<!ENTITY pref.CalDavServer "Адрес на CalDAV сървъра:">
+<!ENTITY pref.CalDavDescription "н.пр. caldav.example.bg">
+<!ENTITY pref.usehttps "Използване на защитена връзка (чрез https://)">
+
+<!ENTITY pref.generaloptions "Общи настройки">
+<!ENTITY pref.downloadonly "Пренебрегване на местните промени (еднопосочно синхронизаране)">
+
+<!ENTITY pref.contactoptions "Настройки за контакта">
+<!ENTITY pref.syncGroups "Групите контакти ги синхронизирай като Thunderbird списъци">
+<!ENTITY pref.syncGroupsDescription "Забележка: Заради TB грешка 1522453 TbSync трябва към всички контакти, които нямат електронен адрес и принадлежат към група, да добави някакъв електронен адрес.  Този вмъкнат адрес не се синхронизира със сървъра.">
+<!ENTITY pref.useCardBook "Създай адресен указател в CardBook, вместо в стандартния адресен указател на Thunderbird">
+
+<!ENTITY pref.calendaroptions "Настройки за календара">
+<!ENTITY pref.useCalendarCache "Офлайн поддръжка">
+
+<!ENTITY abCard.MiddleName "Бащино име:">
+<!ENTITY abCard.PrefixName "Представка:">
+<!ENTITY abCard.SuffixName "Наставка:">
+<!ENTITY abCard.Phone "Телефонни номера">
+<!ENTITY abCard.ContactDetails "Свойства на контакта (CardDAV)">
+<!ENTITY abCard.EmailAddresses "Електронни адреси:">
+
+<!ENTITY manager.tabs.accountsettings "Настройки на регистрацията">
+<!ENTITY manager.tabs.syncsettings "Опции">
+
+<!ENTITY abCard.emailtypes.voice "Телефон">
+<!ENTITY abCard.emailtypes.cell "Мобилен телефон">
+<!ENTITY abCard.emailtypes.fax "Факс">
+<!ENTITY abCard.emailtypes.video "Видео">
+<!ENTITY abCard.emailtypes.pager "Пейджър">
+<!ENTITY abCard.emailtypes.car "Телефон в колата">
+
+<!ENTITY abCard.emailtypes.home "Лични">
+<!ENTITY abCard.emailtypes.work "Служебни">
+<!ENTITY abCard.emailtypes.other "Други">
+<!ENTITY abCard.emailtypes.description "Първият електронен адрес от списъка ще бъде ползван като основен.">
