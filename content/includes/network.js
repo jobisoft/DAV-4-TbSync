@@ -126,6 +126,10 @@ var network = {
   },
  
 
+  startsWithScheme: function (url) {
+    return (url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://"));
+  },
+
   sendRequest: async function (requestData, path, method, connectionData, headers = {}, options = {softfail: []}) {            
     let url = path;
     

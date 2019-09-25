@@ -82,10 +82,6 @@ var sync = {
     },
     
     folderList: async function (syncData) {
-        function startsWithScheme(url) {
-            return (url.startsWith("http://") || url.startsWith("https://"));
-        }
-        
         //Method description: http://sabre.io/dav/building-a-caldav-client/
         //get all folders currently known
         let folderTypes = ["caldav", "carddav", "ics"];
@@ -129,10 +125,10 @@ var sync = {
 
             let principal = syncData.accountData.getAccountProperty(job + "DavPrincipal"); // defaults to null
             // migration code for beta users, can be removed on release
-            if (principal && !startsWithScheme(principal)) principal = null;
+            if (principal && !dav.network.startsWithScheme(principal)) principal = null;
 
             // migration code for http setting, we might keep it as a fallback, if user removed the http:// scheme from the url in the settings
-            if (!startsWithScheme(davjobs[job].server)) {
+            if (!dav.network.startsWithScheme(davjobs[job].server)) {
                 davjobs[job].server = "http" + (syncData.accountData.getAccountProperty("https") ? "s" : "") + "://" + davjobs[job].server;
                 syncData.accountData.setAccountProperty(job + "DavHost", davjobs[job].server);
             }
@@ -209,7 +205,7 @@ var sync = {
             if (home.length > 0) {
                 // the used principal returned valid resources, store/update it
                 // as the principal is being used as a starting point, it must be stored as absolute url
-                syncData.accountData.setAccountProperty(job + "DavPrincipal", startsWithScheme(principal) 
+                syncData.accountData.setAccountProperty(job + "DavPrincipal", dav.network.startsWithScheme(principal) 
                     ? principal 
                     : "http" + (syncData.connectionData.https ? "s" : "") + "://" + syncData.connectionData.fqdn + principal);
 
