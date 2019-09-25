@@ -258,7 +258,7 @@ var tbSyncDavNewAccount = {
             document.getElementById("tbsync.newaccount.wizard").canAdvance = !(this.accountname == ""
                                                                                 || (this.calDavServer + this.cardDavServer == "" && this.discoveryMode == "CUSTOM")
                                                                                 || (this.server == "" && this.discoveryMode == "RFC6764" && !this.userdomain)
-                                                                                || this.username == "");
+                                                                                || (this.server == "" && this.username == ""));
         } else if (this.serviceprovider == "custom") {
             // custom does not need username or password (allow annonymous access)
             document.getElementById("tbsync.newaccount.wizard").canAdvance = !(this.accountname == ""
