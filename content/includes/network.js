@@ -96,11 +96,11 @@ var network = {
         this._password = authData.password;
         this._username = authData.username;
 
-        this._https = accountData.getAccountProperty("https");
         this._accountname = accountData.getAccountProperty("accountname");
         if (folderData) {
           this._type = folderData.getFolderProperty("type");
           this._fqdn = folderData.getFolderProperty("fqdn");
+          this._https = folderData.getFolderProperty("https");
         }
       }
       
@@ -127,8 +127,17 @@ var network = {
  
 
   sendRequest: async function (requestData, path, method, connectionData, headers = {}, options = {softfail: []}) {            
+    let url = path;
+    
     // path could be absolute or relative, we may need to rebuild the full url.
-    let url = (path.startsWith("http://") || path.startsWith("https://")) ? path : "http" + (connectionData.https ? "s" : "") + "://" + connectionData.fqdn + path;
+    if (path.startsWith("http://") || path.startsWith("https://")) {
+      // extract segments from url
+      let uri = Services.io.newURI(path);
+      connectionData.https = (uri.scheme == "https");
+      connectionData.fqdn = uri.hostPort;
+    } else {
+      url = "http" + (connectionData.https ? "s" : "") + "://" + connectionData.fqdn + path;
+    }
 
     // A few bugs in TB and in client implementations require to retry a connection on certain failures.
     const MAX_RETRIES = 5;

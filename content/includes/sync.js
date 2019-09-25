@@ -82,6 +82,10 @@ var sync = {
     },
     
     folderList: async function (syncData) {
+        function startsWithScheme(url) {
+            return (url.startsWith("http://") || url.startsWith("https://"));
+        }
+        
         //Method description: http://sabre.io/dav/building-a-caldav-client/
         //get all folders currently known
         let folderTypes = ["caldav", "carddav", "ics"];
@@ -90,6 +94,7 @@ var sync = {
             unhandledFolders[type] = [];
         }
 
+        
         let folders = syncData.accountData.getAllFolders();
         for (let folder of folders) {
             //just in case
@@ -102,8 +107,8 @@ var sync = {
         //get server urls from account setup - update urls of serviceproviders
         let serviceprovider = syncData.accountData.getAccountProperty("serviceprovider");
         if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
-            syncData.accountData.setAccountProperty("calDavHost", dav.sync.serviceproviders[serviceprovider].caldav.replace("https://","").replace("http://",""));
-            syncData.accountData.setAccountProperty("cardDavHost", dav.sync.serviceproviders[serviceprovider].carddav.replace("https://","").replace("http://",""));
+            syncData.accountData.setAccountProperty("calDavHost", dav.sync.serviceproviders[serviceprovider].caldav);
+            syncData.accountData.setAccountProperty("cardDavHost", dav.sync.serviceproviders[serviceprovider].carddav);
         }
 
         let davjobs = {
@@ -123,12 +128,14 @@ var sync = {
             let own = [];
 
             let principal = syncData.accountData.getAccountProperty(job + "DavPrincipal"); // defaults to null
+            // migration code for beta users, can be removed on release
+            if (principal && !startsWithScheme(principal)) principal = null;
 
-            // If the principal URL gets a 301, we asume the entire account config has been updated
-            // and the new principal is returned on the standard principal request. So we throw it away
-            // and request the new one. The actual value returned on the 301 is ignored, as principals should be relative
-            // and a 301 could be absolute.
-            let principal301 = false;
+            // migration code for http setting, we might keep it as a fallback, if user removed the http:// scheme from the url in the settings
+            if (!startsWithScheme(davjobs[job].server)) {
+                davjobs[job].server = "http" + (syncData.accountData.getAccountProperty("https") ? "s" : "") + "://" + davjobs[job].server;
+                syncData.accountData.setAccountProperty(job + "DavHost", davjobs[job].server);
+            }
             
             //add connection to syncData
             syncData.connectionData = new dav.network.ConnectionData(syncData);
@@ -136,21 +143,17 @@ var sync = {
             //only do that, if a new calendar has been enabled
             TbSync.network.resetContainerForUser(syncData.connectionData.username);
             
-            //split server into fqdn and path
-            let parts = davjobs[job].server.split("/").filter(i => i != "");
-            syncData.connectionData.fqdn = parts.splice(0,1).toString();
             syncData.connectionData.type = job;
                             
             syncData.setSyncState("send.getfolders");
             if (principal === null) {
           
-                let path = "/" + parts.join("/");      
-                let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", path , "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return=minimal"});
+                let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", davjobs[job].server , "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return=minimal"});
                 syncData.setSyncState("eval.folders");
 
                 // keep track of permanent redirects for the server URL
                 if (response && response.permanentRedirect) {
-                    davjobs[job].permanentRedirect = response.permanentRedirect;
+                    syncData.accountData.setAccountProperty(job + "DavHost", response.permanentRedirect.spec)
                 }
 
                 // allow 404 because iCloud sends it on valid answer (yeah!)
@@ -158,6 +161,7 @@ var sync = {
             }
 
             //principal now contains something like "/remote.php/carddav/principals/john.bieling/"
+            //principal can also be an absolute url
             // -> get home/root of storage
             if (principal !== null) {
                 syncData.setSyncState("send.getfolders");
@@ -175,8 +179,7 @@ var sync = {
 
                 // keep track of permanent redirects for the principal URL
                 if (response && response.permanentRedirect) {
-                    syncData.accountData.setAccountProperty(job + "DavPrincipal", null);
-                    principal301 = true;
+                    principal = response.permanentRedirect.spec;
                 }
                 
                 own = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], principal);
@@ -204,8 +207,11 @@ var sync = {
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
             // -> get all resources
             if (home.length > 0) {
-                // the principal used returned valid resources, store it (if it is not a principal301)
-                if (!principal301) syncData.accountData.setAccountProperty(job + "DavPrincipal", principal);
+                // the used principal returned valid resources, store/update it
+                // as the principal is being used as a starting point, it must be stored as absolute url
+                syncData.accountData.setAccountProperty(job + "DavPrincipal", startsWithScheme(principal) 
+                    ? principal 
+                    : "http" + (syncData.connectionData.https ? "s" : "") + "://" + syncData.connectionData.fqdn + principal);
 
                 for (let h=0; h < home.length; h++) {
                     syncData.setSyncState("send.getfolders");
@@ -293,6 +299,7 @@ var sync = {
 
                             //we assume the folder has the same fqdn as the homeset, otherwise href must contain the full URL and the fqdn is ignored
                             folderData.setFolderProperty("fqdn", syncData.connectionData.fqdn);
+                            folderData.setFolderProperty("https", syncData.connectionData.https);
                             
                             //do we have a cached folder?
                             let cachedFolderData = syncData.accountData.getFolderFromCache("href", href);
@@ -307,6 +314,7 @@ var sync = {
                             //Update name & color
                             folderData.setFolderProperty("foldername", name);
                             folderData.setFolderProperty("fqdn", syncData.connectionData.fqdn);
+                            folderData.setFolderProperty("https", syncData.connectionData.https);
                             folderData.setFolderProperty("acl", acl);
                             //if the acl changed from RW to RO we need to update the downloadonly setting
                             if (acl == 0x1) {
@@ -348,26 +356,7 @@ var sync = {
                 syncData.accountData.resetAccountProperty(job + "DavPrincipal");
             }
         }
-        
-        // analyze permanent redirects
-        let hasCalRedirect = davjobs.cal.hasOwnProperty("permanentRedirect");
-        let newCalSec = hasCalRedirect 
-            ? (davjobs.cal.permanentRedirect.scheme == "https")
-            : syncData.accountData.getAccountProperty("https");
 
-        let hasCardRedirect = davjobs.card.hasOwnProperty("permanentRedirect");
-        let newCardSec = hasCardRedirect
-            ? (davjobs.card.permanentRedirect.scheme == "https")
-            : syncData.accountData.getAccountProperty("https");
-        
-        // since we store only one https setting, both fields must still share the same security setting
-        if (newCalSec == newCardSec && (hasCalRedirect || hasCardRedirect)) {
-            // update sec
-            syncData.accountData.setAccountProperty("https", newCalSec);
-            if (hasCalRedirect) syncData.accountData.setAccountProperty("calDavHost", davjobs.cal.permanentRedirect.hostPort + davjobs.cal.permanentRedirect.pathQueryRef);
-            if (hasCardRedirect) syncData.accountData.setAccountProperty("cardDavHost", davjobs.card.permanentRedirect.hostPort + davjobs.card.permanentRedirect.pathQueryRef);
-        }
-        
         // Remove unhandled old folders, (because they no longer exist on the server).
         // Do not delete the targets, but keep them as stale/unconnected elements.
         for (let type of folderTypes) {

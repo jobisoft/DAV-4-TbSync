@@ -51,10 +51,6 @@
                             </vbox>
                             <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.cardDavHost" onblur="tbSyncEditAccountOverlay.stripHost(document, 'cardDavHost');" />
                         </row>
-                        <row>
-                            <hbox/>
-                            <checkbox class="lockIfConnected" style="margin-bottom:1ex" id="tbsync.accountsettings.pref.https" label="&pref.usehttps;"  />
-                        </row>
 
                    </rows>
                 </grid>

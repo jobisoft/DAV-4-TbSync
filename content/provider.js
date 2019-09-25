@@ -165,7 +165,7 @@ var Base = class {
 
             "serviceprovider" : "",
             "user" : "",
-            "https" : true,
+            "https" : true, //deprecated
             "createdWithProviderVersion" : "0",
             "syncGroups" : false,
             }; 
@@ -183,6 +183,7 @@ var Base = class {
             // servers (as with yahoo, icloud, gmx, ...), so we need to store
             // the fqdn information per folders
             "href" : "",
+            "https" : true,
             "fqdn" : "",
 
             "url" : "", // used by calendar to store the full url of this cal
@@ -535,7 +536,7 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
 
         let baseUrl = "";
         if (caltype != "ics") {
-            baseUrl =  "http" + (this.folderData.accountData.getAccountProperty("https") ? "s" : "") + "://" + this.folderData.getFolderProperty("fqdn");
+            baseUrl =  "http" + (this.folderData.getFolderProperty("https") ? "s" : "") + "://" + this.folderData.getFolderProperty("fqdn");
         }
 
         let url = dav.tools.parseUri(baseUrl + this.folderData.getFolderProperty("href"));        

@@ -289,7 +289,14 @@ var tools = {
         
         for (let i=0; i < response.multi.length; i++) {
             let node = dav.tools.evaluateNode(response.multi[i].node, path);
-            if (node !== null && (href === null || response.multi[i].href == href || decodeURIComponent(response.multi[i].href) == href || response.multi[i].href == decodeURIComponent(href)) && response.multi[i].status == status) {
+            if (node !== null 
+                && (
+                    href === null || 
+                    href.endsWith(response.multi[i].href) || 
+                    href.endsWith(decodeURIComponent(response.multi[i].href)) || 
+                    decodeURIComponent(href).endsWith(response.multi[i].href)
+                ) && response.multi[i].status == status) {
+                
                 //get all children
                 let children = node.getElementsByTagNameNS(dav.sync.ns[lastPathElement[0]], lastPathElement[1]);
                 for (let c=0; c < children.length; c++) {
