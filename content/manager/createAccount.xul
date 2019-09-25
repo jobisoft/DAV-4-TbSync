@@ -25,7 +25,7 @@
         <richlistbox id="tbsync.newaccount.serviceproviderlist" flex="1" seltype="single" style="margin-top:1ex" onselect="tbSyncDavNewAccount.clearValues();" ondblclick="tbSyncDavNewAccount.advance()"/>
     </vbox>
   </wizardpage>
-
+  
   <wizardpage id="secondPage" label="&add.data.title;">
     <vbox flex="1">
         <description style="width: 450px; margin-top:1em;">&add.data.description;</description>
@@ -37,27 +37,27 @@
             <rows>
                 <row>
                     <vbox pack="center"><label value="&add.name;" /></vbox>
-                    <textbox id="tbsync.newaccount.name" oninput="tbSyncDavNewAccount.onUserTextInput();"/>
+                    <textbox id="tbsync.newaccount.name" oninput="tbSyncDavNewAccount.checkUI();"/>
                 </row>
                 <row>
                     <vbox pack="center"><label value="&add.user;" /></vbox>
-                    <textbox id="tbsync.newaccount.user" oninput="tbSyncDavNewAccount.onUserTextInput();" onchange="tbSyncDavNewAccount.onUserNameInput()"/>
-                </row>
-                <row id="tbsync.newaccount.server.row">
-                    <vbox pack="center"><label value="&add.server;" /></vbox>
-                    <textbox id="tbsync.newaccount.server" oninput="tbSyncDavNewAccount.onUserTextInput();"/>
-                </row>
-                <row id="tbsync.newaccount.caldavserver.row">
-                    <vbox pack="center"><label value="&add.caldavserver;" /></vbox>
-                    <textbox id="tbsync.newaccount.caldavserver" oninput="tbSyncDavNewAccount.onUserTextInput();"/>
-                </row>
-                <row id="tbsync.newaccount.carddavserver.row">
-                    <vbox pack="center"><label value="&add.carddavserver;" /></vbox>
-                    <textbox id="tbsync.newaccount.carddavserver" oninput="tbSyncDavNewAccount.onUserTextInput();"/>
+                    <textbox id="tbsync.newaccount.user" oninput="tbSyncDavNewAccount.checkUI();" />
                 </row>
                 <row>
                     <vbox pack="center"><label value="&add.password;" /></vbox>
-                    <textbox id="tbsync.newaccount.password" type="password" oninput="tbSyncDavNewAccount.onUserTextInput();"/>
+                    <textbox id="tbsync.newaccount.password" type="password" oninput="tbSyncDavNewAccount.checkUI();"/>
+                </row>
+                <row id="tbsync.newaccount.server.row" style="margin-top:2em;">
+                    <vbox pack="center"><label value="&add.server;" /></vbox>
+                    <textbox id="tbsync.newaccount.server" oninput="tbSyncDavNewAccount.checkUI();"/>
+                </row>
+                <row id="tbsync.newaccount.caldavserver.row" style="margin-top:2em;">
+                    <vbox pack="center"><label value="&add.caldavserver;" /></vbox>
+                    <textbox id="tbsync.newaccount.caldavserver" oninput="tbSyncDavNewAccount.checkUI();"/>
+                </row>
+                <row id="tbsync.newaccount.carddavserver.row">
+                    <vbox pack="center"><label value="&add.carddavserver;" /></vbox>
+                    <textbox id="tbsync.newaccount.carddavserver" oninput="tbSyncDavNewAccount.checkUI();"/>
                 </row>
             </rows>
         </grid>
@@ -80,6 +80,12 @@
               oncommand="TbSync.eventlog.open();"/>
             </vbox>
         </vbox>    
+    </vbox>
+  </wizardpage>
+  
+  <wizardpage id="thirdPage" label="&add.data.title;">
+    <vbox flex="1">
+        <description style="width: 450px; margin-top:1em;">&add.serverprofile.description;</description>
     </vbox>
   </wizardpage>
   
