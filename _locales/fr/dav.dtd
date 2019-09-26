@@ -6,24 +6,22 @@
 <!ENTITY add.serveur "URL de serveur:">
 <!ENTITY add.carddavserveur "Adresse du serveur CardDAV:">
 <!ENTITY add.caldavserveur "Adresse du serveur CalDAV:">
-<!ENTITY add.verify "Vérification de la connexion au serveur">
 
 <!ENTITY add.serveurprofile.title "Sélection  d'un profil de serveur">
 <!ENTITY add.serveurprofile.description "Veuillez sélectionner un des profil de serveur disponibles:">
-<!ENTITY add.serveurprofile.verifyconnection "Vérification de la connexion au serveur.">
-<!ENTITY add.serveurprofile.receivederror "L'erreur suivant a été reçue lors de la tentative de connexion au serveur:">
-<!ENTITY add.serveurprofile.verifydata "Veuillez vérifier les informations de compte que vous avez fournies.">
 
 <!ENTITY add.data.title "Information de compte">
 <!ENTITY add.data.description "Veuillez fournir un nom convivial pour le nouveau compte TbSync, ainsi que le couple identifiant/mot de passe d'accès à votre serveur:">
 <!ENTITY add.data.notes "Notes:">
 
+<!ENTITY add.finish.title "?? Confirm account creation ??">
+<!ENTITY add.finish.description "?? The following settings have been verified successfully: ??">
+<!ENTITY add.finish.details "?? Click „Finish“ to create a new TbSync account with these settings. ??">
+
 <!ENTITY pref.AccountName "Nom du compte">
 <!ENTITY pref.UserName "Nom d'utilisateur">
 <!ENTITY pref.CardDavServer "Adresse du serveur CardDAV:">
-<!ENTITY pref.CardDavDescription "ex: carddav.votreserveur.example">
 <!ENTITY pref.CalDavServer "Adresse du serveur CalDAV:">
-<!ENTITY pref.CalDavDescription "ex: caldav.votreserveur.example">
 <!ENTITY pref.usehttps "Utiliser une connexion sécurisée (se connecter via https)">
 
 <!ENTITY pref.generaloptions "Options générales">

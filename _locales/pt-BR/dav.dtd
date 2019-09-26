@@ -6,25 +6,22 @@
 <!ENTITY add.server "URL do servidor:">
 <!ENTITY add.carddavserver "Endereço servidor CardDAV:">
 <!ENTITY add.caldavserver "Endereço servidor CalDAV:">
-<!ENTITY add.verify "Verifique a conexão com o servidor">
 
 <!ENTITY add.serverprofile.title "Selecione um perfil do servidor">
 <!ENTITY add.serverprofile.description "Por favor, selecione um dos perfis de servidor disponíveis:">
-<!ENTITY add.serverprofile.verifyconnection "Verificando a conexão com o servidor.">
-<!ENTITY add.serverprofile.receivederror "Ocorreu o seguinte erro ao conectar-se ao servidor:">
-<!ENTITY add.serverprofile.verifydata "Por favor, verifique a informação da conta fornecida.">
 
 <!ENTITY add.data.title "Digite as informações da conta">
 <!ENTITY add.data.description "Por favor, forneça um nome amigável para a nova conta TbSync e as credenciais para o seu servidor:">
 <!ENTITY add.data.notes "Notas:">
 
+<!ENTITY add.finish.title "?? Confirm account creation ??">
+<!ENTITY add.finish.description "?? The following settings have been verified successfully: ??">
+<!ENTITY add.finish.details "?? Click „Finish“ to create a new TbSync account with these settings. ??">
+
 <!ENTITY pref.AccountName "Nome da conta">
 <!ENTITY pref.UserName "Usuário">
 <!ENTITY pref.CardDavServer "Endereço servidor CardDAV:">
-<!ENTITY pref.CardDavDescription "ex. carddav.yourserver.com">
 <!ENTITY pref.CalDavServer "Endereço servidor CalDAV:">
-<!ENTITY pref.CalDavDescription "ex. caldav.yourserver.com">
-<!ENTITY pref.usehttps "Utilizar conexão segura (conectar via https)">
 
 <!ENTITY pref.generaloptions "Opções Gerais">
 <!ENTITY pref.downloadonly "Reverter alterações locais (sincronização unidirecional)">

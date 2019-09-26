@@ -6,25 +6,22 @@
 <!ENTITY add.server "Адрес сервера:">
 <!ENTITY add.carddavserver "Адрес сервера CardDAV:">
 <!ENTITY add.caldavserver "Адрес сервера CalDAV:">
-<!ENTITY add.verify "Проверьте соединение с сервером">
 
 <!ENTITY add.serverprofile.title "Выберите профиль сервера">
 <!ENTITY add.serverprofile.description "Пожалуйста выберите один из доступных профилей сервера:">
-<!ENTITY add.serverprofile.verifyconnection "Проверка соединения с сервером.">
-<!ENTITY add.serverprofile.receivederror "Получена следующая ошибка при подключении к серверу:">
-<!ENTITY add.serverprofile.verifydata "Пожалуйста проверьте предоставленную информацию аккаунта.">
 
 <!ENTITY add.data.title "Введите информацию об аккаунте">
 <!ENTITY add.data.description "Пожалуйста укажите понятное имя для нового аккаунта TbSync и учетные данные для вашего сервера:">
 <!ENTITY add.data.notes "Заметки:">
 
+<!ENTITY add.finish.title "?? Confirm account creation ??">
+<!ENTITY add.finish.description "?? The following settings have been verified successfully: ??">
+<!ENTITY add.finish.details "?? Click „Finish“ to create a new TbSync account with these settings. ??">
+
 <!ENTITY pref.AccountName "Имя аккаунта">
 <!ENTITY pref.UserName "Имя пользователя">
 <!ENTITY pref.CardDavServer "Адрес сервера CardDAV:">
-<!ENTITY pref.CardDavDescription "например: carddav.yourserver.com">
 <!ENTITY pref.CalDavServer "Адрес сервера CalDAV:">
-<!ENTITY pref.CalDavDescription "например: caldav.yourserver.com">
-<!ENTITY pref.usehttps "Использовать безопасное соединение (соединение через https)">
 
 <!ENTITY pref.generaloptions "Общие настройки">
 <!ENTITY pref.downloadonly "Отменить локальные изменения (односторонняя синхронизация)">

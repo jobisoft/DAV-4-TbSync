@@ -6,25 +6,22 @@
 <!ENTITY add.server "Kiszolgáló URL:">
 <!ENTITY add.carddavserver "CardDAV kiszolgáló cím:">
 <!ENTITY add.caldavserver "CardDAV kiszolgáló cím:">
-<!ENTITY add.verify "Ellenőrizze a kapcsolatot a szerverrel">
 
 <!ENTITY add.serverprofile.title "Kiszolgálóprofil kiválasztása">
 <!ENTITY add.serverprofile.description "Kérjük, válasszon egyet a rendelkezésre álló kiszolgálóprofilok közül:">
-<!ENTITY add.serverprofile.verifyconnection "A kiszolgálóval való kapcsolat ellenőrzése.">
-<!ENTITY add.serverprofile.receivederror "A kiszolgálóhoz történő csatlakozás során a következő hiba történt:">
-<!ENTITY add.serverprofile.verifydata "Kérjük, ellenőrizze a megadott fiókadatokat.">
 
 <!ENTITY add.data.title "Fiókadatok megadása">
 <!ENTITY add.data.description "Kérjük, adjon meg egy becenévet az új Thunderbird-összehangolás fióknak és a hitelesítő adatoknak a kiszolgáló számára:">
 <!ENTITY add.data.notes "Megjegyzések:">
 
+<!ENTITY add.finish.title "?? Confirm account creation ??">
+<!ENTITY add.finish.description "?? The following settings have been verified successfully: ??">
+<!ENTITY add.finish.details "?? Click „Finish“ to create a new TbSync account with these settings. ??">
+
 <!ENTITY pref.AccountName "Fiók neve:">
 <!ENTITY pref.UserName "Felhasználói név">
 <!ENTITY pref.CardDavServer "CardDAV kiszolgáló cím:">
-<!ENTITY pref.CardDavDescription "például: carddav.kiszolgálód.hu">
 <!ENTITY pref.CalDavServer "CardDAV kiszolgáló cím:">
-<!ENTITY pref.CalDavDescription "például: caldav.kiszolgálód.hu">
-<!ENTITY pref.usehttps "Biztonságos kapcsolat használata (https-kapcsolaton keresztül)">
 
 <!ENTITY pref.generaloptions "Általános beállításai">
 <!ENTITY pref.downloadonly "A helyi változások visszaállítása (egyirányú összehangolás)">

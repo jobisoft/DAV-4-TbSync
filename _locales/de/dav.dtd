@@ -6,25 +6,22 @@
 <!ENTITY add.server "Serveradresse:">
 <!ENTITY add.carddavserver "CardDAV Serveradresse:">
 <!ENTITY add.caldavserver "CalDAV Serveradresse:">
-<!ENTITY add.verify "Überprüfe Verbindung zum Server">
 
 <!ENTITY add.serverprofile.title "Serverprofil auswählen">
 <!ENTITY add.serverprofile.description "Bitte wählen Sie eines der verfügbaren Serverprofile aus:">
-<!ENTITY add.serverprofile.verifyconnection "Verbindung zum Server wird überprüft.">
-<!ENTITY add.serverprofile.receivederror "Die Verbinden zum Server wurde mit folgendem Fehler abgebrochen:">
-<!ENTITY add.serverprofile.verifydata "Bitte überprüfen Sie die angegebenen Kontoinformationen.">
 
 <!ENTITY add.data.title "Kontoinformationen angeben">
 <!ENTITY add.data.description "Bitte geben Sie einen Namen für das neue TbSync-Konto und die Anmeldeinformationen für Ihren Server an:">
 <!ENTITY add.data.notes "Hinweise:">
 
+<!ENTITY add.finish.title "Kontoerstellung abschließen">
+<!ENTITY add.finish.description "Die folgenden Einstellungen wurden erfolgreich verifiziert:">
+<!ENTITY add.finish.details "Klicken Sie auf „Fertigstellen“, um ein neues TbSync-Konto mit diesen Einstellungen anzulegen.">
+
 <!ENTITY pref.AccountName "Kontoname">
 <!ENTITY pref.UserName "Benutzername">
 <!ENTITY pref.CardDavServer "CardDAV Serveradresse:">
-<!ENTITY pref.CardDavDescription "z.B. carddav.yourserver.de">
 <!ENTITY pref.CalDavServer "CalDAV Serveradresse:">
-<!ENTITY pref.CalDavDescription "z.B. caldav.yourserver.de">
-<!ENTITY pref.usehttps "Sichere Verbindungen verwenden (via https://)">
 
 <!ENTITY pref.generaloptions "Allgemeine Optionen">
 <!ENTITY pref.downloadonly "Lokale Änderungen verwerfen (one-way sync)">

@@ -6,25 +6,22 @@
 <!ENTITY add.server "Адрес на сървър:">
 <!ENTITY add.carddavserver "CardDAV сървър:">
 <!ENTITY add.caldavserver "CalDAV сървър:">
-<!ENTITY add.verify "Проверяване на връзката със сървъра">
 
 <!ENTITY add.serverprofile.title "Избор на сървърен профил">
 <!ENTITY add.serverprofile.description "Изберете един от наличните сървърни профили:">
-<!ENTITY add.serverprofile.verifyconnection "Връзката със сървъра се проверява.">
-<!ENTITY add.serverprofile.receivederror "При свързването със сървъра възникна грешка:">
-<!ENTITY add.serverprofile.verifydata "Проверете данните за регистрацията.">
 
 <!ENTITY add.data.title "Въвеждане на регистрацията">
 <!ENTITY add.data.description "Въведете име за новата TbSync регистрация и данните за връзка със сървъра ви:">
 <!ENTITY add.data.notes "Бележка:">
 
+<!ENTITY add.finish.title "?? Confirm account creation ??">
+<!ENTITY add.finish.description "?? The following settings have been verified successfully: ??">
+<!ENTITY add.finish.details "?? Click „Finish“ to create a new TbSync account with these settings. ??">
+
 <!ENTITY pref.AccountName "Име на регистрация">
 <!ENTITY pref.UserName "Потребителско име">
 <!ENTITY pref.CardDavServer "Адрес на CardDAV сървъра:">
-<!ENTITY pref.CardDavDescription "н.пр. carddav.example.bg">
 <!ENTITY pref.CalDavServer "Адрес на CalDAV сървъра:">
-<!ENTITY pref.CalDavDescription "н.пр. caldav.example.bg">
-<!ENTITY pref.usehttps "Използване на защитена връзка (чрез https://)">
 
 <!ENTITY pref.generaloptions "Общи настройки">
 <!ENTITY pref.downloadonly "Пренебрегване на местните промени (еднопосочно синхронизаране)">
