@@ -35,40 +35,40 @@
                 <column flex="2" />
             </columns>
             <rows>
-                <row>
+                <row id="tbsync.newaccount.name.row">
                     <vbox pack="center"><label value="&add.name;" /></vbox>
                     <textbox id="tbsync.newaccount.name" oninput="tbSyncDavNewAccount.checkUI();"/>
                 </row>
                 <row>
                     <vbox pack="center"><label value="&add.user;" /></vbox>
-                    <textbox id="tbsync.newaccount.user" oninput="tbSyncDavNewAccount.checkUI();" />
+                    <textbox id="tbsync.newaccount.user" oninput="tbSyncDavNewAccount.checkUI(true);" />
                 </row>
                 <row>
                     <vbox pack="center"><label value="&add.password;" /></vbox>
-                    <textbox id="tbsync.newaccount.password" type="password" oninput="tbSyncDavNewAccount.checkUI();"/>
+                    <textbox id="tbsync.newaccount.password" type="password" oninput="tbSyncDavNewAccount.checkUI(true);"/>
                 </row>
                 <row id="tbsync.newaccount.server.row" style="margin-top:2em;">
                     <vbox pack="center"><label value="&add.server;" /></vbox>
-                    <textbox id="tbsync.newaccount.server" oninput="tbSyncDavNewAccount.checkUI();"/>
+                    <textbox id="tbsync.newaccount.server" oninput="tbSyncDavNewAccount.checkUI(true);"/>
                 </row>
                 <row id="tbsync.newaccount.caldavserver.row" style="margin-top:2em;">
                     <vbox pack="center"><label value="&add.caldavserver;" /></vbox>
-                    <textbox id="tbsync.newaccount.caldavserver" oninput="tbSyncDavNewAccount.checkUI();"/>
+                    <textbox id="tbsync.newaccount.caldavserver" oninput="tbSyncDavNewAccount.checkUI(true);"/>
                 </row>
                 <row id="tbsync.newaccount.carddavserver.row">
                     <vbox pack="center"><label value="&add.carddavserver;" /></vbox>
-                    <textbox id="tbsync.newaccount.carddavserver" oninput="tbSyncDavNewAccount.checkUI();"/>
+                    <textbox id="tbsync.newaccount.carddavserver" oninput="tbSyncDavNewAccount.checkUI(true);"/>
                 </row>
             </rows>
         </grid>
-        <label class="header" id="tbsync.newaccount.details.header" value="Notes" style="margin-top:2em" />
+        <label class="header" id="tbsync.newaccount.details.header" value="&add.data.notes;" style="margin-top:2em" />
         <description id="tbsync.newaccount.details1" style="width: 450px; margin-top:1ex;"></description>
         <description id="tbsync.newaccount.details2" style="width: 450px; margin-top:1ex;"></description>
         <description id="tbsync.newaccount.details3" style="width: 450px; margin-top:1ex;"></description>
         <vbox flex="1">
         </vbox>
         <hbox id="tbsync.spinner">
-            <label value="&add.verify;" />
+            <label id="tbsync.spinner.label" value="" />
             <image src="chrome://tbsync/skin/spinner.gif" style="margin-left:1em" width="16" height="16"/>
         </hbox>
         <vbox id="tbsync.error" style="width: 450px;">
@@ -83,9 +83,34 @@
     </vbox>
   </wizardpage>
   
-  <wizardpage id="thirdPage" label="&add.data.title;">
+  <wizardpage id="thirdPage" label="&add.finish.title;">
     <vbox flex="1">
-        <description style="width: 450px; margin-top:1em;">&add.serverprofile.description;</description>
+        <description style="width: 450px; margin-top:1em;">&add.finish.description;</description>
+        <grid style="margin-top:1ex">
+            <columns>
+                <column flex="1" />
+                <column flex="2" />
+            </columns>
+            <rows>
+                <row>
+                    <vbox pack="center"><label value="&add.name;" /></vbox>
+                    <textbox id="tbsync.finalaccount.name"/>
+                </row>
+                <row style="margin-bottom:2em;">
+                    <vbox pack="center"><label value="&add.user;" /></vbox>
+                    <textbox id="tbsync.finalaccount.user" disabled="true" />
+                </row>
+                <row id="tbsyncfinalaccount.caldavserver.row">
+                    <vbox pack="center"><label value="&add.caldavserver;" /></vbox>
+                    <textbox id="tbsync.finalaccount.caldavserver" disabled="true" />
+                </row>
+                <row id="tbsyncfinalaccount.carddavserver.row">
+                    <vbox pack="center"><label value="&add.carddavserver;" /></vbox>
+                    <textbox id="tbsync.finalaccount.carddavserver" disabled="true" />
+                </row>
+            </rows>
+        </grid>
+        <description id="tbsync.finalaccount.details1" style="width: 450px; margin-top:2em;">&add.finish.details;</description>
     </vbox>
   </wizardpage>
   

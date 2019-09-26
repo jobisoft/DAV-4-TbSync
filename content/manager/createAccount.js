@@ -16,6 +16,7 @@ const dav = TbSync.providers.dav;
 
 var tbSyncDavNewAccount = {
     
+    // standard data fields
     get elementName() { return document.getElementById('tbsync.newaccount.name'); },
     get elementUser() { return document.getElementById('tbsync.newaccount.user'); },
     get elementPass() { return document.getElementById('tbsync.newaccount.password'); },
@@ -34,7 +35,8 @@ var tbSyncDavNewAccount = {
     get userdomain() { 
         let parts = this.username.split("@");
         if (parts.length == 2) {
-            return parts[1];
+            let subparts = parts[1].split(".");
+            if (subparts.length > 1 && subparts[subparts.length-1].length > 1) return parts[1];
         }
         return null;
     },
@@ -45,6 +47,61 @@ var tbSyncDavNewAccount = {
     set server(v) { this.elementServer.value = v; },
     set calDavServer(v) { this.elementCalDavServer.value = v; },
     set cardDavServer(v) { this.elementCardDavServer.value = v; },
+    
+    
+    
+    // final data fields on final page
+    get elementFinalName() { return document.getElementById('tbsync.finalaccount.name'); },
+    get elementFinalUser() { return document.getElementById('tbsync.finalaccount.user'); },
+    get elementFinalCalDavServer() { return document.getElementById('tbsync.finalaccount.caldavserver'); },
+    get elementFinalCardDavServer() { return document.getElementById('tbsync.finalaccount.carddavserver'); },
+
+    get finalAccountname() { return this.elementFinalName.value.trim(); },
+    get finalUsername() { return this.elementFinalUser.value.trim(); },
+    get finalCalDavServer() { return this.elementFinalCalDavServer.value.trim(); },
+    get finalCardDavServer() { return this.elementFinalCardDavServer.value.trim(); },
+
+    set finalAccountname(v) { this.elementFinalName.value = v;},
+    set finalUsername(v) {
+        this.elementFinalUser.value = v; 
+        this.elementFinalUser.setAttribute("tooltiptext", v);
+    },
+    set finalCalDavServer(v) { 
+        this.elementFinalCalDavServer.value = v; 
+        this.elementFinalCalDavServer.setAttribute("tooltiptext", v);
+        document.getElementById("tbsyncfinalaccount.caldavserver.row").hidden = (v.trim() == "");
+    },
+    set finalCardDavServer(v) { 
+        this.elementFinalCardDavServer.value = v; 
+        this.elementFinalCardDavServer.setAttribute("tooltiptext", v);
+        document.getElementById("tbsyncfinalaccount.carddavserver.row").hidden = (v.trim() == "");
+    },    
+    
+    get validated() { return this._validated || false; },
+    set validated(v) {
+        this._validated = v;
+        if (v) {
+            this.finalAccountname = this.accountname;
+            this.finalUsername = this.validUser;
+            this.finalCalDavServer = this.calDavServer;
+            this.finalCardDavServer = this.cardDavServer;
+        } else {
+            this.finalAccountname = "";
+            this.finalUsername = "";
+            this.finalCalDavServer = "";
+            this.finalCardDavServer = "";
+        }
+    },
+    
+    
+    showSpinner: function(spinnerText) {
+        document.getElementById("tbsync.spinner").hidden = false;
+        document.getElementById("tbsync.spinner.label").value = TbSync.getString("add.spinner." + spinnerText, "dav");
+    },
+    
+    hideSpinner: function() {
+        document.getElementById("tbsync.spinner").hidden = true;
+    },
     
     onLoad: function () {
         this.providerData = new TbSync.ProviderData("dav");
@@ -86,12 +143,12 @@ var tbSyncDavNewAccount = {
         let newAccountEntry = this.providerData.getDefaultAccountEntries();
         newAccountEntry.createdWithProviderVersion = this.providerData.getVersion();
         newAccountEntry.serviceprovider = this.serviceprovider == "discovery" ? "custom" : this.serviceprovider;
-        newAccountEntry.calDavHost = this.calDavServer;
-        newAccountEntry.cardDavHost = this.cardDavServer;
+        newAccountEntry.calDavHost = this.finalCalDavServer;
+        newAccountEntry.cardDavHost = this.finalCardDavServer;
     
         // Add the new account.
-        let newAccountData = this.providerData.addAccount(this.accountname, newAccountEntry);
-        dav.network.getAuthData(newAccountData).updateLoginData(this.username, this.password);
+        let newAccountData = this.providerData.addAccount(this.finalAccountname, newAccountEntry);
+        dav.network.getAuthData(newAccountData).updateLoginData(this.finalUsername, this.password);
     },
 
 
@@ -138,38 +195,58 @@ var tbSyncDavNewAccount = {
         return richlistitem;
     },
 
-    checkUrlForPrincipal: async function (accountname, username, password, url, type) {
-        let connectionData = new dav.network.ConnectionData();
-        connectionData.password = password;
-        connectionData.username = username;
-        connectionData.timeout = 5000;
-        connectionData.type = type;
+    checkUrlForPrincipal: async function (url, type) {
+        // according to RFC6764, we must also try the username with cut-off domain part
+        this.validUser = "";
+        let users = [];
+        users.push(this.username);
+        if (this.userdomain) users.push(this.username.split("@")[0]);
 
-        //only needed for proper error reporting - that dav needs this is beyond API - connectionData is not used by TbSync
-        //connectionData is a structure which contains all the information needed to establish and evaluate a network connection
-        connectionData.eventLogInfo = new TbSync.EventLogInfo("dav", accountname);
+        let rv = {};
         
-        let rv = {valid: false, error: ""};
-        
-        try {
-            let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", url , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return=minimal"});
-            // allow 404 because iCloud sends it on valid answer (yeah!)
-            let principal = (response && response.multi) ? dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]], null, ["200","404"]) : null;
-            rv.valid = (principal !== null);
-            if (!rv.valid) {
-                rv.error = type + "davservernotfound";
-                TbSync.eventlog.add("warning", connectionData.eventLogInfo, rv.error, response.commLog);
-            }
-        } catch (e) {
-            rv.valid = false;
-            rv.error = (e.statusData ? e.statusData.message : e.message);
+        for (let user of users) {
+            let connectionData = new dav.network.ConnectionData();
+            connectionData.password = this.password;
+            connectionData.username = user;
+            connectionData.timeout = 5000;
+            connectionData.type = type;
+
+            //only needed for proper error reporting - that dav needs this is beyond API - connectionData is not used by TbSync
+            //connectionData is a structure which contains all the information needed to establish and evaluate a network connection
+            connectionData.eventLogInfo = new TbSync.EventLogInfo("dav", this.accountname);
             
-            if (e.name == "dav4tbsync") {
-                TbSync.eventlog.add("warning", connectionData.eventLogInfo, e.statusData.message, e.statusData.details);
-            } else {
-                Components.utils.reportError(e);
+            rv = {valid: false, error: ""};
+            
+            try {
+                let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", url , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return=minimal"});
+                // allow 404 because iCloud sends it on valid answer (yeah!)
+                let principal = (response && response.multi) ? dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]], null, ["200","404"]) : null;
+                rv.valid = (principal !== null);
+                if (!rv.valid) {
+                    rv.error = type + "davservernotfound";
+                    TbSync.eventlog.add("warning", connectionData.eventLogInfo, rv.error, response.commLog);
+                } else {
+                    this.validUser = user;
+                    return rv;
+                }
+            } catch (e) {
+                rv.valid = false;
+                rv.error = (e.statusData ? e.statusData.message : e.message);
+                
+                if (e.name == "dav4tbsync") {
+                    TbSync.eventlog.add("warning", connectionData.eventLogInfo, e.statusData.message, e.statusData.details);
+                } else {
+                    Components.utils.reportError(e);
+                }
+            }
+            
+            // only retry with other user, if 401
+            if (!rv.error.startsWith("401")) {
+                break;
             }
         }
+        
+        // return error rv
         return rv;
     },
 
@@ -210,16 +287,9 @@ var tbSyncDavNewAccount = {
         this.isLocked = false;
         this.validated = false;
         
-        if (this.serviceprovider == "discovery") {
-            this.discoveryMode = "RFC6764";
-        } else {
-            //custom or serviceprovider
-            this.discoveryMode = "NONE";
-        }
-        
         document.getElementById("tbsync.newaccount.wizard").canRewind = true;
         document.getElementById("tbsync.newaccount.wizard").canAdvance = false;
-        document.getElementById("tbsync.spinner").hidden = true;
+        this.hideSpinner();
         document.getElementById("tbsync.error").hidden = true;
 
         this.checkUI();
@@ -237,8 +307,8 @@ var tbSyncDavNewAccount = {
 
 
     // UI FUNCTIONS
-    lockUI: function() {
-        document.getElementById("tbsync.spinner").hidden = false;
+    lockUI: function(spinnerText) {
+        this.showSpinner(spinnerText);
         document.getElementById("tbsync.error").hidden = true;
         document.getElementById("tbsync.newaccount.wizard").canAdvance = false;
         document.getElementById("tbsync.newaccount.wizard").canRewind = false;
@@ -246,32 +316,38 @@ var tbSyncDavNewAccount = {
     },
 
     unlockUI: function() {
-        document.getElementById("tbsync.spinner").hidden = true;        
+        this.hideSpinner();
         document.getElementById("tbsync.newaccount.wizard").canRewind = true;
         this.isLocked = false;
         this.checkUI();
     },
 
-    checkUI: function () {        
+    checkUI: function (hideError) {        
+        if (hideError) {
+            document.getElementById("tbsync.error").hidden = true;
+        }
+        
         // determine, if we can advance or not
         if (this.serviceprovider == "discovery") {
-            document.getElementById("tbsync.newaccount.wizard").canAdvance = !(this.accountname == ""
-                                                                                || (this.calDavServer + this.cardDavServer == "" && this.discoveryMode == "CUSTOM")
-                                                                                || (this.server == "" && this.discoveryMode == "RFC6764" && !this.userdomain)
-                                                                                || (this.server == "" && this.username == ""));
+            document.getElementById("tbsync.newaccount.wizard").canAdvance = !(
+                                                                                (this.accountname == "") ||
+                                                                                (this.server == "" && !this.userdomain) ||
+                                                                                (this.server == "" && this.username == ""));
         } else if (this.serviceprovider == "custom") {
             // custom does not need username or password (allow annonymous access)
-            document.getElementById("tbsync.newaccount.wizard").canAdvance = !(this.accountname == ""
-                                                                                || this.calDavServer + this.cardDavServer == "");
+            document.getElementById("tbsync.newaccount.wizard").canAdvance = !(
+                                                                                (this.accountname == "") ||
+                                                                                (this.calDavServer + this.cardDavServer == ""));
         } else {
             // build in service providers do need a username and password
-            document.getElementById("tbsync.newaccount.wizard").canAdvance = !(this.accountname == ""
-                                                                                || this.password == ""
-                                                                                || this.username == "");
+            document.getElementById("tbsync.newaccount.wizard").canAdvance = !(
+                                                                                (this.accountname == "") ||
+                                                                                (this.password == "") ||
+                                                                                (this.username == ""));
         }
 
         // update placeholder attribute of server
-        this.elementServer.setAttribute("placeholder", this.userdomain ? TbSync.getString("server.optional", "dav") : "");
+        this.elementServer.setAttribute("placeholder", this.userdomain ? TbSync.getString("add.serverprofile.discovery.server-optional", "dav") : "");
 
         
         //show/hide additional descriptions (if avail)
@@ -281,7 +357,20 @@ var tbSyncDavNewAccount = {
             let dLocaleString = "add.serverprofile." + this.serviceprovider + ".details" + i;
             let dLocaleValue = TbSync.getString(dLocaleString, "dav");
             
-            if (dLocaleValue == dLocaleString) {
+            let hide = (dLocaleValue == dLocaleString);
+            if (this.serviceprovider == "discovery") {
+                // show them according to UI state
+                switch (i) {
+                    case 1: 
+                        hide = false;
+                        break;
+                    case 2: 
+                        hide = !this.userdomain;
+                        break;
+                }
+            }
+
+            if (hide) {
                 dElement.textContent = "";
                 dElement.hidden = true;
             } else {
@@ -295,11 +384,12 @@ var tbSyncDavNewAccount = {
         let dLabel = document.getElementById("tbsync.newaccount.details.header");
         dLabel.hidden = (dFound == 0);
         
+
         //which server fields to show?
         if (this.serviceprovider == "discovery") {
-            document.getElementById("tbsync.newaccount.caldavserver.row").hidden = (this.discoveryMode != "CUSTOM");
-            document.getElementById("tbsync.newaccount.carddavserver.row").hidden = (this.discoveryMode != "CUSTOM");
-            document.getElementById("tbsync.newaccount.server.row").hidden = (this.discoveryMode == "CUSTOM");
+            document.getElementById("tbsync.newaccount.caldavserver.row").hidden = true;
+            document.getElementById("tbsync.newaccount.carddavserver.row").hidden = true;
+            document.getElementById("tbsync.newaccount.server.row").hidden = false;
             //this.elementCalDavServer.disabled = false;
             //this.elementCardDavServer.disabled = false;
         } else if (this.serviceprovider == "custom") {
@@ -336,24 +426,14 @@ var tbSyncDavNewAccount = {
         // go through the setup steps
 
         if (this.serviceprovider == "discovery") {
-            // Possible dicovery modes:
-            // - RFC6764 : only username (server is optional)
-            // - CUSTOM: username + servers
-            switch (this.discoveryMode) {
-                case "RFC6764":
-                    // if the user specified a server url, do well-know discovery
-                    while (this.server.endsWith("/")) { this.server = this.server.slice(0,-1); }        
-                    if (this.server) {
-                        this.calDavServer = this.server + "/.well-known/caldav";
-                        this.cardDavServer = this.server + "/.well-known/carddav";
-                        this.validateDavServers();
-                    } else {
-                        this.findValidDavServers();
-                    }
-                    break;
-                case "CUSTOM":
-                    this.validateDavServers();
-                    break;
+            // if the user specified a server url, do well-known discovery
+            while (this.server.endsWith("/")) { this.server = this.server.slice(0,-1); }        
+            if (this.server) {
+                this.calDavServer = this.server + "/.well-known/caldav";
+                this.cardDavServer = this.server + "/.well-known/carddav";
+                this.validateDavServers();
+            } else {
+                this.findValidDavServers();
             }
         } else {
             // custom or service provider
@@ -364,13 +444,12 @@ var tbSyncDavNewAccount = {
     },
 
     findValidDavServers: async function() {
-        this.lockUI();
+        this.lockUI("query::" + this.userdomain);
         
         if (this.userdomain) {
             // we do dns lookup and we need to validate all 6 candidates and if all fail,
             // show the server field(s)
             let rv = await this.doRFC6764Lookup(this.userdomain);
-            document.getElementById("tbsync.spinner").hidden = true;
 
             if (rv.cal.validUrl && rv.card.validUrl) {
                 // boom, setup completed
@@ -380,23 +459,15 @@ var tbSyncDavNewAccount = {
                 this.unlockUI();
                 this.advance();
                 return;
-            } else if (rv.cal.validUrl || rv.card.validUrl) {
-                // only partial results, switch to CUSTOM mode and 
-                // show them to the user
-                this.discoveryMode = "CUSTOM";
-                this.calDavServer = rv.cal.validUrl || "";
-                this.cardDavServer = rv.card.validUrl || "";
-                this.unlockUI();
-                return;
             } else if (rv.cal.errors.includes("401") || rv.card.errors.includes("401")) {
                 //show for 401 errors
-                document.getElementById("tbsync.error.message").textContent = TbSync.getString("info.error") + ": " + TbSync.getString("status.401", "dav");
+                document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.401", "dav");
                 document.getElementById("tbsync.error").hidden = false;
                 this.unlockUI();
                 return;
             } else {
                 //show general error, that doRFC6764Lookup failed and the user must specify a server
-                document.getElementById("tbsync.error.message").textContent = TbSync.getString("info.error") + ": " + TbSync.getString("status.rfc6764LookupFailedPleaseEnterServerUrl", "dav");
+                document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.rfc6764-lookup-failed::" + this.userdomain, "dav");
                 document.getElementById("tbsync.error").hidden = false;
                 this.unlockUI();
                 return;
@@ -417,6 +488,8 @@ var tbSyncDavNewAccount = {
             card: {}
         };
         
+        let eventLogInfo = new TbSync.EventLogInfo("dav", this.accountname);
+
         for (let type of Object.keys(result)) {
             result[type].candidates = [];
             result[type].errors = [];
@@ -429,6 +502,7 @@ var tbSyncDavNewAccount = {
                 if (rv && Array.isArray(rv) && rv.length>0 && rv[0].host) {
                     result[type].secure = sec;
                     result[type].host = rv[0].host + ((checkDefaultSecPort(sec) == rv[0].port) ? "" : ":" + rv[0].port);
+                    TbSync.eventlog.add("info", eventLogInfo, "RFC6764 DNS request succeeded", "SRV record @ " + request + "\n" + JSON.stringify(rv[0]));
 
                     // Now try to get path from TXT
                     rv = await DNS.txt(request);   
@@ -440,6 +514,8 @@ var tbSyncDavNewAccount = {
 
                     result[type].candidates.push("http" + (result[type].secure ? "s" : "") + "://" + result[type].host +  result[type].path);
                     break;
+                } else {
+                    TbSync.eventlog.add("info", eventLogInfo, "RFC6764 DNS request failed", "SRV record @ " + request);
                 }
             }
             
@@ -450,7 +526,7 @@ var tbSyncDavNewAccount = {
             
             // try to get principal from candidate
             for (let url of result[type].candidates) {
-                let rv = await this.checkUrlForPrincipal(this.accountname, this.username, this.password, url, type);
+                let rv = await this.checkUrlForPrincipal(url, type);
                 if (rv.valid) {
                     result[type].validUrl = url;
                     break;
@@ -467,7 +543,7 @@ var tbSyncDavNewAccount = {
     },
      
     validateDavServers: async function() {
-        this.lockUI();
+        this.lockUI("validating");
       
         while (this.calDavServer.endsWith("/")) { this.calDavServer = this.calDavServer.slice(0,-1); }        
         while (this.cardDavServer.endsWith("/")) { this.cardDavServer = this.cardDavServer.slice(0,-1); }        
@@ -490,7 +566,7 @@ var tbSyncDavNewAccount = {
             if (!davJobs[job].server) {
                 continue;
             }
-            davJobs[job] = await this.checkUrlForPrincipal(this.accountname, this.username, this.password, davJobs[job].server, job);
+            davJobs[job] = await this.checkUrlForPrincipal(davJobs[job].server, job);
             if (!davJobs[job].valid) {
                 failedDavJobs.push(job);
             }
@@ -505,18 +581,16 @@ var tbSyncDavNewAccount = {
         } else {
             //only display one error
             let failedJob = failedDavJobs[0];
+            console.log("ERROR: " + davJobs[failedJob].error.toString());
             switch (davJobs[failedJob].error.toString().split("::")[0]) {
                 case "401":
                 case "403":
-                case "404":
-                case "500":
                 case "503":
-                case "network":
                 case "security":
-                    document.getElementById("tbsync.error.message").textContent = TbSync.getString("info.error") + ": " + TbSync.getString("status."+davJobs[failedJob].error, "dav");
+                    document.getElementById("tbsync.error.message").textContent = TbSync.getString("status."+davJobs[failedJob].error, "dav");
                     break;
                 default:
-                    document.getElementById("tbsync.error.message").textContent = TbSync.getString("info.error") + ": " + TbSync.getString("status.networkerror", "dav");
+                    document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.service-discovery-failed::" + this.server, "dav");
             }
             document.getElementById("tbsync.error").hidden = false;
             this.unlockUI();
