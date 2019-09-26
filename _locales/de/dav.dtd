@@ -16,7 +16,7 @@
 
 <!ENTITY add.finish.title "Kontoerstellung abschließen">
 <!ENTITY add.finish.description "Die folgenden Einstellungen wurden erfolgreich verifiziert:">
-<!ENTITY add.finish.details "Klicken Sie auf „Fertigstellen“, um ein neues TbSync-Konto mit diesen Einstellungen anzulegen.">
+<!ENTITY add.finish.details "Click “Finish” to create a new TbSync account with these settings.">
 
 <!ENTITY pref.AccountName "Kontoname">
 <!ENTITY pref.UserName "Benutzername">
