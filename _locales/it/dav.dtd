@@ -14,10 +14,6 @@
 <!ENTITY add.data.description "Fornisci un nome descrittivo per il nuovo account TbSync e le credenziali del server:">
 <!ENTITY add.data.notes "Note:">
 
-<!ENTITY add.finish.title "?? Confirm account creation ??">
-<!ENTITY add.finish.description "?? The following settings have been verified successfully: ??">
-<!ENTITY add.finish.details "?? Click „Finish“ to create a new TbSync account with these settings. ??">
-
 <!ENTITY pref.AccountName "Nome account">
 <!ENTITY pref.UserName "Nome utente">
 <!ENTITY pref.CardDavServer "Indirizzo server CardDAV:">
