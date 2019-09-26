@@ -14,10 +14,6 @@
 <!ENTITY add.data.description "Kérjük, adjon meg egy becenévet az új Thunderbird-összehangolás fióknak és a hitelesítő adatoknak a kiszolgáló számára:">
 <!ENTITY add.data.notes "Megjegyzések:">
 
-<!ENTITY add.finish.title "?? Confirm account creation ??">
-<!ENTITY add.finish.description "?? The following settings have been verified successfully: ??">
-<!ENTITY add.finish.details "?? Click „Finish“ to create a new TbSync account with these settings. ??">
-
 <!ENTITY pref.AccountName "Fiók neve:">
 <!ENTITY pref.UserName "Felhasználói név">
 <!ENTITY pref.CardDavServer "CardDAV kiszolgáló cím:">
