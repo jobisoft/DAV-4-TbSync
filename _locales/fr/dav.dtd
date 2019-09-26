@@ -1,0 +1,60 @@
+<!ENTITY add.title "Ajout d'un compte CalDAV &amp; CardDAV à TbSync">
+<!ENTITY add.ok "Ajouter un compte">
+<!ENTITY add.name "Nom du compte:">
+<!ENTITY add.user "Nom d'utilisateur:">
+<!ENTITY add.password "Mot de passe:">
+<!ENTITY add.serveur "URL de serveur:">
+<!ENTITY add.carddavserveur "Adresse du serveur CardDAV:">
+<!ENTITY add.caldavserveur "Adresse du serveur CalDAV:">
+<!ENTITY add.verify "Vérification de la connexion au serveur">
+
+<!ENTITY add.serveurprofile.title "Sélection  d'un profil de serveur">
+<!ENTITY add.serveurprofile.description "Veuillez sélectionner un des profil de serveur disponibles:">
+<!ENTITY add.serveurprofile.verifyconnection "Vérification de la connexion au serveur.">
+<!ENTITY add.serveurprofile.receivederror "L'erreur suivant a été reçue lors de la tentative de connexion au serveur:">
+<!ENTITY add.serveurprofile.verifydata "Veuillez vérifier les informations de compte que vous avez fournies.">
+
+<!ENTITY add.data.title "Information de compte">
+<!ENTITY add.data.description "Veuillez fournir un nom convivial pour le nouveau compte TbSync, ainsi que le couple identifiant/mot de passe d'accès à votre serveur:">
+<!ENTITY add.data.notes "Notes:">
+
+<!ENTITY pref.AccountName "Nom du compte">
+<!ENTITY pref.UserName "Nom d'utilisateur">
+<!ENTITY pref.CardDavServer "Adresse du serveur CardDAV:">
+<!ENTITY pref.CardDavDescription "ex: carddav.votreserveur.example">
+<!ENTITY pref.CalDavServer "Adresse du serveur CalDAV:">
+<!ENTITY pref.CalDavDescription "ex: caldav.votreserveur.example">
+<!ENTITY pref.usehttps "Utiliser une connexion sécurisée (se connecter via https)">
+
+<!ENTITY pref.generaloptions "Options générales">
+<!ENTITY pref.downloadonly "Annuler les modifications locales (synchronisation à sens unique)">
+
+<!ENTITY pref.contactoptions "Options des contacts">
+<!ENTITY pref.syncGroups "Synchroniser les groupes de contacts comme des listes Thunderbird lists">
+<!ENTITY pref.syncGroupsDescription "NOTE: A cause du bug Thunberbird 1522453, TbSync est obligé d'ajouter une adresse fictive à tous les contacts lorsque ceux-ci sont membres d'un groupe mais qu'aucune adresse e-mail ne leur est associée. Ces adresses fictives ne sont pas syncrhonisées vers le serveur, mais reste locale à Thunderbird.">
+<!ENTITY pref.useCardBook "Créer un carnet d'adresse dans CardBook plutôt que dans le carnet d'adresse standard de Thunderbird">
+
+<!ENTITY pref.calendaroptions "Options de calendrier">
+<!ENTITY pref.useCalendarCache "Prise en charge du mode hors-ligne">
+
+<!ENTITY abCard.MiddleName "Second prénom:">
+<!ENTITY abCard.PrefixName "Préfix:">
+<!ENTITY abCard.SuffixName "Suffix:">
+<!ENTITY abCard.Phone "Numéros de téléphone">
+<!ENTITY abCard.ContactDetails "Propriété du contact (CardDAV)">
+<!ENTITY abCard.EmailAddresses "Adresse de courriel">
+
+<!ENTITY manager.tabs.accountsettings "Paramètres du compte">
+<!ENTITY manager.tabs.syncsettings "Options">
+
+<!ENTITY abCard.emailtypes.voice "Téléphone">
+<!ENTITY abCard.emailtypes.cell "Mobile">
+<!ENTITY abCard.emailtypes.fax "Fax">
+<!ENTITY abCard.emailtypes.video "Video">
+<!ENTITY abCard.emailtypes.pager "Pager">
+<!ENTITY abCard.emailtypes.car "Voiture">
+
+<!ENTITY abCard.emailtypes.home "Domicile">
+<!ENTITY abCard.emailtypes.work "Travail">
+<!ENTITY abCard.emailtypes.other "Autre">
+<!ENTITY abCard.emailtypes.description "La première adresse de courriel de la liste sera utilisée comme adresse principale.">
