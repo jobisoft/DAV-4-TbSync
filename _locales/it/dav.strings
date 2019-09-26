@@ -25,7 +25,6 @@ status.success.managed-by-lightning=Lightning
 status.info.restored=A causa della mancanza di permessi di scrittura, alcune azioni sono state respinte dal server e annullate localmente.
 status.malformed-xml=Impossibile analizzare XML. Controllare il registro eventi per i dettagli.
 helplink.malformed-xml=https://github.com/jobisoft/DAV-4-TbSync/issues/104
-status.service-discovery-failed=Rilevamento servizio Sabre/DAV non riuscito per questo server.
 status.missing-permission=Permesso mancante: ##replace.1##
 status.caldavservernotfound=Impossibile trovare un server CalDAV.
 status.carddavservernotfound=Impossibile trovare un server CardDAV.
@@ -33,12 +32,8 @@ status.carddavservernotfound=Impossibile trovare un server CardDAV.
 config.custom=Configurazione server CalDAV & CardDAV
 
 add.serverprofile.discovery=Configurazione automatica
-add.serverprofile.discovery.description=La maggior parte delle installazioni ownCloud, Nextcloud e altre sciabole / dav supportano il servizio di rilevamento per la configurazione automatica.
-add.serverprofile.discovery.details1=Se il server supporta il servizio individuazione, immettere semplicemente il nome host come URL server. Ad esempio: cloud.myserver.com. Se non funziona, torna indietro e seleziona Configurazione personalizzata.
 
 add.serverprofile.custom=Configurazione personalizzata
-add.serverprofile.custom.description=Configura i server CalDAV e CardDAV separatamente.
-add.serverprofile.custom.details1=Il fornitore di servizi CalDAV e CardDAV dovrebbe fornire gli indirizzi dei propri server. Per SOGo la maggior parte delle volte è cloud.myserver.com/SOGo/dav per entrambi i server, altri fornitori di servizi potrebbero utilizzare server diversi per CalDAV e CardDAV.
 add.serverprofile.custom.details2=Se si lascia un indirizzo vuoto, il servizio corrispondente sarà disabilitato per quest'account.
 
 add.serverprofile.fruux=fruux
@@ -66,6 +61,8 @@ acl.modify=modificare
 acl.add=inserisci
 acl.delete=elimina
 acl.none=nessuna
+
+add.spinner.validating=Controlla la connessione al server
 
 autocomplete.WORK=business
 autocomplete.HOME=private
