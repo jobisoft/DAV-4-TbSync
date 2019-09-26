@@ -3,6 +3,7 @@
 <!ENTITY add.name "Nom du compte:">
 <!ENTITY add.user "Nom d'utilisateur:">
 <!ENTITY add.password "Mot de passe:">
+
 <!ENTITY add.server "URL de serveur:">
 <!ENTITY add.carddavserver "Adresse du serveur CardDAV:">
 <!ENTITY add.caldavserver "Adresse du serveur CalDAV:">
@@ -18,7 +19,6 @@
 <!ENTITY pref.UserName "Nom d'utilisateur">
 <!ENTITY pref.CardDavServer "Adresse du serveur CardDAV:">
 <!ENTITY pref.CalDavServer "Adresse du serveur CalDAV:">
-<!ENTITY pref.usehttps "Utiliser une connexion sécurisée (se connecter via https)">
 
 <!ENTITY pref.generaloptions "Options générales">
 <!ENTITY pref.downloadonly "Annuler les modifications locales (synchronisation à sens unique)">
