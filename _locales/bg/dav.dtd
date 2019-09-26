@@ -14,9 +14,9 @@
 <!ENTITY add.data.description "Въведете име за новата TbSync регистрация и данните за връзка със сървъра ви:">
 <!ENTITY add.data.notes "Бележка:">
 
-<!ENTITY add.finish.title "?? Confirm account creation ??">
-<!ENTITY add.finish.description "?? The following settings have been verified successfully: ??">
-<!ENTITY add.finish.details "?? Click „Finish“ to create a new TbSync account with these settings. ??">
+<!ENTITY add.finish.title "Потвърдете създаването на регистрация">
+<!ENTITY add.finish.description "Следните настройки бяха потвърдени:">
+<!ENTITY add.finish.details "Натиснете „Готово“ за да създадете нова TbSync регистрация с тези настройки.">
 
 <!ENTITY pref.AccountName "Име на регистрация">
 <!ENTITY pref.UserName "Потребителско име">
