@@ -16,7 +16,7 @@
 
 <!ENTITY add.finish.title "?? Confirm account creation ??">
 <!ENTITY add.finish.description "?? The following settings have been verified successfully: ??">
-<!ENTITY add.finish.details "?? Click „Finish“ to create a new TbSync account with these settings. ??">
+<!ENTITY add.finish.details "Click “Finish” to create a new TbSync account with these settings.">
 
 <!ENTITY pref.AccountName "Fiók neve:">
 <!ENTITY pref.UserName "Felhasználói név">
