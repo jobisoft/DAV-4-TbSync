@@ -125,7 +125,7 @@ var Base = class {
      * accessed by TbSync.getString(<key>, <provider>)
      */
     static getStringBundleUrl() {
-        return "chrome://dav4tbsync/locale/dav.strings";
+        return "chrome://dav4tbsync/locale/dav.properties";
     }
 
 
