@@ -3,6 +3,9 @@ This provider add-on adds CalDAV & CardDAV synchronization capabilities to [TbSy
 
 More information can be found in the [wiki](https://github.com/jobisoft/DAV-4-TbSync/wiki/About:-Provider-for-CalDAV-&-CardDAV) of this repository
 
+## Want to add or fix a localization?
+To help translating this project, please visit to https://crowdin.com/project/dav-4-tbsync
+
 ## Icon sources and attributions
 
 #### CC-BY 3.0

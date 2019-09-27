@@ -39,7 +39,7 @@
 <!ENTITY abCard.SuffixName "Suffix:">
 <!ENTITY abCard.Phone "Telefonnummern">
 <!ENTITY abCard.ContactDetails "Kontakteigenschaften (CardDAV)">
-<!ENTITY abCard.EmailAddresses "E-Mail Adressen:">
+<!ENTITY abCard.EmailAddresses "E-Mail Adressen">
 
 <!ENTITY manager.tabs.accountsettings "Kontoeinstellungen">
 <!ENTITY manager.tabs.syncsettings "Optionen">
