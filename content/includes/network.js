@@ -131,8 +131,7 @@ var network = {
   },
 
   sendRequest: async function (requestData, path, method, connectionData, headers = {}, options = {softfail: []}) {            
-    let url = path;
-    
+    let url = path;    
     // path could be absolute or relative, we may need to rebuild the full url.
     if (path.startsWith("http://") || path.startsWith("https://")) {
       // extract segments from url
@@ -212,6 +211,9 @@ var network = {
       
       req.open(method, connectionData.url, true, connectionData.username, connectionData.password);
 
+      if (options.hasOwnProperty("containerRealm")) req.setContainerRealm(options.containerRealm);
+      if (options.hasOwnProperty("containerReset") && options.containerReset == true) req.clearContainerCache();
+      
       if (headers) {
           for (let header in headers) {
               req.setRequestHeader(header, headers[header]);
