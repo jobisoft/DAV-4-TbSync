@@ -27,6 +27,7 @@ var Base = class {
         branch.setIntPref("timeout", 90000);
         branch.setCharPref("clientID.type", "TbSync");
         branch.setCharPref("clientID.useragent", "Thunderbird CalDAV/CardDAV");    
+        branch.setBoolPref("enforceUniqueCalendarUrls", false);    
 
         dav.openWindows = {};
 
@@ -539,7 +540,7 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
             baseUrl =  "http" + (this.folderData.getFolderProperty("https") ? "s" : "") + "://" + this.folderData.getFolderProperty("fqdn");
         }
 
-        let url = dav.tools.parseUri(baseUrl + this.folderData.getFolderProperty("href"));        
+        let url = dav.tools.parseUri(baseUrl + this.folderData.getFolderProperty("href") + (dav.sync.prefSettings.getBoolPref("enforceUniqueCalendarUrls") ? "?" + this.folderData.accountID : ""));
         this.folderData.setFolderProperty("url", url.spec);
 
         //check if that calendar already exists
