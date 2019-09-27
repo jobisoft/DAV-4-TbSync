@@ -202,7 +202,7 @@ var network = {
     
     //do not log HEADERS, as it could contain an Authorization header
     //TbSync.dump("HEADERS", JSON.stringify(headers));
-    if (TbSync.prefs.getIntPref("log.userdatalevel")>1) TbSync.dump("REQUEST", method + " : " + requestData);
+    if (TbSync.prefs.getIntPref("log.userdatalevel") > 1) TbSync.dump("REQUEST", method + " : " + requestData);
   
     return new Promise(function(resolve, reject) {                  
       let req = new HttpRequest();
@@ -244,7 +244,7 @@ var network = {
       };
       
       req.onload = function() {
-        if (TbSync.prefs.getIntPref("log.userdatalevel")>1) TbSync.dump("RESPONSE", req.status + " ("+req.statusText+")" + " : " + req.responseText);
+        if (TbSync.prefs.getIntPref("log.userdatalevel") > 1) TbSync.dump("RESPONSE", req.status + " ("+req.statusText+")" + " : " + req.responseText);
         responseData = req.responseText.split("><").join(">\n<");
 
         //Redirected? Update connection settings from current URL

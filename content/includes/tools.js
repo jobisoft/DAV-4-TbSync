@@ -867,7 +867,7 @@ var tools = {
 
     //update send from server to client
     setThunderbirdCardFromVCard: function(syncData, card, vCardData, oCardData = null) {
-        if (TbSync.prefs.getIntPref("log.userdatalevel")>1) TbSync.dump("JSON from vCard", JSON.stringify(vCardData));
+        if (TbSync.prefs.getIntPref("log.userdatalevel") > 2) TbSync.dump("JSON from vCard", JSON.stringify(vCardData));
         //if (oCardData) TbSync.dump("JSON from oCard", JSON.stringify(oCardData));
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
