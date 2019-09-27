@@ -1,4 +1,4 @@
-<!ENTITY add.title "Добавяне на CalDAV и CardDAV регистрация">
+<!ENTITY add.title "Добавяне на CalDAV и CardDAV регистрация към TbSync">
 <!ENTITY add.ok "Добавяне на регистрация">
 <!ENTITY add.name "Име на регистрация:">
 <!ENTITY add.user "Потребителско име:">
