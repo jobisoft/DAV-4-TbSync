@@ -130,7 +130,7 @@ var network = {
     return (url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://"));
   },
 
-  sendRequest: async function (requestData, path, method, connectionData, headers = {}, options = {softfail: []}) {            
+  sendRequest: async function (requestData, path, method, connectionData, headers = {}, options = {}) {            
     let url = path;    
     // path could be absolute or relative, we may need to rebuild the full url.
     if (path.startsWith("http://") || path.startsWith("https://")) {
@@ -203,6 +203,10 @@ var network = {
     //TbSync.dump("HEADERS", JSON.stringify(headers));
     if (TbSync.prefs.getIntPref("log.userdatalevel") > 1) TbSync.dump("REQUEST", method + " : " + requestData);
   
+    if (!options.hasOwnProperty("softfail")) {
+      options.softfail = [];
+    }
+    
     return new Promise(function(resolve, reject) {                  
       let req = new HttpRequest();
 
