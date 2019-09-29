@@ -15,6 +15,7 @@
       onload="tbSyncDavNewAccount.onLoad();"
       onunload="tbSyncDavNewAccount.onUnload();"
       onclose="return tbSyncDavNewAccount.onClose()"
+      xmlns:html="http://www.w3.org/1999/xhtml"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <script type="application/javascript" src="chrome://dav4tbsync/content/manager/createAccount.js"/>
@@ -94,19 +95,19 @@
             <rows>
                 <row>
                     <vbox pack="center"><label value="&add.name;" /></vbox>
-                    <textbox id="tbsync.finalaccount.name"/>
+                    <html:input id="tbsync.finalaccount.name" style="margin:2px" />
                 </row>
                 <row style="margin-bottom:2em;">
                     <vbox pack="center"><label value="&add.user;" /></vbox>
-                    <textbox id="tbsync.finalaccount.user" disabled="true" />
+                    <html:input type="text" id="tbsync.finalaccount.user" readonly="true" style="margin:2px; background-color:silver;" />
                 </row>
                 <row id="tbsyncfinalaccount.caldavserver.row">
                     <vbox pack="center"><label value="&add.caldavserver;" /></vbox>
-                    <textbox id="tbsync.finalaccount.caldavserver" disabled="true" />
+                    <html:input id="tbsync.finalaccount.caldavserver" readonly="true" style="margin:2px; background-color:silver;" />
                 </row>
                 <row id="tbsyncfinalaccount.carddavserver.row">
                     <vbox pack="center"><label value="&add.carddavserver;" /></vbox>
-                    <textbox id="tbsync.finalaccount.carddavserver" disabled="true" />
+                    <html:input id="tbsync.finalaccount.carddavserver" readonly="true" style="margin:2px; background-color:silver;" />
                 </row>
             </rows>
         </grid>
