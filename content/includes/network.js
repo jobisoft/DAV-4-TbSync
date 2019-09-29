@@ -142,8 +142,8 @@ var network = {
       url = "http" + (connectionData.https ? "s" : "") + "://" + connectionData.fqdn + path;
     }
 
-    // A few bugs in TB and in client implementations require to retry a connection on certain failures.
-    const MAX_RETRIES = 5;
+    // Loop: Prompt user for password and retry
+    const MAX_RETRIES = options.hasOwnProperty("passwordRetries") ? options.passwordRetries+1 : 5;
     for (let i=1; i <= MAX_RETRIES; i++) {
       TbSync.dump("URL Request #" + i, url);
 
@@ -151,47 +151,41 @@ var network = {
 
       let r = await dav.network.promisifiedHttpRequest(requestData, method, connectionData, headers, options);
       
-      // ConnectionData.uri.host may no longer be the correct value, as there might have been redirects, use connectionData.fqdn .
-      if (r && r.retry && r.retry === true) {
-        if (r.passwordPrompt && r.passwordPrompt === true) {
-          if (i == MAX_RETRIES) {
-            // If this is the final retry, abort with error.
-            throw r.passwordError;
+      if (r && r.passwordPrompt && r.passwordPrompt === true) {
+        if (i == MAX_RETRIES) {
+          // If this is the final retry, abort with error.
+          throw r.passwordError;
+        } else {
+          let credentials = null;
+
+          // Prompt, if connection belongs to an account (and not from the create wizard)
+          if (connectionData.accountData) {
+            let promptData = {
+              windowID: "auth:" + connectionData.accountData.accountID,
+              accountname: connectionData.accountData.getAccountProperty("accountname"),
+              usernameLocked: connectionData.accountData.isConnected(),
+              username: connectionData.username,                
+            }
+            connectionData.accountData.syncData.setSyncState("passwordprompt");
+            credentials = await TbSync.passwordManager.asyncPasswordPrompt(promptData, dav.openWindows);
           } else {
-            let credentials = null;
+            throw r.passwordError;
+          }
 
-            // Prompt, if connection belongs to an account (and not from the create wizard)
-            if (connectionData.accountData) {
-              let promptData = {
-                windowID: "auth:" + connectionData.accountData.accountID,
-                accountname: connectionData.accountData.getAccountProperty("accountname"),
-                usernameLocked: connectionData.accountData.isConnected(),
-                username: connectionData.username,                
-              }
-              connectionData.accountData.syncData.setSyncState("passwordprompt");
-              credentials = await TbSync.passwordManager.asyncPasswordPrompt(promptData, dav.openWindows);
-            }
-
-            if (credentials) {
-              // update login data
-              dav.network.getAuthData(connectionData.accountData).updateLoginData(credentials.username, credentials.password);
-              // update connection data
-              connectionData.username = credentials.username;
-              connectionData.password = credentials.password;
-            } else {
-              throw r.passwordError;
-            }
+          if (credentials) {
+            // update login data
+            dav.network.getAuthData(connectionData.accountData).updateLoginData(credentials.username, credentials.password);
+            // update connection data
+            connectionData.username = credentials.username;
+            connectionData.password = credentials.password;
+          } else {
+            throw r.passwordError;
           }
         }
-        
-        // There might have been a redirect, rebuild url.
-        url = "http" + (connectionData.https ? "s" : "") + "://" + connectionData.fqdn + r.path;
-        
       } else {
         return r;
       }
     }
-
   },
   
   // Promisified implementation of TbSync's HttpRequest (with XHR interface)
@@ -244,54 +238,35 @@ var network = {
       req.ontimeout = req.onerror;
       
       req.onredirect = function(flags, uri) {
+        console.log("Redirect ("+ flags.toString(2) +"): " + uri.spec);
         if (flags & Ci.nsIChannelEventSink.REDIRECT_PERMANENT) {
           permanentRedirect = uri;
         }
+        
+        // Update connection settings from current URL
+        let newHttps = (uri.scheme == "https");
+        if (connectionData.https != newHttps) {
+          TbSync.dump("Updating HTTPS", connectionData.https + " -> " + newHttps);
+          connectionData.https = newHttps;
+        }
+        if (connectionData.fqdn !=uri.hostPort) {
+          TbSync.dump("Updating FQDN", connectionData.fqdn + " -> " + uri.hostPort);
+          connectionData.fqdn = uri.hostPort;
+        }        
       };
       
       req.onload = function() {
         if (TbSync.prefs.getIntPref("log.userdatalevel") > 1) TbSync.dump("RESPONSE", req.status + " ("+req.statusText+")" + " : " + req.responseText);
         responseData = req.responseText.split("><").join(">\n<");
-
-        //Redirected? Update connection settings from current URL
-        if (req.responseURI) {
-          let newHttps = (req.responseURI.scheme == "https");
-          if (connectionData.https != newHttps) {
-            TbSync.dump("Updating HTTPS", connectionData.https + " -> " + newHttps);
-            connectionData.https = newHttps;
-          }
-          if (connectionData.fqdn !=req.responseURI.hostPort) {
-            TbSync.dump("Updating FQDN", connectionData.fqdn + " -> " + req.responseURI.hostPort);
-            connectionData.fqdn = req.responseURI.hostPort;
-          }
-        }
         
         let commLog = "URL:\n" + connectionData.url + " ("+method+")" + "\n\nRequest:\n" + requestData + "\n\nResponse:\n" + responseData;
         let aResult = req.responseText;
         let responseStatus = req.status;
         
         switch(responseStatus) {
-          case 301:
-          case 302:
-          case 303:
-          case 305:
-          case 307:
-          case 308:
-            {
-              // Since the default nsIChannelEventSink handles the redirects, this should never
-              // be called. Just in case, do a retry with the updated connection settings.
-              let response = {};
-              response.retry = true;
-              response.path = req.responseURI.pathQueryRef;
-              return resolve(response);
-            }
-            break;
-
           case 401: //AuthError
             {
               let response = {};
-              response.retry = true;
-              response.path = req.responseURI.pathQueryRef;
               response.passwordPrompt = true;
               response.passwordError = dav.sync.finish("error", responseStatus, commLog);
               return resolve(response);                
