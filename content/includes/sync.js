@@ -397,7 +397,7 @@ var sync = {
                     syncData.target.calendar.setProperty("username", syncData.connectionData.username);
                     
                     //init sync via lightning
-                    syncData.target.calendar.refresh();
+                    if (dav.sync.prefSettings.getBoolPref("debugRequestLightningSyncOnSync")) syncData.target.calendar.refresh();
 
                     throw dav.sync.finish("ok", "managed-by-lightning");
                 }
