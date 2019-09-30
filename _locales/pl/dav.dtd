@@ -28,15 +28,15 @@
 
 <!ENTITY pref.contactoptions "Opcje kontaktu">
 <!ENTITY pref.syncGroups "Synchronizuj grupy kontaktów jako listy Thunderbird">
-<!ENTITY pref.syncGroupsDescription "NOTE: Due to TB bug 1522453, TbSync must add dummy e-mail addresses to all contacts, which are part of groups but do not have an e-mail address associated. These dummy e-mail addresses are not synced to server.">
+<!ENTITY pref.syncGroupsDescription "UWAGA: Z powodu błędu TB 1522453, TbSync musi dodać fikcyjne adresy e-mail do wszystkich kontaktów, które są częścią grup, ale nie mają powiązanego adresu e-mail. Te fałszywe adresy e-mail nie są synchronizowane z serwerem.">
 <!ENTITY pref.useCardBook "Utwórz książki adresowe CardBook zamiast domyślnych książek adresowych Thunderbirda">
 
 <!ENTITY pref.calendaroptions "Opcje kalendarza">
 <!ENTITY pref.useCalendarCache "Wsparcie Offline">
 
-<!ENTITY abCard.MiddleName "Middle:">
-<!ENTITY abCard.PrefixName "Prefix:">
-<!ENTITY abCard.SuffixName "Suffix:">
+<!ENTITY abCard.MiddleName "Drugie imię:">
+<!ENTITY abCard.PrefixName "Prefiks:">
+<!ENTITY abCard.SuffixName "Przyrostek:">
 <!ENTITY abCard.Phone "Numery telefonów">
 <!ENTITY abCard.ContactDetails "Właściwości kontaktu (CardDAV)">
 <!ENTITY abCard.EmailAddresses "Adresy e-mail">
