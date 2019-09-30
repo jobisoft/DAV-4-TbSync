@@ -1,57 +1,57 @@
-<!ENTITY add.title "Adding a CalDAV &amp; CardDAV account to TbSync">
-<!ENTITY add.ok "Add account">
-<!ENTITY add.name "Account name:">
-<!ENTITY add.user "User name:">
-<!ENTITY add.password "Password:">
-<!ENTITY add.server "Server URL:">
-<!ENTITY add.carddavserver "CardDAV server address:">
-<!ENTITY add.caldavserver "CalDAV server address:">
+<!ENTITY add.title "Dodawanie kota CalDAV i CardDAV do TbSync">
+<!ENTITY add.ok "Dodaj konto">
+<!ENTITY add.name "Nazwa konta:">
+<!ENTITY add.user "Nazwa użytkownika:">
+<!ENTITY add.password "Hasło:">
+<!ENTITY add.server "URL serwera:">
+<!ENTITY add.carddavserver "Adres serwera CardDAV:">
+<!ENTITY add.caldavserver "Adres serwera CalDAV:">
 
-<!ENTITY add.serverprofile.title "Select a server profile">
-<!ENTITY add.serverprofile.description "Please select one of the available server profiles:">
+<!ENTITY add.serverprofile.title "Wybierz profil serwera">
+<!ENTITY add.serverprofile.description "Wybierz jeden z dostępnych profili serwerów:">
 
-<!ENTITY add.data.title "Enter account information">
-<!ENTITY add.data.description "Please provide a friendly name for the new TbSync account and the credentials for your server:">
-<!ENTITY add.data.notes "Notes:">
+<!ENTITY add.data.title "Wprowadź informacje konta">
+<!ENTITY add.data.description "Podaj przyjazną nazwę nowego konta TbSync i dane logowania dla Twojego serwera:">
+<!ENTITY add.data.notes "Notatki:">
 
-<!ENTITY add.finish.title "Confirm account creation">
-<!ENTITY add.finish.description "The following settings have been verified successfully:">
-<!ENTITY add.finish.details "Click “Finish” to create a new TbSync account with these settings.">
+<!ENTITY add.finish.title "Potwierdź utworzenie konta">
+<!ENTITY add.finish.description "Następujące ustawienia zostały pomyślnie zweryfikowane:">
+<!ENTITY add.finish.details "Kliknij &quot;Zakończ&quot;, aby utworzyć nowe konto TbSync z tymi ustawieniami.">
 
-<!ENTITY pref.AccountName "Account name">
-<!ENTITY pref.UserName "User name">
-<!ENTITY pref.CardDavServer "CardDAV server address:">
-<!ENTITY pref.CalDavServer "CalDAV server address:">
+<!ENTITY pref.AccountName "Nazwa konta">
+<!ENTITY pref.UserName "Nazwa użytkownika">
+<!ENTITY pref.CardDavServer "Adres serwera CardDAV:">
+<!ENTITY pref.CalDavServer "Adres serwera CalDAV:">
 
-<!ENTITY pref.generaloptions "General options">
-<!ENTITY pref.downloadonly "Revert local changes (one-way sync)">
+<!ENTITY pref.generaloptions "Opcje ogólne">
+<!ENTITY pref.downloadonly "Cofnij zmiany lokalne (synchronizacja jednokierunkowa)">
 
-<!ENTITY pref.contactoptions "Contact options">
-<!ENTITY pref.syncGroups "Sync contact groups as Thunderbird lists">
+<!ENTITY pref.contactoptions "Opcje kontaktu">
+<!ENTITY pref.syncGroups "Synchronizuj grupy kontaktów jako listy Thunderbird">
 <!ENTITY pref.syncGroupsDescription "NOTE: Due to TB bug 1522453, TbSync must add dummy e-mail addresses to all contacts, which are part of groups but do not have an e-mail address associated. These dummy e-mail addresses are not synced to server.">
-<!ENTITY pref.useCardBook "Create CardBook address books instead of Thunderbird's default address books">
+<!ENTITY pref.useCardBook "Utwórz książki adresowe CardBook zamiast domyślnych książek adresowych Thunderbirda">
 
-<!ENTITY pref.calendaroptions "Calendar options">
-<!ENTITY pref.useCalendarCache "Offline Support">
+<!ENTITY pref.calendaroptions "Opcje kalendarza">
+<!ENTITY pref.useCalendarCache "Wsparcie Offline">
 
 <!ENTITY abCard.MiddleName "Middle:">
 <!ENTITY abCard.PrefixName "Prefix:">
 <!ENTITY abCard.SuffixName "Suffix:">
-<!ENTITY abCard.Phone "Phone numbers">
-<!ENTITY abCard.ContactDetails "Contact properties (CardDAV)">
-<!ENTITY abCard.EmailAddresses "E-mail addresses">
+<!ENTITY abCard.Phone "Numery telefonów">
+<!ENTITY abCard.ContactDetails "Właściwości kontaktu (CardDAV)">
+<!ENTITY abCard.EmailAddresses "Adresy e-mail">
 
-<!ENTITY manager.tabs.accountsettings "Account settings">
-<!ENTITY manager.tabs.syncsettings "Options">
+<!ENTITY manager.tabs.accountsettings "Ustawienia konta">
+<!ENTITY manager.tabs.syncsettings "Opcje">
 
-<!ENTITY abCard.emailtypes.voice "Phone">
-<!ENTITY abCard.emailtypes.cell "Mobile">
-<!ENTITY abCard.emailtypes.fax "Fax">
-<!ENTITY abCard.emailtypes.video "Video">
+<!ENTITY abCard.emailtypes.voice "Telefon">
+<!ENTITY abCard.emailtypes.cell "Komórka">
+<!ENTITY abCard.emailtypes.fax "Faks">
+<!ENTITY abCard.emailtypes.video "Film">
 <!ENTITY abCard.emailtypes.pager "Pager">
-<!ENTITY abCard.emailtypes.car "Car">
+<!ENTITY abCard.emailtypes.car "Pojazd">
 
-<!ENTITY abCard.emailtypes.home "Home">
-<!ENTITY abCard.emailtypes.work "Work">
-<!ENTITY abCard.emailtypes.other "Other">
-<!ENTITY abCard.emailtypes.description "The first e-mail address in the list will be used as the primary e-mail address.">
+<!ENTITY abCard.emailtypes.home "Dom">
+<!ENTITY abCard.emailtypes.work "Praca">
+<!ENTITY abCard.emailtypes.other "Inny">
+<!ENTITY abCard.emailtypes.description "Pierwszy adres e-mail z listy będzie używany jako podstawowy adres e-mail.">
