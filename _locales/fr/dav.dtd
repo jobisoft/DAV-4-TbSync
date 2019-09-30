@@ -3,9 +3,9 @@
 <!ENTITY add.name "Nom du compte:">
 <!ENTITY add.user "Nom d'utilisateur:">
 <!ENTITY add.password "Mot de passe:">
-<!ENTITY add.server "Server URL:">
-<!ENTITY add.carddavserver "CardDAV server address:">
-<!ENTITY add.caldavserver "CalDAV server address:">
+<!ENTITY add.server "URL du serveur:">
+<!ENTITY add.carddavserver "Adresse du serveur CardDAV:">
+<!ENTITY add.caldavserver "Adresse du serveur CalDAV:">
 
 <!ENTITY add.serverprofile.title "Select a server profile">
 <!ENTITY add.serverprofile.description "Please select one of the available server profiles:">
