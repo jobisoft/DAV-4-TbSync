@@ -14,6 +14,10 @@
 <!ENTITY add.data.description "Пожалуйста укажите понятное имя для нового аккаунта TbSync и учетные данные для вашего сервера:">
 <!ENTITY add.data.notes "Заметки:">
 
+<!ENTITY add.finish.title "?? Confirm account creation ??">
+<!ENTITY add.finish.description "?? The following settings have been verified successfully: ??">
+<!ENTITY add.finish.details "?? Click „Finish“ to create a new TbSync account with these settings. ??">
+
 <!ENTITY pref.AccountName "Имя аккаунта">
 <!ENTITY pref.UserName "Имя пользователя">
 <!ENTITY pref.CardDavServer "Адрес сервера CardDAV:">
