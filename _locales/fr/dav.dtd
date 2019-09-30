@@ -7,8 +7,8 @@
 <!ENTITY add.carddavserver "Adresse du serveur CardDAV:">
 <!ENTITY add.caldavserver "Adresse du serveur CalDAV:">
 
-<!ENTITY add.serverprofile.title "Select a server profile">
-<!ENTITY add.serverprofile.description "Please select one of the available server profiles:">
+<!ENTITY add.serverprofile.title "Sélection d'un profil de serveur">
+<!ENTITY add.serverprofile.description "Veuillez sélectionner un des profils de serveur disponibles:">
 
 <!ENTITY add.data.title "Information de compte">
 <!ENTITY add.data.description "Veuillez fournir un nom convivial pour le nouveau compte TbSync, ainsi que le couple identifiant/mot de passe d'accès à votre serveur:">
