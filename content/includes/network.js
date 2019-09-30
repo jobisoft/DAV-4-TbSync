@@ -279,6 +279,7 @@ var network = {
               if (xml === null) return reject(dav.sync.finish("warning", "malformed-xml", commLog));
               
               let response = {};
+              response.responseURL = req.responseURL;
               response.permanentRedirect = permanentRedirect;
               response.commLog = commLog;
               response.node = xml.documentElement;

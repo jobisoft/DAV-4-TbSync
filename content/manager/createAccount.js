@@ -82,9 +82,6 @@ var tbSyncDavNewAccount = {
         this._validated = v;
         if (v) {
             this.finalAccountname = this.accountname;
-            this.finalUsername = this.validUser;
-            this.finalCalDavServer = this.calDavServer;
-            this.finalCardDavServer = this.cardDavServer;
         } else {
             this.finalAccountname = "";
             this.finalUsername = "";
@@ -197,7 +194,6 @@ var tbSyncDavNewAccount = {
 
     checkUrlForPrincipal: async function (url, type) {
         // according to RFC6764, we must also try the username with cut-off domain part
-        this.validUser = "";
         let users = [];
         users.push(this.username);
         if (this.userdomain) users.push(this.username.split("@")[0]);
@@ -226,7 +222,8 @@ var tbSyncDavNewAccount = {
                     rv.error = type + "davservernotfound";
                     TbSync.eventlog.add("warning", connectionData.eventLogInfo, rv.error, response.commLog);
                 } else {
-                    this.validUser = user;
+                    rv.validUser = user;
+                    rv.validUrl = response.responseURL;
                     return rv;
                 }
             } catch (e) {
@@ -451,10 +448,11 @@ var tbSyncDavNewAccount = {
             // show the server field(s)
             let rv = await this.doRFC6764Lookup(this.userdomain);
 
-            if (rv.cal.validUrl && rv.card.validUrl) {
+            if (rv.cal.validUrl && rv.card.validUrl && rv.cal.validUser == rv.card.validUser) {
                 // boom, setup completed
-                this.calDavServer = rv.cal.validUrl;
-                this.cardDavServer = rv.card.validUrl;
+                this.finalCalDavServer = rv.cal.validUrl;
+                this.finalCardDavServer = rv.card.validUrl;
+                this.finalUsername = rv.cal.validUser
                 this.validated = true;
                 this.unlockUI();
                 this.advance();
@@ -528,7 +526,8 @@ var tbSyncDavNewAccount = {
             for (let url of result[type].candidates) {
                 let rv = await this.checkUrlForPrincipal(url, type);
                 if (rv.valid) {
-                    result[type].validUrl = url;
+                    result[type].validUrl = rv.validUrl;
+                    result[type].validUser = rv.validUser;                    
                     break;
                 } else {
                     result[type].errors.push(rv.error);
@@ -561,6 +560,7 @@ var tbSyncDavNewAccount = {
             card : {valid: false, error: "", server: this.cardDavServer},
         };
         let failedDavJobs = [];
+        let validUserFound = "";
         
         for (let job in davJobs) {
             if (!davJobs[job].server) {
@@ -569,11 +569,20 @@ var tbSyncDavNewAccount = {
             davJobs[job] = await this.checkUrlForPrincipal(davJobs[job].server, job);
             if (!davJobs[job].valid) {
                 failedDavJobs.push(job);
+            } else if (!validUserFound) {
+                // set the found user
+                validUserFound = davJobs[job].validUser;
+            } else if (validUserFound != davJobs[job].validUser) {
+                // users do not match
+                failedDavJobs.push(job);                
             }
         }
         
         if (failedDavJobs.length == 0) {
             // boom, setup completed
+            this.finalCalDavServer = davJobs.cal.validUrl;
+            this.finalCardDavServer = davJobs.card.validUrl;
+            this.finalUsername = validUserFound;
             this.validated = true;
             this.unlockUI();
             this.advance();
