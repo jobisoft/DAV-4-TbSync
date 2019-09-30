@@ -148,8 +148,8 @@ var sync = {
                 syncData.setSyncState("eval.folders");
 
                 // keep track of permanent redirects for the server URL
-                if (response && response.permanentRedirect) {
-                    syncData.accountData.setAccountProperty(job + "DavHost", response.permanentRedirect.spec)
+                if (response && response.permanentlyRedirectedUrl) {
+                    syncData.accountData.setAccountProperty(job + "DavHost", response.permanentlyRedirectedUrl)
                 }
 
                 // allow 404 because iCloud sends it on valid answer (yeah!)
@@ -174,8 +174,8 @@ var sync = {
                 syncData.setSyncState("eval.folders");
 
                 // keep track of permanent redirects for the principal URL
-                if (response && response.permanentRedirect) {
-                    principal = response.permanentRedirect.spec;
+                if (response && response.permanentlyRedirectedUrl) {
+                    principal = response.permanentlyRedirectedUrl;
                 }
                 
                 own = dav.tools.getNodesTextContentFromMultiResponse(response, [["d","prop"], [job, homeset ], ["d","href"]], principal);

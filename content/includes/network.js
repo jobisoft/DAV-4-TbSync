@@ -191,7 +191,6 @@ var network = {
   // Promisified implementation of TbSync's HttpRequest (with XHR interface)
   promisifiedHttpRequest: function (requestData, method, connectionData, headers, options, aUseStreamLoader) {
     let responseData = "";
-    let permanentRedirect = "";
     
     //do not log HEADERS, as it could contain an Authorization header
     //TbSync.dump("HEADERS", JSON.stringify(headers));
@@ -239,10 +238,6 @@ var network = {
       
       req.onredirect = function(flags, uri) {
         console.log("Redirect ("+ flags.toString(2) +"): " + uri.spec);
-        if (flags & Ci.nsIChannelEventSink.REDIRECT_PERMANENT) {
-          permanentRedirect = uri;
-        }
-        
         // Update connection settings from current URL
         let newHttps = (uri.scheme == "https");
         if (connectionData.https != newHttps) {
@@ -280,7 +275,7 @@ var network = {
               
               let response = {};
               response.responseURL = req.responseURL;
-              response.permanentRedirect = permanentRedirect;
+              response.permanentlyRedirectedUrl = req.permanentlyRedirectedUrl;
               response.commLog = commLog;
               response.node = xml.documentElement;
 

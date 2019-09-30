@@ -223,7 +223,7 @@ var tbSyncDavNewAccount = {
                     TbSync.eventlog.add("warning", connectionData.eventLogInfo, rv.error, response.commLog);
                 } else {
                     rv.validUser = user;
-                    rv.validUrl = response.responseURL;
+                    rv.validUrl = response.permanentlyRedirectedUrl || url;
                     return rv;
                 }
             } catch (e) {
