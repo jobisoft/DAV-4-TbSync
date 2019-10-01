@@ -205,7 +205,6 @@ var tbSyncDavNewAccount = {
             connectionData.password = this.password;
             connectionData.username = user;
             connectionData.timeout = 5000;
-            connectionData.type = type;
 
             //only needed for proper error reporting - that dav needs this is beyond API - connectionData is not used by TbSync
             //connectionData is a structure which contains all the information needed to establish and evaluate a network connection

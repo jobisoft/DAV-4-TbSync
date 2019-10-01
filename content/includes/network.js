@@ -51,9 +51,6 @@ var network = {
       return connection;
   }, 
 
-  //non permanent cache
-  listOfRealms: {},
-
   ConnectionData: class {
     constructor(data) {            
       this._password = "";
@@ -98,7 +95,6 @@ var network = {
 
         this._accountname = accountData.getAccountProperty("accountname");
         if (folderData) {
-          this._type = folderData.getFolderProperty("type");
           this._fqdn = folderData.getFolderProperty("fqdn");
           this._https = folderData.getFolderProperty("https");
         }
@@ -112,7 +108,6 @@ var network = {
     set username(v) {this._username = v;}
     set timeout(v) {this._timeout = v;}
     set https(v) {this._https = v;}
-    set type(v) {this._type = v;}
     set fqdn(v) {this._fqdn = v;}
     set eventLogInfo(v) {this._eventLogInfo = v;}
 
@@ -120,7 +115,6 @@ var network = {
     get username() {return this._username;}
     get timeout() {return this._timeout;}
     get https() {return this._https;}
-    get type() {return this._type;}
     get fqdn() {return this._fqdn;}
     get eventLogInfo() {return this._eventLogInfo;}
   },
@@ -219,10 +213,8 @@ var network = {
 
       req.realmCallback = function(username, realm, host) {
         // Store realm, needed later to setup lightning passwords.
-        if (connectionData.type == "cal") {
-          TbSync.dump("Found CalDAV authRealm for <"+host+">", realm);
-          dav.network.listOfRealms[host] = realm;
-        }
+        TbSync.dump("Found CalDAV authRealm for <"+host+">", realm);
+        connectionData.realm = realm;
       };
 
       req.onerror = function () {

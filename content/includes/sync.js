@@ -138,9 +138,7 @@ var sync = {
             
             //only do that, if a new calendar has been enabled
             TbSync.network.resetContainerForUser(syncData.connectionData.username);
-            
-            syncData.connectionData.type = job;
-                            
+
             syncData.setSyncState("send.getfolders");
             if (principal === null) {
           
@@ -380,7 +378,7 @@ var sync = {
             throw dav.sync.finish("warning", e.message);
         }
         
-        switch (syncData.connectionData.type) {
+        switch (syncData.currentFolderData.getFolderProperty("type")) {
             case "carddav":
                 {
                     await dav.sync.singleFolder(syncData);
