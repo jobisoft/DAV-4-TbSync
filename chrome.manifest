@@ -5,9 +5,10 @@ skin    dav4tbsync  classic/1.0 skin/
 locale  dav4tbsync  bg      _locales/bg/
 locale  dav4tbsync  de      _locales/de/
 locale  dav4tbsync  en-US   _locales/en-US/
+locale  dav4tbsync  fr      _locales/fr/
 locale  dav4tbsync  hu      _locales/hu/
 locale  dav4tbsync  it      _locales/it/
-locale  dav4tbsync  ru      _locales/ru/
+locale  dav4tbsync  pl      _locales/pl/
 locale  dav4tbsync  pt-BR   _locales/pt_BR/
-locale  dav4tbsync  fr      _locales/fr/
+locale  dav4tbsync  ru      _locales/ru/
 
