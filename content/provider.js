@@ -452,7 +452,7 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
         }
     }
 
-    createAddressbook(newname) {
+    async createAddressbook(newname) {
         let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
         let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
       
@@ -531,7 +531,7 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
         }
     }
 
-    createCalendar(newname) {
+    async createCalendar(newname) {
         let calManager = TbSync.lightning.cal.getCalendarManager();
         let authData = dav.network.getAuthData(this.folderData.accountData);
       

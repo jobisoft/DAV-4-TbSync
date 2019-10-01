@@ -327,7 +327,7 @@ var sync = {
                             // Do we have to update the calendar?
                             if (folderData.targetData && folderData.targetData.hasTarget()) {
                                 try {
-                                    let targetCal = folderData.targetData.getTarget();
+                                    let targetCal = await folderData.targetData.getTarget();
                                     targetCal.calendar.setProperty("color", color);
                                 } catch (e) {
                                     Components.utils.reportError(e)
@@ -374,7 +374,7 @@ var sync = {
         // add target to syncData (getTarget() will throw "nolightning" if lightning missing)
         try {
             // accessing the target for the first time will check if it is avail and if not will create it (if possible)
-            syncData.target = syncData.currentFolderData.targetData.getTarget();
+            syncData.target = await syncData.currentFolderData.targetData.getTarget();
         } catch (e) {
             Components.utils.reportError(e);
             throw dav.sync.finish("warning", e.message);
