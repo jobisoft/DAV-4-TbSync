@@ -28,8 +28,6 @@ var Base = class {
         branch.setCharPref("clientID.type", "TbSync");
         branch.setCharPref("clientID.useragent", "Thunderbird CalDAV/CardDAV");    
         branch.setBoolPref("enforceUniqueCalendarUrls", false);    
-        branch.setBoolPref("debugCreateCalendarsAsEnabled", true);    
-        branch.setBoolPref("debugRequestLightningSyncOnSync", true);    
 
         dav.openWindows = {};
 
@@ -571,10 +569,7 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
             newCalendar.setProperty("calendar-main-in-composite", true);
             newCalendar.setProperty("cache.enabled", this.folderData.accountData.getAccountProperty("useCalendarCache"));
         }
-        
-        // debug: create calendars as disabed, to not cause network traffic
-        newCalendar.setProperty("disabled", !dav.sync.prefSettings.getBoolPref("debugCreateCalendarsAsEnabled"));
-        
+
         if (this.folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
 
         // Setup password for Lightning calendar, so users do not get prompted (ICS urls do not need a password)

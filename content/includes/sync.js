@@ -370,8 +370,10 @@ var sync = {
         syncData.connectionData = new dav.network.ConnectionData(syncData);
 
         // add target to syncData (getTarget() will throw "nolightning" if lightning missing)
+        let hadTarget;
         try {
             // accessing the target for the first time will check if it is avail and if not will create it (if possible)
+            hadTarget = syncData.currentFolderData.targetData.hasTarget();
             syncData.target = await syncData.currentFolderData.targetData.getTarget();
         } catch (e) {
             Components.utils.reportError(e);
@@ -395,7 +397,7 @@ var sync = {
                     syncData.target.calendar.setProperty("username", syncData.connectionData.username);
                     
                     //init sync via lightning
-                    if (dav.sync.prefSettings.getBoolPref("debugRequestLightningSyncOnSync")) syncData.target.calendar.refresh();
+                    if (hadTarget) syncData.target.calendar.refresh();
 
                     throw dav.sync.finish("ok", "managed-by-lightning");
                 }
