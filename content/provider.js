@@ -114,6 +114,14 @@ var Base = class {
 
 
     /**
+     * Returns the url of a page with details about contributors (used in the manager UI)
+     */
+    static getContributorsUrl() {
+        return "https://github.com/jobisoft/DAV-4-TbSync/blob/master/CONTRIBUTORS.md";
+    }
+
+
+    /**
      * Returns the email address of the maintainer (used for bug reports).
      */
     static getMaintainerEmail() {
