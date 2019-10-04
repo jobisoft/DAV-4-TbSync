@@ -15,3 +15,4 @@
 * Óvári (hu)
 * Alexey Sinitsyn (ru)
 * Jérémie Parisel (fr)
+* Daniel Wróblewski (pl)
