@@ -3,6 +3,6 @@
     "message": "Dostawca dla CalDAV i CardDAV"
   },
   "extensionDescription": {
-    "message": "Dodaje do TbSync wsparcie synchronizacji dla CalDAV i CardDAV."
+    "message": "Dodaj do TbSync wsparcie synchronizacji dla CalDAV i CardDAV."
   }
 }
