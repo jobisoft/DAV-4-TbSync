@@ -34,8 +34,6 @@ var tbSyncAbDavCardWindow = {
         tbSyncAbDavCardWindow.elementsToDisable = [];
 
         //register default elements we need to hide/disable
-        tbSyncAbDavCardWindow.elementsToHide.push(window.document.getElementById("WorkAddress2Container"));
-        tbSyncAbDavCardWindow.elementsToHide.push(window.document.getElementById("abHomeTab").children[1]);
         tbSyncAbDavCardWindow.elementsToHide.push(window.document.getElementById("PrimaryEmailContainer"));
         tbSyncAbDavCardWindow.elementsToHide.push(window.document.getElementById("SecondaryEmailContainer"));
         tbSyncAbDavCardWindow.elementsToHide.push(window.document.getElementById("PhoneNumbers"));

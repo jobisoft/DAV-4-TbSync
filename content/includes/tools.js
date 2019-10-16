@@ -475,11 +475,13 @@ var tools = {
         {name: "HomeZipCode", minversion: "0.4"},
         {name: "HomeState", minversion: "0.4"},
         {name: "HomeAddress", minversion: "0.4"},
+        {name: "HomeAddress2", minversion: "1.4.1"},
         {name: "WorkCity", minversion: "0.4"},
         {name: "WorkCountry", minversion: "0.4"},
         {name: "WorkZipCode", minversion: "0.4"},
         {name: "WorkState", minversion: "0.4"},
         {name: "WorkAddress", minversion: "0.4"},
+        {name: "WorkAddress2", minversion: "1.4.1"},
         {name: "Categories", minversion: "0.4"},
         {name: "JobTitle", minversion: "0.4"},
         {name: "Department", minversion: "0.4"},
@@ -537,12 +539,14 @@ var tools = {
         "HomeZipCode" : {item: "adr", type: "HOME"},
         "HomeState" : {item: "adr", type: "HOME"},
         "HomeAddress" : {item: "adr", type: "HOME"},
+        "HomeAddress2" : {item: "adr", type: "HOME"},
 
         "WorkCity" : {item: "adr", type: "WORK"},
         "WorkCountry" : {item: "adr", type: "WORK"},
         "WorkZipCode" : {item: "adr", type: "WORK"},
         "WorkState" : {item: "adr", type: "WORK"},
         "WorkAddress" : {item: "adr", type: "WORK"},
+        "WorkAddress2" : {item: "adr", type: "WORK"},	
     },
 
     //map thunderbird fields to impp vcard fields with additional x-service-types
@@ -669,16 +673,18 @@ var tools = {
             case "HomeZipCode":
             case "HomeState":
             case "HomeAddress":
+            case "HomeAddress2":
             case "WorkCity":
             case "WorkCountry":
             case "WorkZipCode":
             case "WorkState":
             case "WorkAddress":
+            case "WorkAddress2":
                 {
                     let field = property.substring(4);
                     let adr = (Services.vc.compare("0.8.11", syncData.currentFolderData.getFolderProperty("createdWithProviderVersion")) > 0)
-                                    ?  ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"] //WRONG
-                                    : ["OfficeBox","ExtAddr","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
+                                    ?  ["OfficeBox","Address2","Address","City","Country","ZipCode", "State"] //WRONG
+                                    : ["OfficeBox","Address2","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
 
                     let index = adr.indexOf(field);
                     return dav.tools.getSaveArrayValue(vCardValue, index);
@@ -770,16 +776,18 @@ var tools = {
             case "HomeZipCode":
             case "HomeState":
             case "HomeAddress":
+            case "HomeAddress2":
             case "WorkCity":
             case "WorkCountry":
             case "WorkZipCode":
             case "WorkState":
             case "WorkAddress":
+            case "WorkAddress2":
                 {
                     let field = property.substring(4);
                     let adr = (Services.vc.compare("0.8.11", syncData.currentFolderData.getFolderProperty("createdWithProviderVersion")) > 0)
-                                    ?  ["OfficeBox","ExtAddr","Address","City","Country","ZipCode", "State"] //WRONG
-                                    : ["OfficeBox","ExtAddr","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
+                                    ?  ["OfficeBox","Address2","Address","City","Country","ZipCode", "State"] //WRONG
+                                    : ["OfficeBox","Address2","Address","City","State","ZipCode", "Country"]; //RIGHT, fixed in 0.8.11
 
                     let index = adr.indexOf(field);
                     if (store) {
