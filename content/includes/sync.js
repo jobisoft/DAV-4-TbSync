@@ -198,6 +198,9 @@ var sync = {
                 TbSync.eventlog.add("error", syncData.eventLogInfo, job+"davservernotfound", davjobs[job].serve);
             }
 
+            // SOGo needs some special handling for shared addressbooks. We detect it by having SOGo/dav in the url
+            let isSogo = davjobs[job].server.includes("/SOGo/dav" )
+
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
             // -> get all resources
             if (home.length > 0) {
@@ -237,7 +240,7 @@ var sync = {
                         if (resourcetype === null) continue;
                         
                         //get ACL
-                        let acl = 0;
+                        let acl = isSogo ? 0x1 : 0;
                         let privilegNode = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","current-user-privilege-set"]]);
                         if (privilegNode) {
                             if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "all").length > 0) { 
@@ -253,7 +256,7 @@ var sync = {
                                 }
                                 
                                 // check for read permission (implying read if any write is given)
-                                if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "read").length > 0 || acl != 0) acl |= 0x1;
+                                if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "read").length > 0) acl |= 0x1;
                             }
                         }
                         
