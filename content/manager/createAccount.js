@@ -589,7 +589,7 @@ var tbSyncDavNewAccount = {
         } else {
             //only display one error
             let failedJob = failedDavJobs[0];
-            console.log("ERROR: " + davJobs[failedJob].error.toString());
+            console.log("ERROR ("+failedJob+"): " + davJobs[failedJob].error.toString());
             switch (davJobs[failedJob].error.toString().split("::")[0]) {
                 case "401":
                 case "403":
@@ -598,7 +598,11 @@ var tbSyncDavNewAccount = {
                     document.getElementById("tbsync.error.message").textContent = TbSync.getString("status."+davJobs[failedJob].error, "dav");
                     break;
                 default:
-                    document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.service-discovery-failed::" + this.server, "dav");
+                    if (this.server) {
+                        document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.service-discovery-failed::" + this.server, "dav");
+                    } else {
+                        document.getElementById("tbsync.error.message").textContent = TbSync.getString("status."+failedJob+"davservernotfound", "dav");
+                    }
             }
             document.getElementById("tbsync.error").hidden = false;
             this.unlockUI();
