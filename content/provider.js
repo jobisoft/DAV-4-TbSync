@@ -586,7 +586,7 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
             let connectionData = new dav.network.ConnectionData();
             connectionData.username = authData.username;
             connectionData.password = authData.password;
-            connectionData.timeout = 5000;
+            connectionData.timeout = dav.Base.getConnectionTimeout();
             let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>", url.spec , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return=minimal"}, {containerRealm: "setup", containerReset: true, passwordRetries: 0});
             
             let realm = connectionData.realm || "";
