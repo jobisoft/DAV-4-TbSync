@@ -257,7 +257,7 @@ var sync = {
                                 }
                                 
                                 // check for read permission (implying read if any write is given)
-                                if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "read").length > 0) acl |= 0x1;
+                                if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "read").length > 0 || acl != 0) acl |= 0x1;
                             }
                         }
                         
