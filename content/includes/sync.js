@@ -115,6 +115,9 @@ var sync = {
         for (let job in davjobs) {
             if (!davjobs[job].server) continue;
             
+            // SOGo needs some special handling for shared addressbooks. We detect it by having SOGo/dav in the url.
+            let isSogo = davjobs[job].server.includes("/SOGo/dav" )
+
             //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncData)
             //example state "getfolders" to get folder information from server
             //if you send a request to a server and thus have to wait for answer, use a "send." syncstate, which will give visual feedback to the user,
@@ -236,8 +239,9 @@ var sync = {
                         }
                         if (resourcetype === null) continue;
                         
-                        //get ACL
-                        let acl = 0;
+                        //get ACL (grant read rights per default, if it is SOGo, as they do not send that permission)
+                        let acl = isSogo ? 0x1 : 0;
+
                         let privilegNode = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["d","current-user-privilege-set"]]);
                         if (privilegNode) {
                             if (privilegNode.getElementsByTagNameNS(dav.sync.ns.d, "all").length > 0) { 
