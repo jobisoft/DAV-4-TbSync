@@ -739,16 +739,18 @@ var sync = {
                     let m=0;
                     for (let member of newMembers) {
                         let card = syncData.target.getItemFromProperty("X-DAV-UID", member);
-
-                        let email = card.getProperty("PrimaryEmail");
-                        if (!email) {
-                            let email = Date.now() + "." + l + "." + m + "@bug1522453";
-                            card.setProperty("PrimaryEmail", email);
-                            syncData.target.modifyItem(card);
+                        if (card) {
+                            let email = card.getProperty("PrimaryEmail");
+                            if (!email) {
+                                let email = Date.now() + "." + l + "." + m + "@bug1522453";
+                                card.setProperty("PrimaryEmail", email);
+                                syncData.target.modifyItem(card);
+                            }
+                        } else {
+                            TbSync.dump("Member not found: " + member);
                         }
                         m++;
                     }
-                    
                     list.setMembersByPropertyList("X-DAV-UID", newMembers);
                 }
             }
