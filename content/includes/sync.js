@@ -116,7 +116,7 @@ var sync = {
             if (!davjobs[job].server) continue;
             
             // SOGo needs some special handling for shared addressbooks. We detect it by having SOGo/dav in the url.
-            let isSogo = davjobs[job].server.includes("/SOGo/dav" )
+            let isSogo = davjobs[job].server.includes("/SOGo/dav");
 
             //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncData)
             //example state "getfolders" to get folder information from server
