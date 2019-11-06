@@ -701,8 +701,11 @@ var sync = {
     
         // On down sync, mailinglists need to be done at the very end so all member data is avail.
         if (syncData.accountData.getAccountProperty("syncGroups")) {
+            let l=0;
             for (let listID in syncData.foundMailingListsDuringDownSync) {
                 if (syncData.foundMailingListsDuringDownSync.hasOwnProperty(listID)) {
+                    l++;
+                    
                     let list = syncData.target.getItemFromProperty("X-DAV-HREF", listID);
                     if (!list.isMailList)
                         continue;
@@ -730,6 +733,20 @@ var sync = {
                     for (let member of oCardInfo.members) {
                         if (!currentMembers.includes(member)) 
                             newMembers = newMembers.filter(e => e != member);
+                    }
+                    
+                    // Check that all new members have an email address (fix for bug 1522453)
+                    let m=0;
+                    for (let member of newMembers) {
+                        let card = syncData.target.getItemFromProperty("X-DAV-UID", member);
+
+                        let email = card.getProperty("PrimaryEmail");
+                        if (!email) {
+                            let email = Date.now() + "." + l + "." + m + "@bug1522453";
+                            card.setProperty("PrimaryEmail", email);
+                            syncData.target.modifyItem(card);
+                        }
+                        m++;
                     }
                     
                     list.setMembersByPropertyList("X-DAV-UID", newMembers);
