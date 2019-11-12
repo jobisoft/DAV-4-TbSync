@@ -55,7 +55,7 @@ var Base = class {
 
         // Close all open windows of this provider.
         for (let id in dav.openWindows) {
-          if (dav.openWindows.hasOwnProperty(id)) {
+          if (dav.openWindows.hasOwnProperty(id) && dav.openWindows[id]) {
             dav.openWindows[id].close();
           }
         }
