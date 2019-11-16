@@ -55,7 +55,8 @@ var network = {
     let oauthData = false;
 
     if (url) {
-      switch (url) {
+      let uri = Services.io.newURI(url);
+      switch (uri.host) {
 
         case "apidata.googleusercontent.com":
         case "www.googleapis.com":
@@ -228,7 +229,7 @@ var network = {
           
           // Prompt, if connection belongs to an account (and not from the create wizard)
           if (connectionData.accountData) {
-            let oauthData = dav.network.getOAuthData(connectionData.fqdn, connectionData.username, connectionData.accountData.accountID);
+            let oauthData = dav.network.getOAuthData(connectionData.url, connectionData.username, connectionData.accountData.accountID);
             if (oauthData) {
               connectionData.accountData.syncData.setSyncState("oauthprompt");
               let oauth = await TbSync.passwordManager.asyncOAuthPrompt(oauthData, dav.openWindows, connectionData.password);
@@ -302,7 +303,7 @@ var network = {
       }
 
       // If this is one of the servers which we use OAuth for, add the bearer token.
-      if (dav.network.getOAuthData(connectionData.fqdn)) {
+      if (dav.network.getOAuthData(connectionData.url)) {
         req.setRequestHeader("Authorization", "Bearer " +  TbSync.passwordManager.getOAuthToken(connectionData.password));
       }
       
