@@ -12,10 +12,11 @@ To help translating this project, please visit to [crowdin.com](https://crowdin.
 
 #### CC-BY 3.0
 * [ics16.png] by [FatCow Web Hosting](https://www.iconfinder.com/icons/35803/)
-* [icloud16.png] by [Five Icons](https://www.iconfinder.com/icons/252111/apple_icon)
-* [yahoo16.png] by [Five Icons](https://www.iconfinder.com/icons/252070/yahoo_icon)
-* [gmx16.png] by [CloudSponge](https://www.iconfinder.com/icons/1175604/address_book_contact_contacts_email_gmx_square_icon)
-* [web16.png] by [CloudSponge](https://www.iconfinder.com/icons/1175616/address_book_contact_contacts_email_mail_square_webde_icon)
+* [google icons] by [Just UI](https://www.iconfinder.com/icons/1298745/)
+* [icloud icons] by [Five Icons](https://www.iconfinder.com/icons/252111/apple_icon)
+* [yahoo icons] by [Five Icons](https://www.iconfinder.com/icons/252070/yahoo_icon)
+* [gmx icons] by [CloudSponge](https://www.iconfinder.com/icons/1175604/address_book_contact_contacts_email_gmx_square_icon)
+* [web icons] by [CloudSponge](https://www.iconfinder.com/icons/1175616/address_book_contact_contacts_email_mail_square_webde_icon)
 * [type.pref.png] by [Steve Schoger](https://www.iconfinder.com/icons/3671863/)
 * [type.other.png] by [Steve Schoger](https://www.iconfinder.com/icons/3671671/)
 * [type.work.png] by [Steve Schoger](https://www.iconfinder.com/icons/3671695/)
