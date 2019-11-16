@@ -49,7 +49,81 @@ var network = {
         },
       };
       return connection;
-  }, 
+  },
+  
+ getOAuthData: function(url, user = "", windowID = "") {
+    let oauthData = false;
+
+    if (url) {
+      switch (url) {
+
+        case "apidata.googleusercontent.com":
+        case "www.googleapis.com":
+        case "google.com":
+        {
+          let redirect_uri = "urn:ietf:wg:oauth:2.0:oob:auto";
+          let scope = "https://www.googleapis.com/auth/carddav https://www.googleapis.com/auth/calendar";
+          let client_id = "689460414096-e4nddn8tss5c59glidp4bc0qpeu3oper.apps.googleusercontent.com";
+          let client_secret = "LeTdF3UEpCvP1V3EBygjP-kl"
+          
+          oauthData = {
+            windowID: "auth:" + windowID,
+            auth: {
+              url: "https://accounts.google.com/o/oauth2/v2/auth",
+              redirectUrl: "https://accounts.google.com/o/oauth2/approval/v2",
+              requestParameters: {
+                client_id,
+                response_type: "code",
+                redirect_uri,
+                scope,
+                prompt: "consent"
+                //login_hint: user
+              },
+              responseFields: {
+                authToken: "approvalCode",
+                error: "error"
+              }                        
+            },
+
+            access: {
+              url: "https://oauth2.googleapis.com/token",
+              requestParameters: {
+                client_id,
+                client_secret,
+                scope,
+                redirect_uri,
+                grant_type: "authorization_code",
+                code: null // a value of null indicates the token field
+              },
+              responseFields: {
+                accessToken: "access_token",
+                refreshToken: "refresh_token",
+              }                        
+            },
+            
+            refresh: {
+              url: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+              requestParameters: {
+                client_id,
+                client_secret,
+                scope,
+                grant_type: "refresh_token",
+                refresh_token: null // a value of null indicates the token field
+              },
+              responseFields: {
+                accessToken: "access_token",
+                refreshToken: "refresh_token",
+              }
+            }
+          }
+        }
+        break;
+        
+      }
+    }
+    
+    return oauthData;
+  },  
 
   ConnectionData: class {
     constructor(data) {            
@@ -151,30 +225,47 @@ var network = {
           throw r.passwordError;
         } else {
           let credentials = null;
-
+          let retry = false;
+          
           // Prompt, if connection belongs to an account (and not from the create wizard)
           if (connectionData.accountData) {
-            let promptData = {
-              windowID: "auth:" + connectionData.accountData.accountID,
-              accountname: connectionData.accountData.getAccountProperty("accountname"),
-              usernameLocked: connectionData.accountData.isConnected(),
-              username: connectionData.username,                
-            }
-            connectionData.accountData.syncData.setSyncState("passwordprompt");
-            credentials = await TbSync.passwordManager.asyncPasswordPrompt(promptData, dav.openWindows);
-          } else {
-            throw r.passwordError;
+            let oauthData = dav.network.getOAuthData(connectionData.fqdn, connectionData.username, connectionData.accountData.accountID);
+            if (oauthData) {
+              connectionData.accountData.syncData.setSyncState("oauthprompt");
+              let oauth = await TbSync.passwordManager.asyncOAuthPrompt(oauthData, dav.openWindows, connectionData.password);
+              
+              credentials = {username: connectionData.username, password: " "};
+              if (oauth && oauth.tokens && !oauth.error) {
+                credentials = {username: connectionData.username, password: oauth.tokens};
+                retry = true;
+              } else if (oauth && oauth.error) {
+                // Override standard password error with error received from asyncOAuthPrompt().
+                r.passwordError = dav.sync.finish("error", oauth.error);                                }
+            } else {
+              let promptData = {
+                windowID: "auth:" + connectionData.accountData.accountID,
+                accountname: connectionData.accountData.getAccountProperty("accountname"),
+                usernameLocked: connectionData.accountData.isConnected(),
+                username: connectionData.username,                
+              }
+              connectionData.accountData.syncData.setSyncState("passwordprompt");
+              credentials = await TbSync.passwordManager.asyncPasswordPrompt(promptData, dav.openWindows);
+              if (credentials) retry = true;
+            }              
           }
-
+          
           if (credentials) {
             // update login data
             dav.network.getAuthData(connectionData.accountData).updateLoginData(credentials.username, credentials.password);
             // update connection data
             connectionData.username = credentials.username;
             connectionData.password = credentials.password;
-          } else {
+          }
+          
+          if (!retry) {
             throw r.passwordError;
           }
+          
         }
       } else {
         return r;
@@ -211,6 +302,11 @@ var network = {
           }
       }
 
+      // If this is one of the servers which we use OAuth for, add the bearer token.
+      if (dav.network.getOAuthData(connectionData.fqdn)) {
+        req.setRequestHeader("Authorization", "Bearer " +  TbSync.passwordManager.getOAuthToken(connectionData.password));
+      }
+      
       req.realmCallback = function(username, realm, host) {
         // Store realm, needed later to setup lightning passwords.
         TbSync.dump("Found CalDAV authRealm for <"+host+">", realm);
