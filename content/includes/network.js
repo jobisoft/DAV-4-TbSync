@@ -59,7 +59,6 @@ var network = {
 
         case "apidata.googleusercontent.com":
         case "www.googleapis.com":
-        case "google.com":
         {
           let redirect_uri = "urn:ietf:wg:oauth:2.0:oob:auto";
           let scope = "https://www.googleapis.com/auth/carddav https://www.googleapis.com/auth/calendar";
