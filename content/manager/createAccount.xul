@@ -44,7 +44,7 @@
                     <vbox pack="center"><label value="&add.user;" /></vbox>
                     <textbox id="tbsync.newaccount.user" oninput="tbSyncDavNewAccount.checkUI(true);" />
                 </row>
-                <row>
+                <row id="tbsync.newaccount.password.row">
                     <vbox pack="center"><label value="&add.password;" /></vbox>
                     <textbox id="tbsync.newaccount.password" type="password" oninput="tbSyncDavNewAccount.checkUI(true);"/>
                 </row>
