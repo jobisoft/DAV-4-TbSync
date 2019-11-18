@@ -272,10 +272,24 @@ var tools = {
         return null;
     },
 
+    hrefMatch:function (_requestHref, _responseHref) {
+        if (_requestHref === null)
+            return true;
+        
+        let requestHref = _requestHref;
+        let responseHref = _responseHref;
+        while (requestHref.endsWith("/")) { requestHref = requestHref.slice(0,-1); }        
+        while (responseHref.endsWith("/")) { responseHref = responseHref.slice(0,-1); }        
+        if (requestHref.endsWith(responseHref) || decodeURIComponent(requestHref).endsWith(responseHref) || requestHref.endsWith(decodeURIComponent(responseHref))) 
+            return true;
+        
+        return false;
+    },
+    
     getNodeTextContentFromMultiResponse: function (response, path, href = null, status = ["200"]) {
         for (let i=0; i < response.multi.length; i++) {
             let node = dav.tools.evaluateNode(response.multi[i].node, path);
-            if (node !== null && (href === null || response.multi[i].href == href || decodeURIComponent(response.multi[i].href) == href || response.multi[i].href == decodeURIComponent(href)) && status.includes(response.multi[i].status)) {
+            if (node !== null && dav.tools.hrefMatch(href, response.multi[i].href) && status.includes(response.multi[i].status)) {
                 return node.textContent;
             }
         }
@@ -289,13 +303,7 @@ var tools = {
         
         for (let i=0; i < response.multi.length; i++) {
             let node = dav.tools.evaluateNode(response.multi[i].node, path);
-            if (node !== null 
-                && (
-                    href === null || 
-                    href.endsWith(response.multi[i].href) || 
-                    href.endsWith(decodeURIComponent(response.multi[i].href)) || 
-                    decodeURIComponent(href).endsWith(response.multi[i].href)
-                ) && response.multi[i].status == status) {
+            if (node !== null && dav.tools.hrefMatch(href, response.multi[i].href) && response.multi[i].status == status) {
                 
                 //get all children
                 let children = node.getElementsByTagNameNS(dav.sync.ns[lastPathElement[0]], lastPathElement[1]);
