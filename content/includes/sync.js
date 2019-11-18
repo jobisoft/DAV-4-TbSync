@@ -168,13 +168,16 @@ var sync = {
             if (principal !== null) {
                 syncData.setSyncState("send.getfolders");
                 
+                let options = syncData.accountData.getAccountProperty(job + "DavOptions");
+                
                 let homeset = (job == "cal")
                                         ? "calendar-home-set"
                                         : "addressbook-home-set";
 
-                let request = (job == "cal")
-                                        ? "<d:propfind "+dav.tools.xmlns(["d", "cal", "cs"])+"><d:prop><cal:" + homeset + " /><cs:calendar-proxy-write-for /><cs:calendar-proxy-read-for /><d:group-membership /></d:prop></d:propfind>"
-                                        : "<d:propfind "+dav.tools.xmlns(["d", "card"])+"><d:prop><card:" + homeset + " /><d:group-membership /></d:prop></d:propfind>";
+                let request = "<d:propfind "+dav.tools.xmlns(["d", job, "cs"])+"><d:prop><"+job+":" + homeset + " />"
+                                            + (job == "cal" && options.includes("calendar-proxy") ? "<cs:calendar-proxy-write-for /><cs:calendar-proxy-read-for />" : "") 
+                                            + "<d:group-membership />"
+                                            + "</d:prop></d:propfind>";
 
                 let response = await dav.network.sendRequest(request, principal, "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return=minimal"});
                 syncData.setSyncState("eval.folders");
