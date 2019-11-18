@@ -176,6 +176,9 @@ var Base = class {
             "calDavPrincipal" : null,
             "cardDavPrincipal" : null,
 
+            "calDavOptions" : [],
+            "cardDavOptions" : [],
+            
             "serviceprovider" : "",
             "user" : "",
             "https" : true, //deprecated

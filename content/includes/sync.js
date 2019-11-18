@@ -153,6 +153,11 @@ var sync = {
                     syncData.accountData.setAccountProperty(job + "DavHost", response.permanentlyRedirectedUrl)
                 }
 
+                // store dav options send by server
+                if (response && response.davOptions) {
+                    syncData.accountData.setAccountProperty(job + "DavOptions", response.davOptions.split(",").map(e => e.trim())); 
+                }
+                
                 // allow 404 because iCloud sends it on valid answer (yeah!)
                 if (response && response.multi) principal = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]], null, ["200","404"]);
             }
