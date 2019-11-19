@@ -410,52 +410,59 @@ calDavCalendar.prototype = {
       channel.asyncOpen(listener);
     }
 
+    
     const OAUTH_GRACE_TIME = 30 * 1000;
-
-    let usesGoogleOAuth = aUri && aUri.host == "apidata.googleusercontent.com";
-    let validGoogleOAuthToken = this.oauth && this.oauth.accessToken && !this.oauth.invalidAccessToken;
     let origArgs = arguments;
     let self = this;
 
-    if (usesGoogleOAuth && !validGoogleOAuthToken) {
-      // The token has expired or we have not loaded it yet
+    let usesGoogleOAuth = aUri && aUri.host == "apidata.googleusercontent.com";
+    let isExpired = false; // or expired:  this.oauth.tokenExpires - OAUTH_GRACE_TIME < new Date().getTime();
+
+    if (usesGoogleOAuth && (!this.oauth || !this.oauth.accessToken || this.oauth.invalidAccessToken || isExpired )) {
+      // make sure the oauth object exists
       if (!this.oauth) {
         this.oauth = {
           "accessToken": "",
-          "refreshToken": "",
           "invalidAccessToken": false
         };
       }
-      
-      // Why could we be here?
-      // expired -> folderData.sync();
-      // invalid -> folderData.sync(); did the token change in the meantime? 
-      // empty -> copy from storage
-      
+
+      // during app start lightning could issue loading requests before TbSync is fully loaded
+      let tbSyncLoaded = false;
       try {
-        var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
-        console.log("URI: " + this.uri.spec);
-        let folderData = TbSync.lightning.getFolderFromCalendarURL(this.uri.spec);                    
-        let authData = TbSync.providers.dav.network.getAuthData(folderData.accountData);
-        this.oauth.accessToken = TbSync.passwordManager.getOAuthToken(authData.password)
-      } catch (e) {
-        console.log("We failed to get an access token from storage. Retry in 10s");
-        Components.utils.reportError(e);
-        return;
-      }
-      
-      if (this.oauth.invalidAccessToken) { // or expired:  this.oauth.tokenExpires - OAUTH_GRACE_TIME < new Date().getTime();
-        console.log("We should now get a new accessToken. Initiate sync via TbSync.");
-        try {
           var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
-          let folderData = TbSync.lightning.getFolderFromCalendarURL(this.uri.spec);                    
-          folderData.sync();
+          tbSyncLoaded = TbSync.enabled;
+      } catch (e) {}      
+
+      if (!tbSyncLoaded) {
+          console.log("TbSync not yet loaded");
+          return;
+      }        
+      
+      let folderData = TbSync.lightning.getFolderFromCalendarURL(this.uri.spec);                    
+      let authData = TbSync.providers.dav.network.getAuthData(folderData.accountData);
+
+      if (this.oauth.invalidAccessToken || isExpired) {
+        // renew tokens or request new ones
+        try {
+          let oauthData = TbSync.providers.dav.network.getOAuthData(this.uri.spec, "", folderData.accountData.accountID);
+          let oauth = await TbSync.passwordManager.asyncOAuthPrompt(oauthData, TbSync.providers.dav.openWindows, authData.password);
+          if (oauth && oauth.tokens && !oauth.error) {
+            authData.updateLoginData(authData.username, oauth.tokens);
+          } else {
+            console.log("User Aborted.");
+            return;
+          }
         } catch (e) {
-          console.log("Failed to initiate sync via TbSync.");
+          console.log("Failed to get new tokens.");
           Components.utils.reportError(e);
           return;
         }
       }
+
+      // update accessToken
+      this.oauth.invalidAccessToken = false;
+      this.oauth.accessToken = TbSync.passwordManager.getOAuthToken(authData.password)
     }
     
     authSuccess();
