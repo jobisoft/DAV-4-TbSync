@@ -74,10 +74,12 @@ var network = {
               requestParameters: {
                 client_id,
                 response_type: "code",
+                access_type: "offline",
                 redirect_uri,
                 scope,
-                prompt: "consent"
-                //login_hint: user
+                prompt: "select_account",
+                // does not work for "legacy" user agents like Thunderbird
+                // login_hint: user
               },
               responseFields: {
                 authToken: "approvalCode",
@@ -102,7 +104,7 @@ var network = {
             },
             
             refresh: {
-              url: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+              url: "https://oauth2.googleapis.com/token",
               requestParameters: {
                 client_id,
                 client_secret,
@@ -112,7 +114,7 @@ var network = {
               },
               responseFields: {
                 accessToken: "access_token",
-                refreshToken: "refresh_token",
+                //google does not renew the refresh token
               }
             }
           }
@@ -362,6 +364,7 @@ var network = {
               if (xml === null) return reject(dav.sync.finish("warning", "malformed-xml", commLog));
               
               let response = {};
+              response.davOptions = req.getResponseHeader("dav");
               response.responseURL = req.responseURL;
               response.permanentlyRedirectedUrl = req.permanentlyRedirectedUrl;
               response.commLog = commLog;
