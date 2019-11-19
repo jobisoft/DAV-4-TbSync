@@ -74,7 +74,6 @@ function shutdown(data, reason) {
 		component.calDavCalendar.prototype.classID,
 		component.NSGetFactory(component.calDavCalendar.prototype.classID)
 	);
-    console.log("7");
     
     Services.obs.removeObserver(onInitDoneObserver, "tbsync.observer.initialized");
     //unload this provider add-on from TbSync

@@ -356,7 +356,7 @@ calDavCalendar.prototype = {
     this.ensureMetaData();
   },
 
-  sendHttpRequest: function(
+  sendHttpRequest: async function(
     aUri,
     aUploadData,
     aContentType,
@@ -370,19 +370,19 @@ calDavCalendar.prototype = {
       loaderOrRequest /* either the nsIStreamLoader or nsIRequestObserver parameters */
     ) {
       let request = (loaderOrRequest.request || loaderOrRequest).QueryInterface(Ci.nsIHttpChannel);
-      let error = false;
+      let oauthError = false;
       try {
         let wwwauth = request.getResponseHeader("WWW-Authenticate");
         if (wwwauth.startsWith("Bearer") && wwwauth.includes("error=")) {
           // An OAuth error occurred, we need to reauthenticate.
-          error = true;
+          oauthError = true;
         }
       } catch (e) {
         // This happens in case the response header is missing, that's fine.
       }
 
-      if (self.oauth && error) {
-        self.oauth.accessToken = null;
+      if (self.oauth && oauthError) {
+        self.oauth.invalidAccessToken = true;
         self.sendHttpRequest(...origArgs);
       } else {
         let nextArguments = Array.from(arguments).slice(1);
@@ -395,8 +395,6 @@ calDavCalendar.prototype = {
       if (usesGoogleOAuth) {
         let hdr = "Bearer " + self.oauth.accessToken;
         channel.setRequestHeader("Authorization", hdr, false);
-        console.log(aUri.spec);
-        console.log("  --> " + self.oauth.accessToken);
       }
       let listener = aSetupChannelFunc(channel);
       if (aUseStreamLoader) {
@@ -414,21 +412,53 @@ calDavCalendar.prototype = {
 
     const OAUTH_GRACE_TIME = 30 * 1000;
 
-    let usesGoogleOAuth = aUri && aUri.host == "apidata.googleusercontent.com" && this.oauth;
+    let usesGoogleOAuth = aUri && aUri.host == "apidata.googleusercontent.com";
+    let validGoogleOAuthToken = this.oauth && this.oauth.accessToken && !this.oauth.invalidAccessToken;
     let origArgs = arguments;
     let self = this;
 
-    if (
-      usesGoogleOAuth && 1==2 &&
-      (!this.oauth.accessToken || this.oauth.tokenExpires - OAUTH_GRACE_TIME < new Date().getTime())
-    ) {
-      // The token has expired, we need to reauthenticate first
-      cal.LOG("CalDAV: OAuth token expired or empty, refreshing");
-      this.oauthConnect(authSuccess, aFailureFunc, true);
-    } else {
-      // Either not Google OAuth, or the token is still valid.
-      authSuccess();
+    if (usesGoogleOAuth && !validGoogleOAuthToken) {
+      // The token has expired or we have not loaded it yet
+      if (!this.oauth) {
+        this.oauth = {
+          "accessToken": "",
+          "refreshToken": "",
+          "invalidAccessToken": false
+        };
+      }
+      
+      // Why could we be here?
+      // expired -> folderData.sync();
+      // invalid -> folderData.sync(); did the token change in the meantime? 
+      // empty -> copy from storage
+      
+      try {
+        var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
+        console.log("URI: " + this.uri.spec);
+        let folderData = TbSync.lightning.getFolderFromCalendarURL(this.uri.spec);                    
+        let authData = TbSync.providers.dav.network.getAuthData(folderData.accountData);
+        this.oauth.accessToken = TbSync.passwordManager.getOAuthToken(authData.password)
+      } catch (e) {
+        console.log("We failed to get an access token from storage. Retry in 10s");
+        Components.utils.reportError(e);
+        return;
+      }
+      
+      if (this.oauth.invalidAccessToken) { // or expired:  this.oauth.tokenExpires - OAUTH_GRACE_TIME < new Date().getTime();
+        console.log("We should now get a new accessToken. Initiate sync via TbSync.");
+        try {
+          var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
+          let folderData = TbSync.lightning.getFolderFromCalendarURL(this.uri.spec);                    
+          folderData.sync();
+        } catch (e) {
+          console.log("Failed to initiate sync via TbSync.");
+          Components.utils.reportError(e);
+          return;
+        }
+      }
     }
+    
+    authSuccess();
   },
 
   //
@@ -1653,53 +1683,7 @@ calDavCalendar.prototype = {
    * completeCheckServerInfo
    */
   setupAuthentication: function(aChangeLogListener) {
-    let self = this;
-    function authSuccess() {
-      self.checkDavResourceType(aChangeLogListener);
-    }
-    function authFailed() {
-      self.setProperty("disabled", "true");
-      self.setProperty("auto-enabled", "true");
-      self.completeCheckServerInfo(aChangeLogListener, Cr.NS_ERROR_FAILURE);
-    }
-    if (this.mUri.host == "apidata.googleusercontent.com") {
-      if (!this.oauth) {
-        let sessionId = this.id;
-        this.oauth = {
-          "accessToken": "",
-          "refreshToken": ""
-        };
-        try {
-          var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
-          let folderData = TbSync.lightning.getFolderFromCalendarURL(this.mUri.spec);                    
-          let authData = TbSync.providers.dav.network.getAuthData(folderData.accountData);
-          this.oauth.accessToken = TbSync.passwordManager.getOAuthToken(authData.password)
-        } catch (e) {
-          Components.utils.reportError(e);
-        }        
-      }
-
-      if (this.oauth.accessToken) {
-        authSuccess();
-      } else {
-        // bug 901329: If the calendar window isn't loaded yet the
-        // master password prompt will show just the buttons and
-        // possibly hang. If we postpone until the window is loaded,
-        // all is well.
-        setTimeout(function postpone() {
-          // eslint-disable-line func-names
-          let win = cal.window.getCalendarWindow();
-          if (!win || win.document.readyState != "complete") {
-            setTimeout(postpone, 0);
-          } else {
-            console.log("Aborting Google");
-            //self.oauthConnect(authSuccess, authFailed);
-          }
-        }, 0);
-      }
-    } else {
-      authSuccess();
-    }
+    this.checkDavResourceType(aChangeLogListener);
   },
 
   /**
