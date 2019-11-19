@@ -36,19 +36,19 @@
 
 <!ENTITY abCard.MiddleName "Second prénom:">
 <!ENTITY abCard.PrefixName "Préfix:">
-<!ENTITY abCard.SuffixName "Suffix:">
+<!ENTITY abCard.SuffixName "Suffixe:">
 <!ENTITY abCard.Phone "Numéros de téléphone">
 <!ENTITY abCard.ContactDetails "Propriété du contact (CardDAV)">
 <!ENTITY abCard.EmailAddresses "Adresse de courriel">
 
 <!ENTITY manager.tabs.accountsettings "Paramètres du compte">
-<!ENTITY manager.tabs.syncsettings "Options">
+<!ENTITY manager.tabs.syncsettings "Paramètres">
 
 <!ENTITY abCard.emailtypes.voice "Téléphone">
-<!ENTITY abCard.emailtypes.cell "Mobile">
+<!ENTITY abCard.emailtypes.cell "Portable">
 <!ENTITY abCard.emailtypes.fax "Fax">
-<!ENTITY abCard.emailtypes.video "Video">
-<!ENTITY abCard.emailtypes.pager "Pager">
+<!ENTITY abCard.emailtypes.video "Vidéoconférence">
+<!ENTITY abCard.emailtypes.pager "Téléavertisseur">
 <!ENTITY abCard.emailtypes.car "Voiture">
 
 <!ENTITY abCard.emailtypes.home "Domicile">
