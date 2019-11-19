@@ -549,13 +549,14 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
         let authData = dav.network.getAuthData(this.folderData.accountData);
       
         let caltype = this.folderData.getFolderProperty("type");
+        let isGoogle = (this.folderData.accountData.getAccountProperty("serviceprovider") == "google");
 
         let baseUrl = "";
         if (caltype != "ics") {
             baseUrl =  "http" + (this.folderData.getFolderProperty("https") ? "s" : "") + "://" + this.folderData.getFolderProperty("fqdn");
         }
 
-        let url = dav.tools.parseUri(baseUrl + this.folderData.getFolderProperty("href") + (dav.sync.prefSettings.getBoolPref("enforceUniqueCalendarUrls") ? "?" + this.folderData.accountID : ""));
+        let url = dav.tools.parseUri(baseUrl + this.folderData.getFolderProperty("href") + ((dav.sync.prefSettings.getBoolPref("enforceUniqueCalendarUrls") || isGoogle) ? "?" + this.folderData.accountID : ""));
         this.folderData.setFolderProperty("url", url.spec);
 
         //check if that calendar already exists
@@ -570,7 +571,6 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
             }
         }
 
-        let isGoogle = (this.folderData.accountData.getAccountProperty("serviceprovider") == "google");
         
         if (found) {
             newCalendar.setProperty("username", authData.username);
