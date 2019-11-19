@@ -11,6 +11,7 @@
 var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 
 let thisID = "";
+let component = {};
 
 let onInitDoneObserver = {
     observe: async function (aSubject, aTopic, aData) {        
@@ -41,6 +42,15 @@ function startup(data, reason) {
     thisID = data.id;
     Services.obs.addObserver(onInitDoneObserver, "tbsync.observer.initialized", false);
 
+    Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/calDavCalendar.js", component);    
+    let registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
+    registrar.registerFactory(
+        component.calDavCalendar.prototype.classID,
+        component.calDavCalendar.prototype.classDescription,
+        component.calDavCalendar.prototype.contractID,
+        component.NSGetFactory(component.calDavCalendar.prototype.classID)
+    );
+    
     // The startup of TbSync is delayed until all add-ons have called their startup(),
     // so all providers have registered the "tbsync.observer.initialized" observer.
     // Once TbSync has finished its startup, all providers will be notified (also if
@@ -59,6 +69,12 @@ function shutdown(data, reason) {
         return;
     }
 
+	let registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
+	registrar.unregisterFactory(
+		component.calDavCalendar.prototype.classID,
+		component.NSGetFactory(component.calDavCalendar.prototype.classID)
+	);
+    
     Services.obs.removeObserver(onInitDoneObserver, "tbsync.observer.initialized");
     //unload this provider add-on from TbSync
     try {

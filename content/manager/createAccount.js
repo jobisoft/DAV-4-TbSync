@@ -318,7 +318,7 @@ var tbSyncDavNewAccount = {
         this.checkUI();
     },
 
-    checkUI: function (hideError) {        
+    checkUI: function (hideError) {
         if (hideError) {
             document.getElementById("tbsync.error").hidden = true;
         }
@@ -334,6 +334,11 @@ var tbSyncDavNewAccount = {
             document.getElementById("tbsync.newaccount.wizard").canAdvance = !(
                                                                                 (this.accountname == "") ||
                                                                                 (this.calDavServer + this.cardDavServer == ""));
+        } else if (this.serviceprovider == "google") {
+            // google does not need a password field
+            document.getElementById("tbsync.newaccount.wizard").canAdvance = !(
+                                                                                (this.accountname == "") ||
+                                                                                (this.username == ""));
         } else {
             // build in service providers do need a username and password
             document.getElementById("tbsync.newaccount.wizard").canAdvance = !(
@@ -400,6 +405,7 @@ var tbSyncDavNewAccount = {
             document.getElementById("tbsync.newaccount.caldavserver.row").hidden = true;
             document.getElementById("tbsync.newaccount.carddavserver.row").hidden = true;
             document.getElementById("tbsync.newaccount.server.row").hidden = true;
+            document.getElementById("tbsync.newaccount.password.row").hidden = (this.serviceprovider == "google");
             //this.elementCalDavServer.disabled = true;
             //this.elementCardDavServer.disabled = true;
             this.calDavServer = dav.sync.serviceproviders[this.serviceprovider].caldav;
@@ -431,6 +437,9 @@ var tbSyncDavNewAccount = {
             } else {
                 this.findValidDavServers();
             }
+        } else if (this.serviceprovider == "google") {
+            // do not verify, just prompt for permissions
+            this.promptForOAuth();            
         } else {
             // custom or service provider
             this.validateDavServers();
@@ -540,6 +549,34 @@ var tbSyncDavNewAccount = {
         return result;
     },
      
+    promptForOAuth: async function() {
+        this.lockUI("validating");
+
+        let oauthData = dav.network.getOAuthData(this.calDavServer, this.username, "auth:wizard");
+        if (oauthData) {
+            // ask for token
+            let oauth = await TbSync.passwordManager.asyncOAuthPrompt(oauthData, dav.openWindows);
+            if (oauth && oauth.tokens && !oauth.error) {
+                this.password = oauth.tokens;
+                this.finalCalDavServer = this.calDavServer;
+                this.finalCardDavServer = this.cardDavServer;
+                this.finalUsername = this.username;
+                this.validated = true;
+                this.unlockUI();
+                this.advance();
+                return;
+            } else if (oauth && oauth.error) {
+                document.getElementById("tbsync.error.message").textContent = TbSync.getString("status."+oauth.error, "dav");
+                document.getElementById("tbsync.error").hidden = false;
+                this.unlockUI();                
+                return;
+            }
+        }    
+        document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.OAuthNetworkError", "dav");
+        document.getElementById("tbsync.error").hidden = false;
+        this.unlockUI();                
+    },
+    
     validateDavServers: async function() {
         this.lockUI("validating");
       
