@@ -462,7 +462,7 @@ calDavCalendar.prototype = {
 
       // update accessToken
       this.oauth.invalidAccessToken = false;
-      this.oauth.accessToken = TbSync.passwordManager.getOAuthToken(authData.password)
+      this.oauth.accessToken = TbSync.passwordManager.getOAuthToken(authData.password);
     }
     
     authSuccess();

@@ -556,7 +556,7 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
             baseUrl =  "http" + (this.folderData.getFolderProperty("https") ? "s" : "") + "://" + this.folderData.getFolderProperty("fqdn");
         }
 
-        let url = dav.tools.parseUri(baseUrl + this.folderData.getFolderProperty("href") + ((dav.sync.prefSettings.getBoolPref("enforceUniqueCalendarUrls") || isGoogle) ? "?" + this.folderData.accountID : ""));
+        let url = dav.tools.parseUri(baseUrl + this.folderData.getFolderProperty("href") + (dav.sync.prefSettings.getBoolPref("enforceUniqueCalendarUrls") ? "?" + this.folderData.accountID : ""));
         this.folderData.setFolderProperty("url", url.spec);
 
         //check if that calendar already exists
