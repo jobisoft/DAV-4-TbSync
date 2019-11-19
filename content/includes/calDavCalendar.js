@@ -419,7 +419,7 @@ calDavCalendar.prototype = {
     let self = this;
 
     if (
-      usesGoogleOAuth &&
+      usesGoogleOAuth && 1==2 &&
       (!this.oauth.accessToken || this.oauth.tokenExpires - OAUTH_GRACE_TIME < new Date().getTime())
     ) {
       // The token has expired, we need to reauthenticate first
@@ -1639,40 +1639,6 @@ calDavCalendar.prototype = {
   // Helper functions
   //
 
-  oauthConnect: function(authSuccessCb, authFailureCb, aRefresh = false) {
-    // Use the async prompter to avoid multiple master password prompts
-    let self = this;
-    let promptlistener = {
-      onPromptStartAsync: function(callback) {
-        this.onPromptAuthAvailable(callback);
-      },
-      onPromptAuthAvailable: function(callback) {
-        self.oauth.connect(
-          () => {
-            authSuccessCb();
-            if (callback) {
-              callback.onAuthResult(true);
-            }
-          },
-          () => {
-            authFailureCb();
-            if (callback) {
-              callback.onAuthResult(false);
-            }
-          },
-          true,
-          aRefresh
-        );
-      },
-      onPromptCanceled: authFailureCb,
-      onPromptStart: function() {},
-    };
-    let asyncprompter = Cc["@mozilla.org/messenger/msgAsyncPrompter;1"].getService(
-      Ci.nsIMsgAsyncPrompter
-    );
-    asyncprompter.queueAsyncAuthPrompt(self.uri.spec, false, promptlistener);
-  },
-
   /**
    * Sets up any needed prerequisites regarding authentication. This is the
    * beginning of a chain of asynchronous calls. This function will, when
@@ -1699,50 +1665,18 @@ calDavCalendar.prototype = {
     if (this.mUri.host == "apidata.googleusercontent.com") {
       if (!this.oauth) {
         let sessionId = this.id;
-        let pwMgrId = "Google CalDAV v2";
-        let authTitle = cal.l10n.getAnyString("global", "commonDialogs", "EnterUserPasswordFor2", [
-          this.name,
-        ]);
-        this.oauth = new OAuth2("https://accounts.google.com/o/", "https://www.googleapis.com/auth/carddav https://www.googleapis.com/auth/calendar", "689460414096-e4nddn8tss5c59glidp4bc0qpeu3oper.apps.googleusercontent.com", "LeTdF3UEpCvP1V3EBygjP-kl");
-        this.oauth.requestWindowTitle = authTitle;
-        this.oauth.requestWindowFeatures = "chrome,private,centerscreen,width=430,height=750";
-
-        Object.defineProperty(this.oauth, "refreshToken", {
-          get: function() {
-            if (!this.mRefreshToken) {
-              let pass = { value: null };
-              try {
-                let origin = "oauth:" + sessionId;
-                cal.auth.passwordManagerGet(sessionId, pass, origin, pwMgrId);
-              } catch (e) {
-                // User might have cancelled the master password prompt, that's ok
-                if (e.result != Cr.NS_ERROR_ABORT) {
-                  throw e;
-                }
-              }
-              this.mRefreshToken = pass.value;
-            }
-            return this.mRefreshToken;
-          },
-          set: function(val) {
-            try {
-              let origin = "oauth:" + sessionId;
-              if (val) {
-                cal.auth.passwordManagerSave(sessionId, val, origin, pwMgrId);
-              } else {
-                cal.auth.passwordManagerRemove(sessionId, origin, pwMgrId);
-              }
-            } catch (e) {
-              // User might have cancelled the master password prompt, or password saving
-              // could be disabled. That is ok, throw for everything else.
-              if (e.result != Cr.NS_ERROR_ABORT && e.result != Cr.NS_ERROR_NOT_AVAILABLE) {
-                throw e;
-              }
-            }
-            return (this.mRefreshToken = val);
-          },
-          enumerable: true,
-        });
+        this.oauth = {
+          "accessToken": "",
+          "refreshToken": ""
+        };
+        try {
+          var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
+          let folderData = TbSync.lightning.getFolderFromCalendarURL(this.mUri.spec);                    
+          let authData = TbSync.providers.dav.network.getAuthData(folderData.accountData);
+          this.oauth.accessToken = TbSync.passwordManager.getOAuthToken(authData.password)
+        } catch (e) {
+          Components.utils.reportError(e);
+        }        
       }
 
       if (this.oauth.accessToken) {
@@ -1758,7 +1692,8 @@ calDavCalendar.prototype = {
           if (!win || win.document.readyState != "complete") {
             setTimeout(postpone, 0);
           } else {
-            self.oauthConnect(authSuccess, authFailed);
+            console.log("Aborting Google");
+            //self.oauthConnect(authSuccess, authFailed);
           }
         }, 0);
       }
