@@ -570,12 +570,16 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
             }
         }
 
+        let isGoogle = (this.folderData.accountData.getAccountProperty("serviceprovider") == "google");
+        
         if (found) {
             newCalendar.setProperty("username", authData.username);
             newCalendar.setProperty("color", this.folderData.getFolderProperty("targetColor"));
             newCalendar.name = newname;                
         } else {
-            newCalendar = calManager.createCalendar(caltype, url); //caldav or ics
+            // Until bug 1597133 is not resolved, we need to clone the caldav provider to inject our own
+            // oauth client_id and to reuse bearer tokes for all calendars of the same user.
+            newCalendar = calManager.createCalendar((isGoogle ? "tbSyncCalDav" : caltype), url); //caldav or ics
             newCalendar.id = TbSync.lightning.cal.getUUID();
             newCalendar.name = newname;
 
@@ -587,8 +591,8 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
 
         if (this.folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
 
-        // Setup password for Lightning calendar, so users do not get prompted (ICS urls do not need a password)
-        if (caltype != "ics") {
+        // Setup password for Lightning calendar, so users do not get prompted (ICS and google urls do not need a password)
+        if (caltype == "caldav") {
             TbSync.dump("Searching CalDAV authRealm for", url.host);
             let connectionData = new dav.network.ConnectionData();
             connectionData.username = authData.username;
