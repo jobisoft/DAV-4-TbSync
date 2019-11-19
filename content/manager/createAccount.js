@@ -335,10 +335,9 @@ var tbSyncDavNewAccount = {
                                                                                 (this.accountname == "") ||
                                                                                 (this.calDavServer + this.cardDavServer == ""));
         } else if (this.serviceprovider == "google") {
-            // google does not need a password field
+            // google does not need a password field and also no username
             document.getElementById("tbsync.newaccount.wizard").canAdvance = !(
-                                                                                (this.accountname == "") ||
-                                                                                (this.username == ""));
+                                                                                (this.accountname == ""));
         } else {
             // build in service providers do need a username and password
             document.getElementById("tbsync.newaccount.wizard").canAdvance = !(
@@ -387,6 +386,10 @@ var tbSyncDavNewAccount = {
         
 
         //which server fields to show?
+        document.getElementById("tbsync.newaccount.finaluser.row").hidden = (this.serviceprovider == "google");
+        document.getElementById("tbsync.newaccount.user.row").hidden = (this.serviceprovider == "google");
+        document.getElementById("tbsync.newaccount.password.row").hidden = (this.serviceprovider == "google");
+
         if (this.serviceprovider == "discovery") {
             document.getElementById("tbsync.newaccount.caldavserver.row").hidden = true;
             document.getElementById("tbsync.newaccount.carddavserver.row").hidden = true;
@@ -405,7 +408,6 @@ var tbSyncDavNewAccount = {
             document.getElementById("tbsync.newaccount.caldavserver.row").hidden = true;
             document.getElementById("tbsync.newaccount.carddavserver.row").hidden = true;
             document.getElementById("tbsync.newaccount.server.row").hidden = true;
-            document.getElementById("tbsync.newaccount.password.row").hidden = (this.serviceprovider == "google");
             //this.elementCalDavServer.disabled = true;
             //this.elementCardDavServer.disabled = true;
             this.calDavServer = dav.sync.serviceproviders[this.serviceprovider].caldav;

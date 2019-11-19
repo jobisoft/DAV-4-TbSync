@@ -40,7 +40,7 @@
                     <vbox pack="center"><label value="&add.name;" /></vbox>
                     <textbox id="tbsync.newaccount.name" oninput="tbSyncDavNewAccount.checkUI();"/>
                 </row>
-                <row>
+                <row id="tbsync.newaccount.user.row">
                     <vbox pack="center"><label value="&add.user;" /></vbox>
                     <textbox id="tbsync.newaccount.user" oninput="tbSyncDavNewAccount.checkUI(true);" />
                 </row>
@@ -97,9 +97,11 @@
                     <vbox pack="center"><label value="&add.name;" /></vbox>
                     <html:input id="tbsync.finalaccount.name" style="margin:2px" />
                 </row>
-                <row style="margin-bottom:2em;">
+                <row id="tbsync.newaccount.finaluser.row">
                     <vbox pack="center"><label value="&add.user;" /></vbox>
                     <html:input type="text" id="tbsync.finalaccount.user" readonly="true" style="margin:2px; background-color:silver;" />
+                </row>
+                <row style="margin-bottom:2em;">
                 </row>
                 <row id="tbsyncfinalaccount.caldavserver.row">
                     <vbox pack="center"><label value="&add.caldavserver;" /></vbox>
