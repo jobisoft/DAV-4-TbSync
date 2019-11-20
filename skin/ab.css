@@ -1,7 +1,13 @@
+treechildren::-moz-tree-image(DirCol, davgoogle) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/skin/google16.png");
+}
+
 treechildren::-moz-tree-image(DirCol, davweb) {
   margin-inline-end: 2px;
   list-style-image: url("chrome://dav4tbsync/skin/web16.png");
 }
+
 treechildren::-moz-tree-image(DirCol, davfruux) {
   margin-inline-end: 2px;
   list-style-image: url("chrome://dav4tbsync/skin/fruux16.png");
@@ -32,6 +38,10 @@ treechildren::-moz-tree-image(DirCol, davcustom) {
   list-style-image: url("chrome://dav4tbsync/skin/sabredav16.png");
 }
 
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davgoogle"] {
+  list-style-image: url("chrome://dav4tbsync/skin/google16.png");
+}
 
 .abMenuItem[AddrBook="true"][TbSyncIcon="davweb"] {
   list-style-image: url("chrome://dav4tbsync/skin/web16.png");
