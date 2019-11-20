@@ -9,16 +9,7 @@ var { XPCOMUtils } = ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm")
 var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 var { setTimeout } = ChromeUtils.import("resource://gre/modules/Timer.jsm");
 
-var { OAuth2 } = ChromeUtils.import("resource:///modules/OAuth2.jsm");
-
-try {
-    //if ("calICalendar" in Components.interfaces) {
-    var { cal } = ChromeUtils.import("resource://calendar/modules/calUtils.jsm");
-    //}
-} catch (e) {
-    console.log("cal load failed");
-    Components.utils.reportError(e);
-}
+var { cal } = ChromeUtils.import("resource://calendar/modules/calUtils.jsm");
 
 Cu.importGlobalProperties(["TextDecoder"]);
 
@@ -450,7 +441,7 @@ calDavCalendar.prototype = {
           if (oauth && oauth.tokens && !oauth.error) {
             authData.updateLoginData(authData.username, oauth.tokens);
           } else {
-            console.log("User Aborted.");
+            console.log("User Aborted OAUTH.");
             return;
           }
         } catch (e) {
@@ -3198,7 +3189,6 @@ calDavObserver.prototype = {
 
 /** Module Registration */
 this.NSGetFactory = cid => {
-    console.log("NSGetFactory("+cid+")");
   Services.scriptloader.loadSubScript(
     "resource://calendar/calendar-js/calDavRequestHandlers.js",
     this

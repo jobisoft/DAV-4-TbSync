@@ -552,7 +552,9 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
         let isGoogle = (this.folderData.accountData.getAccountProperty("serviceprovider") == "google");
 
         let baseUrl = "";
-        if (caltype != "ics") {
+        if (isGoogle) {
+            baseUrl =  "http" + (this.folderData.getFolderProperty("https") ? "s" : "") + "://" + this.folderData.accountID + "@" + this.folderData.getFolderProperty("fqdn");
+        } else if (caltype == "caldav") {
             baseUrl =  "http" + (this.folderData.getFolderProperty("https") ? "s" : "") + "://" + this.folderData.getFolderProperty("fqdn");
         }
 
@@ -592,7 +594,7 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
         if (this.folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
 
         // Setup password for Lightning calendar, so users do not get prompted (ICS and google urls do not need a password)
-        if (caltype == "caldav") {
+        if (caltype == "caldav" && !isGoogle) {
             TbSync.dump("Searching CalDAV authRealm for", url.host);
             let connectionData = new dav.network.ConnectionData();
             connectionData.username = authData.username;
