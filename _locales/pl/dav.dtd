@@ -1,4 +1,4 @@
-<!ENTITY add.title "Dodawanie kota CalDAV i CardDAV do TbSync">
+<!ENTITY add.title "Dodawanie konta CalDAV i CardDAV do TbSync">
 <!ENTITY add.ok "Dodaj konto">
 <!ENTITY add.name "Nazwa konta:">
 <!ENTITY add.user "Nazwa użytkownika:">
@@ -8,7 +8,7 @@
 <!ENTITY add.caldavserver "Adres serwera CalDAV:">
 
 <!ENTITY add.serverprofile.title "Wybierz profil serwera">
-<!ENTITY add.serverprofile.description "Wybierz jeden z dostępnych profili serwerów:">
+<!ENTITY add.serverprofile.description "Wybierz jeden z dostępnych profili serwera:">
 
 <!ENTITY add.data.title "Wprowadź informacje konta">
 <!ENTITY add.data.description "Podaj przyjazną nazwę nowego konta TbSync i dane logowania dla Twojego serwera:">
@@ -35,7 +35,7 @@
 <!ENTITY pref.useCalendarCache "Wsparcie Offline">
 
 <!ENTITY abCard.MiddleName "Drugie imię:">
-<!ENTITY abCard.PrefixName "Prefiks:">
+<!ENTITY abCard.PrefixName "Przedrostek:">
 <!ENTITY abCard.SuffixName "Przyrostek:">
 <!ENTITY abCard.Phone "Numery telefonów">
 <!ENTITY abCard.ContactDetails "Właściwości kontaktu (CardDAV)">
