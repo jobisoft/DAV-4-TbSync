@@ -35,7 +35,7 @@
 <!ENTITY pref.useCalendarCache "Wsparcie Offline">
 
 <!ENTITY abCard.MiddleName "Drugie imię:">
-<!ENTITY abCard.PrefixName "Prefiks:">
+<!ENTITY abCard.PrefixName "Przedrostek:">
 <!ENTITY abCard.SuffixName "Przyrostek:">
 <!ENTITY abCard.Phone "Numery telefonów">
 <!ENTITY abCard.ContactDetails "Właściwości kontaktu (CardDAV)">
