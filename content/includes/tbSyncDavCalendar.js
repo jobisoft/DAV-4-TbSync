@@ -95,6 +95,18 @@ tbSyncDavCalendar.prototype = {
   
   /** Overriding lightning oauth **/
   
+  sleep: function(delay) {
+    let timer =  Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
+    return new Promise(function(resolve, reject) {
+      let event = {
+        notify: function(timer) {
+            resolve();
+        }
+      }
+      timer.initWithCallback(event, delay, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+    });
+  },
+  
   setupAuthentication: async function(aChangeLogListener) {
     let self = this;
     function authSuccess() {
@@ -106,49 +118,36 @@ tbSyncDavCalendar.prototype = {
       self.completeCheckServerInfo(aChangeLogListener, Cr.NS_ERROR_FAILURE);
     }
 
-    let tbSyncIsInstalled = await AddonManager.getAddonByID("tbsync@jobisoft.de");
-    if (!tbSyncIsInstalled || !tbSyncIsInstalled.isActive) {
+    // If TbSync is not installed, disable all calendars.
+    let tbSyncAddon = await AddonManager.getAddonByID("tbsync@jobisoft.de");
+    if (!tbSyncAddon || !tbSyncAddon.isActive) {
       console.log("Failed to load TbSync, GoogleDav calendar will be disabled.");
       authFailed();
       return;
     }
-    
-    if (this.mUri.host == "apidata.googleusercontent.com") {
-      // Wait until TbSync has been loaded
-      let waitCycles = 0;
-      while (true) {
-        if (this.tbSyncLoaded)
-          break;
 
-        waitCycles++;
-        if (waitCycles>120) {
-          console.log("Failed to load TbSync, GoogleDav calendar will be disabled.");
-          authFailed();
-          return;
-        }
-        
-        try {
-            var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
-            this.tbSyncLoaded = TbSync.enabled;
-        } catch (e) {
-            // If this fails, TbSync is not loaded yet.
-        }
-        
-        if (this.tbSyncLoaded)
-          break;
-        
-        // Wait 1000ms and retry to load TbSync
-        await new Promise(function(resolve, reject) {
-          let event = {
-            notify: function(timer) {
-                resolve();
-            }
-          }
-          let timer =  Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
-          timer.initWithCallback(event, 1000, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
-        });
+    // Wait until TbSync has been loaded
+    for (let waitCycles=0; waitCycles < 120 && !this.tbSyncLoaded; waitCycles++) {
+      await this.sleep(1000);
+      try {
+          var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
+          this.tbSyncLoaded = TbSync.enabled;
+      } catch (e) {
+          // If this fails, TbSync is not loaded yet.
       }
+    }
+    if (!this.tbSyncLoaded) {
+      console.log("Failed to load TbSync, GoogleDav calendar will be disabled.");
+      authFailed();
+      return;
+    }
       
+    // Wait until master password has been entered (if needed)
+    while (!Services.logins.isLoggedIn) {
+      await this.sleep(1000);
+    }
+
+    if (this.mUri.host == "apidata.googleusercontent.com") {
       if (!this.oauth) {
         let authTitle = cal.l10n.getAnyString("global", "commonDialogs", "EnterUserPasswordFor2", [
           this.name,
@@ -158,20 +157,6 @@ tbSyncDavCalendar.prototype = {
         this.oauth.requestWindowTitle = authTitle;
         this.oauth.requestWindowFeatures = "chrome,private,centerscreen,width=430,height=750";
 
-        try {
-          // Storing the accountID as part of the URI has two benefits:
-          // - it does not get lost during offline support disable/enable
-          // - we can connect multiple google accounts without running into same-url-issue of shared calendars
-          let accountData = new TbSync.AccountData(this.mUri.username)
-          // authData allows us to access the password manager values belonging to this account/calendar
-          // simply by authdata.username and authdata.password
-          this.oauth.authData = TbSync.providers.dav.network.getAuthData(accountData);
-        } catch (e) {
-          console.log("Failed to get TbSync account information from GoogleDav calendar, it will be disabled.");
-          authFailed();
-        }
-
-        
         // Re-define refreshToken getter/setter to act on the password manager values belonging to this account/calendar
         Object.defineProperty(this.oauth, "refreshToken", {
           get: function() {
@@ -258,7 +243,20 @@ tbSyncDavCalendar.prototype = {
           },
           enumerable: true,
         });
-
+        
+        try {
+          // Storing the accountID as part of the URI has two benefits:
+          // - it does not get lost during offline support disable/enable
+          // - we can connect multiple google accounts without running into same-url-issue of shared calendars
+          let accountData = new TbSync.AccountData(this.mUri.username)
+          // authData allows us to access the password manager values belonging to this account/calendar
+          // simply by authdata.username and authdata.password
+          this.oauth.authData = TbSync.providers.dav.network.getAuthData(accountData);
+        } catch (e) {
+          console.log("Failed to get TbSync account information from GoogleDav calendar, it will be disabled.");
+          authFailed();
+          return;
+        }
       }
 
       if (this.oauth.accessToken) {
