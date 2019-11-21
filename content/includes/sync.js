@@ -465,7 +465,8 @@ var sync = {
     remoteChanges: async function (syncData) {
         //Do we have a sync token? No? -> Initial Sync (or WebDAV sync not supported) / Yes? -> Get updates only (token only present if WebDAV sync is suported)
         let token = syncData.currentFolderData.getFolderProperty("token");
-        if (token) {
+        let isGoogle = (syncData.accountData.getAccountProperty("serviceprovider") == "google");
+        if (token && !isGoogle) {
             //update via token sync
             let tokenSyncSucceeded = await dav.sync.remoteChangesByTOKEN(syncData);
             if (tokenSyncSucceeded) return;
