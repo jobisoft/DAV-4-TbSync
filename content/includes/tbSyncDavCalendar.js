@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+var { AddonManager } = ChromeUtils.import("resource://gre/modules/AddonManager.jsm");
 var { XPCOMUtils } = ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm");
 var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 var { cal } = ChromeUtils.import("resource://calendar/modules/calUtils.jsm");
@@ -103,6 +104,13 @@ tbSyncDavCalendar.prototype = {
       self.setProperty("disabled", "true");
       self.setProperty("auto-enabled", "true");
       self.completeCheckServerInfo(aChangeLogListener, Cr.NS_ERROR_FAILURE);
+    }
+
+    let tbSyncIsInstalled = await AddonManager.getAddonByID("tbsync@jobisoft.de");
+    if (!tbSyncIsInstalled || !tbSyncIsInstalled.isActive) {
+      console.log("Failed to load TbSync, GoogleDav calendar will be disabled.");
+      authFailed();
+      return;
     }
     
     if (this.mUri.host == "apidata.googleusercontent.com") {
