@@ -42,13 +42,13 @@ function startup(data, reason) {
     thisID = data.id;
     Services.obs.addObserver(onInitDoneObserver, "tbsync.observer.initialized", false);
 
-    Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/calDavCalendar.js", component);    
+    Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/tbSyncDavCalendar.js", component);    
     let registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
     registrar.registerFactory(
-        component.calDavCalendar.prototype.classID,
-        component.calDavCalendar.prototype.classDescription,
-        component.calDavCalendar.prototype.contractID,
-        component.NSGetFactory(component.calDavCalendar.prototype.classID)
+        component.tbSyncDavCalendar.prototype.classID,
+        component.tbSyncDavCalendar.prototype.classDescription,
+        component.tbSyncDavCalendar.prototype.contractID,
+        component.NSGetFactory(component.tbSyncDavCalendar.prototype.classID)
     );
     
     // The startup of TbSync is delayed until all add-ons have called their startup(),
@@ -71,8 +71,8 @@ function shutdown(data, reason) {
 
 	let registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
 	registrar.unregisterFactory(
-		component.calDavCalendar.prototype.classID,
-		component.NSGetFactory(component.calDavCalendar.prototype.classID)
+		component.tbSyncDavCalendar.prototype.classID,
+		component.NSGetFactory(component.tbSyncDavCalendar.prototype.classID)
 	);
     
     Services.obs.removeObserver(onInitDoneObserver, "tbsync.observer.initialized");
