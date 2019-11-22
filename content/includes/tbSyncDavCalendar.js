@@ -15,12 +15,6 @@ Services.scriptloader.loadSubScript("resource://calendar/calendar-js/calDavReque
 // tbSyncDavCalendar.js
 //
 
-// Do not mess with these and do not use them anywhere else, otherwise Google may disable TbSync.
-const OAUTH_BASE_URI = "https://accounts.google.com/o/";
-const OAUTH_SCOPE = "https://www.googleapis.com/auth/carddav https://www.googleapis.com/auth/calendar";
-const OAUTH_CLIENT_ID = "689460414096-e4nddn8tss5c59glidp4bc0qpeu3oper.apps.googleusercontent.com";
-const OAUTH_HASH = "LeTdF3UEpCvP1V3EBygjP-kl";
-
 function tbSyncDavCalendar() { 
   calDavCalendar.call(this);
   this.tbSyncLoaded = false;
@@ -146,141 +140,38 @@ tbSyncDavCalendar.prototype = {
     while (!Services.logins.isLoggedIn) {
       await this.sleep(1000);
     }
-
-    if (this.mUri.host == "apidata.googleusercontent.com") {
-      if (!this.oauth) {
-        let authTitle = cal.l10n.getAnyString("global", "commonDialogs", "EnterUserPasswordFor2", [
-          this.name,
-        ]);        
-
-        this.oauth = new OAuth2(OAUTH_BASE_URI, OAUTH_SCOPE, OAUTH_CLIENT_ID, OAUTH_HASH);
-        this.oauth.requestWindowTitle = authTitle;
-        this.oauth.requestWindowFeatures = "chrome,private,centerscreen,width=430,height=750";
-
-        // Re-define refreshToken getter/setter to act on the password manager values belonging to this account/calendar
-        Object.defineProperty(this.oauth, "refreshToken", {
-          get: function() {
-            this.mRefreshToken = "";
-            try {
-              // A call to this.authData.password will get the current value from password manager.
-              this.mRefreshToken = JSON.parse(this.authData.password)["refresh"];
-            } catch (e) {
-              // User might have cancelled the master password prompt, that's ok.
-              if (e.result != Cr.NS_ERROR_ABORT && !(e instanceof TypeError)) {
-                throw e;
-              }
-            }
-            return this.mRefreshToken;
-          },
-          set: function(val) {
-            this.mRefreshToken = "";
-            let tokens = {"access": "", "refresh": ""};
-            try {
-              // A call to this.authData.password will get the current value from password manager.
-              let t = JSON.parse(this.authData.password);
-              if (t) tokens = t;
-            } catch(e) {}
-
-            try {
-              // A call to this.authData.password will get the current value from password manager.
-              tokens["refresh"] = val;
-              // Store the new value in password manager.
-              this.authData.updateLoginData(this.authData.username, JSON.stringify(tokens));
-              // Read back the new value.
-              this.mRefreshToken = JSON.parse(this.authData.password)["refresh"];
-            } catch (e) {
-              // User might have cancelled the master password prompt, or password saving
-              // could be disabled. That is ok, throw for everything else.
-              if (e.result != Cr.NS_ERROR_ABORT && !(e instanceof TypeError)) {
-                throw e;
-              }
-            }
-            return (this.mRefreshToken = val);
-          },
-          enumerable: true,
-        });
-
-        // Re-define accessToken getter/setter
-        Object.defineProperty(this.oauth, "accessToken", {
-          get: function() {
-            this.mAccessToken = "";
-            try {
-              // A call to this.authData.password will get the current value from password manager.
-              this.mAccessToken = JSON.parse(this.authData.password)["access"];
-            } catch (e) {
-              // User might have cancelled the master password prompt, that's ok.
-              if (e.result != Cr.NS_ERROR_ABORT && !(e instanceof TypeError)) {
-                throw e;
-              }
-            }
-            return this.mAccessToken;
-          },
-          set: function(val) {
-            this.mAccessToken = "";
-            let tokens = {"access": "", "refresh": ""};
-            try {
-              // A call to this.authData.password will get the current value from password manager.
-              let t = JSON.parse(this.authData.password);
-              if (t) tokens = t;
-            } catch(e) {}
-
-            try {
-              // Password manager stores multiple tokens, only update the access token.
-              tokens["access"] = val;
-              // Store the new value in password manager.
-              this.authData.updateLoginData(this.authData.username, JSON.stringify(tokens));
-              // Read back the new value.
-              this.mAccessToken = JSON.parse(this.authData.password)["access"];
-            } catch (e) {
-              // User might have cancelled the master password prompt, or password saving
-              // could be disabled. That is ok, throw for everything else.
-              Components.utils.reportError(e);
-              if (e.result != Cr.NS_ERROR_ABORT && e.result != Cr.NS_ERROR_NOT_AVAILABLE && !(e instanceof TypeError)) {
-                throw e;
-              }
-            }
-            return (this.mAccessToken = val);
-          },
-          enumerable: true,
-        });
-        
-        try {
-          // Storing the accountID as part of the URI has two benefits:
-          // - it does not get lost during offline support disable/enable
-          // - we can connect multiple google accounts without running into same-url-issue of shared calendars
-          let accountData = new TbSync.AccountData(this.mUri.username)
-          // authData allows us to access the password manager values belonging to this account/calendar
-          // simply by authdata.username and authdata.password
-          this.oauth.authData = TbSync.providers.dav.network.getAuthData(accountData);
-        } catch (e) {
-          console.log("Failed to get TbSync account information from GoogleDav calendar, it will be disabled.");
-          authFailed();
-          return;
-        }
-      }
-
-      if (this.oauth.accessToken) {
-        authSuccess();
+    
+    
+    if (!this.oauth) {
+      let oauth = TbSync.providers.dav.network.getOAuthObj(this.mUri);
+      if (oauth) {
+        // This Server req OAUTH
+        this.oauth = oauth;
       } else {
-        // bug 901329: If the calendar window isn't loaded yet the
-        // master password prompt will show just the buttons and
-        // possibly hang. If we postpone until the window is loaded,
-        // all is well.
-        setTimeout(function postpone() {
-          // eslint-disable-line func-names
-          let win = cal.window.getCalendarWindow();
-          if (!win || win.document.readyState != "complete") {
-            setTimeout(postpone, 0);
-          } else {
-            self.oauthConnect(authSuccess, authFailed);
-          }
-        }, 0);
+        // This Server does not req OAUTH Server
+        authSuccess();
+        return;
       }
-    } else {
-      authSuccess();
     }
-  },  
- 
+    
+    if (this.oauth.accessToken) {
+      authSuccess();
+    } else {
+      // bug 901329: If the calendar window isn't loaded yet the
+      // master password prompt will show just the buttons and
+      // possibly hang. If we postpone until the window is loaded,
+      // all is well.
+      setTimeout(function postpone() {
+        // eslint-disable-line func-names
+        let win = cal.window.getCalendarWindow();
+        if (!win || win.document.readyState != "complete") {
+          setTimeout(postpone, 0);
+        } else {
+          self.oauthConnect(authSuccess, authFailed);
+        }
+      }, 0);
+    }
+  },
 }
 
 

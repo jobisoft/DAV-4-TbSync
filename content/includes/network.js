@@ -9,6 +9,7 @@
 "use strict";
 
 var { HttpRequest } = ChromeUtils.import("chrome://tbsync/content/HttpRequest.jsm");
+var { OAuth2 } = ChromeUtils.import("resource:///modules/OAuth2.jsm");
 
 var network = {
   
@@ -51,82 +52,200 @@ var network = {
       return connection;
   },
   
- getOAuthData: function(url, user = "", windowID = "") {
-    let oauthData = false;
+  getOAuthObj: function(_uri, configObject = null) {
+    let uri = _uri;
+    let host = "";
+    
+    // if _uri input is not yet an uri, try to get one
+    try {
+      if (!_uri.spec) 
+        uri = Services.io.newURI(_uri);
+    } catch (e) {
+      Components.utils.reportError(e);
+      return null;
+    }
 
-    if (url) {
-      let uri = Services.io.newURI(url);
-      switch (uri.host) {
-
-        case "apidata.googleusercontent.com":
-        case "www.googleapis.com":
-        {
-          let redirect_uri = "urn:ietf:wg:oauth:2.0:oob:auto";
-          let scope = "https://www.googleapis.com/auth/carddav https://www.googleapis.com/auth/calendar";
-          let client_id = "689460414096-e4nddn8tss5c59glidp4bc0qpeu3oper.apps.googleusercontent.com";
-          let client_secret = "LeTdF3UEpCvP1V3EBygjP-kl"
-          
-          oauthData = {
-            windowID: "auth:" + windowID,
-            auth: {
-              url: "https://accounts.google.com/o/oauth2/v2/auth",
-              redirectUrl: "https://accounts.google.com/o/oauth2/approval/v2",
-              requestParameters: {
-                client_id,
-                response_type: "code",
-                access_type: "offline",
-                redirect_uri,
-                scope,
-                prompt: "select_account",
-                // does not work for "legacy" user agents like Thunderbird
-                // login_hint: user
-              },
-              responseFields: {
-                authToken: "approvalCode",
-                error: "error"
-              }                        
-            },
-
-            access: {
-              url: "https://oauth2.googleapis.com/token",
-              requestParameters: {
-                client_id,
-                client_secret,
-                scope,
-                redirect_uri,
-                grant_type: "authorization_code",
-                code: null // a value of null indicates the token field
-              },
-              responseFields: {
-                accessToken: "access_token",
-                refreshToken: "refresh_token",
-              }                        
-            },
-            
-            refresh: {
-              url: "https://oauth2.googleapis.com/token",
-              requestParameters: {
-                client_id,
-                client_secret,
-                scope,
-                grant_type: "refresh_token",
-                refresh_token: null // a value of null indicates the token field
-              },
-              responseFields: {
-                accessToken: "access_token",
-                //google does not renew the refresh token
-              }
-            }
-          }
+    let config = {};
+    switch (uri.host) {
+      case "apidata.googleusercontent.com":
+      case "www.googleapis.com":
+        config = {
+          base_uri : "https://accounts.google.com/o/",
+          //redirect_uri : "urn:ietf:wg:oauth:2.0:oob:auto",
+          scope : "https://www.googleapis.com/auth/carddav https://www.googleapis.com/auth/calendar",
+          client_id : "689460414096-e4nddn8tss5c59glidp4bc0qpeu3oper.apps.googleusercontent.com",
+          client_secret : "LeTdF3UEpCvP1V3EBygjP-kl",
         }
         break;
-        
-      }
+      
+      default:
+        return null;
+    }
+
+    // If we only call this to know wether the url needs OAuth or not, return early.
+    if (configObject && configObject.hasOwnProperty("checkOnly") && configObject.checkOnly) {
+      return true;
     }
     
-    return oauthData;
-  },  
+    let oauth = new OAuth2(config.base_uri, config.scope, config.client_id, config.client_secret);
+    oauth.requestWindowFeatures = "chrome,private,centerscreen,width=500,height=750";
 
+    //the v2 endpoints are different and would need manual override
+    //this.authURI =
+    //this.tokenURI = 
+    oauth.extraAuthParams = [
+      ["access_type", "offline"],
+      ["prompt", "select_account"],
+      // Does not work with "legacy" clients like Thunderbird, do noz no why, 
+      // also the OAuth UI looks different from Firefox.
+      //["login_hint", "test@gmail.com"],
+    ];
+
+    oauth.asyncConnect = async function(rv, aRefresh = true) {
+      let self = this;
+      rv.error = "";
+      rv.tokens = "";
+      try {
+          await new Promise(function(resolve, reject) {
+            self.connect(resolve, reject, true, aRefresh);
+          });
+          rv.tokens = JSON.stringify({"access": self.accessToken, "refresh": self.refreshToken});
+          return true;
+        } catch (e) {
+          console.log("oauth.asyncConnect failed: " + e.toString());
+          rv.error = e.toString();
+          return false;
+        }
+    };
+
+
+    // Storing the accountID as part of the URI has two benefits:
+    // - it does not get lost during offline support disable/enable
+    // - we can connect multiple google accounts without running into same-url-issue of shared calendars
+    let accountID = uri.username || ((configObject && configObject.hasOwnProperty("accountID")) ? configObject.accountID : null);
+
+    let accountData = null;
+    try {
+      accountData = new TbSync.AccountData(accountID);
+    } catch (e) {};
+
+    
+    if (configObject && configObject.hasOwnProperty("accountname")) {
+      oauth.requestWindowTitle = "TbSync account <" + configObject.accountname + "> requests authorization.";
+    } else if (accountData) {
+      oauth.requestWindowTitle = "TbSync account <" + accountData.getAccountProperty("accountname") + "> requests authorization.";
+    } else {
+      oauth.requestWindowTitle = "A TbSync account requests authorization.";
+    }      
+
+    
+    if (accountData) {      
+      // authData allows us to access the password manager values belonging to this account/calendar
+      // simply by authdata.username and authdata.password
+      oauth.authData = TbSync.providers.dav.network.getAuthData(accountData);        
+
+      // Re-define refreshToken getter/setter to act on the password manager values belonging to this account/calendar
+      Object.defineProperty(oauth, "refreshToken", {
+        get: function() {
+          this.mRefreshToken = "";
+          try {
+            // A call to this.authData.password will get the current value from password manager.
+            this.mRefreshToken = JSON.parse(this.authData.password)["refresh"];
+          } catch (e) {
+            // User might have cancelled the master password prompt, that's ok.
+            if (e.result != Cr.NS_ERROR_ABORT && !(e instanceof TypeError)) {
+              throw e;
+            }
+          }
+          return this.mRefreshToken;
+        },
+        set: function(val) {
+          this.mRefreshToken = "";
+          let tokens = {"access": "", "refresh": ""};
+          try {
+            // A call to this.authData.password will get the current value from password manager.
+            let t = JSON.parse(this.authData.password);
+            if (t) tokens = t;
+          } catch(e) {}
+
+          try {
+            // A call to this.authData.password will get the current value from password manager.
+            tokens["refresh"] = val;
+            // Store the new value in password manager.
+            this.authData.updateLoginData(this.authData.username, JSON.stringify(tokens));
+            // Read back the new value.
+            this.mRefreshToken = JSON.parse(this.authData.password)["refresh"];
+          } catch (e) {
+            // User might have cancelled the master password prompt, or password saving
+            // could be disabled. That is ok, throw for everything else.
+            if (e.result != Cr.NS_ERROR_ABORT && !(e instanceof TypeError)) {
+              throw e;
+            }
+          }
+          return (this.mRefreshToken = val);
+        },
+        enumerable: true,
+      });
+
+      // Re-define accessToken getter/setter
+      Object.defineProperty(oauth, "accessToken", {
+        get: function() {
+          this.mAccessToken = "";
+          try {
+            // A call to this.authData.password will get the current value from password manager.
+            this.mAccessToken = JSON.parse(this.authData.password)["access"];
+          } catch (e) {
+            // User might have cancelled the master password prompt, that's ok.
+            if (e.result != Cr.NS_ERROR_ABORT && !(e instanceof TypeError)) {
+              throw e;
+            }
+          }
+          return this.mAccessToken;
+        },
+        set: function(val) {
+          this.mAccessToken = "";
+          let tokens = {"access": "", "refresh": ""};
+          try {
+            // A call to this.authData.password will get the current value from password manager.
+            let t = JSON.parse(this.authData.password);
+            if (t) tokens = t;
+          } catch(e) {}
+
+          try {
+            // Password manager stores multiple tokens, only update the access token.
+            tokens["access"] = val;
+            // Store the new value in password manager.
+            this.authData.updateLoginData(this.authData.username, JSON.stringify(tokens));
+            // Read back the new value.
+            this.mAccessToken = JSON.parse(this.authData.password)["access"];
+          } catch (e) {
+            // User might have cancelled the master password prompt, or password saving
+            // could be disabled. That is ok, throw for everything else.
+            Components.utils.reportError(e);
+            if (e.result != Cr.NS_ERROR_ABORT && e.result != Cr.NS_ERROR_NOT_AVAILABLE && !(e instanceof TypeError)) {
+              throw e;
+            }
+          }
+          return (this.mAccessToken = val);
+        },
+        enumerable: true,
+      });
+    }
+    
+    return oauth;
+  },
+
+  getOAuthToken: function(currentTokenString, type = "access") {
+    try {
+      let tokens = JSON.parse(currentTokenString);
+      if (tokens.hasOwnProperty(type))
+        return tokens[type];
+    } catch (e) {
+      //NOOP
+    }
+    return "";
+  },
+  
   ConnectionData: class {
     constructor(data) {            
       this._password = "";
@@ -231,18 +350,28 @@ var network = {
           
           // Prompt, if connection belongs to an account (and not from the create wizard)
           if (connectionData.accountData) {
-            let oauthData = dav.network.getOAuthData(connectionData.url, connectionData.username, connectionData.accountData.accountID);
+            let oauthData = dav.network.getOAuthObj(connectionData.url, { username: connectionData.username, accountID: connectionData.accountData.accountID } );
             if (oauthData) {
-              connectionData.accountData.syncData.setSyncState("oauthprompt");
-              let oauth = await TbSync.passwordManager.asyncOAuthPrompt(oauthData, dav.openWindows, connectionData.password);
-              
-              credentials = {username: connectionData.username, password: " "};
-              if (oauth && oauth.tokens && !oauth.error) {
-                credentials = {username: connectionData.username, password: oauth.tokens};
+              let rv = {}
+              if (await oauthData.asyncConnect(rv)) {
                 retry = true;
-              } else if (oauth && oauth.error) {
+                connectionData.password = rv.tokens;
+              } else {
                 // Override standard password error with error received from asyncOAuthPrompt().
-                r.passwordError = dav.sync.finish("error", oauth.error);                                }
+                r.passwordError = dav.sync.finish("error", rv.error);                                
+              }
+                    /*connectionData.accountData.syncData.setSyncState("oauthprompt");
+                            // what we need here is a self contained update with null return or an error
+                            let oauth = await TbSync.passwordManager.asyncOAuthPrompt(oauthData, dav.openWindows, connectionData.password);
+                            
+                            credentials = {username: connectionData.username, password: " "};
+                            if (oauth && oauth.tokens && !oauth.error) {
+                              credentials = {username: connectionData.username, password: oauth.tokens};
+                              retry = true;
+                            } else if (oauth && oauth.error) {
+                              // Override standard password error with error received from asyncOAuthPrompt().
+                              r.passwordError = dav.sync.finish("error", oauth.error);                                
+                            }*/
             } else {
               let promptData = {
                 windowID: "auth:" + connectionData.accountData.accountID,
@@ -252,18 +381,17 @@ var network = {
               }
               connectionData.accountData.syncData.setSyncState("passwordprompt");
               credentials = await TbSync.passwordManager.asyncPasswordPrompt(promptData, dav.openWindows);
-              if (credentials) retry = true;
+              if (credentials) {
+                // update login data
+                dav.network.getAuthData(connectionData.accountData).updateLoginData(credentials.username, credentials.password);
+                // update connection data
+                connectionData.username = credentials.username;
+                connectionData.password = credentials.password;
+                retry = true;
+              }
             }              
           }
-          
-          if (credentials) {
-            // update login data
-            dav.network.getAuthData(connectionData.accountData).updateLoginData(credentials.username, credentials.password);
-            // update connection data
-            connectionData.username = credentials.username;
-            connectionData.password = credentials.password;
-          }
-          
+                    
           if (!retry) {
             throw r.passwordError;
           }
@@ -305,8 +433,8 @@ var network = {
       }
 
       // If this is one of the servers which we use OAuth for, add the bearer token.
-      if (dav.network.getOAuthData(connectionData.url)) {
-        req.setRequestHeader("Authorization", "Bearer " +  TbSync.passwordManager.getOAuthToken(connectionData.password));
+      if (dav.network.getOAuthObj(connectionData.url, { checkOnly: true })) {
+        req.setRequestHeader("Authorization", "Bearer " +  dav.network.getOAuthToken(connectionData.password, "access"));
       }
       
       req.realmCallback = function(username, realm, host) {

@@ -553,13 +553,11 @@ var tbSyncDavNewAccount = {
      
     promptForOAuth: async function() {
         this.lockUI("validating");
-
-        let oauthData = dav.network.getOAuthData(this.calDavServer, this.username, "auth:wizard");
+        let oauthData = dav.network.getOAuthObj(this.calDavServer, { username: this.username, accountname: this.accountname });
         if (oauthData) {
-            // ask for token
-            let oauth = await TbSync.passwordManager.asyncOAuthPrompt(oauthData, dav.openWindows);
-            if (oauth && oauth.tokens && !oauth.error) {
-                this.password = oauth.tokens;
+            let rv = {};
+            if (await oauthData.asyncConnect(rv)) {
+                this.password = rv.tokens;
                 this.finalCalDavServer = this.calDavServer;
                 this.finalCardDavServer = this.cardDavServer;
                 this.finalUsername = this.username;
@@ -567,8 +565,8 @@ var tbSyncDavNewAccount = {
                 this.unlockUI();
                 this.advance();
                 return;
-            } else if (oauth && oauth.error) {
-                document.getElementById("tbsync.error.message").textContent = TbSync.getString("status."+oauth.error, "dav");
+            } else {
+                document.getElementById("tbsync.error.message").textContent = TbSync.getString("status." + rv.error, "dav");
                 document.getElementById("tbsync.error").hidden = false;
                 this.unlockUI();                
                 return;
