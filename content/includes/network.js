@@ -91,25 +91,25 @@ var network = {
     oauth.requestWindowFeatures = "chrome,private,centerscreen,width=500,height=750";
 
     //the v2 endpoints are different and would need manual override
-    //this.authURI =
-    //this.tokenURI = 
+    //oauth.authURI =
+    //oauth.tokenURI = 
     oauth.extraAuthParams = [
       ["access_type", "offline"],
       ["prompt", "select_account"],
-      // Does not work with "legacy" clients like Thunderbird, do noz no why, 
+      // Does not work with "legacy" clients like Thunderbird, do not know why, 
       // also the OAuth UI looks different from Firefox.
       //["login_hint", "test@gmail.com"],
     ];
 
-    oauth.asyncConnect = async function(rv, aRefresh = true) {
+    oauth.asyncConnect = async function(rv, aRefresh = false) {
       let self = this;
       rv.error = "";
       rv.tokens = "";
       try {
           await new Promise(function(resolve, reject) {
-            self.connect(resolve, reject, true, aRefresh);
+            self.connect(resolve, reject, /* with UI */ true, aRefresh);
           });
-          rv.tokens = JSON.stringify({"access": self.accessToken, "refresh": self.refreshToken});
+          rv.tokens = self.tokens;
           return true;
         } catch (e) {
           console.log("oauth.asyncConnect failed: " + e.toString());
@@ -118,17 +118,16 @@ var network = {
         }
     };
 
-
-    // Storing the accountID as part of the URI has two benefits:
+    // Storing the accountID as part of the URI has multiple benefits:
     // - it does not get lost during offline support disable/enable
     // - we can connect multiple google accounts without running into same-url-issue of shared calendars
+    // - if called from lightning, we do not need to do an expensive url search to get the accountID
     let accountID = uri.username || ((configObject && configObject.hasOwnProperty("accountID")) ? configObject.accountID : null);
 
     let accountData = null;
     try {
       accountData = new TbSync.AccountData(accountID);
     } catch (e) {};
-
     
     if (configObject && configObject.hasOwnProperty("accountname")) {
       oauth.requestWindowTitle = "TbSync account <" + configObject.accountname + "> requests authorization.";
@@ -138,104 +137,72 @@ var network = {
       oauth.requestWindowTitle = "A TbSync account requests authorization.";
     }      
 
+    const OAUTHVALUES = [
+      ["access", "", "accessToken"], 
+      ["refresh", "", "refreshToken"], 
+      ["expires", 0, "tokenExpires"],
+    ];
+        
+    // returns a JSON string containing all the oauth values
+    Object.defineProperty(oauth, "tokens", {
+      get: function() {
+        let tokensObj = {};
+        for (let oauthValue of OAUTHVALUES) {
+          // use the system value or if not defined the default
+          tokensObj[oauthValue[0]] = this[oauthValue[2]] || oauthValue[1];
+        }
+        return JSON.stringify(tokensObj);
+      },
+      enumerable: true,
+    });
     
     if (accountData) {      
       // authData allows us to access the password manager values belonging to this account/calendar
       // simply by authdata.username and authdata.password
       oauth.authData = TbSync.providers.dav.network.getAuthData(accountData);        
 
-      // Re-define refreshToken getter/setter to act on the password manager values belonging to this account/calendar
-      Object.defineProperty(oauth, "refreshToken", {
-        get: function() {
-          this.mRefreshToken = "";
-          try {
-            // A call to this.authData.password will get the current value from password manager.
-            this.mRefreshToken = JSON.parse(this.authData.password)["refresh"];
-          } catch (e) {
-            // User might have cancelled the master password prompt, that's ok.
-            if (e.result != Cr.NS_ERROR_ABORT && !(e instanceof TypeError)) {
-              throw e;
-            }
-          }
-          return this.mRefreshToken;
-        },
-        set: function(val) {
-          this.mRefreshToken = "";
-          let tokens = {"access": "", "refresh": ""};
-          try {
-            // A call to this.authData.password will get the current value from password manager.
-            let t = JSON.parse(this.authData.password);
-            if (t) tokens = t;
-          } catch(e) {}
+      oauth.parseAndSanitizeTokenString = function(tokenString) {
+        let _tokensObj = {};
+        try {
+          _tokensObj = JSON.parse(tokenString);
+        } catch (e) {}
 
-          try {
-            // A call to this.authData.password will get the current value from password manager.
-            tokens["refresh"] = val;
-            // Store the new value in password manager.
-            this.authData.updateLoginData(this.authData.username, JSON.stringify(tokens));
-            // Read back the new value.
-            this.mRefreshToken = JSON.parse(this.authData.password)["refresh"];
-          } catch (e) {
-            // User might have cancelled the master password prompt, or password saving
-            // could be disabled. That is ok, throw for everything else.
-            if (e.result != Cr.NS_ERROR_ABORT && !(e instanceof TypeError)) {
-              throw e;
+        let tokensObj = {};
+        for (let oauthValue of OAUTHVALUES) {
+          // use the provided value or if not defined the default
+          tokensObj[oauthValue[0]] = (_tokensObj && _tokensObj.hasOwnProperty(oauthValue[0]))
+            ? _tokensObj[oauthValue[0]]
+            : oauthValue[1];
+        }
+        return tokensObj;
+      };
+      
+      // Define getter/setter to act on the password manager password value belonging to this account/calendar
+      for (let oauthValue of OAUTHVALUES) {
+        Object.defineProperty(oauth, oauthValue[2], {
+          get: function() {
+            return this.parseAndSanitizeTokenString(this.authData.password)[oauthValue[0]];
+          },
+          set: function(val) {
+            let tokens = this.parseAndSanitizeTokenString(this.authData.password);
+            let valueChanged = (val != tokens[oauthValue[0]])
+            console.log("[OAUTH UPD <" + accountID + " / " + oauthValue[0] + ">] Setting new value: " + valueChanged);
+            console.log("[OAUTH UPD <" + accountID + " / " + oauthValue[0] + ">] New value: " + val);
+            console.log("[OAUTH UPD <" + accountID + " / " + oauthValue[0] + ">] Old value: " + tokens[oauthValue[0]]);
+            if (valueChanged) {
+              tokens[oauthValue[0]] = val;
+              this.authData.updateLoginData(this.authData.username, JSON.stringify(tokens));
             }
-          }
-          return (this.mRefreshToken = val);
-        },
-        enumerable: true,
-      });
-
-      // Re-define accessToken getter/setter
-      Object.defineProperty(oauth, "accessToken", {
-        get: function() {
-          this.mAccessToken = "";
-          try {
-            // A call to this.authData.password will get the current value from password manager.
-            this.mAccessToken = JSON.parse(this.authData.password)["access"];
-          } catch (e) {
-            // User might have cancelled the master password prompt, that's ok.
-            if (e.result != Cr.NS_ERROR_ABORT && !(e instanceof TypeError)) {
-              throw e;
-            }
-          }
-          return this.mAccessToken;
-        },
-        set: function(val) {
-          this.mAccessToken = "";
-          let tokens = {"access": "", "refresh": ""};
-          try {
-            // A call to this.authData.password will get the current value from password manager.
-            let t = JSON.parse(this.authData.password);
-            if (t) tokens = t;
-          } catch(e) {}
-
-          try {
-            // Password manager stores multiple tokens, only update the access token.
-            tokens["access"] = val;
-            // Store the new value in password manager.
-            this.authData.updateLoginData(this.authData.username, JSON.stringify(tokens));
-            // Read back the new value.
-            this.mAccessToken = JSON.parse(this.authData.password)["access"];
-          } catch (e) {
-            // User might have cancelled the master password prompt, or password saving
-            // could be disabled. That is ok, throw for everything else.
-            Components.utils.reportError(e);
-            if (e.result != Cr.NS_ERROR_ABORT && e.result != Cr.NS_ERROR_NOT_AVAILABLE && !(e instanceof TypeError)) {
-              throw e;
-            }
-          }
-          return (this.mAccessToken = val);
-        },
-        enumerable: true,
-      });
+          },
+          enumerable: true,
+        });
+      }
     }
     
     return oauth;
   },
 
-  getOAuthToken: function(currentTokenString, type = "access") {
+  getOAuthValue: function(currentTokenString, type = "access") {
     try {
       let tokens = JSON.parse(currentTokenString);
       if (tokens.hasOwnProperty(type))
@@ -353,25 +320,15 @@ var network = {
             let oauthData = dav.network.getOAuthObj(connectionData.url, { username: connectionData.username, accountID: connectionData.accountData.accountID } );
             if (oauthData) {
               let rv = {}
-              if (await oauthData.asyncConnect(rv)) {
+              // We know that all our calls are async ordered, so we can enforce token refresh here and the next
+              // resource uses the new tokens already.
+              if (await oauthData.asyncConnect(rv, /* get a new access token even if we have one already */ true)) {
                 retry = true;
                 connectionData.password = rv.tokens;
               } else {
                 // Override standard password error with error received from asyncOAuthPrompt().
                 r.passwordError = dav.sync.finish("error", rv.error);                                
               }
-                    /*connectionData.accountData.syncData.setSyncState("oauthprompt");
-                            // what we need here is a self contained update with null return or an error
-                            let oauth = await TbSync.passwordManager.asyncOAuthPrompt(oauthData, dav.openWindows, connectionData.password);
-                            
-                            credentials = {username: connectionData.username, password: " "};
-                            if (oauth && oauth.tokens && !oauth.error) {
-                              credentials = {username: connectionData.username, password: oauth.tokens};
-                              retry = true;
-                            } else if (oauth && oauth.error) {
-                              // Override standard password error with error received from asyncOAuthPrompt().
-                              r.passwordError = dav.sync.finish("error", oauth.error);                                
-                            }*/
             } else {
               let promptData = {
                 windowID: "auth:" + connectionData.accountData.accountID,
@@ -434,7 +391,7 @@ var network = {
 
       // If this is one of the servers which we use OAuth for, add the bearer token.
       if (dav.network.getOAuthObj(connectionData.url, { checkOnly: true })) {
-        req.setRequestHeader("Authorization", "Bearer " +  dav.network.getOAuthToken(connectionData.password, "access"));
+        req.setRequestHeader("Authorization", "Bearer " +  dav.network.getOAuthValue(connectionData.password, "access"));
       }
       
       req.realmCallback = function(username, realm, host) {
