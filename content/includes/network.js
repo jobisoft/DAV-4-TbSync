@@ -100,6 +100,30 @@ var network = {
       // also the OAuth UI looks different from Firefox.
       //["login_hint", "test@gmail.com"],
     ];
+    
+    // Storing the accountID as part of the URI has multiple benefits:
+    // - it does not get lost during offline support disable/enable
+    // - we can connect multiple google accounts without running into same-url-issue of shared calendars
+    // - if called from lightning, we do not need to do an expensive url search to get the accountID
+    let accountID = uri.username || ((configObject && configObject.hasOwnProperty("accountID")) ? configObject.accountID : null);
+
+    let accountData = null;
+    try {
+      accountData = new TbSync.AccountData(accountID);
+    } catch (e) {};
+    
+    if (configObject && configObject.hasOwnProperty("accountname")) {
+      oauth.requestWindowTitle = "TbSync account <" + configObject.accountname + "> requests authorization.";
+    } else if (accountData) {
+      oauth.requestWindowTitle = "TbSync account <" + accountData.getAccountProperty("accountname") + "> requests authorization.";
+    } else {
+      oauth.requestWindowTitle = "A TbSync account requests authorization.";
+    }      
+
+    
+    
+    
+    /* Adding custom methods to the oauth object */ 
 
     // Similar to tbSyncDavCalendar.oauthConnect(), but true async.
     oauth.asyncConnect = async function(rv) {
@@ -130,29 +154,15 @@ var network = {
         }
     };
 
-    // Storing the accountID as part of the URI has multiple benefits:
-    // - it does not get lost during offline support disable/enable
-    // - we can connect multiple google accounts without running into same-url-issue of shared calendars
-    // - if called from lightning, we do not need to do an expensive url search to get the accountID
-    oauth.accountID = uri.username || ((configObject && configObject.hasOwnProperty("accountID")) ? configObject.accountID : null);
-
-    let accountData = null;
-    try {
-      accountData = new TbSync.AccountData(oauth.accountID);
-    } catch (e) {};
+    oauth.isExpired = function() {
+      const OAUTH_GRACE_TIME = 30 * 1000;
+      return (this.tokenExpires - OAUTH_GRACE_TIME < new Date().getTime());
+    };
     
-    if (configObject && configObject.hasOwnProperty("accountname")) {
-      oauth.requestWindowTitle = "TbSync account <" + configObject.accountname + "> requests authorization.";
-    } else if (accountData) {
-      oauth.requestWindowTitle = "TbSync account <" + accountData.getAccountProperty("accountname") + "> requests authorization.";
-    } else {
-      oauth.requestWindowTitle = "A TbSync account requests authorization.";
-    }      
-
     const OAUTHVALUES = [
       ["access", "", "accessToken"], 
       ["refresh", "", "refreshToken"], 
-      ["expires", 0, "tokenExpires"],
+      ["expires", Number.MAX_VALUE, "tokenExpires"],
     ];
         
     // returns a JSON string containing all the oauth values
@@ -199,7 +209,7 @@ var network = {
             let tokens = this.parseAndSanitizeTokenString(this.authData.password);
             let valueChanged = (val != tokens[oauthValue[0]])
             if (valueChanged) {
-              console.log("[OAuth] Updating <" + this.accountID + " / " + oauthValue[0] + ">: " + val);
+              console.log("[OAuth] Updating <" + accountID + " / " + oauthValue[0] + ">: " + val);
               tokens[oauthValue[0]] = val;
               this.authData.updateLoginData(this.authData.username, JSON.stringify(tokens));
             }
@@ -315,6 +325,17 @@ var network = {
 
       connectionData.url = url;
 
+      connectionData.oauthObj = dav.network.getOAuthObj(connectionData.url, { username: connectionData.username, accountID: connectionData.accountData.accountID });
+      if (connectionData.oauthObj && (!connectionData.oauthObj.accessToken || connectionData.oauthObj.isExpired())) {
+          console.log("New access token for account <"+connectionData.accountData.accountID+"> is needed!");
+          let rv = {}
+          if (await connectionData.oauthObj.asyncConnect(rv)) {
+            connectionData.password = rv.tokens;
+          } else {
+            throw dav.sync.finish("error", rv.error);                                
+          }      
+      }
+
       let r = await dav.network.promisifiedHttpRequest(requestData, method, connectionData, headers, options);
       
       if (r && r.passwordPrompt && r.passwordPrompt === true) {
@@ -327,12 +348,9 @@ var network = {
           
           // Prompt, if connection belongs to an account (and not from the create wizard)
           if (connectionData.accountData) {
-            let oauthData = dav.network.getOAuthObj(connectionData.url, { username: connectionData.username, accountID: connectionData.accountData.accountID } );
-            if (oauthData) {
+            if (connectionData.oauthObj) {
               let rv = {}
-              // We know that all our calls are async ordered, so we can enforce token refresh here and the next
-              // resource uses the new tokens already.
-              if (await oauthData.asyncConnect(rv)) {
+              if (await connectionData.oauthObj.asyncConnect(rv)) {
                 retry = true;
                 connectionData.password = rv.tokens;
               } else {
@@ -400,7 +418,7 @@ var network = {
       }
 
       // If this is one of the servers which we use OAuth for, add the bearer token.
-      if (dav.network.getOAuthObj(connectionData.url, { checkOnly: true })) {
+      if (connectionData.oauthObj) {
         req.setRequestHeader("Authorization", "Bearer " +  dav.network.getOAuthValue(connectionData.password, "access"));
       }
       
