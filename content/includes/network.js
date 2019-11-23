@@ -52,6 +52,7 @@ var network = {
       return connection;
   },
   
+  // prepare and patch OAuth2 object
   getOAuthObj: function(_uri, configObject = null) {
     let uri = _uri;
     let host = "";

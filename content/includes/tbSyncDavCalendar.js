@@ -40,7 +40,7 @@ tbSyncDavCalendar.prototype = {
   },
 
 
-  /** The following functions are almost copied 1-to-1 but neede little changes to work with tbSyncCalDav **/
+  /** The following functions are almost copied 1-to-1 but needed little changes to work with tbSyncCalDav **/
   
   getProperty: function(aName) {
     if (aName in this.mACLProperties && this.mACLProperties[aName]) {
