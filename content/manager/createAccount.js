@@ -556,7 +556,7 @@ var tbSyncDavNewAccount = {
         let oauthData = dav.network.getOAuthObj(this.calDavServer, { username: this.username, accountname: this.accountname });
         if (oauthData) {
             let rv = {};
-            if (await oauthData.asyncConnect(rv, /* get a new access token even if we have one already */ true)) {
+            if (await oauthData.asyncConnect(rv)) {
                 this.password = rv.tokens;
                 this.finalCalDavServer = this.calDavServer;
                 this.finalCardDavServer = this.cardDavServer;
