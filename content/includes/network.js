@@ -48,6 +48,10 @@ var network = {
           // Also update the username of this account.
           accountData.setAccountProperty("user", newUsername);
         },
+        
+        removeLoginData: function() {
+          TbSync.passwordManager.removeLoginInfos(this.host, "TbSync/DAV");
+        }
       };
       return connection;
   },

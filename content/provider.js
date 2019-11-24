@@ -237,6 +237,15 @@ var Base = class {
 
 
     /**
+     * Is called everytime an account of this provider is deleted in the
+     * manager UI.
+     */
+    static onDeleteAccount(accountData) {
+        dav.network.getAuthData(accountData).removeLoginData();
+    }
+
+
+    /**
      * Implement this method, if this provider should add additional entries
      * to the autocomplete list while typing something into the address field
      * of the message composer.
