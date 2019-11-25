@@ -194,6 +194,7 @@ var tbSyncDavNewAccount = {
 
     checkUrlForPrincipal: async function (url, type) {
         // according to RFC6764, we must also try the username with cut-off domain part
+        // Note: This is never called for OAUTH serves (see onAdvance)
         let users = [];
         users.push(this.username);
         if (this.userdomain) users.push(this.username.split("@")[0]);

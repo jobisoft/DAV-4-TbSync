@@ -294,9 +294,8 @@ var network = {
           this._fqdn = folderData.getFolderProperty("fqdn");
           this._https = folderData.getFolderProperty("https");
         }
+        this.accountData = accountData;
       }
-      
-      this.accountData = accountData;
     }
     
         
@@ -332,7 +331,8 @@ var network = {
       url = "http" + (connectionData.https ? "s" : "") + "://" + connectionData.fqdn + path;
     }
 
-    let currentSyncState = connectionData.accountData.syncData.getSyncState().state;
+    let currentSyncState = connectionData.accountData ? connectionData.accountData.syncData.getSyncState().state : "";
+    let accountID = connectionData.accountData ? connectionData.accountData.accountID : "";
     
     // Loop: Prompt user for password and retry
     const MAX_RETRIES = options.hasOwnProperty("passwordRetries") ? options.passwordRetries+1 : 5;
@@ -341,10 +341,13 @@ var network = {
 
       connectionData.url = url;
 
-      connectionData.oauthObj = dav.network.getOAuthObj(connectionData.url, { username: connectionData.username, accountID: connectionData.accountData.accountID });
+      connectionData.oauthObj = dav.network.getOAuthObj(connectionData.url, { username: connectionData.username, accountID });
       if (connectionData.oauthObj && (!connectionData.oauthObj.accessToken || connectionData.oauthObj.isExpired())) {
           let rv = {}
-          connectionData.accountData.syncData.setSyncState("oauthprompt");
+          if (connectionData.accountData) {
+            connectionData.accountData.syncData.setSyncState("oauthprompt");
+          }
+
           if (await connectionData.oauthObj.asyncConnect(rv)) {
             connectionData.password = rv.tokens;
           } else {
@@ -353,9 +356,10 @@ var network = {
       }
 
       // Restore original syncstate before open the connection
-      if (currentSyncState != connectionData.accountData.syncData.getSyncState().state) {
+      if (connectionData.accountData && currentSyncState != connectionData.accountData.syncData.getSyncState().state) {
         connectionData.accountData.syncData.setSyncState(currentSyncState);
       }
+      
       let r = await dav.network.promisifiedHttpRequest(requestData, method, connectionData, headers, options);
       
       if (r && r.passwordPrompt && r.passwordPrompt === true) {
@@ -369,8 +373,9 @@ var network = {
           // Prompt, if connection belongs to an account (and not from the create wizard)
           if (connectionData.accountData) {
             if (connectionData.oauthObj) {
-              let rv = {}
               connectionData.accountData.syncData.setSyncState("oauthprompt");
+
+              let rv = {};
               if (await connectionData.oauthObj.asyncConnect(rv)) {
                 retry = true;
                 connectionData.password = rv.tokens;
@@ -386,6 +391,7 @@ var network = {
                 username: connectionData.username,                
               }
               connectionData.accountData.syncData.setSyncState("passwordprompt");
+
               credentials = await TbSync.passwordManager.asyncPasswordPrompt(promptData, dav.openWindows);
               if (credentials) {
                 // update login data

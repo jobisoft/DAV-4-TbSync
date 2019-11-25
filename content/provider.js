@@ -603,10 +603,7 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
         // Setup password for Lightning calendar, so users do not get prompted (ICS and google urls do not need a password)
         if (caltype == "caldav" && !isGoogle) {
             TbSync.dump("Searching CalDAV authRealm for", url.host);
-            let connectionData = new dav.network.ConnectionData();
-            connectionData.username = authData.username;
-            connectionData.password = authData.password;
-            connectionData.timeout = dav.Base.getConnectionTimeout();
+            let connectionData = new dav.network.ConnectionData(this.folderData);
             let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>", url.spec , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return=minimal"}, {containerRealm: "setup", containerReset: true, passwordRetries: 0});
             
             let realm = connectionData.realm || "";
