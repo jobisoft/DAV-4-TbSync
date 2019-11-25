@@ -59,7 +59,6 @@ var network = {
   // prepare and patch OAuth2 object
   getOAuthObj: function(_uri, configObject = null) {
     let uri = _uri;
-    let host = "";
     
     // if _uri input is not yet an uri, try to get one
     try {
@@ -85,11 +84,6 @@ var network = {
       
       default:
         return null;
-    }
-
-    // If we only call this to know wether the url needs OAuth or not, return early.
-    if (configObject && configObject.hasOwnProperty("checkOnly") && configObject.checkOnly) {
-      return true;
     }
     
     let oauth = new OAuth2(config.base_uri, config.scope, config.client_id, config.client_secret);
