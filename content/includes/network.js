@@ -153,8 +153,12 @@ var network = {
       
       try {
         switch (JSON.parse(rv.error).error) {
+          case "invalid_grant":
+            self.accessToken = "";
+            self.refreshToken = "";
+            return true;
+
           case "cancelled": 
-          case "invalid_grant": 
             rv.error = "OAuthAbortError"; 
             break;
           
@@ -342,6 +346,7 @@ var network = {
       connectionData.url = url;
 
       connectionData.oauthObj = dav.network.getOAuthObj(connectionData.url, { username: connectionData.username, accountID });
+      // Check OAUTH situation before connecting.
       if (connectionData.oauthObj && (!connectionData.oauthObj.accessToken || connectionData.oauthObj.isExpired())) {
           let rv = {}
           if (connectionData.accountData) {
@@ -373,16 +378,8 @@ var network = {
           // Prompt, if connection belongs to an account (and not from the create wizard)
           if (connectionData.accountData) {
             if (connectionData.oauthObj) {
-              connectionData.accountData.syncData.setSyncState("oauthprompt");
-
-              let rv = {};
-              if (await connectionData.oauthObj.asyncConnect(rv)) {
-                retry = true;
-                connectionData.password = rv.tokens;
-              } else {
-                // Override standard password error with error received from asyncOAuthPrompt().
-                r.passwordError = dav.sync.finish("error", rv.error);                                
-              }
+              connectionData.oauthObj.accessToken = "";
+              retry = true;
             } else {
               let promptData = {
                 windowID: "auth:" + connectionData.accountData.accountID,
