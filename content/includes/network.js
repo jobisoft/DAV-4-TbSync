@@ -147,7 +147,6 @@ var network = {
         rv.tokens = self.tokens;
         return true;
       } catch (e) {
-        console.log("[OAuth] asyncConnect failed: " + e);
         rv.error = e;
       }
       
@@ -227,7 +226,6 @@ var network = {
             let tokens = this.parseAndSanitizeTokenString(this.authData.password);
             let valueChanged = (val != tokens[oauthValue[0]])
             if (valueChanged) {
-              console.log("[OAuth] Updating <" + accountID + " / " + oauthValue[0] + ">: " + val);
               tokens[oauthValue[0]] = val;
               this.authData.updateLoginData(this.authData.username, JSON.stringify(tokens));
             }

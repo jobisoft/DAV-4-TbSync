@@ -259,7 +259,7 @@ var Base = class {
         while (allAddressBooks.hasMoreElements()) {
             let abook = allAddressBooks.getNext().QueryInterface(Components.interfaces.nsIAbDirectory);
             if (abook instanceof Components.interfaces.nsIAbDirectory) { // or nsIAbItem or nsIAbCollection
-                if (abook.getStringValue("tbSyncAccountID","") == accountData.accountID) {
+                if (TbSync.addressbook.getStringValue(abook, "tbSyncAccountID","") == accountData.accountID) {
                     let cards = MailServices.ab.getDirectory(abook.URI + "?(or(NickName,c,"+currentQuery+")(FirstName,c,"+currentQuery+")(LastName,c,"+currentQuery+")(DisplayName,c,"+currentQuery+")(PrimaryEmail,c,"+currentQuery+")(SecondEmail,c,"+currentQuery+")(X-DAV-JSON-Emails,c,"+currentQuery+"))").childCards;
                     while (cards.hasMoreElements()) {
                         let card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);

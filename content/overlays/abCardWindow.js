@@ -25,7 +25,7 @@ var tbSyncAbDavCardWindow = {
         }
         
         //returning false will prevent injection
-        return (MailServices.ab.getDirectory(aParentDirURI).getStringValue("tbSyncProvider", "") == "dav");
+        return (TbSync.addressbook.getStringValue(MailServices.ab.getDirectory(aParentDirURI), "tbSyncProvider", "") == "dav");
     },
 
     onInject: function (window) {

@@ -63,7 +63,7 @@ var tbSyncDavAddressBookDetails = {
 
             //function to get correct uri of current card for global book as well for mailLists
             let abUri = TbSync.providers.dav.ui.getSelectedUri(window.GetSelectedDirectory(), aCard);
-            if (MailServices.ab.getDirectory(abUri).getStringValue("tbSyncProvider", "") != "dav") {
+            if (TbSync.addressbook.getStringValue(MailServices.ab.getDirectory(abUri), "tbSyncProvider", "") != "dav") {
                 window.document.getElementById("cvbEmails").collapsed = true;
                 window.document.getElementById("cvbPhoneNumbers").collapsed =true;
                 return;
