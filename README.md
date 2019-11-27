@@ -5,7 +5,7 @@ More information can be found in the [wiki](https://github.com/jobisoft/DAV-4-Tb
 
 
 ## Want to add or fix a localization?
-To help translating this project, please visit to [crowdin.com](https://crowdin.com/profile/jobisoft), where the localizations are managed. If you want to add a new language, just contact me and I will set it up.
+To help translating this project, please visit [crowdin.com](https://crowdin.com/profile/jobisoft), where the localizations are managed. If you want to add a new language, just contact me and I will set it up.
 
 
 ## Icon sources and attributions
