@@ -71,6 +71,7 @@ var sync = {
         "gmx.net" : {icon: "gmx", caldav: "https://caldav.gmx.net", carddav: "https://carddav.gmx.net/.well-known/carddav"},
         "gmx.com" : {icon: "gmx", caldav: "https://caldav.gmx.com", carddav: "https://carddav.gmx.com/.well-known/carddav"},
         "posteo" : {icon: "posteo", caldav: "https://posteo.de:8443", carddav: "posteo.de:8843"},
+        "mbo" : {icon: "mbo", caldav: "https://dav.mailbox.org/.well-known/caldav", carddav: "https://dav.mailbox.org/.well-known/carddav"},
         "web.de" : {icon: "web", caldav: "https://caldav.web.de", carddav: "https://carddav.web.de/.well-known/carddav"},
         "yahoo" : {icon: "yahoo", caldav: "https://caldav.calendar.yahoo.com", carddav: "https://carddav.address.yahoo.com"},
     },

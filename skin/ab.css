@@ -18,6 +18,11 @@ treechildren::-moz-tree-image(DirCol, davposteo) {
   list-style-image: url("chrome://dav4tbsync/skin/posteo16.png");
 }
 
+treechildren::-moz-tree-image(DirCol, davmbo) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/skin/mbo16.png");
+}
+
 treechildren::-moz-tree-image(DirCol, davicloud) {
   margin-inline-end: 2px;
   list-style-image: url("chrome://dav4tbsync/skin/icloud16.png");
@@ -53,6 +58,10 @@ treechildren::-moz-tree-image(DirCol, davcustom) {
 
 .abMenuItem[AddrBook="true"][TbSyncIcon="davposteo"] {
   list-style-image: url("chrome://dav4tbsync/skin/posteo16.png");
+}
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davmbo"] {
+  list-style-image: url("chrome://dav4tbsync/skin/mbo16.png");
 }
 
 .abMenuItem[AddrBook="true"][TbSyncIcon="davicloud"] {
