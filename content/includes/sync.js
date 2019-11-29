@@ -66,12 +66,12 @@ var sync = {
 
     serviceproviders: {
         "fruux" : {icon: "fruux", caldav: "https://dav.fruux.com", carddav: "https://dav.fruux.com"},
+        "mbo" : {icon: "mbo", caldav: "https://dav.mailbox.org/.well-known/caldav", carddav: "https://dav.mailbox.org/.well-known/carddav"},
         "icloud" : {icon: "icloud", caldav: "https://caldav.icloud.com", carddav: "https://contacts.icloud.com"},
         "google" : {icon: "google", caldav: "https://apidata.googleusercontent.com/caldav/v2/", carddav: "https://www.googleapis.com/.well-known/carddav"},
         "gmx.net" : {icon: "gmx", caldav: "https://caldav.gmx.net", carddav: "https://carddav.gmx.net/.well-known/carddav"},
         "gmx.com" : {icon: "gmx", caldav: "https://caldav.gmx.com", carddav: "https://carddav.gmx.com/.well-known/carddav"},
         "posteo" : {icon: "posteo", caldav: "https://posteo.de:8443", carddav: "posteo.de:8843"},
-        "mbo" : {icon: "mbo", caldav: "https://dav.mailbox.org/.well-known/caldav", carddav: "https://dav.mailbox.org/.well-known/carddav"},
         "web.de" : {icon: "web", caldav: "https://caldav.web.de", carddav: "https://carddav.web.de/.well-known/carddav"},
         "yahoo" : {icon: "yahoo", caldav: "https://caldav.calendar.yahoo.com", carddav: "https://carddav.address.yahoo.com"},
     },
