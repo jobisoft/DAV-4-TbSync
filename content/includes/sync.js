@@ -66,6 +66,7 @@ var sync = {
 
     serviceproviders: {
         "fruux" : {icon: "fruux", caldav: "https://dav.fruux.com", carddav: "https://dav.fruux.com"},
+        "mbo" : {icon: "mbo", caldav: "https://dav.mailbox.org/.well-known/caldav", carddav: "https://dav.mailbox.org/.well-known/carddav"},
         "icloud" : {icon: "icloud", caldav: "https://caldav.icloud.com", carddav: "https://contacts.icloud.com"},
         "google" : {icon: "google", caldav: "https://apidata.googleusercontent.com/caldav/v2/", carddav: "https://www.googleapis.com/.well-known/carddav"},
         "gmx.net" : {icon: "gmx", caldav: "https://caldav.gmx.net", carddav: "https://carddav.gmx.net/.well-known/carddav"},
