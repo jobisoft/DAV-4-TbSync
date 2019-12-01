@@ -78,7 +78,7 @@
 
             // values with \n
             value = value
-                .replace(/\\r/g, '\r')
+                .replace(/\\r/g, '')
                 .replace(/\\n/g, '\n');
 
             value = tryToSplit(value);
@@ -196,8 +196,7 @@
                 return '';
             }
             return v
-                .replace(/\r/g, '\\r')
-                .replace(/\n/g, '\\n')
+                .replace(/\r\n|\r|\n/g, '\\n')
                 .replace(/;/g, '\\;')
                 .replace(/,/g, '\\,')
         };
@@ -207,8 +206,7 @@
                 return '';
             }
             return v
-                .replace(/\r/g, '\\r')
-                .replace(/\n/g, '\\n')
+                .replace(/\r\n|\r|\n/g, '\\n')
                 .replace(/;/g, '\\;')
         };
 
