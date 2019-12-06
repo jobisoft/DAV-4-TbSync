@@ -517,6 +517,7 @@ var tbSyncDavNewAccount = {
                     rv = await DNS.txt(request);   
                     if (rv && Array.isArray(rv) && rv.length>0 && rv[0].data && rv[0].data.toLowerCase().startsWith("path=")) {
                         result[type].path = rv[0].data.substring(5);
+                        TbSync.eventlog.add("info", eventLogInfo, "RFC6764 DNS request succeeded", "TXT record @ " + request + "\n" + JSON.stringify(rv[0]));
                     } else {
                         result[type].path = "/.well-known/" + type + "dav";
                     }
