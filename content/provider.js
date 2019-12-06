@@ -452,6 +452,7 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
                 break;
             }
         }
+        dav.sync.onChange(abCardItem);
     }
 
     listObserver(aTopic, abListItem, abListMember) {
@@ -472,6 +473,7 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
                 // custom props of lists get updated directly, no need to call .modify()            
                 break;
         }
+        dav.sync.onChange(abListItem);
     }
 
     async createAddressbook(newname) {

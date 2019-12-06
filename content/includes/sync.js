@@ -75,7 +75,26 @@ var sync = {
         "web.de" : {icon: "web", caldav: "https://caldav.web.de", carddav: "https://carddav.web.de/.well-known/carddav"},
         "yahoo" : {icon: "yahoo", caldav: "https://caldav.calendar.yahoo.com", carddav: "https://carddav.address.yahoo.com"},
     },
-    
+
+    onChange(abItem) {
+        if (!this._syncOnChangeTimers)
+            this._syncOnChangeTimers = {};
+            
+        this._syncOnChangeTimers[abItem.abDirectory.UID] = {};
+        this._syncOnChangeTimers[abItem.abDirectory.UID].timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
+        this._syncOnChangeTimers[abItem.abDirectory.UID].event = {
+            notify: function(timer) {
+                // if account is syncing, re-schedule
+                // if folder got synced after the start time (due to re-scheduling) abort
+                console.log("DONE: "+ abItem.abDirectory.UID);
+            }
+        }
+        
+        this._syncOnChangeTimers[abItem.abDirectory.UID].timer.initWithCallback(
+            this._syncOnChangeTimers[abItem.abDirectory.UID].event, 
+            2000, 
+            Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+    },
 
     resetFolderSyncInfo : function (folderData) {
         folderData.resetFolderProperty("ctag");
