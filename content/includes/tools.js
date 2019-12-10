@@ -9,10 +9,14 @@
 "use strict";
 
 var tools = {
-
+    
     getEmailsFromCard: function (aCard) { //return array of objects {meta, value}
-        let emailData = JSON.parse(aCard.getProperty("X-DAV-JSON-Emails","[]").trim());
-
+        let emailData = [];
+        try {
+            emailData = JSON.parse(aCard.getProperty("X-DAV-JSON-Emails","[]").trim());
+        } catch (e) {
+            //Components.utils.reportError(e);                
+        }
         // always use the core email field values, they could have been mod outside by the user,
         // not knowing that we store our stuff in X-DAV-JSON-Emails
         let emailFields = ["PrimaryEmail", "SecondEmail"];
@@ -29,8 +33,12 @@ var tools = {
     
     getPhoneNumbersFromCard: function (aCard) { //return array of objects {meta, value}
         let phones = aCard.getProperty("X-DAV-JSON-Phones","").trim();
-        if (phones) {
-            return JSON.parse(phones);
+        try {
+            if (phones) {
+                return JSON.parse(phones);
+            }
+        } catch (e) {
+            //Components.utils.reportError(e);                
         }
                 
         phones = [];
