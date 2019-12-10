@@ -256,14 +256,21 @@ var Base = class {
         // books and check for the directory property "tbSyncAccountID".
         let entries = [];
         let allAddressBooks = MailServices.ab.directories;
+        let encodedCurrentQuery = encodeURIComponent(currentQuery);
+        
         while (allAddressBooks.hasMoreElements()) {
             let abook = allAddressBooks.getNext().QueryInterface(Components.interfaces.nsIAbDirectory);
             if (abook instanceof Components.interfaces.nsIAbDirectory) { // or nsIAbItem or nsIAbCollection
                 if (TbSync.addressbook.getStringValue(abook, "tbSyncAccountID","") == accountData.accountID) {
-                    let cards = MailServices.ab.getDirectory(abook.URI + "?(or(NickName,c,"+currentQuery+")(FirstName,c,"+currentQuery+")(LastName,c,"+currentQuery+")(DisplayName,c,"+currentQuery+")(PrimaryEmail,c,"+currentQuery+")(SecondEmail,c,"+currentQuery+")(X-DAV-JSON-Emails,c,"+currentQuery+"))").childCards;
+                    let cards = MailServices.ab.getDirectory(abook.URI + "?(or(NickName,c,"+encodedCurrentQuery+")(FirstName,c,"+encodedCurrentQuery+")(LastName,c,"+encodedCurrentQuery+")(DisplayName,c,"+encodedCurrentQuery+")(PrimaryEmail,c,"+encodedCurrentQuery+")(SecondEmail,c,"+encodedCurrentQuery+")(X-DAV-JSON-Emails,c,"+encodedCurrentQuery+"))").childCards;
                     while (cards.hasMoreElements()) {
                         let card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-                        let emailData = JSON.parse(card.getProperty("X-DAV-JSON-Emails","[]").trim());
+                        let emailData = [];
+                        try {
+                            emailData = JSON.parse(card.getProperty("X-DAV-JSON-Emails","[]").trim());
+                        } catch (e) {
+                            //Components.utils.reportError(e);                
+                        }
                         for (let i = 0; i < emailData.length; i++) { 
                             entries.push({
                                 value: card.getProperty("DisplayName", [card.getProperty("FirstName",""), card.getProperty("LastName","")].join(" ")) + " <"+emailData[i].value+">", 
