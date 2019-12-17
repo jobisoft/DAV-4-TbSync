@@ -582,8 +582,9 @@ var tbSyncDavNewAccount = {
     validateDavServers: async function() {
         this.lockUI("validating");
       
-        while (this.calDavServer.endsWith("/")) { this.calDavServer = this.calDavServer.slice(0,-1); }        
-        while (this.cardDavServer.endsWith("/")) { this.cardDavServer = this.cardDavServer.slice(0,-1); }        
+        // Do not manipulate input here.
+        //while (this.calDavServer.endsWith("/")) { this.calDavServer = this.calDavServer.slice(0,-1); }        
+        //while (this.cardDavServer.endsWith("/")) { this.cardDavServer = this.cardDavServer.slice(0,-1); }        
 
         // Default to https, if http is not explicitly specified
         if (this.calDavServer && !dav.network.startsWithScheme(this.calDavServer)) {
