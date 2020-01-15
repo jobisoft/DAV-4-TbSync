@@ -251,37 +251,90 @@ var Base = class {
      * of the message composer.
      */
     static async abAutoComplete(accountData, currentQuery)  {
+        /**
+         * Encode the string passed as value into an addressbook search term.
+         * The '(' and ')' characters are special for the addressbook
+         * search query language, but are not escaped in encodeURIComponent()
+         * so must be done manually on top of it.
+         */
+        function encodeABTermValue(aString) {
+            return encodeURIComponent(aString)
+                .replace(/\(/g, "%28")
+                .replace(/\)/g, "%29");
+        }        
+        
+        let modelQuery = "";
+        for (let attr of ["NickName", "FirstName", "LastName", "DisplayName", "PrimaryEmail", "SecondEmail", "X-DAV-JSON-Emails","ListName"]) {
+            modelQuery += "("+attr+",c,@V)"
+        }
+        modelQuery = "(or"+modelQuery+")";
+
         // Instead of using accountData.getAllFolders() to get all folders of this account
         // and then request and check the targets of each, we simply run over all address
         // books and check for the directory property "tbSyncAccountID".
         let entries = [];
         let allAddressBooks = MailServices.ab.directories;
-        let encodedCurrentQuery = encodeURIComponent(currentQuery);
+        let fullString = currentQuery && currentQuery.trim().toLocaleLowerCase();
+
+        // If the search string is empty, or contains a comma, then just return
+        // no matches
+        // The comma check is so that we don't autocomplete against the user
+        // entering multiple addresses.
+        if (!fullString || fullString.includes(",")) {
+            return entries;
+        }
+
+        // Array of all the terms from the fullString search query
+        // check 
+        //   https://searchfox.org/comm-central/source/mailnews/addrbook/src/AbAutoCompleteSearch.jsm#460
+        // for quoted terms in search
+        let searchWords = fullString.split(" ");
+        let searchQuery = "";
+        searchWords.forEach(
+            searchWord => (searchQuery += modelQuery.replace(/@V/g, encodeABTermValue(searchWord)))
+        );
+
+        // searchQuery has all the (or(...)) searches, link them up with (and(...)).
+        searchQuery = "?(and" + searchQuery + ")";
         
         while (allAddressBooks.hasMoreElements()) {
             let abook = allAddressBooks.getNext().QueryInterface(Components.interfaces.nsIAbDirectory);
             if (abook instanceof Components.interfaces.nsIAbDirectory) { // or nsIAbItem or nsIAbCollection
                 if (TbSync.addressbook.getStringValue(abook, "tbSyncAccountID","") == accountData.accountID) {
-                    let cards = MailServices.ab.getDirectory(abook.URI + "?(or(NickName,c,"+encodedCurrentQuery+")(FirstName,c,"+encodedCurrentQuery+")(LastName,c,"+encodedCurrentQuery+")(DisplayName,c,"+encodedCurrentQuery+")(PrimaryEmail,c,"+encodedCurrentQuery+")(SecondEmail,c,"+encodedCurrentQuery+")(X-DAV-JSON-Emails,c,"+encodedCurrentQuery+"))").childCards;
+                    let cards = MailServices.ab.getDirectory(abook.URI + searchQuery).childCards;
                     while (cards.hasMoreElements()) {
                         let card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-                        let emailData = [];
-                        try {
-                            emailData = JSON.parse(card.getProperty("X-DAV-JSON-Emails","[]").trim());
-                        } catch (e) {
-                            //Components.utils.reportError(e);                
-                        }
-                        for (let i = 0; i < emailData.length; i++) { 
+                        
+                        if (card.isMailList) {
+
                             entries.push({
-                                value: card.getProperty("DisplayName", [card.getProperty("FirstName",""), card.getProperty("LastName","")].join(" ")) + " <"+emailData[i].value+">", 
-                                comment: emailData[i].meta
-                                                    .filter(entry => ["PREF","HOME","WORK"].includes(entry))
-                                                    .map(entry => entry.toUpperCase() != "PREF" ? entry.toUpperCase() : entry.toLowerCase()).sort()
-                                                    .map(entry => TbSync.getString("autocomplete." + entry.toUpperCase() , "dav"))
-                                                    .join(", "),
+                                value: card.getProperty("DisplayName", "") + " <"+ card.getProperty("DisplayName", "") +">", 
+                                comment: "",
                                 icon: dav.Base.getProviderIcon(16, accountData),
                                 style: "",				    
                             });
+                        
+                        } else {                        
+                        
+                            let emailData = [];
+                            try {
+                                emailData = JSON.parse(card.getProperty("X-DAV-JSON-Emails","[]").trim());
+                            } catch (e) {
+                                //Components.utils.reportError(e);                
+                            }
+                            for (let i = 0; i < emailData.length; i++) { 
+                                entries.push({
+                                    value: card.getProperty("DisplayName", [card.getProperty("FirstName",""), card.getProperty("LastName","")].join(" ")) + " <"+emailData[i].value+">", 
+                                    comment: emailData[i].meta
+                                                        .filter(entry => ["PREF","HOME","WORK"].includes(entry))
+                                                        .map(entry => entry.toUpperCase() != "PREF" ? entry.toUpperCase() : entry.toLowerCase()).sort()
+                                                        .map(entry => TbSync.getString("autocomplete." + entry.toUpperCase() , "dav"))
+                                                        .join(", "),
+                                    icon: dav.Base.getProviderIcon(16, accountData),
+                                    style: "",				    
+                                });
+                            }
+                            
                         }
                     }
                 }
