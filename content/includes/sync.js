@@ -229,7 +229,7 @@ var sync = {
                 home = home.filter((v,i,a) => a.indexOf(v) == i);
             } else {
                 // do not throw here, but log the error and skip this server
-                TbSync.eventlog.add("error", syncData.eventLogInfo, job+"davservernotfound", davjobs[job].serve);
+                TbSync.eventlog.add("error", syncData.eventLogInfo, job+"davservernotfound", davjobs[job].server);
             }
 
             //home now contains something like /remote.php/caldav/calendars/john.bieling/
