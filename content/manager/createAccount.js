@@ -10,7 +10,6 @@
 
 var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
-const { DNS } = ChromeUtils.import("resource:///modules/DNS.jsm");
 
 const dav = TbSync.providers.dav;
 
@@ -193,14 +192,12 @@ var tbSyncDavNewAccount = {
         return richlistitem;
     },
 
-    checkUrlForPrincipal: async function (url, type) {
+    checkUrlForPrincipal: async function (job) {
         // according to RFC6764, we must also try the username with cut-off domain part
         // Note: This is never called for OAUTH serves (see onAdvance)
         let users = [];
         users.push(this.username);
         if (this.userdomain) users.push(this.username.split("@")[0]);
-
-        let rv = {};
         
         for (let user of users) {
             let connectionData = new dav.network.ConnectionData();
@@ -212,24 +209,25 @@ var tbSyncDavNewAccount = {
             //connectionData is a structure which contains all the information needed to establish and evaluate a network connection
             connectionData.eventLogInfo = new TbSync.EventLogInfo("dav", this.accountname);
             
-            rv = {valid: false, error: ""};
+            job.valid = false;
+            job.error = "";
             
             try {
-                let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", url , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return=minimal"}, {containerRealm: "setup", containerReset: true, passwordRetries: 0});
+                let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", job.server , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return=minimal"}, {containerRealm: "setup", containerReset: true, passwordRetries: 0});
                 // allow 404 because iCloud sends it on valid answer (yeah!)
                 let principal = (response && response.multi) ? dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d","current-user-principal"], ["d","href"]], null, ["200","404"]) : null;
-                rv.valid = (principal !== null);
-                if (!rv.valid) {
-                    rv.error = type + "davservernotfound";
-                    TbSync.eventlog.add("warning", connectionData.eventLogInfo, rv.error, response.commLog);
+                job.valid = (principal !== null);
+                if (!job.valid) {
+                    job.error = job.type + "servernotfound";
+                    TbSync.eventlog.add("warning", connectionData.eventLogInfo, job.error, response.commLog);
                 } else {
-                    rv.validUser = user;
-                    rv.validUrl = response.permanentlyRedirectedUrl || url;
-                    return rv;
+                    job.validUser = user;
+                    job.validUrl = response.permanentlyRedirectedUrl || job.server;
+                    return;
                 }
             } catch (e) {
-                rv.valid = false;
-                rv.error = (e.statusData ? e.statusData.message : e.message);
+                job.valid = false;
+                job.error = (e.statusData ? e.statusData.message : e.message);
                 
                 if (e.name == "dav4tbsync") {
                     TbSync.eventlog.add("warning", connectionData.eventLogInfo, e.statusData.message, e.statusData.details);
@@ -239,13 +237,12 @@ var tbSyncDavNewAccount = {
             }
             
             // only retry with other user, if 401
-            if (!rv.error.startsWith("401")) {
+            if (!job.error.startsWith("401")) {
                 break;
             }
         }
         
-        // return error rv
-        return rv;
+        return;
     },
 
     advance: function () {
@@ -432,15 +429,13 @@ var tbSyncDavNewAccount = {
         // go through the setup steps
 
         if (this.serviceprovider == "discovery") {
-            // if the user specified a server url, do well-known discovery
             while (this.server.endsWith("/")) { this.server = this.server.slice(0,-1); }        
-            if (this.server) {
-                this.calDavServer = this.server + "/.well-known/caldav";
-                this.cardDavServer = this.server + "/.well-known/carddav";
-                this.validateDavServers();
-            } else {
-                this.findValidDavServers();
-            }
+            // the user may either specify a server or he could have entered an email with domain
+            let host = this.server || this.userdomain;            
+
+            this.calDavServer = "caldav6764://" + host;
+            this.cardDavServer = "carddav6764://" + host;
+            this.validateDavServers();
         } else if (this.serviceprovider == "google") {
             // do not verify, just prompt for permissions
             this.promptForOAuth();            
@@ -450,108 +445,6 @@ var tbSyncDavNewAccount = {
         }
         
         event.preventDefault();
-    },
-
-    findValidDavServers: async function() {
-        this.lockUI("query::" + this.userdomain);
-        
-        if (this.userdomain) {
-            // we do dns lookup and we need to validate all 6 candidates and if all fail,
-            // show the server field(s)
-            let rv = await this.doRFC6764Lookup(this.userdomain);
-
-            if (rv.cal.validUrl && rv.card.validUrl && rv.cal.validUser == rv.card.validUser) {
-                // boom, setup completed
-                this.finalCalDavServer = rv.cal.validUrl;
-                this.finalCardDavServer = rv.card.validUrl;
-                this.finalUsername = rv.cal.validUser
-                this.validated = true;
-                this.unlockUI();
-                this.advance();
-                return;
-            } else if (rv.cal.errors.includes("401") || rv.card.errors.includes("401")) {
-                //show for 401 errors
-                document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.401", "dav");
-                document.getElementById("tbsync.error").hidden = false;
-                this.unlockUI();
-                return;
-            } else {
-                //show general error, that doRFC6764Lookup failed and the user must specify a server
-                document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.rfc6764-lookup-failed::" + this.userdomain, "dav");
-                document.getElementById("tbsync.error").hidden = false;
-                this.unlockUI();
-                return;
-            }
-        }
-
-        // we have no domain or RFC6764 lookup failed altogether
-        this.unlockUI();
-    },
-    
-    doRFC6764Lookup: async function (domain) {
-        function checkDefaultSecPort (sec) {
-            return sec ? "443" : "80";
-        }
-        
-        let result = {
-            cal: {},
-            card: {}
-        };
-        
-        let eventLogInfo = new TbSync.EventLogInfo("dav", this.accountname);
-
-        for (let type of Object.keys(result)) {
-            result[type].candidates = [];
-            result[type].errors = [];
-            
-            for (let sec of [true, false]) {
-                let request = "_" + type + "dav" + (sec ? "s" : "") + "._tcp." + domain;
-
-                // get host from SRV record
-                let rv = await DNS.srv(request);                     
-                if (rv && Array.isArray(rv) && rv.length>0 && rv[0].host) {
-                    result[type].secure = sec;
-                    result[type].host = rv[0].host + ((checkDefaultSecPort(sec) == rv[0].port) ? "" : ":" + rv[0].port);
-                    TbSync.eventlog.add("info", eventLogInfo, "RFC6764 DNS request succeeded", "SRV record @ " + request + "\n" + JSON.stringify(rv[0]));
-
-                    // Now try to get path from TXT
-                    rv = await DNS.txt(request);   
-                    if (rv && Array.isArray(rv) && rv.length>0 && rv[0].data && rv[0].data.toLowerCase().startsWith("path=")) {
-                        result[type].path = rv[0].data.substring(5);
-                        TbSync.eventlog.add("info", eventLogInfo, "RFC6764 DNS request succeeded", "TXT record @ " + request + "\n" + JSON.stringify(rv[0]));
-                    } else {
-                        result[type].path = "/.well-known/" + type + "dav";
-                    }
-
-                    result[type].candidates.push("http" + (result[type].secure ? "s" : "") + "://" + result[type].host +  result[type].path);
-                    break;
-                } else {
-                    TbSync.eventlog.add("info", eventLogInfo, "RFC6764 DNS request failed", "SRV record @ " + request);
-                }
-            }
-            
-            // we now have an educated guess for the initial request (or not)
-            // in addition, we use the domain part of the email to do a lookup
-            result[type].candidates.push("https://" + domain + "/.well-known/" + type + "dav");
-            result[type].candidates.push("http://" + domain + "/.well-known/" + type + "dav");
-            
-            // try to get principal from candidate
-            for (let url of result[type].candidates) {
-                let rv = await this.checkUrlForPrincipal(url, type);
-                if (rv.valid) {
-                    result[type].validUrl = rv.validUrl;
-                    result[type].validUser = rv.validUser;                    
-                    break;
-                } else {
-                    result[type].errors.push(rv.error);
-                    // if we run into a 401, we have reached a valid endpoint but should not go on
-                    if (rv.error.startsWith("401"))
-                        break;
-                }
-            }
-        }
-        
-        return result;
     },
      
     promptForOAuth: async function() {
@@ -595,18 +488,19 @@ var tbSyncDavNewAccount = {
             this.cardDavServer = "https://" + this.cardDavServer;
         }
         
-        let davJobs = {
-            cal : {valid: false, error: "", server: this.calDavServer},
-            card : {valid: false, error: "", server: this.cardDavServer},
-        };
+        let davJobs = [
+            {type: "caldav", server: this.calDavServer},
+            {type: "carddav", server: this.cardDavServer},
+        ];
+            
         let failedDavJobs = [];
         let validUserFound = "";
         
-        for (let job in davJobs) {
+        for (let job = 0; job < davJobs.length; job++) {
             if (!davJobs[job].server) {
                 continue;
             }
-            davJobs[job] = await this.checkUrlForPrincipal(davJobs[job].server, job);
+            await this.checkUrlForPrincipal(davJobs[job]);
             if (!davJobs[job].valid) {
                 failedDavJobs.push(job);
             } else if (!validUserFound) {
@@ -630,7 +524,7 @@ var tbSyncDavNewAccount = {
         } else {
             //only display one error
             let failedJob = failedDavJobs[0];
-            console.log("ERROR ("+failedJob+"): " + davJobs[failedJob].error.toString());
+            console.log("ERROR ("+davJobs[failedJob].type+"): " + davJobs[failedJob].error.toString());
             switch (davJobs[failedJob].error.toString().split("::")[0]) {
                 case "401":
                 case "403":
@@ -639,10 +533,14 @@ var tbSyncDavNewAccount = {
                     document.getElementById("tbsync.error.message").textContent = TbSync.getString("status."+davJobs[failedJob].error, "dav");
                     break;
                 default:
-                    if (this.server) {
-                        document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.service-discovery-failed::" + this.server, "dav");
+                    if (this.serviceprovider == "discovery" && this.userdomain && !this.server) {
+                        // the discovery mode has a special error msg, in case a userdomain was used as server, but failed and we need the user to provide the server
+                        document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.rfc6764-lookup-failed::" +this.userdomain, "dav");
+                    } else if (dav.network.isRFC6764Request(davJobs[failedJob].server)) {
+                        // error msg, that discovery mode failed
+                        document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.service-discovery-failed::" +davJobs[failedJob].server.split("://")[1], "dav");
                     } else {
-                        document.getElementById("tbsync.error.message").textContent = TbSync.getString("status."+failedJob+"davservernotfound", "dav");
+                        document.getElementById("tbsync.error.message").textContent = TbSync.getString("status." + davJobs[failedJob].type + "servernotfound", "dav");
                     }
             }
             document.getElementById("tbsync.error").hidden = false;
