@@ -10,6 +10,7 @@
 
 var { HttpRequest } = ChromeUtils.import("chrome://tbsync/content/HttpRequest.jsm");
 var { OAuth2 } = ChromeUtils.import("resource:///modules/OAuth2.jsm");
+const { DNS } = ChromeUtils.import("resource:///modules/DNS.jsm");
 
 var network = {
   
@@ -317,20 +318,77 @@ var network = {
   },
  
 
+  checkForRFC6764Request: async function (path, eventLogInfo) {
+      function checkDefaultSecPort (sec) {
+        return sec ? "443" : "80";
+      }
+
+      if (!this.isRFC6764Request(path)) {
+        return path;
+      }
+      
+      let parts = path.split("6764://");
+      if (parts.length != 2) {
+        return null;
+      }
+      
+      let type = parts[0];
+      let hostPath = parts[1];
+      while (hostPath.endsWith("/")) { hostPath = hostPath.slice(0,-1); }
+      let host = hostPath.split("/")[0];
+      
+      let result = {};
+      
+      for (let sec of [true, false]) {
+        let request = "_" + type + (sec ? "s" : "") + "._tcp." + host;
+
+        // get host from SRV record
+        let rv = await DNS.srv(request);                     
+        if (rv && Array.isArray(rv) && rv.length>0 && rv[0].host) {
+            result.secure = sec;
+            result.host = rv[0].host + ((checkDefaultSecPort(sec) == rv[0].port) ? "" : ":" + rv[0].port);
+            TbSync.eventlog.add("info", eventLogInfo, "RFC6764 DNS request succeeded", "SRV record @ " + request + "\n" + JSON.stringify(rv[0]));
+
+            // Now try to get path from TXT
+            rv = await DNS.txt(request);   
+            if (rv && Array.isArray(rv) && rv.length>0 && rv[0].data && rv[0].data.toLowerCase().startsWith("path=")) {
+                result.path = rv[0].data.substring(5);
+                TbSync.eventlog.add("info", eventLogInfo, "RFC6764 DNS request succeeded", "TXT record @ " + request + "\n" + JSON.stringify(rv[0]));
+            } else {
+                result.path = "/.well-known/" + type;
+            }
+
+            result.url = "http" + (result.secure ? "s" : "") + "://" + result.host +  result.path;
+            return result.url;
+        } else {
+            TbSync.eventlog.add("warning", eventLogInfo, "RFC6764 DNS request failed", "SRV record @ " + request);
+        }
+    }
+    
+    // use the provided hostPath and build standard well-known url
+    return "https://" + hostPath + "/.well-known/" + type;
+  },
+
   startsWithScheme: function (url) {
-    return (url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://"));
+    return (url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://") || this.isRFC6764Request(url));
+  },
+
+  isRFC6764Request: function (url) {
+    return (url.toLowerCase().startsWith("caldav6764://") || url.toLowerCase().startsWith("carddav6764://"));
   },
 
   sendRequest: async function (requestData, path, method, connectionData, headers = {}, options = {}) {            
-    let url = path;    
+    let url = await this.checkForRFC6764Request(path, connectionData.eventLogInfo);
+    let enforcedPermanentlyRedirectedUrl = (url != path) ? url : null;
+    
     // path could be absolute or relative, we may need to rebuild the full url.
-    if (path.startsWith("http://") || path.startsWith("https://")) {
+    if (url.startsWith("http://") || url.startsWith("https://")) {
       // extract segments from url
-      let uri = Services.io.newURI(path);
+      let uri = Services.io.newURI(url);
       connectionData.https = (uri.scheme == "https");
       connectionData.fqdn = uri.hostPort;
     } else {
-      url = "http" + (connectionData.https ? "s" : "") + "://" + connectionData.fqdn + path;
+      url = "http" + (connectionData.https ? "s" : "") + "://" + connectionData.fqdn + url;
     }
 
     let currentSyncState = connectionData.accountData ? connectionData.accountData.syncData.getSyncState().state : "";
@@ -364,6 +422,9 @@ var network = {
       }
       
       let r = await dav.network.promisifiedHttpRequest(requestData, method, connectionData, headers, options);
+      if (enforcedPermanentlyRedirectedUrl && !r.permanentlyRedirectedUrl) {
+        r.permanentlyRedirectedUrl = enforcedPermanentlyRedirectedUrl;
+      }
       
       if (r && r.passwordPrompt && r.passwordPrompt === true) {
         if (i == MAX_RETRIES) {
