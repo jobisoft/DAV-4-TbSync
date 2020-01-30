@@ -180,6 +180,8 @@ var Base = class {
             "cardDavOptions" : [],
             
             "serviceprovider" : "",
+            "serviceproviderRevision" : 0,
+
             "user" : "",
             "https" : true, //deprecated
             "createdWithProviderVersion" : "0",

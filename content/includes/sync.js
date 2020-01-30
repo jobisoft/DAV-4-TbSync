@@ -65,15 +65,15 @@ var sync = {
     },
 
     serviceproviders: {
-        "fruux" : {icon: "fruux", caldav: "https://dav.fruux.com", carddav: "https://dav.fruux.com"},
-        "mbo" : {icon: "mbo", caldav: "https://dav.mailbox.org/.well-known/caldav", carddav: "https://dav.mailbox.org/.well-known/carddav"},
-        "icloud" : {icon: "icloud", caldav: "https://caldav.icloud.com", carddav: "https://contacts.icloud.com"},
-        "google" : {icon: "google", caldav: "https://apidata.googleusercontent.com/caldav/v2/", carddav: "https://www.googleapis.com/.well-known/carddav"},
-        "gmx.net" : {icon: "gmx", caldav: "https://caldav.gmx.net", carddav: "https://carddav.gmx.net/.well-known/carddav"},
-        "gmx.com" : {icon: "gmx", caldav: "https://caldav.gmx.com", carddav: "https://carddav.gmx.com/.well-known/carddav"},
-        "posteo" : {icon: "posteo", caldav: "https://posteo.de:8443", carddav: "posteo.de:8843"},
-        "web.de" : {icon: "web", caldav: "https://caldav.web.de", carddav: "https://carddav.web.de/.well-known/carddav"},
-        "yahoo" : {icon: "yahoo", caldav: "https://caldav.calendar.yahoo.com", carddav: "https://carddav.address.yahoo.com"},
+        "fruux" : {revision: 1, icon: "fruux", caldav: "https://dav.fruux.com", carddav: "https://dav.fruux.com"},
+        "mbo" : {revision: 1, icon: "mbo", caldav: "https://dav.mailbox.org/.well-known/caldav", carddav: "https://dav.mailbox.org/.well-known/carddav"},
+        "icloud" : {revision: 1, icon: "icloud", caldav: "https://caldav.icloud.com", carddav: "https://contacts.icloud.com"},
+        "google" : {revision: 1, icon: "google", caldav: "https://apidata.googleusercontent.com/caldav/v2/", carddav: "https://www.googleapis.com/.well-known/carddav"},
+        "gmx.net" : {revision: 1, icon: "gmx", caldav: "https://caldav.gmx.net", carddav: "https://carddav.gmx.net/.well-known/carddav"},
+        "gmx.com" : {revision: 1, icon: "gmx", caldav: "https://caldav.gmx.com", carddav: "https://carddav.gmx.com/.well-known/carddav"},
+        "posteo" : {revision: 1, icon: "posteo", caldav: "https://posteo.de:8443", carddav: "posteo.de:8843"},
+        "web.de" : {revision: 1, icon: "web", caldav: "https://caldav.web.de", carddav: "https://carddav.web.de/.well-known/carddav"},
+        "yahoo" : {revision: 1, icon: "yahoo", caldav: "https://caldav.calendar.yahoo.com", carddav: "https://carddav.address.yahoo.com"},
     },
 
     onChange(abItem) {
@@ -121,9 +121,14 @@ var sync = {
             unhandledFolders[folder.getFolderProperty("type")].push(folder);
         }
 
-        //get server urls from account setup - update urls of serviceproviders
+        // refresh urls of service provider, if they have been updated
         let serviceprovider = syncData.accountData.getAccountProperty("serviceprovider");
-        if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
+        let serviceproviderRevision = syncData.accountData.getAccountProperty("serviceproviderRevision");
+        if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider) && serviceproviderRevision != dav.sync.serviceproviders[serviceprovider].revision) {            
+            TbSync.eventlog.add("info", syncData.eventLogInfo, "updatingServiceProvider", serviceprovider);
+            syncData.accountData.setAccountProperty("serviceproviderRevision", dav.sync.serviceproviders[serviceprovider].revision);
+            syncData.accountData.resetAccountProperty("calDavPrincipal");
+            syncData.accountData.resetAccountProperty("cardDavPrincipal");
             syncData.accountData.setAccountProperty("calDavHost", dav.sync.serviceproviders[serviceprovider].caldav);
             syncData.accountData.setAccountProperty("cardDavHost", dav.sync.serviceproviders[serviceprovider].carddav);
         }
@@ -147,10 +152,6 @@ var sync = {
             let home = [];
             let own = [];
 
-            let principal = syncData.accountData.getAccountProperty(job + "DavPrincipal"); // defaults to null
-            // migration code for beta users, can be removed on release
-            if (principal && !dav.network.startsWithScheme(principal)) principal = null;
-
             // migration code for http setting, we might keep it as a fallback, if user removed the http:// scheme from the url in the settings
             if (!dav.network.startsWithScheme(davjobs[job].server)) {
                 davjobs[job].server = "http" + (syncData.accountData.getAccountProperty("https") ? "s" : "") + "://" + davjobs[job].server;
@@ -164,6 +165,7 @@ var sync = {
             TbSync.network.resetContainerForUser(syncData.connectionData.username);
 
             syncData.setSyncState("send.getfolders");
+            let principal = syncData.accountData.getAccountProperty(job + "DavPrincipal"); // defaults to null
             if (principal === null) {
           
                 let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-principal /></d:prop></d:propfind>", davjobs[job].server , "PROPFIND", syncData.connectionData, {"Depth": "0", "Prefer": "return=minimal"});

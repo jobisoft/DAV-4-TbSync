@@ -140,6 +140,7 @@ var tbSyncDavNewAccount = {
         let newAccountEntry = this.providerData.getDefaultAccountEntries();
         newAccountEntry.createdWithProviderVersion = this.providerData.getVersion();
         newAccountEntry.serviceprovider = this.serviceprovider == "discovery" ? "custom" : this.serviceprovider;
+        newAccountEntry.serviceproviderRevision = dav.sync.serviceproviders.hasOwnProperty(this.serviceprovider) ? dav.sync.serviceproviders[this.serviceprovider].revision : 0
         newAccountEntry.calDavHost = this.finalCalDavServer;
         newAccountEntry.cardDavHost = this.finalCardDavServer;
     
