@@ -514,8 +514,8 @@ var tbSyncDavNewAccount = {
         
         if (failedDavJobs.length == 0) {
             // boom, setup completed
-            this.finalCalDavServer = davJobs.cal.validUrl || "";
-            this.finalCardDavServer = davJobs.card.validUrl || "";
+            this.finalCalDavServer = davJobs[0].validUrl || "";
+            this.finalCardDavServer = davJobs[1].validUrl || "";
             this.finalUsername = validUserFound;
             this.validated = true;
             this.unlockUI();
