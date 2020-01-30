@@ -536,6 +536,9 @@ var tbSyncDavNewAccount = {
                     if (this.serviceprovider == "discovery" && this.userdomain && !this.server) {
                         // the discovery mode has a special error msg, in case a userdomain was used as server, but failed and we need the user to provide the server
                         document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.rfc6764-lookup-failed::" +this.userdomain, "dav");
+                    } else if (this.serviceprovider != "discovery" && this.serviceprovider != "custom") {
+                        // error msg, that the serviceprovider setup seems wrong
+                        document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.service-provider-setup-failed", "dav");
                     } else if (dav.network.isRFC6764Request(davJobs[failedJob].server)) {
                         // error msg, that discovery mode failed
                         document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.service-discovery-failed::" +davJobs[failedJob].server.split("://")[1], "dav");
