@@ -339,30 +339,33 @@ var network = {
       
       let result = {};
       
-      for (let sec of [true, false]) {
-        let request = "_" + type + (sec ? "s" : "") + "._tcp." + host;
+      //only perform dns lookup, if the provided path does not contain any path information
+      if (host == hostPath) {
+        for (let sec of [true, false]) {
+          let request = "_" + type + (sec ? "s" : "") + "._tcp." + host;
 
-        // get host from SRV record
-        let rv = await DNS.srv(request);                     
-        if (rv && Array.isArray(rv) && rv.length>0 && rv[0].host) {
-            result.secure = sec;
-            result.host = rv[0].host + ((checkDefaultSecPort(sec) == rv[0].port) ? "" : ":" + rv[0].port);
-            TbSync.eventlog.add("info", eventLogInfo, "RFC6764 DNS request succeeded", "SRV record @ " + request + "\n" + JSON.stringify(rv[0]));
+          // get host from SRV record
+          let rv = await DNS.srv(request);                     
+          if (rv && Array.isArray(rv) && rv.length>0 && rv[0].host) {
+              result.secure = sec;
+              result.host = rv[0].host + ((checkDefaultSecPort(sec) == rv[0].port) ? "" : ":" + rv[0].port);
+              TbSync.eventlog.add("info", eventLogInfo, "RFC6764 DNS request succeeded", "SRV record @ " + request + "\n" + JSON.stringify(rv[0]));
 
-            // Now try to get path from TXT
-            rv = await DNS.txt(request);   
-            if (rv && Array.isArray(rv) && rv.length>0 && rv[0].data && rv[0].data.toLowerCase().startsWith("path=")) {
-                result.path = rv[0].data.substring(5);
-                TbSync.eventlog.add("info", eventLogInfo, "RFC6764 DNS request succeeded", "TXT record @ " + request + "\n" + JSON.stringify(rv[0]));
-            } else {
-                result.path = "/.well-known/" + type;
-            }
+              // Now try to get path from TXT
+              rv = await DNS.txt(request);   
+              if (rv && Array.isArray(rv) && rv.length>0 && rv[0].data && rv[0].data.toLowerCase().startsWith("path=")) {
+                  result.path = rv[0].data.substring(5);
+                  TbSync.eventlog.add("info", eventLogInfo, "RFC6764 DNS request succeeded", "TXT record @ " + request + "\n" + JSON.stringify(rv[0]));
+              } else {
+                  result.path = "/.well-known/" + type;
+              }
 
-            result.url = "http" + (result.secure ? "s" : "") + "://" + result.host +  result.path;
-            return result.url;
-        } else {
-            TbSync.eventlog.add("warning", eventLogInfo, "RFC6764 DNS request failed", "SRV record @ " + request);
-        }
+              result.url = "http" + (result.secure ? "s" : "") + "://" + result.host +  result.path;
+              return result.url;
+          } else {
+              TbSync.eventlog.add("warning", eventLogInfo, "RFC6764 DNS request failed", "SRV record @ " + request);
+          }
+      }
     }
     
     // use the provided hostPath and build standard well-known url
