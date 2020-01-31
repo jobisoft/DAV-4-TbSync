@@ -327,12 +327,15 @@ var network = {
         return path;
       }
       
-      let parts = path.split("6764://");
-      if (parts.length != 2) {
-        return null;
-      }
+      let parts = path.toLowerCase().split("6764://");
+      let type = parts[0].endsWith("caldav") ? "caldav" : "carddav";
+      let scheme = parts[0].startsWith("http") ? (parts[0].startsWith("https") ? "https" : "http") : "";
       
-      let type = parts[0];
+      // obey preselected security level for DNS lookup
+      // and only use insecure option if specified
+      let secs = [];
+      secs.push(scheme == "http" ? false : true);
+      
       let hostPath = parts[1];
       while (hostPath.endsWith("/")) { hostPath = hostPath.slice(0,-1); }
       let host = hostPath.split("/")[0];
@@ -341,7 +344,7 @@ var network = {
       
       //only perform dns lookup, if the provided path does not contain any path information
       if (host == hostPath) {
-        for (let sec of [true, false]) {
+        for (let sec of secs) {
           let request = "_" + type + (sec ? "s" : "") + "._tcp." + host;
 
           // get host from SRV record
@@ -369,7 +372,7 @@ var network = {
     }
     
     // use the provided hostPath and build standard well-known url
-    return "https://" + hostPath + "/.well-known/" + type;
+    return (scheme || "https") + "://" + hostPath + "/.well-known/" + type;
   },
 
   startsWithScheme: function (url) {
@@ -377,7 +380,8 @@ var network = {
   },
 
   isRFC6764Request: function (url) {
-    return (url.toLowerCase().startsWith("caldav6764://") || url.toLowerCase().startsWith("carddav6764://"));
+    let parts = url.split("6764://");
+    return (parts.length == 2 && parts[0].endsWith("dav"));
   },
 
   sendRequest: async function (requestData, path, method, connectionData, headers = {}, options = {}) {            
@@ -425,7 +429,7 @@ var network = {
       }
       
       let r = await dav.network.promisifiedHttpRequest(requestData, method, connectionData, headers, options);
-      if (enforcedPermanentlyRedirectedUrl && !r.permanentlyRedirectedUrl) {
+      if (r && enforcedPermanentlyRedirectedUrl && !r.permanentlyRedirectedUrl) {
         r.permanentlyRedirectedUrl = enforcedPermanentlyRedirectedUrl;
       }
       

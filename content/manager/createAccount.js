@@ -219,10 +219,10 @@ var tbSyncDavNewAccount = {
                 job.valid = (principal !== null);
                 if (!job.valid) {
                     job.error = job.type + "servernotfound";
-                    TbSync.eventlog.add("warning", connectionData.eventLogInfo, job.error, response.commLog);
+                    TbSync.eventlog.add("warning", connectionData.eventLogInfo, job.error, response ? response.commLog : "");
                 } else {
                     job.validUser = user;
-                    job.validUrl = response.permanentlyRedirectedUrl || job.server;
+                    job.validUrl = (response ? response.permanentlyRedirectedUrl : null) || job.server;
                     return;
                 }
             } catch (e) {
@@ -431,10 +431,12 @@ var tbSyncDavNewAccount = {
         if (this.serviceprovider == "discovery") {
             while (this.server.endsWith("/")) { this.server = this.server.slice(0,-1); }        
             // the user may either specify a server or he could have entered an email with domain
-            let host = this.server || this.userdomain;            
+            let parts = (this.server || this.userdomain).split("://");            
+            let scheme = (parts.length > 1) ? parts[0].toLowerCase() : "";
+            let host = parts[parts.length-1];
 
-            this.calDavServer = "caldav6764://" + host;
-            this.cardDavServer = "carddav6764://" + host;
+            this.calDavServer = scheme + "caldav6764://" + host;
+            this.cardDavServer = scheme + "carddav6764://" + host;
             this.validateDavServers();
         } else if (this.serviceprovider == "google") {
             // do not verify, just prompt for permissions
