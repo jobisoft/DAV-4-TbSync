@@ -329,12 +329,11 @@ var network = {
       
       let parts = path.toLowerCase().split("6764://");
       let type = parts[0].endsWith("caldav") ? "caldav" : "carddav";
-      let scheme = parts[0].startsWith("http") ? (parts[0].startsWith("https") ? "https" : "http") : "";
-      
+
       // obey preselected security level for DNS lookup
       // and only use insecure option if specified
-      let secs = [];
-      secs.push(scheme == "http" ? false : true);
+      let scheme = parts[0].startsWith("httpca") ? "http" : "https"; //httpcaldav or httpcarddav = httpca = http      
+      let sec = (scheme == "https");
       
       let hostPath = parts[1];
       while (hostPath.endsWith("/")) { hostPath = hostPath.slice(0,-1); }
@@ -344,7 +343,6 @@ var network = {
       
       //only perform dns lookup, if the provided path does not contain any path information
       if (host == hostPath) {
-        for (let sec of secs) {
           let request = "_" + type + (sec ? "s" : "") + "._tcp." + host;
 
           // get host from SRV record
@@ -368,11 +366,10 @@ var network = {
           } else {
               TbSync.eventlog.add("warning", eventLogInfo, "RFC6764 DNS request failed", "SRV record @ " + request);
           }
-      }
     }
     
     // use the provided hostPath and build standard well-known url
-    return (scheme || "https") + "://" + hostPath + "/.well-known/" + type;
+    return scheme + "://" + hostPath + "/.well-known/" + type;
   },
 
   startsWithScheme: function (url) {
