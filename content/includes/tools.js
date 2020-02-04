@@ -1079,6 +1079,9 @@ var tools = {
                             dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, card.getPhoto());
                             TbSync.eventlog.add("info", syncData.eventLogInfo, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             vCardData[vCardField.item][0].meta = {"encoding": ["b"], "type": ["JPEG"]};
+                        } else if (card.getProperty("PhotoType", "") == "web" && card.getProperty("PhotoURI", "")) {
+                            dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, card.getProperty("PhotoURI", ""));
+                            vCardData[vCardField.item][0].meta = {"value": ["uri"], "type": ["JPEG"]};
                         }
                     }
                     break;
