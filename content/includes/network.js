@@ -476,7 +476,7 @@ var network = {
   },
   
   // Promisified implementation of TbSync's HttpRequest (with XHR interface)
-  promisifiedHttpRequest: function (requestData, method, connectionData, headers, options, aUseStreamLoader) {
+  promisifiedHttpRequest: function (requestData, method, connectionData, headers, options) {
     let responseData = "";
     
     //do not log HEADERS, as it could contain an Authorization header
