@@ -912,9 +912,19 @@ var tools = {
                     case "Photo":
                         {
                             if (newServerValue) {
-                                //set if supported
+                                // check for inline data or linked data
                                 if (vCardData[vCardField.item][0].meta && vCardData[vCardField.item][0].meta.encoding) {
-                                    card.addPhoto(TbSync.generateUUID() + '.jpg', vCardData["photo"][0].value);
+                                    card.addPhoto(TbSync.generateUUID(), vCardData["photo"][0].value, "jpg");
+                                } else  if (vCardData[vCardField.item][0].meta && Array.isArray(vCardData[vCardField.item][0].meta.value) && vCardData[vCardField.item][0].meta.value[0].toString().toLowerCase() == "uri") {
+                                    let connectionData = new dav.network.ConnectionData();
+                                    connectionData.eventLogInfo = syncData.connectionData.eventLogInfo;
+                                    // add credentials, if image is on the account server, go anonymous otherwise
+                                    if (vCardData["photo"][0].value.split("://").pop().startsWith(syncData.connectionData.fqdn)) {
+                                        connectionData.password = syncData.connectionData.password;
+                                        connectionData.username = syncData.connectionData.username;
+                                    }
+                                    let rv = await dav.network.sendRequest("", vCardData["photo"][0].value , "GET", connectionData, {}, {responseType: "base64"});
+                                    card.addPhoto(TbSync.generateUUID(), rv, "jpg", vCardData["photo"][0].value);
                                 }
                             } else {
                                 //clear
