@@ -1067,6 +1067,26 @@ var tools = {
         return {data: newCard, etag: list.getProperty("X-DAV-ETAG"), modified: modified};
     },
 
+    
+    setDefaultsButKeepCaseIfPresent: function(defaults, currentObj) {
+        const keys = Object.keys(defaults);
+        for (const key of keys) {
+            let defaultValue = defaults[key];
+
+            // we need to set this value, but do not want to cause a "modified" if it was set like this before, but just with different case
+            // so keep the current case
+            try {
+                let c = currentObj[key][0];
+                if (c.toLowerCase() == defaultValue.toLowerCase()) defaultValue = c;
+            } catch(e) {
+                //Components.utils.reportError(e);                
+            }
+            
+            currentObj[key]=[defaultValue];
+        }
+    },
+    
+    
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
     getVCardFromThunderbirdContactCard: function(syncData, card, generateUID = false) {
         let currentCard = card.getProperty("X-DAV-VCARD").trim();
@@ -1086,12 +1106,14 @@ var tools = {
                     {
                         if (card.getProperty("PhotoType", "") == "file") {
                             TbSync.eventlog.add("info", syncData.eventLogInfo, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
-                            dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, card.getPhoto());
+                            dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, card.getPhoto());                            
+                            this.setDefaultsButKeepCaseIfPresent({encoding : "B", type : "JPEG"}, vCardData[vCardField.item][0].meta);
                             TbSync.eventlog.add("info", syncData.eventLogInfo, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
-                            vCardData[vCardField.item][0].meta = {"encoding": ["b"], "type": ["JPEG"]};
                         } else if (card.getProperty("PhotoType", "") == "web" && card.getProperty("PhotoURI", "")) {
+                            TbSync.eventlog.add("info", syncData.eventLogInfo, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, card.getProperty("PhotoURI", ""));
-                            vCardData[vCardField.item][0].meta = {"value": ["uri"], "type": ["JPEG"]};
+                            this.setDefaultsButKeepCaseIfPresent({value : "uri", type : "JPEG"}, vCardData[vCardField.item][0].meta);
+                            TbSync.eventlog.add("info", syncData.eventLogInfo, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
                         }
                     }
                     break;
