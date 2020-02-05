@@ -356,7 +356,7 @@ var tools = {
             card.setProperty("X-DAV-ETAG", etag.textContent);
             card.setProperty("X-DAV-VCARD", vCard);
 
-            dav.tools.setThunderbirdCardFromVCard(syncData, card, vCardData);
+            await dav.tools.setThunderbirdCardFromVCard(syncData, card, vCardData);
             syncData.target.addItem(card);
         }
     },
@@ -377,7 +377,7 @@ var tools = {
                 card.setProperty("X-DAV-ETAG", etag.textContent);
                 card.setProperty("X-DAV-VCARD", vCard);
                 
-                dav.tools.setThunderbirdCardFromVCard(syncData, card, vCardData, oCardData);
+                await dav.tools.setThunderbirdCardFromVCard(syncData, card, vCardData, oCardData);
                 syncData.target.modifyItem(card);
             }        
 
@@ -890,7 +890,7 @@ var tools = {
     //MAIN FUNCTIONS FOR UP/DOWN SYNC
 
     //update send from server to client
-    setThunderbirdCardFromVCard: function(syncData, card, vCardData, oCardData = null) {
+    setThunderbirdCardFromVCard: async function(syncData, card, vCardData, oCardData = null) {
         if (TbSync.prefs.getIntPref("log.userdatalevel") > 2) TbSync.dump("JSON from vCard", JSON.stringify(vCardData));
         //if (oCardData) TbSync.dump("JSON from oCard", JSON.stringify(oCardData));
 
