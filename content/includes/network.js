@@ -487,6 +487,10 @@ var network = {
       options.softfail = [];
     }
     
+    if (!options.hasOwnProperty("responseType")) {
+      options.responseType = "xml";
+    }
+    
     return new Promise(function(resolve, reject) {                  
       let req = new HttpRequest();
 
@@ -502,6 +506,10 @@ var network = {
           for (let header in headers) {
               req.setRequestHeader(header, headers[header]);
           }
+      }
+
+      if (options.responseType == "base64") {
+        req.responseAsBase64 = true;
       }
 
       req.setRequestHeader("User-Agent", dav.sync.prefSettings.getCharPref("clientID.useragent"));
@@ -606,6 +614,8 @@ var network = {
 
 
           case 200: //returned by DELETE by radicale - watch this !!!
+            return resolve(aResult);
+
           case 204: //is returned by DELETE - no data
           case 201: //is returned by CREATE - no data
             return resolve(null);
