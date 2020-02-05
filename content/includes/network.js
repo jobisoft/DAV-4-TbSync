@@ -504,6 +504,8 @@ var network = {
           }
       }
 
+      req.setRequestHeader("User-Agent", dav.sync.prefSettings.getCharPref("clientID.useragent"));
+
       // If this is one of the servers which we use OAuth for, add the bearer token.
       if (connectionData.oauthObj) {
         req.setRequestHeader("Authorization", "Bearer " +  dav.network.getOAuthValue(connectionData.password, "access"));
