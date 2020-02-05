@@ -344,7 +344,7 @@ var tools = {
     //* CARDS OPERATIONS  *
     //* * * * * * * * * * *
 
-    addContact: function(syncData, id, data, etag) {
+    addContact: async function(syncData, id, data, etag) {
         let vCard = data.textContent.trim();
         let vCardData = dav.vCard.parse(vCard);
 
@@ -361,7 +361,7 @@ var tools = {
         }
     },
 
-    modifyContact: function(syncData, id, data, etag) {
+    modifyContact: async function(syncData, id, data, etag) {
         let vCard = data.textContent.trim();
         let vCardData = dav.vCard.parse(vCard);
 

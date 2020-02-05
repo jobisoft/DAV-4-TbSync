@@ -713,11 +713,11 @@ var sync = {
                     if (cards.multi[c].status == "200" && etag !== null && data !== null && id !== null && vCardsChangedOnServer.hasOwnProperty(id)) {
                         switch (vCardsChangedOnServer[id]) {
                             case "ADD":
-                                dav.tools.addContact (syncData, id, data, etag);
+                                await dav.tools.addContact (syncData, id, data, etag);
                                 break;
 
                             case "MOD":
-                                dav.tools.modifyContact (syncData, id, data, etag);
+                                await dav.tools.modifyContact (syncData, id, data, etag);
                                 break;
                         }
                         //Feedback from users: They want to see the individual count
