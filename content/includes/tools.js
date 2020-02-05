@@ -1068,7 +1068,7 @@ var tools = {
     },
 
     
-    setDefaultsButKeepCaseIfPresent: function(defaults, currentObj) {
+    setDefaultMetaButKeepCaseIfPresent: function(defaults, currentObj) {
         const keys = Object.keys(defaults);
         for (const key of keys) {
             let defaultValue = defaults[key];
@@ -1076,13 +1076,14 @@ var tools = {
             // we need to set this value, but do not want to cause a "modified" if it was set like this before, but just with different case
             // so keep the current case
             try {
-                let c = currentObj[key][0];
+                let c = currentObj.meta[key][0];
                 if (c.toLowerCase() == defaultValue.toLowerCase()) defaultValue = c;
             } catch(e) {
                 //Components.utils.reportError(e);                
             }
             
-            currentObj[key]=[defaultValue];
+            if (!currentObj.hasOwnProperty("meta")) currentObj.meta = {};
+            currentObj.meta[key]=[defaultValue];
         }
     },
     
@@ -1107,12 +1108,12 @@ var tools = {
                         if (card.getProperty("PhotoType", "") == "file") {
                             TbSync.eventlog.add("info", syncData.eventLogInfo, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, card.getPhoto());                            
-                            this.setDefaultsButKeepCaseIfPresent({encoding : "B", type : "JPEG"}, vCardData[vCardField.item][0].meta);
+                            this.setDefaultMetaButKeepCaseIfPresent({encoding : "B", type : "JPEG"}, vCardData[vCardField.item][0]);
                             TbSync.eventlog.add("info", syncData.eventLogInfo, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
                         } else if (card.getProperty("PhotoType", "") == "web" && card.getProperty("PhotoURI", "")) {
                             TbSync.eventlog.add("info", syncData.eventLogInfo, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, card.getProperty("PhotoURI", ""));
-                            this.setDefaultsButKeepCaseIfPresent({value : "uri", type : "JPEG"}, vCardData[vCardField.item][0].meta);
+                            this.setDefaultMetaButKeepCaseIfPresent({value : "uri", type : "JPEG"}, vCardData[vCardField.item][0]);
                             TbSync.eventlog.add("info", syncData.eventLogInfo, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
                         }
                     }
