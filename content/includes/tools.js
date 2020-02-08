@@ -912,20 +912,25 @@ var tools = {
                     case "Photo":
                         {
                             if (newServerValue) {
+                                let type = "";
+                                try {
+                                    type = vCardData[vCardField.item][0].meta.type.toLowerCase();
+                                } catch (e) {}
+
                                 // check for inline data or linked data
                                 if (vCardData[vCardField.item][0].meta && vCardData[vCardField.item][0].meta.encoding) {
-                                    card.addPhoto(TbSync.generateUUID(), vCardData["photo"][0].value, "jpg");
+                                    card.addPhoto(TbSync.generateUUID(), vCardData[vCardField.item][0].value, type || "jpg");
                                 } else  if (vCardData[vCardField.item][0].meta && Array.isArray(vCardData[vCardField.item][0].meta.value) && vCardData[vCardField.item][0].meta.value[0].toString().toLowerCase() == "uri") {
                                     let connectionData = new dav.network.ConnectionData();
                                     connectionData.eventLogInfo = syncData.connectionData.eventLogInfo;
                                     // add credentials, if image is on the account server, go anonymous otherwise
                                     try {
-                                        if (vCardData["photo"][0].value.split("://").pop().startsWith(syncData.connectionData.fqdn)) {
+                                        if (vCardData[vCardField.item][0].value.split("://").pop().startsWith(syncData.connectionData.fqdn)) {
                                             connectionData.password = syncData.connectionData.password;
                                             connectionData.username = syncData.connectionData.username;
                                         }
-                                        let rv = await dav.network.sendRequest("", vCardData["photo"][0].value , "GET", connectionData, {}, {responseType: "base64"});
-                                        card.addPhoto(TbSync.generateUUID(), rv, "jpg", vCardData["photo"][0].value);
+                                        let rv = await dav.network.sendRequest("", vCardData[vCardField.item][0].value , "GET", connectionData, {}, {responseType: "base64"});
+                                        card.addPhoto(TbSync.generateUUID(), rv, type || this.getImageExtension(vCardData[vCardField.item][0].value), vCardData[vCardField.item][0].value);
                                     } catch(e) {
                                         TbSync.eventlog.add("warning", syncData.eventLogInfo,"Could not extract externally linked photo from vCard", JSON.stringify(vCardData));
                                     }
@@ -1091,6 +1096,15 @@ var tools = {
         }
     },
     
+    getImageExtension: function(filename) {
+        // get extension from filename
+	    let extension = "";
+        try {
+            extension = filename.toString().split(".").pop().toUpperCase();
+        } catch (e) {}        
+        return extension;
+    },
+    
     
     //return the stored vcard of the card (or empty vcard if none stored) and merge local changes
     getVCardFromThunderbirdContactCard: function(syncData, card, generateUID = false) {
@@ -1109,15 +1123,18 @@ var tools = {
             switch (property) {
                 case "Photo":
                     {
+                        let extension = this.getImageExtension(card.getProperty("PhotoURI", ""));
+                        let type = (extension == "JPG") ? "JPEG" : extension;
+                        
                         if (card.getProperty("PhotoType", "") == "file") {
                             TbSync.eventlog.add("info", syncData.eventLogInfo, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, card.getPhoto());                            
-                            this.setDefaultMetaButKeepCaseIfPresent({encoding : "B", type : "JPEG"}, vCardData[vCardField.item][0]);
+                            this.setDefaultMetaButKeepCaseIfPresent({encoding : "B", type : type}, vCardData[vCardField.item][0]);
                             TbSync.eventlog.add("info", syncData.eventLogInfo, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
                         } else if (card.getProperty("PhotoType", "") == "web" && card.getProperty("PhotoURI", "")) {
                             TbSync.eventlog.add("info", syncData.eventLogInfo, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
                             dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, card.getProperty("PhotoURI", ""));
-                            this.setDefaultMetaButKeepCaseIfPresent({value : "uri", type : "JPEG"}, vCardData[vCardField.item][0]);
+                            this.setDefaultMetaButKeepCaseIfPresent({value : "uri", type : type}, vCardData[vCardField.item][0]);
                             TbSync.eventlog.add("info", syncData.eventLogInfo, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
                         }
                     }
