@@ -919,12 +919,16 @@ var tools = {
                                     let connectionData = new dav.network.ConnectionData();
                                     connectionData.eventLogInfo = syncData.connectionData.eventLogInfo;
                                     // add credentials, if image is on the account server, go anonymous otherwise
-                                    if (vCardData["photo"][0].value.split("://").pop().startsWith(syncData.connectionData.fqdn)) {
-                                        connectionData.password = syncData.connectionData.password;
-                                        connectionData.username = syncData.connectionData.username;
+                                    try {
+                                        if (vCardData["photo"][0].value.split("://").pop().startsWith(syncData.connectionData.fqdn)) {
+                                            connectionData.password = syncData.connectionData.password;
+                                            connectionData.username = syncData.connectionData.username;
+                                        }
+                                        let rv = await dav.network.sendRequest("", vCardData["photo"][0].value , "GET", connectionData, {}, {responseType: "base64"});
+                                        card.addPhoto(TbSync.generateUUID(), rv, "jpg", vCardData["photo"][0].value);
+                                    } catch(e) {
+                                        TbSync.eventlog.add("warning", syncData.eventLogInfo,"Could not extract externally linked photo from vCard", JSON.stringify(vCardData));
                                     }
-                                    let rv = await dav.network.sendRequest("", vCardData["photo"][0].value , "GET", connectionData, {}, {responseType: "base64"});
-                                    card.addPhoto(TbSync.generateUUID(), rv, "jpg", vCardData["photo"][0].value);
                                 }
                             } else {
                                 //clear
