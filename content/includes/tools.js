@@ -914,8 +914,10 @@ var tools = {
                             if (newServerValue) {
                                 let type = "";
                                 try {
-                                    type = vCardData[vCardField.item][0].meta.type.toLowerCase();
-                                } catch (e) {}
+                                    type = vCardData[vCardField.item][0].meta.type[0].toLowerCase();
+                                } catch (e) {
+                                    Components.utils.reportError(e);
+                                }
 
                                 // check for inline data or linked data
                                 if (vCardData[vCardField.item][0].meta && vCardData[vCardField.item][0].meta.encoding) {
