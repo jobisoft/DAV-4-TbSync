@@ -921,7 +921,10 @@ var tools = {
 
                                 // check for inline data or linked data
                                 if (vCardData[vCardField.item][0].meta && vCardData[vCardField.item][0].meta.encoding) {
-                                    card.addPhoto(TbSync.generateUUID(), vCardData[vCardField.item][0].value, type || "jpg");
+                                    
+                                    let ext = type || "jpg";
+                                    let data = vCardData[vCardField.item][0].value;
+                                    card.addPhoto(TbSync.generateUUID(), data, ext);
                                 } else  if (vCardData[vCardField.item][0].meta && Array.isArray(vCardData[vCardField.item][0].meta.value) && vCardData[vCardField.item][0].meta.value[0].toString().toLowerCase() == "uri") {
                                     let connectionData = new dav.network.ConnectionData();
                                     connectionData.eventLogInfo = syncData.connectionData.eventLogInfo;
@@ -931,9 +934,12 @@ var tools = {
                                             connectionData.password = syncData.connectionData.password;
                                             connectionData.username = syncData.connectionData.username;
                                         }
-                                        let rv = await dav.network.sendRequest("", vCardData[vCardField.item][0].value , "GET", connectionData, {}, {responseType: "base64"});
-                                        card.addPhoto(TbSync.generateUUID(), rv, type || this.getImageExtension(vCardData[vCardField.item][0].value), vCardData[vCardField.item][0].value);
+                                        
+                                        let ext = type || this.getImageExtension(vCardData[vCardField.item][0].value);
+                                        let data = await dav.network.sendRequest("", vCardData[vCardField.item][0].value , "GET", connectionData, {}, {responseType: "base64"});
+                                        card.addPhoto(TbSync.generateUUID(), data, ext, vCardData[vCardField.item][0].value);
                                     } catch(e) {
+                                        Components.utils.reportError(e);
                                         TbSync.eventlog.add("warning", syncData.eventLogInfo,"Could not extract externally linked photo from vCard", JSON.stringify(vCardData));
                                     }
                                 }
@@ -1100,11 +1106,15 @@ var tools = {
     
     getImageExtension: function(filename) {
         // get extension from filename
-	    let extension = "";
+	    let extension = "jpg";
         try {
-            extension = filename.toString().split(".").pop().toUpperCase();
+            let parts = filename.toString().split("/").pop().split(".");
+            let lastPart = parts.pop();
+            if (parts.length > 0 && lastPart) {
+                extension = lastPart;
+            }
         } catch (e) {}        
-        return extension;
+        return extension.toLowerCase();
     },
     
     
@@ -1126,7 +1136,7 @@ var tools = {
                 case "Photo":
                     {
                         let extension = this.getImageExtension(card.getProperty("PhotoURI", ""));
-                        let type = (extension == "JPG") ? "JPEG" : extension;
+                        let type = (extension == "jpg") ? "JPEG" : extension.toUpperCase();
                         
                         if (card.getProperty("PhotoType", "") == "file") {
                             TbSync.eventlog.add("info", syncData.eventLogInfo, "before photo ("+vCardField.item+")", JSON.stringify(vCardData));
