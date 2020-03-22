@@ -914,7 +914,12 @@ var tools = {
                             if (newServerValue) {
                                 let type = "";
                                 try {
-                                    type = vCardData[vCardField.item][0].meta.type[0].toLowerCase();
+                                    // Try to get the type from the the meta field but only use a given subtype (cut of leading "image/").
+                                    // See draft: https://tools.ietf.org/id/draft-ietf-vcarddav-vcardrev-02.html#PHOTO
+                                    // However, no mentioning of this in final RFC2426 for vCard 3.0.
+                                    // Also make sure, that the final type does not include any non alphanumeric chars.
+                                    type = vCardData[vCardField.item][0].meta.type[0].toLowerCase().split("/").pop().replace(/\W/g, "");
+                                    }
                                 } catch (e) {
                                     Components.utils.reportError(e);
                                 }
