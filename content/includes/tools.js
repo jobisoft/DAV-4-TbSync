@@ -952,9 +952,9 @@ var tools = {
                                 }
                             } else {
                                 //clear
-                                card.deleteProperty("PhotoName");
-                                card.deleteProperty("PhotoType");
-                                card.deleteProperty("PhotoURI");
+                                card.setProperty("PhotoName", "");
+                                card.setProperty("PhotoType", "");
+                                card.setProperty("PhotoURI", "");
                             }
                         }
                         break;
@@ -967,9 +967,9 @@ var tools = {
                                 card.setProperty("BirthMonth", bday[2]);
                                 card.setProperty("BirthDay", bday[3]);
                             } else {
-                                card.deleteProperty("BirthYear");
-                                card.deleteProperty("BirthMonth");
-                                card.deleteProperty("BirthDay");
+                                card.setProperty("BirthYear", "");
+                                card.setProperty("BirthMonth", "");
+                                card.setProperty("BirthDay", "");
                             }
                         }
                         break;
@@ -988,30 +988,27 @@ var tools = {
                                     tbData = dav.tools.getPhoneNumbersFromJSON(newServerValue);
                                     break;
                             }
-                                
+
                             for (let field in tbData) {
                                 if (tbData.hasOwnProperty(field)) {
                                     //set or delete TB Property
-                                    if (  tbData[field].length > 0 ) {
+                                    if (tbData[field].length > 0) {
                                         card.setProperty(field, tbData[field].join(", "));
                                     } else {
-                                        card.deleteProperty(field);
+                                        card.setProperty(field, "");
                                     }                            
                                 }
                             }
                         }
-
+                        
                     default:
                         {
                             if (newServerValue) {
                                 //set
                                 card.setProperty(property, newServerValue);
                             } else {
-                                //clear (del if possible)
+                                //clear
                                 card.setProperty(property, "");
-                                try {
-                                    card.deleteProperty(property);
-                                } catch (e) {}
                             }
                         }
                         break;
@@ -1155,6 +1152,8 @@ var tools = {
                             dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, card.getProperty("PhotoURI", ""));
                             this.setDefaultMetaButKeepCaseIfPresent({value : "uri", type : type}, vCardData[vCardField.item][0]);
                             TbSync.eventlog.add("info", syncData.eventLogInfo, "after photo ("+vCardField.item+")", JSON.stringify(vCardData));
+                        } else {
+                            dav.tools.updateValueOfVCard(syncData, property, vCardData, vCardField, "");                            
                         }
                     }
                     break;
