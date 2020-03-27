@@ -17,14 +17,15 @@ var tools = {
         } catch (e) {
             //Components.utils.reportError(e);                
         }
+        
         // always use the core email field values, they could have been mod outside by the user,
         // not knowing that we store our stuff in X-DAV-JSON-Emails
         let emailFields = ["PrimaryEmail", "SecondEmail"];
         for (let i = 0; i < emailFields.length; i++) {
-            let email = aCard.getProperty(emailFields[i],"").trim();
+            let email = aCard.getProperty(emailFields[i], "");
             if (email) {
-                if (emailData.length > i) emailData[i].value = email;
-                else emailData.push({value: email, meta: []});
+                if (emailData.length > i) emailData[i].value = email.trim();
+                else emailData.push({value: email.trim(), meta: []});
             }
         }    
            
@@ -32,18 +33,14 @@ var tools = {
     },
     
     getPhoneNumbersFromCard: function (aCard) { //return array of objects {meta, value}
-        let phones = aCard.getProperty("X-DAV-JSON-Phones","").trim();
+        let phones = [];
         try {
-            if (phones) {
-                return JSON.parse(phones);
-            }
+            phones = JSON.parse(aCard.getProperty("X-DAV-JSON-Phones","").trim());
+            return phones;
         } catch (e) {
             //Components.utils.reportError(e);                
         }
-                
-        phones = [];
-        
-        
+
         //So this card is not a "DAV" card: Get the phone numbers from current numbers stored in 
         //CellularNumber, FaxNumber, PagerNumber, WorkPhone, HomePhone"},
         let todo = [
@@ -55,9 +52,9 @@ var tools = {
         ];
             
         for (let data of todo) {
-            let phone = aCard.getProperty(data.field,"").trim();
+            let phone = aCard.getProperty(data.field, "");
             if (phone) {
-                phones.push({value: phone, meta: data.meta});
+                phones.push({value: phone.trim(), meta: data.meta});
             }
         }
         return phones;
