@@ -167,7 +167,8 @@ var tools = {
 
 
     getEmailsFromJSON: function (emailDataJSON) {
-        let emailFields = {};
+        // prepare defaults
+        let emailFields = {PrimaryEmail:[], SecondEmail:[]};
 
         if (emailDataJSON) {
             try {
@@ -175,7 +176,6 @@ var tools = {
                 // For compatibility with the Phones, we return arrays, even though we only return
                 // one element per array.
                 let emailData = JSON.parse(emailDataJSON);
-                emailFields = {PrimaryEmail:[], SecondEmail:[]};
                 
                 for (let d=0; d < emailData.length && d < 2; d++) {
                     let field = (d==0) ? "PrimaryEmail" : "SecondEmail";
@@ -193,22 +193,26 @@ var tools = {
 
 
     getPhoneNumbersFromJSON: function (phoneDataJSON) {
-        let phoneFields = {};
+        let phoneMap = [
+            {meta: "CELL", field: "CellularNumber"},
+            {meta: "FAX", field: "FaxNumber"},
+            {meta: "PAGER", field: "PagerNumber"},
+            {meta: "WORK", field: "WorkPhone"},
+            {meta: "", field: "HomePhone"},
+            ];
 
+        // prepare defaults
+        let phoneFields = {};
+        for (let m=0; m < phoneMap.length; m++) {
+            phoneFields[phoneMap[m].field] = [];            
+        }
+                
         if (phoneDataJSON) {
             try {
                 //we first search and remove CELL, FAX, PAGER and WORK from the list and put the remains into HOME
                 let phoneData = JSON.parse(phoneDataJSON);
-                let phoneMap = [
-                    {meta: "CELL", field: "CellularNumber"},
-                    {meta: "FAX", field: "FaxNumber"},
-                    {meta: "PAGER", field: "PagerNumber"},
-                    {meta: "WORK", field: "WorkPhone"},
-                    {meta: "", field: "HomePhone"},
-                    ];
-                
-                for (let m=0; m < phoneMap.length; m++) {
-                    phoneFields[phoneMap[m].field] = [];            
+
+                for (let m=0; m < phoneMap.length; m++) {        
                     for (let d=phoneData.length-1; d >= 0; d--) {
                         if (phoneData[d].meta.includes(phoneMap[m].meta) || phoneMap[m].meta == "") {
                             phoneFields[phoneMap[m].field].unshift(phoneData[d].value);
