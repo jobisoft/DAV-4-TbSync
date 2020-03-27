@@ -892,8 +892,10 @@ var tools = {
 
     //update send from server to client
     setThunderbirdCardFromVCard: async function(syncData, card, vCardData, oCardData = null) {
-        if (TbSync.prefs.getIntPref("log.userdatalevel") > 2) TbSync.dump("JSON from vCard", JSON.stringify(vCardData));
-        //if (oCardData) TbSync.dump("JSON from oCard", JSON.stringify(oCardData));
+        if (TbSync.prefs.getIntPref("log.userdatalevel") > 2) {
+            TbSync.dump("JSON from vCard", JSON.stringify(vCardData));
+            TbSync.dump("JSON from oCard", oCardData ? JSON.stringify(oCardData) : "");
+        }
 
         for (let f=0; f < dav.tools.supportedProperties.length; f++) {
             //Skip sync fields that have been added after this folder was created (otherwise we would delete them)
