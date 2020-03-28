@@ -4,9 +4,8 @@ TbSync version:
 DAV-4-TbSync version:
 Thunderbird version:
 
-[ ] Yes, I have installed the latest available (beta) version from 
- - https://github.com/jobisoft/TbSync/releases 
- - https://github.com/jobisoft/DAV-4-TbSync/releases 
+[ ] Yes, I have installed the latest available beta version from 
+https://tbsync.jobisoft.de
 and my issue is not yet fixed, I can still reproduce it.
 
 
