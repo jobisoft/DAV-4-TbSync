@@ -186,6 +186,9 @@ var Base = class {
             "https" : true, //deprecated
             "createdWithProviderVersion" : "0",
             "syncGroups" : false,
+            
+            "oauth2_client_id" : "689460414096-e4nddn8tss5c59glidp4bc0qpeu3oper.apps.googleusercontent.com",
+            "oauth2_client_secret" : "LeTdF3UEpCvP1V3EBygjP-kl",
             }; 
         return row;
     }

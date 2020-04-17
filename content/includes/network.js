@@ -78,15 +78,26 @@ var network = {
           base_uri : "https://accounts.google.com/o/",
           //redirect_uri : "urn:ietf:wg:oauth:2.0:oob:auto",
           scope : "https://www.googleapis.com/auth/carddav https://www.googleapis.com/auth/calendar",
-          client_id : "689460414096-e4nddn8tss5c59glidp4bc0qpeu3oper.apps.googleusercontent.com",
-          client_secret : "LeTdF3UEpCvP1V3EBygjP-kl",
+          client_id : "",
+          client_secret : "",
         }
         break;
       
       default:
         return null;
     }
-    
+
+    let accountID = uri.username || ((configObject && configObject.hasOwnProperty("accountID")) ? configObject.accountID : null);
+    let accountData = null;
+
+    try {
+      accountData = new TbSync.AccountData(accountID);
+    } catch (e) {};
+
+	// Make sure we overload the default OAuth2 keys and secrets if set by user in the account db file.
+	config.client_id = accountData.getAccountProperty("oauth2_client_id");
+	config.client_secret = accountData.getAccountProperty("oauth2_client_secret");
+   
     let oauth = new OAuth2(config.base_uri, config.scope, config.client_id, config.client_secret);
     oauth.requestWindowFeatures = "chrome,private,centerscreen,width=500,height=750";
 
@@ -105,13 +116,6 @@ var network = {
     // - it does not get lost during offline support disable/enable
     // - we can connect multiple google accounts without running into same-url-issue of shared calendars
     // - if called from lightning, we do not need to do an expensive url search to get the accountID
-    let accountID = uri.username || ((configObject && configObject.hasOwnProperty("accountID")) ? configObject.accountID : null);
-
-    let accountData = null;
-    try {
-      accountData = new TbSync.AccountData(accountID);
-    } catch (e) {};
-    
     if (configObject && configObject.hasOwnProperty("accountname")) {
       oauth.requestWindowTitle = "TbSync account <" + configObject.accountname + "> requests authorization.";
     } else if (accountData) {
