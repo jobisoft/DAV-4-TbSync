@@ -94,9 +94,8 @@ var network = {
       accountData = new TbSync.AccountData(accountID);
     } catch (e) {};
 
-	// Make sure we overload the default OAuth2 keys and secrets if set by user in the account db file.
-	config.client_id = accountData.getAccountProperty("oauth2_client_id");
-	config.client_secret = accountData.getAccountProperty("oauth2_client_secret");
+	config.client_id = dav.sync.prefSettings.getCharPref("OAuth2_ClientID");
+	config.client_secret = dav.sync.prefSettings.getCharPref("OAuth2_ClientSecret");
    
     let oauth = new OAuth2(config.base_uri, config.scope, config.client_id, config.client_secret);
     oauth.requestWindowFeatures = "chrome,private,centerscreen,width=500,height=750";
