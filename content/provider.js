@@ -442,8 +442,16 @@ var Base = class {
         // happens inside that function. You may also throw custom errors
         // in that function, which have the StatusData obj attached, which
         // should be returned.
-        //process a single folder
 
+        // Limit auto sync rate, if google
+        let isGoogle = (syncData.accountData.getAccountProperty("serviceprovider") == "google");
+        let isDefaultGoogleApp = (Services.prefs.getDefaultBranch("extensions.dav4tbsync.").getCharPref("OAuth2_ClientID") == dav.sync.prefSettings.getCharPref("OAuth2_ClientID"));
+        if (isGoogle && isDefaultGoogleApp && syncData.accountData.getAccountProperty("autosync") > 0 && syncData.accountData.getAccountProperty("autosync") < 60) {
+            syncData.accountData.setAccountProperty("autosync", 60);
+            TbSync.eventlog.add("warning", syncData.eventLogInfo, "Lowering sync interval to 60 minutes to reduce google request rate on standard TbSync Google APP (limited to 100.000 requests per day).");
+        }
+
+        // Process a single folder.
         try {
             await dav.sync.folder(syncData);
         } catch (e) {
