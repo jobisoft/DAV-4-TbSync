@@ -78,8 +78,8 @@ var network = {
           base_uri : "https://accounts.google.com/o/",
           //redirect_uri : "urn:ietf:wg:oauth:2.0:oob:auto",
           scope : "https://www.googleapis.com/auth/carddav https://www.googleapis.com/auth/calendar",
-          client_id : "689460414096-e4nddn8tss5c59glidp4bc0qpeu3oper.apps.googleusercontent.com",
-          client_secret : "LeTdF3UEpCvP1V3EBygjP-kl",
+          client_id : dav.sync.prefSettings.getCharPref("OAuth2_ClientID"),
+          client_secret : dav.sync.prefSettings.getCharPref("OAuth2_ClientSecret"),
         }
         break;
       
