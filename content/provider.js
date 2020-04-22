@@ -185,7 +185,7 @@ var Base = class {
             "serviceproviderRevision" : 0,
 
             "user" : "",
-            "https" : true, //deprecated
+            "https" : true, //deprecated, because this is part of the URL now
             "createdWithProviderVersion" : "0",
             "syncGroups" : false,
             }; 
