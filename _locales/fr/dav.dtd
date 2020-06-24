@@ -14,9 +14,9 @@
 <!ENTITY add.data.description "Veuillez fournir un nom convivial pour le nouveau compte TbSync, ainsi que le couple identifiant/mot de passe d'accès à votre serveur:">
 <!ENTITY add.data.notes "Notes:">
 
-<!ENTITY add.finish.title "?? Confirm account creation ??">
-<!ENTITY add.finish.description "?? The following settings have been verified successfully: ??">
-<!ENTITY add.finish.details "?? Click „Finish“ to create a new TbSync account with these settings. ??">
+<!ENTITY add.finish.title "Confirmer la création d'un compte">
+<!ENTITY add.finish.description "Les paramètres suivants ont été vérifiés avec succès :">
+<!ENTITY add.finish.details "Cliquez sur « Terminer » pour créer un nouveau compte TbSync avec ces paramètres.">
 
 <!ENTITY pref.AccountName "Nom du compte">
 <!ENTITY pref.UserName "Nom d'utilisateur">
