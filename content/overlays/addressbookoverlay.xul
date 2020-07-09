@@ -2,8 +2,7 @@
 
 <overlay 
     id="TbSyncAbDavOverlay"
-    oninject="tbSyncDavAddressBook.onInject(window)"
-    onremove="tbSyncDavAddressBook.onRemove(window)"
+    omscope="tbSyncDavAddressBook"
     xmlns:html="http://www.w3.org/1999/xhtml">
 
     <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/addressbookoverlay.js" />

@@ -3,9 +3,7 @@
 
 <overlay 
     id="TbSyncAbDavCardWindow" 
-    onbeforeinject="tbSyncAbDavCardWindow.onBeforeInject(window)"
-    oninject="tbSyncAbDavCardWindow.onInject(window)"
-    onremove="tbSyncAbDavCardWindow.onRemove(window)"
+    omscope="tbSyncAbDavCardWindow"
     xmlns:html="http://www.w3.org/1999/xhtml">
 
     <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/abCardWindow.js" />

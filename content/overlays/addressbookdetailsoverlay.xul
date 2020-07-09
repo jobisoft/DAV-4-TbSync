@@ -2,9 +2,7 @@
 
 <overlay 
     id="TbSyncAbDavDetailsOverlay"
-    onbeforeinject="tbSyncDavAddressBookDetails.onBeforeInject(window)"
-    oninject="tbSyncDavAddressBookDetails.onInject(window)"
-    onremove="tbSyncDavAddressBookDetails.onRemove(window)"
+    omscope="tbSyncDavAddressBookDetails"
     xmlns:html="http://www.w3.org/1999/xhtml">
 
     <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.js" />
