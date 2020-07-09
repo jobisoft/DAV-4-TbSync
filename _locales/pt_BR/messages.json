@@ -1,8 +1,356 @@
 {
-  "extensionName": {
-    "message": "Provedor CalDAV e CardDAV"
-  },
-  "extensionDescription": {
-    "message": "Adiciona suporte para sincronizar contas CalDAV e CardDAV com o TbSync."
-  }
+    "abCard.ContactDetails": {
+        "message": "Propriedades de contato (CardDAV)"
+    },
+    "abCard.EmailAddresses": {
+        "message": "Endereço de e-mail:"
+    },
+    "abCard.MiddleName": {
+        "message": "Nome do meio:"
+    },
+    "abCard.Phone": {
+        "message": "Números de telefone"
+    },
+    "abCard.PrefixName": {
+        "message": "Prefixo:"
+    },
+    "abCard.SuffixName": {
+        "message": "Sufixo:"
+    },
+    "abCard.emailtypes.car": {
+        "message": "carro"
+    },
+    "abCard.emailtypes.cell": {
+        "message": "móvel"
+    },
+    "abCard.emailtypes.description": {
+        "message": "O primeiro endereço de email na lista é usado como o endereço de email principal."
+    },
+    "abCard.emailtypes.fax": {
+        "message": "fax"
+    },
+    "abCard.emailtypes.home": {
+        "message": "privadamente"
+    },
+    "abCard.emailtypes.other": {
+        "message": "outro"
+    },
+    "abCard.emailtypes.pager": {
+        "message": "pager"
+    },
+    "abCard.emailtypes.video": {
+        "message": "vídeo"
+    },
+    "abCard.emailtypes.voice": {
+        "message": "telefone"
+    },
+    "abCard.emailtypes.work": {
+        "message": "negócio"
+    },
+    "acl.add": {
+        "message": "adicionar"
+    },
+    "acl.delete": {
+        "message": "excluir"
+    },
+    "acl.modify": {
+        "message": "modificar"
+    },
+    "acl.none": {
+        "message": "nenhum"
+    },
+    "acl.readonly": {
+        "message": "Acesso ao servidor somente leitura (reverter alterações locais)"
+    },
+    "acl.readwrite": {
+        "message": "Permissões de gravação do servidor: ##replace.1##"
+    },
+    "add.caldavserver": {
+        "message": "Endereço servidor CalDAV:"
+    },
+    "add.carddavserver": {
+        "message": "Endereço servidor CardDAV:"
+    },
+    "add.data.description": {
+        "message": "Por favor, forneça um nome amigável para a nova conta TbSync e as credenciais para o seu servidor:"
+    },
+    "add.data.notes": {
+        "message": "Notas:"
+    },
+    "add.data.title": {
+        "message": "Digite as informações da conta"
+    },
+    "add.finish.description": {
+        "message": "?? The following settings have been verified successfully: ??"
+    },
+    "add.finish.details": {
+        "message": "?? Click „Finish“ to create a new TbSync account with these settings. ??"
+    },
+    "add.finish.title": {
+        "message": "?? Confirm account creation ??"
+    },
+    "add.name": {
+        "message": "Nome da conta:"
+    },
+    "add.ok": {
+        "message": "Adicionar conta"
+    },
+    "add.password": {
+        "message": "Senha:"
+    },
+    "add.server": {
+        "message": "URL do servidor:"
+    },
+    "add.serverprofile.custom": {
+        "message": "Configuração manual"
+    },
+    "add.serverprofile.custom.description": {
+        "message": "Os serviços de CalDAV e CardDAV podem ser configurados manualmente."
+    },
+    "add.serverprofile.custom.details1": {
+        "message": "Os serviços de CalDAV e CardDAV necessários ou endereços principais devem ser fornecidos pelo seu provedor de serviços."
+    },
+    "add.serverprofile.custom.details2": {
+        "message": "Se você deixar o endereço vazio, o serviço correspondente será desativado para essa conta."
+    },
+    "add.serverprofile.description": {
+        "message": "Por favor, selecione um dos perfis de servidor disponíveis:"
+    },
+    "add.serverprofile.discovery": {
+        "message": "Configuração Automática"
+    },
+    "add.serverprofile.discovery.description": {
+        "message": "Muitos provedores de serviço e servidores suportam um processo de configuração automática, que requer apenas um endereço de e-mail ou um nome de usuário e um endereço de servidor."
+    },
+    "add.serverprofile.discovery.details1": {
+        "message": "Para a descoberta automática dos pontos de extremidade do serviço CalDAV & CardDAV, por favor insira suas credenciais e o nome do host do seu servidor (ex.: 'cloud.myserver.de')."
+    },
+    "add.serverprofile.discovery.details2": {
+        "message": "Se seu nome de usuário é um endereço de e-mail, especificar o servidor torna-se opcional, como as informações sobre os pontos de extremidade do serviço podem ser obtidas diretamente do seu provedor de serviços através de um pedido RFC6764 (se suportado)."
+    },
+    "add.serverprofile.discovery.server-optional": {
+        "message": "opcional"
+    },
+    "add.serverprofile.fruux": {
+        "message": "fruux"
+    },
+    "add.serverprofile.fruux.description": {
+        "message": "fruux é um serviço que sincroniza contatos, calendários e tarefas. É alimentado pela empresa por trás de saber/dav e é baseado na Alemanha."
+    },
+    "add.serverprofile.gmx.com": {
+        "message": "GMX.com (E.U.A.)"
+    },
+    "add.serverprofile.gmx.com.description": {
+        "message": "https://www.gmx.com"
+    },
+    "add.serverprofile.gmx.net": {
+        "message": "GMX.net (Europa)"
+    },
+    "add.serverprofile.gmx.net.description": {
+        "message": "https://www.gmx.net"
+    },
+    "add.serverprofile.google": {
+        "message": "Google"
+    },
+    "add.serverprofile.google.description": {
+        "message": "https://accounts.google.com"
+    },
+    "add.serverprofile.google.details1": {
+        "message": "O Google usa um método moderno de autenticação e o TbSync não precisa saber seu nome de usuário nem sua senha. Depois de clicar em 'Avançar>', uma janela do navegador será aberta, onde você poderá fazer login na sua conta do Google e permitir que o 'Provider for CalDAV & CardDAV' acesse seus contatos e calendários."
+    },
+    "add.serverprofile.icloud": {
+        "message": "iCloud"
+    },
+    "add.serverprofile.icloud.description": {
+        "message": "https://www.icloud.com"
+    },
+    "add.serverprofile.icloud.details1": {
+        "message": "O nome do usuário solicitado é seu ID da Apple. Por favor, note que você não pode usar sua senha da Apple ID aqui. Você DEVE ativar a autenticação de dois fatores (2FA) para sua conta do iCloud e criar uma senha específica do aplicativo separada para o TbSync."
+    },
+    "add.serverprofile.icloud.details2": {
+        "message": "Essa é uma camada de segurança imposta pela Apple, portanto, os clientes de terceiros não obtêm acesso à sua conta da Apple."
+    },
+    "add.serverprofile.mbo": {
+        "message": "mailbox.org"
+    },
+    "add.serverprofile.mbo.description": {
+        "message": "mailbox.org é um provedor de e-mail alemão seguro para uso pessoal e para negócios, que também oferece calendários, contatos e armazenamento na nuvem."
+    },
+    "add.serverprofile.posteo": {
+        "message": "Posteo"
+    },
+    "add.serverprofile.posteo.description": {
+        "message": "https://www.posteo.de"
+    },
+    "add.serverprofile.title": {
+        "message": "Selecione um perfil do servidor"
+    },
+    "add.serverprofile.web.de": {
+        "message": "WEB.de"
+    },
+    "add.serverprofile.web.de.description": {
+        "message": "https://www.web.de"
+    },
+    "add.serverprofile.yahoo": {
+        "message": "Yahoo!"
+    },
+    "add.serverprofile.yahoo.description": {
+        "message": "https://www.yahoo.com"
+    },
+    "add.serverprofile.yahoo.details1": {
+        "message": "The requested password is an app-specific password for TbSync which you can create in your Yahoo! web portal. It is not your standard Yahoo! password."
+    },
+    "add.spinner.query": {
+        "message": "Enviando pedido RFC6764 para '##replace.1##'"
+    },
+    "add.spinner.validating": {
+        "message": "Verifique a conexão com o servidor"
+    },
+    "add.title": {
+        "message": "Adicionando uma conta CalDAV e CardDAV para o TbSync"
+    },
+    "add.user": {
+        "message": "Usuário:"
+    },
+    "autocomplete.HOME": {
+        "message": "particular"
+    },
+    "autocomplete.PREF": {
+        "message": "preferido"
+    },
+    "autocomplete.WORK": {
+        "message": "empresa"
+    },
+    "config.custom": {
+        "message": "Configurações do servidor CalDAV & CardDAV"
+    },
+    "defaultname.calendar": {
+        "message": "calendário"
+    },
+    "defaultname.contacts": {
+        "message": "contatos"
+    },
+    "extensionDescription": {
+        "message": "Adiciona suporte para sincronizar contas CalDAV e CardDAV com o TbSync."
+    },
+    "extensionName": {
+        "message": "Provedor CalDAV e CardDAV"
+    },
+    "helplink.malformed-xml": {
+        "message": "https://github.com/jobisoft/DAV-4-TbSync/issues/104"
+    },
+    "manager.tabs.accountsettings": {
+        "message": "Configurações da conta"
+    },
+    "manager.tabs.syncsettings": {
+        "message": "Opções"
+    },
+    "menu.name": {
+        "message": "CalDAV e CardDAV"
+    },
+    "pref.AccountName": {
+        "message": "Nome da conta"
+    },
+    "pref.CalDavServer": {
+        "message": "Endereço servidor CalDAV:"
+    },
+    "pref.CardDavServer": {
+        "message": "Endereço servidor CardDAV:"
+    },
+    "pref.UserName": {
+        "message": "Usuário"
+    },
+    "pref.calendaroptions": {
+        "message": "Opções de calendário"
+    },
+    "pref.contactoptions": {
+        "message": "Opções de contato"
+    },
+    "pref.downloadonly": {
+        "message": "Reverter alterações locais (sincronização unidirecional)"
+    },
+    "pref.generaloptions": {
+        "message": "Opções Gerais"
+    },
+    "pref.syncGroups": {
+        "message": "Sincronizar grupos de contatos como listas do Thunderbird"
+    },
+    "pref.syncGroupsDescription": {
+        "message": "NOTA: Devido ao bug do Thunderbird 1522453, o TbSync deverá adicionar endereços de e-mail fictícios a todos os contatos, que fazem parte de grupos, mas não têm um endereço de e-mail associado. Esses endereços de email fictícios não são sincronizados com o servidor."
+    },
+    "pref.useCalendarCache": {
+        "message": "Suporte Offline"
+    },
+    "pref.useCardBook": {
+        "message": "Criar catálogo de endereços no CardBook em vez do catálogo de endereços padrão do Thunderbird"
+    },
+    "status.401": {
+        "message": "Não foi possível autenticar, verifique o nome de usuário e a senha."
+    },
+    "status.403": {
+        "message": "Conexão rejeitada pelo servidor (proibida)."
+    },
+    "status.404": {
+        "message": "HTTP Erro 404 (recurso solicitado não encontrado)."
+    },
+    "status.500": {
+        "message": "Erro de servidor desconhecido (HTTP Erro 500)."
+    },
+    "status.503": {
+        "message": "Serviço indisponível."
+    },
+    "status.caldavservernotfound": {
+        "message": "Não foi possível encontrar um servidor CalDAV."
+    },
+    "status.carddavservernotfound": {
+        "message": "Não foi possível encontrar um servidor CardDAV."
+    },
+    "status.gContactSync": {
+        "message": "Existe uma incompatibilidade com o gContactSync com a sincronização de grupo de contatos ativado. Desative um deles, desde até que o erro não seja resolvido."
+    },
+    "status.info.restored": {
+        "message": "Devido à falta parcial de permissões de gravação, algumas ações foram rejeitadas pelo servidor e revertidas localmente."
+    },
+    "status.malformed-xml": {
+        "message": "Não foi possível analisar XML. Verifique o log de eventos para obter detalhes."
+    },
+    "status.missing-permission": {
+        "message": "Permissão ausente: ##replace.1##"
+    },
+    "status.networkerror": {
+        "message": "Não foi possível conectar-se ao servidor."
+    },
+    "status.rfc6764-lookup-failed": {
+        "message": "A consulta de '##replace.1##' não forneceu as informações necessárias sobre os serviços CalDAV e CardDAV. Por favor, digite o nome do host do seu servidor para prosseguir com a configuração automática."
+    },
+    "status.service-discovery-failed": {
+        "message": "A descoberta automática dos serviços de CalDAV & CardDAV de '##replace.1##' falhou. Tente novamente, especificando um endereço de servidor diferente ou altere para a configuração personalizada para especificar manualmente as configurações."
+    },
+    "status.softerror": {
+        "message": "Erro não fatal (##replace.1##)"
+    },
+    "status.success.managed-by-lightning": {
+        "message": "Lightning"
+    },
+    "syncstate.eval.folders": {
+        "message": "Atualizando lista de pastas"
+    },
+    "syncstate.eval.response.localchanges": {
+        "message": "Processando reconhecimento de alterações locais"
+    },
+    "syncstate.eval.response.remotechanges": {
+        "message": "Processando alterações remotas"
+    },
+    "syncstate.prepare.request.localchanges": {
+        "message": "Enviando alterações locais"
+    },
+    "syncstate.send.getfolders": {
+        "message": "Solicitando lista de pastas"
+    },
+    "syncstate.send.request.localchanges": {
+        "message": "Aguardando confirmação de alterações locais"
+    },
+    "syncstate.send.request.remotechanges": {
+        "message": "Esperando por alterações remotas"
+    }
 }

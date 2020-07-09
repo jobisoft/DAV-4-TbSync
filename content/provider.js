@@ -33,17 +33,18 @@ var Base = class {
 
         dav.openWindows = {};
 
-        dav.overlayManager = new OverlayManager({verbose: 0});
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abNewCardWindow.xul");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
+        let providerData = new TbSync.ProviderData("dav");   
+        dav.overlayManager = new OverlayManager(providerData.extension, {verbose: 0});
+        //await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abNewCardWindow.xul");
+        //await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
+        //await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
+        //await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
+        //await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
 
         // The abCSS.xul overlay is just adding a CSS file.
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/messengercompose/messengercompose.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
+        //await dav.overlayManager.registerOverlay("chrome://messenger/content/messengercompose/messengercompose.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
+        //await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
+        //await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
 
         dav.overlayManager.startObserving();
     }
@@ -79,7 +80,7 @@ var Base = class {
     /**
      * Returns version of the TbSync API this provider is using
      */
-    static getApiVersion() { return "2.2"; }
+    static getApiVersion() { return "2.3"; }
 
 
 
@@ -97,11 +98,11 @@ var Base = class {
         
         switch (size) {
             case 16:
-                return "chrome://dav4tbsync/skin/"+root+"16.png";
+                return "chrome://dav4tbsync/content/skin/"+root+"16.png";
             case 32:
-                return "chrome://dav4tbsync/skin/"+root+"32.png";
+                return "chrome://dav4tbsync/content/skin/"+root+"32.png";
             default :
-                return "chrome://dav4tbsync/skin/"+root+"48.png";
+                return "chrome://dav4tbsync/content/skin/"+root+"48.png";
         }
     }
 
@@ -132,15 +133,6 @@ var Base = class {
      */
     static getMaintainerEmail() {
         return "john.bieling@gmx.de";
-    }
-
-
-    /**
-     * Returns the URL of the string bundle file of this provider, it can be
-     * accessed by TbSync.getString(<key>, <provider>)
-     */
-    static getStringBundleUrl() {
-        return "chrome://dav4tbsync/locale/dav.properties";
     }
 
 
@@ -722,18 +714,18 @@ var StandardFolderList = class {
         switch (folderData.getFolderProperty("type")) {
             case "carddav":
                 if (folderData.getFolderProperty("shared")) {
-                    return "chrome://tbsync/skin/contacts16_shared.png";
+                    return "chrome://tbsync/content/skin/contacts16_shared.png";
                 } else {
-                    return "chrome://tbsync/skin/contacts16.png";
+                    return "chrome://tbsync/content/skin/contacts16.png";
                 }
             case "caldav":
                 if (folderData.getFolderProperty("shared")) {
-                    return "chrome://tbsync/skin/calendar16_shared.png";
+                    return "chrome://tbsync/content/skin/calendar16_shared.png";
                 } else {
-                    return "chrome://tbsync/skin/calendar16.png";
+                    return "chrome://tbsync/content/skin/calendar16.png";
                 }
             case "ics":
-                return "chrome://dav4tbsync/skin/ics16.png";
+                return "chrome://dav4tbsync/content/skin/ics16.png";
         }
     }
 

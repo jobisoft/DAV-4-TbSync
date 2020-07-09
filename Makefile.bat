@@ -6,6 +6,6 @@ REM License, v. 2.0. If a copy of the MPL was not distributed with this
 REM file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 del DAV-4-TbSync.xpi
-"C:\Program Files\7-Zip\7zG.exe" a -tzip DAV-4-TbSync.xpi content _locales skin chrome.manifest manifest.json bootstrap.js LICENSE CONTRIBUTORS.md
+"C:\Program Files\7-Zip\7zG.exe" a -tzip DAV-4-TbSync.xpi content _locales manifest.json background.js LICENSE CONTRIBUTORS.md
 
 

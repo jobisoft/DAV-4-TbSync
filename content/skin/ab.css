@@ -1,0 +1,82 @@
+treechildren::-moz-tree-image(DirCol, davgoogle) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/content/skin/google16.png");
+}
+
+treechildren::-moz-tree-image(DirCol, davweb) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/content/skin/web16.png");
+}
+
+treechildren::-moz-tree-image(DirCol, davfruux) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/content/skin/fruux16.png");
+}
+
+treechildren::-moz-tree-image(DirCol, davposteo) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/content/skin/posteo16.png");
+}
+
+treechildren::-moz-tree-image(DirCol, davmbo) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/content/skin/mbo16.png");
+}
+
+treechildren::-moz-tree-image(DirCol, davicloud) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/content/skin/icloud16.png");
+}
+
+treechildren::-moz-tree-image(DirCol, davyahoo) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/content/skin/yahoo16.png");
+}
+
+treechildren::-moz-tree-image(DirCol, davgmx) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/content/skin/gmx16.png");
+}
+
+treechildren::-moz-tree-image(DirCol, davcustom) {
+  margin-inline-end: 2px;
+  list-style-image: url("chrome://dav4tbsync/content/skin/sabredav16.png");
+}
+
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davgoogle"] {
+  list-style-image: url("chrome://dav4tbsync/content/skin/google16.png");
+}
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davweb"] {
+  list-style-image: url("chrome://dav4tbsync/content/skin/web16.png");
+}
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davfruux"] {
+  list-style-image: url("chrome://dav4tbsync/content/skin/fruux16.png");
+}
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davposteo"] {
+  list-style-image: url("chrome://dav4tbsync/content/skin/posteo16.png");
+}
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davmbo"] {
+  list-style-image: url("chrome://dav4tbsync/content/skin/mbo16.png");
+}
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davicloud"] {
+  list-style-image: url("chrome://dav4tbsync/content/skin/icloud16.png");
+}
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davyahoo"] {
+  list-style-image: url("chrome://dav4tbsync/content/skin/yahoo16.png");
+}
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davgmx"] {
+  list-style-image: url("chrome://dav4tbsync/content/skin/gmx16.png");
+}
+
+
+.abMenuItem[AddrBook="true"][TbSyncIcon="davcustom"] {
+  list-style-image: url("chrome://dav4tbsync/content/skin/sabredav16.png");
+}

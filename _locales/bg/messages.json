@@ -1,8 +1,356 @@
 {
-  "extensionName": {
-    "message": "Доставчик за CalDAV и CardDAV"
-  },
-  "extensionDescription": {
-    "message": "Разширява TbSync и позволява синхронизацията с CalDAV и CardDAV регистрации (контакти, задачи, календари)."
-  }
+    "abCard.ContactDetails": {
+        "message": "Свойства на контакта (CardDAV)"
+    },
+    "abCard.EmailAddresses": {
+        "message": "Електронни адреси:"
+    },
+    "abCard.MiddleName": {
+        "message": "Бащино име:"
+    },
+    "abCard.Phone": {
+        "message": "Телефонни номера"
+    },
+    "abCard.PrefixName": {
+        "message": "Представка:"
+    },
+    "abCard.SuffixName": {
+        "message": "Наставка:"
+    },
+    "abCard.emailtypes.car": {
+        "message": "Телефон в колата"
+    },
+    "abCard.emailtypes.cell": {
+        "message": "Мобилен телефон"
+    },
+    "abCard.emailtypes.description": {
+        "message": "Първият електронен адрес от списъка ще бъде ползван като основен."
+    },
+    "abCard.emailtypes.fax": {
+        "message": "Факс"
+    },
+    "abCard.emailtypes.home": {
+        "message": "Лични"
+    },
+    "abCard.emailtypes.other": {
+        "message": "Други"
+    },
+    "abCard.emailtypes.pager": {
+        "message": "Пейджър"
+    },
+    "abCard.emailtypes.video": {
+        "message": "Видео"
+    },
+    "abCard.emailtypes.voice": {
+        "message": "Телефон"
+    },
+    "abCard.emailtypes.work": {
+        "message": "Служебни"
+    },
+    "acl.add": {
+        "message": "вмъквате"
+    },
+    "acl.delete": {
+        "message": "изтриване"
+    },
+    "acl.modify": {
+        "message": "промяна"
+    },
+    "acl.none": {
+        "message": "никакви"
+    },
+    "acl.readonly": {
+        "message": "Достъп до сървъра само за четене (изтрива местните промени)"
+    },
+    "acl.readwrite": {
+        "message": "Права за писане на сървъра: ##replace.1##"
+    },
+    "add.caldavserver": {
+        "message": "CalDAV сървър:"
+    },
+    "add.carddavserver": {
+        "message": "CardDAV сървър:"
+    },
+    "add.data.description": {
+        "message": "Въведете име за новата TbSync регистрация и данните за връзка със сървъра ви:"
+    },
+    "add.data.notes": {
+        "message": "Бележка:"
+    },
+    "add.data.title": {
+        "message": "Въвеждане на регистрацията"
+    },
+    "add.finish.description": {
+        "message": "Следните настройки бяха потвърдени:"
+    },
+    "add.finish.details": {
+        "message": "Натиснете „Готово“ за да създадете нова TbSync регистрация с тези настройки."
+    },
+    "add.finish.title": {
+        "message": "Потвърдете създаването на регистрация"
+    },
+    "add.name": {
+        "message": "Име на регистрация:"
+    },
+    "add.ok": {
+        "message": "Добавяне на регистрация"
+    },
+    "add.password": {
+        "message": "Парола:"
+    },
+    "add.server": {
+        "message": "Адрес на сървър:"
+    },
+    "add.serverprofile.custom": {
+        "message": "Ръчно настройване"
+    },
+    "add.serverprofile.custom.description": {
+        "message": "Адресите за CalDAV и CardDAV услугите може да се настроят ръчно."
+    },
+    "add.serverprofile.custom.details1": {
+        "message": "Необходимите CalDAV и CardDAV адреси, съответно WebDAV адреса на потребителя, ще ви ги даде вашият доставчик."
+    },
+    "add.serverprofile.custom.details2": {
+        "message": "Ако оставите един от двата адреса празни, съответната услуга ще бъде изключена за вашата регистрация."
+    },
+    "add.serverprofile.description": {
+        "message": "Изберете един от наличните сървърни профили:"
+    },
+    "add.serverprofile.discovery": {
+        "message": "Автоматична настройка"
+    },
+    "add.serverprofile.discovery.description": {
+        "message": "Повечето сървъри поддържат автоматично настойване, за което е нужно да въведете само електронен адрес или потребителско име и сървър."
+    },
+    "add.serverprofile.discovery.details1": {
+        "message": "Въведете за автоматичното откриване на CalDAV и CardDAV адресите вашите данни за вход и съответния сървър (н.пр. “cloud.example.bg”)"
+    },
+    "add.serverprofile.discovery.details2": {
+        "message": "Ако потребителското ви име е адрес на електронна поща, указването на сървър не е задължително, тъй като информацията за настройките може да се извлече от доставчика (по RFC 6764)."
+    },
+    "add.serverprofile.discovery.server-optional": {
+        "message": "по желание"
+    },
+    "add.serverprofile.fruux": {
+        "message": "fruux"
+    },
+    "add.serverprofile.fruux.description": {
+        "message": "fruux е услуга, която синхронизира контакти, календари и задачи. Услугата се предлага от фирмата зад sabre/dav и седалището ѝ е в Германия."
+    },
+    "add.serverprofile.gmx.com": {
+        "message": "GMX.com (USA)"
+    },
+    "add.serverprofile.gmx.com.description": {
+        "message": "https://www.gmx.com"
+    },
+    "add.serverprofile.gmx.net": {
+        "message": "GMX.net (Europa)"
+    },
+    "add.serverprofile.gmx.net.description": {
+        "message": "https://www.gmx.net"
+    },
+    "add.serverprofile.google": {
+        "message": "Гугъл"
+    },
+    "add.serverprofile.google.description": {
+        "message": "https://accounts.google.com"
+    },
+    "add.serverprofile.google.details1": {
+        "message": "Гугъл използва съвременен подход за удостоверяване без потребителско име и парола. След като изберете „Напред >“, ще се пръкне джам. Влезте чрез него в Гугъл и позволете на “Provider for CalDAV & CardDAV” достъп до данните ви."
+    },
+    "add.serverprofile.icloud": {
+        "message": "iCloud"
+    },
+    "add.serverprofile.icloud.description": {
+        "message": "https://www.icloud.com"
+    },
+    "add.serverprofile.icloud.details1": {
+        "message": "Потребителското име е вашият Apple ID. Паролата обаче не е паролата за вашия Apple ID! За да синхронизира TbSync вашите контакти и календари е необходимо да включите регистрацията с два фактора (2FA) за вашата iCloud-регистрация и да създадете отделна парола за приложението TbSync."
+    },
+    "add.serverprofile.icloud.details2": {
+        "message": "Това е допълнително ниво на защита, наложено от Apple, което не дава достъп на приложенията до вашата Apple-регистрация."
+    },
+    "add.serverprofile.mbo": {
+        "message": "mailbox.org"
+    },
+    "add.serverprofile.mbo.description": {
+        "message": "mailbox.org е германски доставчик от германия с акцент върху сигурността за частни и бизнес клиенти. Предлага календари, контакти и място в облака."
+    },
+    "add.serverprofile.posteo": {
+        "message": "Posteo"
+    },
+    "add.serverprofile.posteo.description": {
+        "message": "https://www.posteo.de"
+    },
+    "add.serverprofile.title": {
+        "message": "Избор на сървърен профил"
+    },
+    "add.serverprofile.web.de": {
+        "message": "WEB.de"
+    },
+    "add.serverprofile.web.de.description": {
+        "message": "https://www.web.de"
+    },
+    "add.serverprofile.yahoo": {
+        "message": "Yahoo!"
+    },
+    "add.serverprofile.yahoo.description": {
+        "message": "https://www.yahoo.com"
+    },
+    "add.serverprofile.yahoo.details1": {
+        "message": "The requested password is an app-specific password for TbSync which you can create in your Yahoo! web portal. It is not your standard Yahoo! password."
+    },
+    "add.spinner.query": {
+        "message": "Изпращане на RFC 6764 запитване до „##replace.1##“"
+    },
+    "add.spinner.validating": {
+        "message": "Проверяване на връзката към сървъра"
+    },
+    "add.title": {
+        "message": "Добавяне на CalDAV и CardDAV регистрация към TbSync"
+    },
+    "add.user": {
+        "message": "Потребителско име:"
+    },
+    "autocomplete.HOME": {
+        "message": "личен"
+    },
+    "autocomplete.PREF": {
+        "message": "предпочитан"
+    },
+    "autocomplete.WORK": {
+        "message": "служебен"
+    },
+    "config.custom": {
+        "message": "CalDAV и CardDAV настройки на сървъра"
+    },
+    "defaultname.calendar": {
+        "message": "Календар"
+    },
+    "defaultname.contacts": {
+        "message": "Контакти"
+    },
+    "extensionDescription": {
+        "message": "Разширява TbSync и позволява синхронизацията с CalDAV и CardDAV регистрации (контакти, задачи, календари)."
+    },
+    "extensionName": {
+        "message": "Доставчик за CalDAV и CardDAV"
+    },
+    "helplink.malformed-xml": {
+        "message": "https://github.com/jobisoft/DAV-4-TbSync/issues/104"
+    },
+    "manager.tabs.accountsettings": {
+        "message": "Настройки на регистрацията"
+    },
+    "manager.tabs.syncsettings": {
+        "message": "Опции"
+    },
+    "menu.name": {
+        "message": "CalDAV и CardDAV"
+    },
+    "pref.AccountName": {
+        "message": "Име на регистрация"
+    },
+    "pref.CalDavServer": {
+        "message": "Адрес на CalDAV сървъра:"
+    },
+    "pref.CardDavServer": {
+        "message": "Адрес на CardDAV сървъра:"
+    },
+    "pref.UserName": {
+        "message": "Потребителско име"
+    },
+    "pref.calendaroptions": {
+        "message": "Настройки за календара"
+    },
+    "pref.contactoptions": {
+        "message": "Настройки за контакта"
+    },
+    "pref.downloadonly": {
+        "message": "Пренебрегване на местните промени (еднопосочно синхронизаране)"
+    },
+    "pref.generaloptions": {
+        "message": "Общи настройки"
+    },
+    "pref.syncGroups": {
+        "message": "Групите контакти ги синхронизирай като Thunderbird списъци"
+    },
+    "pref.syncGroupsDescription": {
+        "message": "Забележка: Заради TB грешка 1522453 TbSync трябва към всички контакти, които нямат електронен адрес и принадлежат към група, да добави някакъв електронен адрес.  Този вмъкнат адрес не се синхронизира със сървъра."
+    },
+    "pref.useCalendarCache": {
+        "message": "Офлайн поддръжка"
+    },
+    "pref.useCardBook": {
+        "message": "Създай адресен указател в CardBook, вместо в стандартния адресен указател на Thunderbird"
+    },
+    "status.401": {
+        "message": "Достъпът отказан, проверете потребителското име и паролата."
+    },
+    "status.403": {
+        "message": "Връзката беше отхвърнена от сървъра (забранена)."
+    },
+    "status.404": {
+        "message": "HTTP грешка 404 (поисканият ресурс не беше намерен)."
+    },
+    "status.500": {
+        "message": "Непозната грешка от сървъра (HTTP грешка 500)."
+    },
+    "status.503": {
+        "message": "Услугата е недостъпна."
+    },
+    "status.caldavservernotfound": {
+        "message": "Не беше намерен CalDAV сървър."
+    },
+    "status.carddavservernotfound": {
+        "message": "Не беше намерен CardDAV сървър."
+    },
+    "status.gContactSync": {
+        "message": "Има несъвместимост с gContactSync при включена синхронизация на групите от контакти. Изключете едно от двете, докато грешката не бъде отстранена."
+    },
+    "status.info.restored": {
+        "message": "Поради частично недостатъчни права за правене на промени, някои действия бяха отхвърлени от сървъра и местните промени бяха изтрити."
+    },
+    "status.malformed-xml": {
+        "message": "Отговорът не е правилен XML.  Синхронизацията беше прекъсната.  Проверете протокола със събитията за подробности."
+    },
+    "status.missing-permission": {
+        "message": "Недостатъчни права: ##replace.1##"
+    },
+    "status.networkerror": {
+        "message": "Не можах да се свръжа със сървъра."
+    },
+    "status.rfc6764-lookup-failed": {
+        "message": "Запитването за „##replace.1##“ не намери адресите за CalDAV и CardDAV услугите. Въведете името на сървъра, за да продължи настройването."
+    },
+    "status.service-discovery-failed": {
+        "message": "Откриването на настройките по RFC6764 за „##replace.1##“ не проработи. Въведете друг адрес на сървър или направете ръчно настройване, за да въведете сами адресите."
+    },
+    "status.softerror": {
+        "message": "Пренебрегната грешка (##replace.1##)"
+    },
+    "status.success.managed-by-lightning": {
+        "message": "Lightning"
+    },
+    "syncstate.eval.folders": {
+        "message": "Обновяване на списъка с ресурсите"
+    },
+    "syncstate.eval.response.localchanges": {
+        "message": "Обработка на потвърждението за местните промени"
+    },
+    "syncstate.eval.response.remotechanges": {
+        "message": "Обработка на новите данни от сървъра"
+    },
+    "syncstate.prepare.request.localchanges": {
+        "message": "Изпращане на местните промени"
+    },
+    "syncstate.send.getfolders": {
+        "message": "Запитване за списък с ресурсите"
+    },
+    "syncstate.send.request.localchanges": {
+        "message": "Изчакване за потвърждение, че местните промени са изпратени"
+    },
+    "syncstate.send.request.remotechanges": {
+        "message": "Изчакване на данни от сървъра за промени"
+    }
 }

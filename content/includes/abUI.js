@@ -51,9 +51,9 @@ var ui = {
         }
 
         if (icon.parentNode.meta.includes("PREF")) {
-            icon.setAttribute("src", "chrome://dav4tbsync/skin/type.pref.png");
+            icon.setAttribute("src", "chrome://dav4tbsync/content/skin/type.pref.png");
         } else {
-            icon.setAttribute("src", "chrome://dav4tbsync/skin/type.nopref.png");
+            icon.setAttribute("src", "chrome://dav4tbsync/content/skin/type.nopref.png");
         }
     },
 
@@ -72,7 +72,7 @@ var ui = {
 
         let intersection = button.parentNode.meta.filter(value => -1 !== button.allowedValues.indexOf(value));
         let buttonType = (intersection.length > 0) ? intersection[0].toLowerCase() : button.otherIcon;       
-        button.setAttribute("image","chrome://dav4tbsync/skin/type."+buttonType+"10.png");
+        button.setAttribute("image","chrome://dav4tbsync/content/skin/type."+buttonType+"10.png");
     },    
 
     dragdrop: {
@@ -144,7 +144,7 @@ var ui = {
             let image = aWindow.document.createXULElement("image");
             image.setAttribute("width","10");
             image.setAttribute("height","10");
-            image.setAttribute("src", "chrome://dav4tbsync/skin/type."+emailType+"10.png");
+            image.setAttribute("src", "chrome://dav4tbsync/content/skin/type."+emailType+"10.png");
         vbox.appendChild(image);
 
         //second column
@@ -161,7 +161,7 @@ var ui = {
                 pref.setAttribute("style", "margin-left:1ex;");
                 pref.setAttribute("width", "11");
                 pref.setAttribute("height", "10");
-                pref.setAttribute("src", "chrome://dav4tbsync/skin/type.nopref.png");
+                pref.setAttribute("src", "chrome://dav4tbsync/content/skin/type.nopref.png");
                 description.appendChild(pref);
             }
         
@@ -189,7 +189,7 @@ var ui = {
         outerhbox.addEventListener("dragend", dav.ui.dragdrop);
         outerhbox.addEventListener("drop", dav.ui.dragdrop);
         
-        outerhbox.style["background-image"] = "url('chrome://dav4tbsync/skin/dragdrop.png')"; 
+        outerhbox.style["background-image"] = "url('chrome://dav4tbsync/content/skin/dragdrop.png')"; 
         outerhbox.style["background-position"] = "right";
         outerhbox.style["background-repeat"] = "no-repeat";
         
@@ -316,7 +316,7 @@ var ui = {
                 image.setAttribute("style","margin-right:1ex;");
                 image.setAttribute("width","10");
                 image.setAttribute("height","10");
-                image.setAttribute("src", "chrome://dav4tbsync/skin/type."+phoneType1+"10.png");
+                image.setAttribute("src", "chrome://dav4tbsync/content/skin/type."+phoneType1+"10.png");
                 vbox.appendChild(image);
             }
             if (phoneType2) {
@@ -324,7 +324,7 @@ var ui = {
                 image.setAttribute("style","margin-right:1ex;");
                 image.setAttribute("width","10");
                 image.setAttribute("height","10");
-                image.setAttribute("src", "chrome://dav4tbsync/skin/type."+phoneType2+"10.png");
+                image.setAttribute("src", "chrome://dav4tbsync/content/skin/type."+phoneType2+"10.png");
                 vbox.appendChild(image);
             }
 
@@ -339,7 +339,7 @@ var ui = {
             pref.setAttribute("style", "margin-left:1ex;");
             pref.setAttribute("width", "11");
             pref.setAttribute("height", "10");
-            pref.setAttribute("src", "chrome://dav4tbsync/skin/type.nopref.png");
+            pref.setAttribute("src", "chrome://dav4tbsync/content/skin/type.nopref.png");
             description.appendChild(pref);
         }
         
@@ -367,7 +367,7 @@ var ui = {
         outerhbox.addEventListener("dragend", dav.ui.dragdrop);
         outerhbox.addEventListener("drop", dav.ui.dragdrop);
         
-        outerhbox.style["background-image"] = "url('chrome://dav4tbsync/skin/dragdrop.png')"; 
+        outerhbox.style["background-image"] = "url('chrome://dav4tbsync/content/skin/dragdrop.png')"; 
         outerhbox.style["background-position"] = "right";
         outerhbox.style["background-repeat"] = "no-repeat";
 

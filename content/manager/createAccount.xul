@@ -1,16 +1,10 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
-<!DOCTYPE window [
-  <!ENTITY % tbsyncDTD SYSTEM "chrome://tbsync/locale/tbSync.dtd">
-  %tbsyncDTD;
-  <!ENTITY % davDTD SYSTEM "chrome://dav4tbsync/locale/dav.dtd">
-  %davDTD;
-]>
 
 <wizard 
       width="500"
       height="600"
-      title="&add.title;"
+      title="__DAV4TBSYNCMSG_add.title__"
       id="tbsync.newaccount.wizard"
       onload="tbSyncDavNewAccount.onLoad();"
       onunload="tbSyncDavNewAccount.onUnload();"
@@ -19,17 +13,18 @@
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <script type="application/javascript" src="chrome://dav4tbsync/content/manager/createAccount.js"/>
+  <script type="application/javascript" src="chrome://dav4tbsync/content/locales.js"/>
 
-  <wizardpage id="firstPage" onFirstPage="true" label="&add.serverprofile.title;">
+  <wizardpage id="firstPage" onFirstPage="true" label="__DAV4TBSYNCMSG_add.serverprofile.title__">
     <vbox flex="1">
-        <description style="width: 450px; margin-top:1em;">&add.serverprofile.description;</description>
+        <description style="width: 450px; margin-top:1em;">__DAV4TBSYNCMSG_add.serverprofile.description__</description>
         <richlistbox id="tbsync.newaccount.serviceproviderlist" flex="1" seltype="single" style="margin-top:1ex" onselect="tbSyncDavNewAccount.clearValues();" ondblclick="tbSyncDavNewAccount.advance()"/>
     </vbox>
   </wizardpage>
   
-  <wizardpage id="secondPage" label="&add.data.title;">
+  <wizardpage id="secondPage" label="__DAV4TBSYNCMSG_add.data.title__">
     <vbox flex="1">
-        <description style="width: 450px; margin-top:1em;">&add.data.description;</description>
+        <description style="width: 450px; margin-top:1em;">__DAV4TBSYNCMSG_add.data.description__</description>
         <grid style="margin-top:1ex">
             <columns>
                 <column flex="1" />
@@ -37,32 +32,32 @@
             </columns>
             <rows>
                 <row id="tbsync.newaccount.name.row">
-                    <vbox pack="center"><label value="&add.name;" /></vbox>
+                    <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.name__" /></vbox>
                     <textbox id="tbsync.newaccount.name" oninput="tbSyncDavNewAccount.checkUI();"/>
                 </row>
                 <row id="tbsync.newaccount.user.row">
-                    <vbox pack="center"><label value="&add.user;" /></vbox>
+                    <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.user__" /></vbox>
                     <textbox id="tbsync.newaccount.user" oninput="tbSyncDavNewAccount.checkUI(true);" />
                 </row>
                 <row id="tbsync.newaccount.password.row">
-                    <vbox pack="center"><label value="&add.password;" /></vbox>
+                    <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.password__" /></vbox>
                     <textbox id="tbsync.newaccount.password" type="password" oninput="tbSyncDavNewAccount.checkUI(true);"/>
                 </row>
                 <row id="tbsync.newaccount.server.row" style="margin-top:2em;">
-                    <vbox pack="center"><label value="&add.server;" /></vbox>
+                    <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.server__" /></vbox>
                     <textbox id="tbsync.newaccount.server" oninput="tbSyncDavNewAccount.checkUI(true);"/>
                 </row>
                 <row id="tbsync.newaccount.caldavserver.row" style="margin-top:2em;">
-                    <vbox pack="center"><label value="&add.caldavserver;" /></vbox>
+                    <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.caldavserver__" /></vbox>
                     <textbox id="tbsync.newaccount.caldavserver" oninput="tbSyncDavNewAccount.checkUI(true);"/>
                 </row>
                 <row id="tbsync.newaccount.carddavserver.row">
-                    <vbox pack="center"><label value="&add.carddavserver;" /></vbox>
+                    <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.carddavserver__" /></vbox>
                     <textbox id="tbsync.newaccount.carddavserver" oninput="tbSyncDavNewAccount.checkUI(true);"/>
                 </row>
             </rows>
         </grid>
-        <label class="header" id="tbsync.newaccount.details.header" value="&add.data.notes;" style="margin-top:2em" />
+        <label class="header" id="tbsync.newaccount.details.header" value="__DAV4TBSYNCMSG_add.data.notes__" style="margin-top:2em" />
         <description id="tbsync.newaccount.details1" style="width: 450px; margin-top:1ex;"></description>
         <description id="tbsync.newaccount.details2" style="width: 450px; margin-top:1ex;"></description>
         <description id="tbsync.newaccount.details3" style="width: 450px; margin-top:1ex;"></description>
@@ -70,23 +65,23 @@
         </vbox>
         <hbox id="tbsync.spinner">
             <label id="tbsync.spinner.label" value="" />
-            <image src="chrome://tbsync/skin/spinner.gif" style="margin-left:1em" width="16" height="16"/>
+            <image src="chrome://tbsync/content/skin/spinner.gif" style="margin-left:1em" width="16" height="16"/>
         </hbox>
         <vbox id="tbsync.error" style="width: 450px;">
             <description id="tbsync.error.message" flex="1" style="font-weight: bold;"></description>
             <vbox>
               <button 
               id="tbsync.error.link" 
-              label="&manager.ShowEventLog;"
+              label="__DAV4TBSYNCMSG_manager.ShowEventLog__"
               oncommand="TbSync.eventlog.open();"/>
             </vbox>
         </vbox>    
     </vbox>
   </wizardpage>
   
-  <wizardpage id="thirdPage" label="&add.finish.title;">
+  <wizardpage id="thirdPage" label="__DAV4TBSYNCMSG_add.finish.title__">
     <vbox flex="1">
-        <description style="width: 450px; margin-top:1em;">&add.finish.description;</description>
+        <description style="width: 450px; margin-top:1em;">__DAV4TBSYNCMSG_add.finish.description__</description>
         <grid style="margin-top:1ex">
             <columns>
                 <column flex="1" />
@@ -94,26 +89,26 @@
             </columns>
             <rows>
                 <row>
-                    <vbox pack="center"><label value="&add.name;" /></vbox>
+                    <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.name__" /></vbox>
                     <html:input id="tbsync.finalaccount.name" style="margin:2px" />
                 </row>
                 <row id="tbsync.newaccount.finaluser.row">
-                    <vbox pack="center"><label value="&add.user;" /></vbox>
+                    <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.user__" /></vbox>
                     <html:input type="text" id="tbsync.finalaccount.user" readonly="true" style="margin:2px; background-color:silver;" />
                 </row>
                 <row style="margin-bottom:2em;">
                 </row>
                 <row id="tbsyncfinalaccount.caldavserver.row">
-                    <vbox pack="center"><label value="&add.caldavserver;" /></vbox>
+                    <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.caldavserver__" /></vbox>
                     <html:input id="tbsync.finalaccount.caldavserver" readonly="true" style="margin:2px; background-color:silver;" />
                 </row>
                 <row id="tbsyncfinalaccount.carddavserver.row">
-                    <vbox pack="center"><label value="&add.carddavserver;" /></vbox>
+                    <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.carddavserver__" /></vbox>
                     <html:input id="tbsync.finalaccount.carddavserver" readonly="true" style="margin:2px; background-color:silver;" />
                 </row>
             </rows>
         </grid>
-        <description id="tbsync.finalaccount.details1" style="width: 450px; margin-top:2em;">&add.finish.details;</description>
+        <description id="tbsync.finalaccount.details1" style="width: 450px; margin-top:2em;">__DAV4TBSYNCMSG_add.finish.details__</description>
     </vbox>
   </wizardpage>
   

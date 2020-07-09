@@ -159,7 +159,7 @@ var tbSyncDavNewAccount = {
         
         //left column
         let image = document.createXULElement("image");
-        image.setAttribute("src", "chrome://dav4tbsync/skin/" + icon);
+        image.setAttribute("src", "chrome://dav4tbsync/content/skin/" + icon);
         image.setAttribute("style", "margin:1ex;");
 
         let leftColumn = document.createXULElement("vbox");
@@ -273,6 +273,8 @@ var tbSyncDavNewAccount = {
         // RESET / INIT first page
         document.getElementById("tbsync.newaccount.wizard").canRewind = false;
         document.getElementById("tbsync.newaccount.wizard").canAdvance = true;
+        // bug https://bugzilla.mozilla.org/show_bug.cgi?id=1618252
+        document.getElementById('tbsync.newaccount.wizard')._adjustWizardHeader();
         this.isLocked = false;
         this.validated = false;
     },

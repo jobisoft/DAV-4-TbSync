@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!DOCTYPE window SYSTEM "chrome://dav4tbsync/locale/dav.dtd">
 
 <overlay 
     id="TbSyncAbDavDetailsOverlay"
@@ -9,9 +8,10 @@
     xmlns:html="http://www.w3.org/1999/xhtml">
 
     <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.js" />
+    <script type="application/javascript" src="chrome://dav4tbsync/content/locales.js"/>
 
         <vbox id="cvbEmails" class="cardViewGroup" insertafter="cvbContact">
-            <description class="CardViewHeading" id="cvhEmails">&abCard.EmailAddresses;</description>
+            <description class="CardViewHeading" id="cvhEmails">__DAV4TBSYNCMSG_abCard.EmailAddresses__</description>
             <grid>
                 <columns>
                     <column flex="0"/>
@@ -23,7 +23,7 @@
         </vbox>
 
         <vbox id="cvbPhoneNumbers" class="cardViewGroup" insertafter="cvbPhone">
-            <description class="CardViewHeading" id="cvhPhoneNumbers">&abCard.Phone;</description>
+            <description class="CardViewHeading" id="cvhPhoneNumbers">__DAV4TBSYNCMSG_abCard.Phone__</description>
             <grid>
                 <columns>
                     <column flex="0"/>

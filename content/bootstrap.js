@@ -10,7 +10,7 @@
 
 var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 
-let thisID = "";
+let gExtension = "";
 let component = {};
 
 let onInitDoneObserver = {
@@ -25,21 +25,14 @@ let onInitDoneObserver = {
         
         //load this provider add-on into TbSync
         if (valid) {
-            await TbSync.providers.loadProvider(thisID, "dav", "chrome://dav4tbsync/content/provider.js");
+            await TbSync.providers.loadProvider(gExtension, "dav", "chrome://dav4tbsync/content/provider.js");
         }
     }
 }
 
-function install(data, reason) {
-}
 
-function uninstall(data, reason) {
-}
-
-function startup(data, reason) {
-    // Possible reasons: APP_STARTUP, ADDON_ENABLE, ADDON_INSTALL, ADDON_UPGRADE, or ADDON_DOWNGRADE.
-
-    thisID = data.id;
+function startup(addon, extension) {
+    gExtension = extension;
     Services.obs.addObserver(onInitDoneObserver, "tbsync.observer.initialized", false);
 
     Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/tbSyncDavCalendar.js", component);    
@@ -51,24 +44,10 @@ function startup(data, reason) {
         component.NSGetFactory(component.tbSyncDavCalendar.prototype.classID)
     );
     
-    // The startup of TbSync is delayed until all add-ons have called their startup(),
-    // so all providers have registered the "tbsync.observer.initialized" observer.
-    // Once TbSync has finished its startup, all providers will be notified (also if
-    // TbSync itself is restarted) to load themself.
-    // If this is not startup, we need load manually.
-    if (reason != APP_STARTUP) {
-        onInitDoneObserver.observe();
-    }
+    onInitDoneObserver.observe();
 }
 
-function shutdown(data, reason) {
-    // Possible reasons: APP_SHUTDOWN, ADDON_DISABLE, ADDON_UNINSTALL, ADDON_UPGRADE, or ADDON_DOWNGRADE.
-
-    // When the application is shutting down we normally don't have to clean up.
-    if (reason == APP_SHUTDOWN) {
-        return;
-    }
-
+function shutdown(addon, extension) {
 	let registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
 	registrar.unregisterFactory(
 		component.tbSyncDavCalendar.prototype.classID,
@@ -83,5 +62,4 @@ function shutdown(data, reason) {
     } catch (e) {
         //if this fails, TbSync has been unloaded already and has unloaded this addon as well
     }
-    Services.obs.notifyObservers(null, "chrome-flush-caches", null);
 }
