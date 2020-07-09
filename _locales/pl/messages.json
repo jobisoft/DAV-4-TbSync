@@ -123,7 +123,7 @@
         "message": "Wielu dostawców usług i serwerów wspiera proces automatycznej konfiguracji, który wymaga tylko adresu e-mail lub nazwy użytkownika i adresu serwera."
     },
     "add.serverprofile.discovery.details1": {
-        "message": "For the automatic discovery of the CalDAV & CardDAV service endpoints, please enter your credentials and the host name of your server (e.g. 'cloud.myserver.de')."
+        "message": "Dla automatycznego wykrywania punktów końcowych usługi CalDAV i CardDAV, wprowadź swoje poświadczenia i nazwę hosta swojego serwera (np. 'cloud.myserver.de')."
     },
     "add.serverprofile.discovery.details2": {
         "message": "Jeśli nazwa użytkownika to adres e-mail, określenie serwera staje się opcjonalne, ponieważ informacje o punktach końcowych usługi można uzyskać bezpośrednio od usługodawcy za pośrednictwem żądania RFC6764 (jeśli jest obsługiwane)."
@@ -156,7 +156,7 @@
         "message": "https://accounts.google.com"
     },
     "add.serverprofile.google.details1": {
-        "message": "Google uses a modern authentication method and TbSync does not need to know your username or your password. After clicking 'Next >', a browser window will be opened, where you can log into your Google account and allow the 'Provider for CalDAV & CardDAV' to access your contacts and calendars."
+        "message": "Google stosuje nowoczesną metodę uwierzytelniania i TbSync nie musi znać Twojej nazwy użytkownika ani hasła. Po kliknięciu 'Dalej >' otworzy się okno przeglądarki, w którym możesz zalogować się na swoje konto Google i zezwolić 'Provider for CalDAV & CardDAV' na dostęp do twoich kontaktów i kalendarzy."
     },
     "add.serverprofile.icloud": {
         "message": "iCloud"
