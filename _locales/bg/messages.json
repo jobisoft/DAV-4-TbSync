@@ -123,7 +123,7 @@
         "message": "Повечето сървъри поддържат автоматично настойване, за което е нужно да въведете само електронен адрес или потребителско име и сървър."
     },
     "add.serverprofile.discovery.details1": {
-        "message": "For the automatic discovery of the CalDAV & CardDAV service endpoints, please enter your credentials and the host name of your server (e.g. 'cloud.myserver.de')."
+        "message": "За автоматичното откриване на CalDAV и CardDAV настройките въведете потребителското име и сървъра (н.пр. „cloud.myserver.bg“)."
     },
     "add.serverprofile.discovery.details2": {
         "message": "Ако потребителското ви име е адрес на електронна поща, указването на сървър не е задължително, тъй като информацията за настройките може да се извлече от доставчика (по RFC 6764)."
@@ -156,7 +156,7 @@
         "message": "https://accounts.google.com"
     },
     "add.serverprofile.google.details1": {
-        "message": "Google uses a modern authentication method and TbSync does not need to know your username or your password. After clicking 'Next >', a browser window will be opened, where you can log into your Google account and allow the 'Provider for CalDAV & CardDAV' to access your contacts and calendars."
+        "message": "Гугъл използва съвременен подход за удостоверяване без потребителско име и парола. След като изберете „Напред >“, ще се пръкне джам. Влезте чрез него в Гугъл и позволете на “Provider for CalDAV & CardDAV” достъп до данните ви."
     },
     "add.serverprofile.icloud": {
         "message": "iCloud"
