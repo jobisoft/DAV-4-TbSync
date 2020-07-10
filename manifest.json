@@ -28,4 +28,5 @@
         "script": "content/api/LegacyBootstrap/implementation.js"
       }
     }
-  }}
+  }
+}
