@@ -6,7 +6,6 @@
     xmlns:html="http://www.w3.org/1999/xhtml">
 
     <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.js" />
-    <script type="application/javascript" src="chrome://dav4tbsync/content/locales.js"/>
 
         <vbox id="cvbEmails" class="cardViewGroup" insertafter="cvbContact">
             <description class="CardViewHeading" id="cvhEmails">__DAV4TBSYNCMSG_abCard.EmailAddresses__</description>

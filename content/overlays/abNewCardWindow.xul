@@ -6,6 +6,7 @@
 	xmlns:html="http://www.w3.org/1999/xhtml">
 	
    <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/abNewCardWindow.js" />
+   <script type="application/javascript" src="chrome://dav4tbsync/content/locales.js"/>
 
 </overlay>
 

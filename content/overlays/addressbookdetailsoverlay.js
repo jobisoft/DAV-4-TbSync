@@ -22,6 +22,7 @@ var tbSyncDavAddressBookDetails = {
             window.document.getElementById("abResultsTree").addEventListener("select", tbSyncDavAddressBookDetails.onAbResultSelectionChanged, false);
             tbSyncDavAddressBookDetails.onAbResultSelectionChanged();
         }
+        TbSync.localizeNow(window, "dav");        
     },
 
     onRemove: function (window) {
