@@ -7,7 +7,6 @@
     xmlns:html="http://www.w3.org/1999/xhtml">
 
     <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/abCardWindow.js" />
-    <script type="application/javascript" src="chrome://dav4tbsync/content/locales.js"/>
 
     <hbox id="DavEmailSpacer" insertbefore="NickNameContainer" style="margin-bottom:2ex">
         <menupopup position="start_before">
