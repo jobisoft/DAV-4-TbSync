@@ -35,16 +35,16 @@ var Base = class {
 
         let providerData = new TbSync.ProviderData("dav");   
         dav.overlayManager = new OverlayManager(providerData.extension, {verbose: 0});
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abNewCardWindow.xul");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCardWindow.xul");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xul");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xul");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xhtml", "chrome://dav4tbsync/content/overlays/abNewCardWindow.xhtml");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xhtml", "chrome://dav4tbsync/content/overlays/abCardWindow.xhtml");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xhtml", "chrome://dav4tbsync/content/overlays/abCardWindow.xhtml");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xhtml", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xhtml");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xhtml", "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xhtml");
 
         // The abCSS.xul overlay is just adding a CSS file.
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/messengercompose/messengercompose.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xul", "chrome://dav4tbsync/content/overlays/abCSS.xul");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/messengercompose/messengercompose.xhtml", "chrome://dav4tbsync/content/overlays/abCSS.xhtml");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xhtml", "chrome://dav4tbsync/content/overlays/abCSS.xhtml");
+        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xhtml", "chrome://dav4tbsync/content/overlays/abCSS.xhtml");
 
         dav.overlayManager.startObserving();
     }
@@ -143,16 +143,16 @@ var Base = class {
      * new account of this provider.
      */
     static getCreateAccountWindowUrl() {
-        return "chrome://dav4tbsync/content/manager/createAccount.xul";
+        return "chrome://dav4tbsync/content/manager/createAccount.xhtml";
     }
 
 
     /**
      * Returns overlay XUL URL of the edit account dialog
-     * (chrome://tbsync/content/manager/editAccount.xul)
+     * (chrome://tbsync/content/manager/editAccount.xhtml)
      */
     static getEditAccountOverlayUrl() {
-        return "chrome://dav4tbsync/content/manager/editAccountOverlay.xul";
+        return "chrome://dav4tbsync/content/manager/editAccountOverlay.xhtml";
     }
 
 
