@@ -350,7 +350,7 @@ var tools = {
         let vCardData = dav.vCard.parse(vCard);
 
         //check if contact or mailinglist
-        if (!dav.tools.vCardIsMailingList (syncData, id, null, vCard, vCardData, etag)) {
+        if (!(await dav.tools.vCardIsMailingList (syncData, id, null, vCard, vCardData, etag))) {
             //prepare new contact card
             let card = syncData.target.createNewCard();
             card.setProperty("X-DAV-HREF", id);
@@ -358,7 +358,7 @@ var tools = {
             card.setProperty("X-DAV-VCARD", vCard);
 
             await dav.tools.setThunderbirdCardFromVCard(syncData, card, vCardData);
-            syncData.target.addItem(card);
+            await syncData.target.addItem(card);
         }
     },
 
@@ -367,10 +367,10 @@ var tools = {
         let vCardData = dav.vCard.parse(vCard);
 
         //get card
-        let card = syncData.target.getItemFromProperty("X-DAV-HREF", id);
+        let card = await syncData.target.getItemFromProperty("X-DAV-HREF", id);
         if (card) {
             //check if contact or mailinglist to update card
-            if (!dav.tools.vCardIsMailingList (syncData, id, card, vCard, vCardData, etag)) {          
+            if (!(await dav.tools.vCardIsMailingList (syncData, id, card, vCard, vCardData, etag))) {
                 //get original vCard data as stored by last update from server
                 let oCard = card.getProperty("X-DAV-VCARD");
                 let oCardData = oCard ? dav.vCard.parse(oCard) : null;
@@ -391,7 +391,7 @@ var tools = {
     
     
     //check if vCard is a mailinglist and handle it
-    vCardIsMailingList: function (syncData, id, _list, vCard, vCardData, etag) {
+    vCardIsMailingList: async function (syncData, id, _list, vCard, vCardData, etag) {
         if (vCardData.hasOwnProperty("X-ADDRESSBOOKSERVER-KIND") && vCardData["X-ADDRESSBOOKSERVER-KIND"][0].value == "group") { 
             if (!syncData.accountData.getAccountProperty("syncGroups")) {
                 //user did not enable group sync, so do nothing, but return true so this card does not get added as a real card
@@ -407,7 +407,7 @@ var tools = {
                 list.setProperty("X-DAV-HREF", id);
                 list.setProperty("X-DAV-UID", vCardInfo.uid);
                 list.setProperty("ListName",  vCardInfo.name);
-                syncData.target.addItem(list);
+                await syncData.target.addItem(list);
             } else {
                 list.setProperty("ListName",  vCardInfo.name);
                 syncData.target.modifyItem(list);

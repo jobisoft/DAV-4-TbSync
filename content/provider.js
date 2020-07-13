@@ -291,16 +291,14 @@ var Base = class {
         );
 
         // searchQuery has all the (or(...)) searches, link them up with (and(...)).
-        searchQuery = "?(and" + searchQuery + ")";
+        searchQuery = "(and" + searchQuery + ")";
         
         while (allAddressBooks.hasMoreElements()) {
             let abook = allAddressBooks.getNext().QueryInterface(Components.interfaces.nsIAbDirectory);
             if (abook instanceof Components.interfaces.nsIAbDirectory) { // or nsIAbItem or nsIAbCollection
                 if (TbSync.addressbook.getStringValue(abook, "tbSyncAccountID","") == accountData.accountID) {
-                    let cards = MailServices.ab.getDirectory(abook.URI + searchQuery).childCards;
-                    while (cards.hasMoreElements()) {
-                        let card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-                        
+                    let cards = await TbSync.addressbook.search(abook.URI, searchQuery)
+                    for (let card of cards) {                        
                         if (card.isMailList) {
 
                             entries.push({

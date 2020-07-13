@@ -541,7 +541,7 @@ var sync = {
             let id = cards.multi[c].href;
             if (id !==null) {
                 //valid
-                let card = syncData.target.getItemFromProperty("X-DAV-HREF", id);
+                let card = await syncData.target.getItemFromProperty("X-DAV-HREF", id);
                 if (cards.multi[c].status == "200") {
                     //MOD or ADD
                     let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
@@ -636,7 +636,7 @@ var sync = {
 
                 if (cards.multi[c].status == "200" && etag !== null && id !== null /* && ctype !== null */) { //we do not actually check the content of ctype - but why do we request it? iCloud seems to send cards without ctype
                     vCardsFoundOnServer.push(id);
-                    let card = syncData.target.getItemFromProperty("X-DAV-HREF", id);
+                    let card = await syncData.target.getItemFromProperty("X-DAV-HREF", id);
                     if (!card) {
                         //if the user deleted this card (not yet send to server), do not add it again
                         if (!localDeletes.includes(id)) {
@@ -740,7 +740,7 @@ var sync = {
                 if (syncData.foundMailingListsDuringDownSync.hasOwnProperty(listID)) {
                     l++;
                     
-                    let list = syncData.target.getItemFromProperty("X-DAV-HREF", listID);
+                    let list = await syncData.target.getItemFromProperty("X-DAV-HREF", listID);
                     if (!list.isMailList)
                         continue;
                     
@@ -772,7 +772,7 @@ var sync = {
                     // Check that all new members have an email address (fix for bug 1522453)
                     let m=0;
                     for (let member of newMembers) {
-                        let card = syncData.target.getItemFromProperty("X-DAV-UID", member);
+                        let card = await syncData.target.getItemFromProperty("X-DAV-UID", member);
                         if (card) {
                             let email = card.getProperty("PrimaryEmail");
                             if (!email) {
@@ -847,7 +847,7 @@ var sync = {
                             let isAdding = (changes[i].status == "added_by_user");
                             if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
 
-                                let card = syncData.target.getItem(changes[i].itemId);
+                                let card = await syncData.target.getItem(changes[i].itemId);
                                 if (card) {
                                     if (card.isMailList && !syncGroups) {                                        
                                         // Conditionally break out of the switch early, but do
@@ -879,7 +879,7 @@ var sync = {
 
                             if (permissionError[changes[i].status]) {
                                 //we where not allowed to add or modify that card, remove it, we will get a fresh copy on the following revert
-                                let card = syncData.target.getItem(changes[i].itemId);
+                                let card = await syncData.target.getItem(changes[i].itemId);
                                 if (card) syncData.target.deleteItem(card);
                                 permissionErrors++;
                             }
