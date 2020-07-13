@@ -355,7 +355,7 @@ var sync = {
 
                         // Update color from server (skip if nolightning, no
                         // need to run into error when hasTarget() throws).
-                        if (color && job == "cal" && TbSync.lightning.isAvailable()) {
+                        if (color && job == "cal") {
                             color = color.textContent.substring(0,7);
                             folderData.setFolderProperty("targetColor", color);
                             
