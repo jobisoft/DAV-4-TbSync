@@ -5,23 +5,23 @@
 var { AddonManager } = ChromeUtils.import("resource://gre/modules/AddonManager.jsm");
 var { XPCOMUtils } = ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm");
 var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
-var { cal } = ChromeUtils.import("resource://calendar/modules/calUtils.jsm");
+var { cal } = ChromeUtils.import("resource:///modules/calendar/calUtils.jsm");
+var { CalDavCalendar } = ChromeUtils.import("resource:///modules/CalDavCalendar.jsm");
 
 Cu.importGlobalProperties(["TextDecoder"]);
-Services.scriptloader.loadSubScript("resource://calendar/components/calDavCalendar.js", this);
-Services.scriptloader.loadSubScript("resource://calendar/calendar-js/calDavRequestHandlers.js", this);
+//Services.scriptloader.loadSubScript("resource:///modules/caldav/CalDavRequestHandlers.jsm", this);
 
 //
 // tbSyncDavCalendar.js
 //
 
 function tbSyncDavCalendar() { 
-  calDavCalendar.call(this);
+  CalDavCalendar.call(this);
   this.tbSyncLoaded = false;
 } 
   
 tbSyncDavCalendar.prototype = { 
-  __proto__: calDavCalendar.prototype,
+  __proto__: CalDavCalendar.prototype,
   classID:  Components.ID('7eb8f992-3956-4607-95ac-b860ebd51f5a}'),
   classDescription: 'tbSyncCalDav',
   contractID: '@mozilla.org/calendar/calendar;1?type=tbSyncCalDav',
