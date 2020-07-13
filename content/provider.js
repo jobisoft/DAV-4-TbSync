@@ -541,7 +541,8 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
     }
 
     async createAddressbook(newname) {
-        let dirPrefId = MailServices.ab.newAddressBook(newname, "", 2);
+        // https://searchfox.org/comm-central/source/mailnews/addrbook/src/nsDirPrefs.h
+        let dirPrefId = MailServices.ab.newAddressBook(newname, "", 101);
         let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
       
         dav.sync.resetFolderSyncInfo(this.folderData);
