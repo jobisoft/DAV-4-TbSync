@@ -24,27 +24,27 @@
                             <vbox pack="center">
                                 <label style="text-align:left" control="tbsync.accountsettings.pref.accountname" value="__DAV4TBSYNCMSG_pref.AccountName__" />
                             </vbox>
-                            <textbox id="tbsync.accountsettings.pref.accountname" />
+                            <html:input id="tbsync.accountsettings.pref.accountname" />
                         </row>
                         
                         <row>
                             <vbox pack="center">
                                 <label class="lockIfConnected" style="text-align:left" control="tbsync.accountsettings.pref.user" value="__DAV4TBSYNCMSG_pref.UserName__" />
                             </vbox>
-                            <textbox class="lockIfConnected" id="tbsync.accountsettings.pref.user" />
+                            <html:input class="lockIfConnected" id="tbsync.accountsettings.pref.user" />
                         </row>
                         
                         <row>
                             <vbox pack="center">
                                 <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.calDavHost" value="__DAV4TBSYNCMSG_pref.CalDavServer__" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.calDavHost"  onblur="tbSyncEditAccountOverlay.stripHost(document, 'calDavHost');"/>
+                            <html:input class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.calDavHost"  onblur="tbSyncEditAccountOverlay.stripHost(document, 'calDavHost');"/>
                         </row>
                         <row>
                             <vbox pack="center">
                                 <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.cardDavHost" value="__DAV4TBSYNCMSG_pref.CardDavServer__" />
                             </vbox>
-                            <textbox class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.cardDavHost" onblur="tbSyncEditAccountOverlay.stripHost(document, 'cardDavHost');" />
+                            <html:input class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.cardDavHost" onblur="tbSyncEditAccountOverlay.stripHost(document, 'cardDavHost');" />
                         </row>
 
                    </rows>

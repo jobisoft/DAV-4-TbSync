@@ -207,7 +207,7 @@ var ui = {
             let emailbox = aDocument.createXULElement("hbox");
             emailbox.setAttribute("flex", "1");
             emailbox.setAttribute("style", "padding-bottom:1px");
-            let email = aDocument.createXULElement("textbox");
+            let email = aDocument.createElement("input");
             email.setAttribute("flex", "1");
             email.setAttribute("class", "plain");
             email.setAttribute("value", aItemData.value);
@@ -395,7 +395,7 @@ var ui = {
             let phonebox = aDocument.createXULElement("hbox");
             phonebox.setAttribute("flex", "1");
             phonebox.setAttribute("style", "padding-bottom:1px");
-            let phone = aDocument.createXULElement("textbox");
+            let phone = aDocument.createElement("input");
             phone.setAttribute("flex", "1");
             phone.setAttribute("class", "plain");
             phone.setAttribute("value", aItemData.value);

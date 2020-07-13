@@ -39,27 +39,27 @@
               <rows>
                   <row id="tbsync.newaccount.name.row">
                       <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.name__" /></vbox>
-                      <textbox id="tbsync.newaccount.name" oninput="tbSyncDavNewAccount.checkUI();"/>
+                      <html:input id="tbsync.newaccount.name" oninput="tbSyncDavNewAccount.checkUI();"/>
                   </row>
                   <row id="tbsync.newaccount.user.row">
                       <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.user__" /></vbox>
-                      <textbox id="tbsync.newaccount.user" oninput="tbSyncDavNewAccount.checkUI(true);" />
+                      <html:input id="tbsync.newaccount.user" oninput="tbSyncDavNewAccount.checkUI(true);" />
                   </row>
                   <row id="tbsync.newaccount.password.row">
                       <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.password__" /></vbox>
-                      <textbox id="tbsync.newaccount.password" type="password" oninput="tbSyncDavNewAccount.checkUI(true);"/>
+                      <html:input id="tbsync.newaccount.password" type="password" oninput="tbSyncDavNewAccount.checkUI(true);"/>
                   </row>
                   <row id="tbsync.newaccount.server.row" style="margin-top:2em;">
                       <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.server__" /></vbox>
-                      <textbox id="tbsync.newaccount.server" oninput="tbSyncDavNewAccount.checkUI(true);"/>
+                      <html:input id="tbsync.newaccount.server" oninput="tbSyncDavNewAccount.checkUI(true);"/>
                   </row>
                   <row id="tbsync.newaccount.caldavserver.row" style="margin-top:2em;">
                       <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.caldavserver__" /></vbox>
-                      <textbox id="tbsync.newaccount.caldavserver" oninput="tbSyncDavNewAccount.checkUI(true);"/>
+                      <html:input id="tbsync.newaccount.caldavserver" oninput="tbSyncDavNewAccount.checkUI(true);"/>
                   </row>
                   <row id="tbsync.newaccount.carddavserver.row">
                       <vbox pack="center"><label value="__DAV4TBSYNCMSG_add.carddavserver__" /></vbox>
-                      <textbox id="tbsync.newaccount.carddavserver" oninput="tbSyncDavNewAccount.checkUI(true);"/>
+                      <html:input id="tbsync.newaccount.carddavserver" oninput="tbSyncDavNewAccount.checkUI(true);"/>
                   </row>
               </rows>
           </grid>
