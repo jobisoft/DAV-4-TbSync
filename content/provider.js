@@ -659,7 +659,9 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
 
             newCalendar.setProperty("username", authData.username);
             newCalendar.setProperty("color", this.folderData.getFolderProperty("targetColor"));
-            newCalendar.setProperty("calendar-main-in-composite", true);
+            // removed in TB78, as it seems to not fully enable the calendar, if present before registering
+            // https://searchfox.org/comm-central/source/calendar/base/content/calendar-management.js#385
+            //newCalendar.setProperty("calendar-main-in-composite",true);
             newCalendar.setProperty("cache.enabled", this.folderData.accountData.getAccountProperty("useCalendarCache"));
         }
 
