@@ -87,7 +87,7 @@ var network = {
         return null;
     }
     
-    let oauth = new OAuth2(config.base_uri, config.scope, config.client_id, config.client_secret);
+    let oauth = new OAuth2(config.base_uri + "oauth2/auth", config.base_uri + "oauth2/token", config.scope, config.client_id, config.client_secret);
     oauth.requestWindowFeatures = "chrome,private,centerscreen,width=500,height=750";
 
     //the v2 endpoints are different and would need manual override
