@@ -123,7 +123,7 @@
         "message": "Molti provider di servizi e server supportano un processo di configurazione automatico che richiede solamente un indirizzo di posta elettronica o un nome utente e l'indirizzo del server."
     },
     "add.serverprofile.discovery.details1": {
-        "message": "Per rilevare automaticamente gli endpoint servizio CalDAV e CardDAV, immetti le tue credenziali e il nome host del server (ad es. 'cloud.myserver.de')."
+        "message": "Per rilevare automaticamente gli endpoint servizio CalDAV e CardDAV, immetti le tue credenziali e il nome host del server (ad es. \"cloud.myserver.de\")."
     },
     "add.serverprofile.discovery.details2": {
         "message": "Se il tuo nome utente è un indirizzo di posta elettronica, specificare il server diventa facoltativo in quanto le informazioni sugli endpoint servizio possono essere ottenute direttamente dal provider di servizi tramite una richiesta RFC6764 (se supportata)."
@@ -156,7 +156,7 @@
         "message": "https://accounts.google.com"
     },
     "add.serverprofile.google.details1": {
-        "message": "Google utilizza un metodo di autenticazione moderno e TbSync non ha bisogno di conoscere il tuo nome utente o la tua password. Dopo aver fatto clic su 'Avanti >' verrà aperta una finestra del browser dove puoi accedere al tuo account Google e consentire al 'Provider for CalDAV & CardDAV' di accedere ai tuoi contatti e calendari."
+        "message": "Google utilizza un metodo di autenticazione moderno e TbSync non ha bisogno di conoscere il tuo nome utente o la tua password. Dopo aver fatto clic su \"Avanti >\" verrà aperta una finestra del browser dove puoi accedere al tuo account Google e consentire al \"Provider for CalDAV & CardDAV\" di accedere ai tuoi contatti e calendari."
     },
     "add.serverprofile.icloud": {
         "message": "iCloud"
@@ -201,7 +201,7 @@
         "message": "La password richiesta è una password specifica per l'app per TbSync che puoi creare nel tuo portale web Yahoo!. Non è la tua password standard di Yahoo."
     },
     "add.spinner.query": {
-        "message": "Invio richiesta RFC6764 a '##replace.1##' in corso"
+        "message": "Invio richiesta RFC6764 a \"##replace.1##\" in corso"
     },
     "add.spinner.validating": {
         "message": "Controlla la connessione al server"
@@ -321,10 +321,10 @@
         "message": "Impossibile connettersi al server."
     },
     "status.rfc6764-lookup-failed": {
-        "message": "L'interrogazione di '##replace.1##' non ha fornito le informazioni richieste relative agli endpoint dei servizi CalDAV e CardDAV. Immettere il nome host del server per procedere con la configurazione automatica."
+        "message": "L'interrogazione di \"##replace.1##\" non ha fornito le informazioni richieste relative agli endpoint dei servizi CalDAV e CardDAV. Immettere il nome host del server per procedere con la configurazione automatica."
     },
     "status.service-discovery-failed": {
-        "message": "L'individuazione automatica degli endpoint servizio CalDAV e CardDAV di '##replace.1##' non è riuscita. Riprova specificando un indirizzo server diverso o passa alla modalità configurazione personalizzata per specificare gli endpoint servizio manualmente."
+        "message": "L'individuazione automatica degli endpoint servizio CalDAV e CardDAV di \"##replace.1##\" non è riuscita. Riprova specificando un indirizzo server diverso o passa alla modalità configurazione personalizzata per specificare gli endpoint servizio manualmente."
     },
     "status.softerror": {
         "message": "Errore saltato (##replace.1##)"
