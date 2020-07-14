@@ -108,7 +108,7 @@
         "message": "Les URL d'accès aux services CalDAV et CardDAV peuvent être configurées manuellement."
     },
     "add.serverprofile.custom.details1": {
-        "message": "Les URL d'accès aux services CalDAV et CardDAV ou ce qu'on appelle les 'adresses principales' devraient vous avoir été fournies par votre fournisseur de services."
+        "message": "Les URL d'accès aux services CalDAV et CardDAV ou ce qu'on appelle les \"adresses principales\" devraient vous avoir été fournies par votre fournisseur de services."
     },
     "add.serverprofile.custom.details2": {
         "message": "Si vous laissez le champ d'adresse vide, le service correspondant sera désactivé pour ce compte."
@@ -123,7 +123,7 @@
         "message": "De nombreux fournisseurs de services et de serveurs permettent un processus de configuration automatique, ce qui ne nécessite que l'adresse du serveur, ainsi qu'un nom d'utilisateur ou une adresse de courriel."
     },
     "add.serverprofile.discovery.details1": {
-        "message": "Pour la découverte automatique des URL d'accès aux services CalDAV & CardDAV, veuillez entrer vos identifiants et le nom d'hôte de votre serveur (par exemple 'cloud.monserveur.example')."
+        "message": "For the automatic discovery of the CalDAV & CardDAV service endpoints, please enter your credentials and the host name of your server (e.g. 'cloud.myserver.de')."
     },
     "add.serverprofile.discovery.details2": {
         "message": "Si votre nom d'utilisateur est une adresse e-mail, spécifier le serveur devient optionnel, car les informations sur les URL d'accès au service peuvent être obtenues automatiquement auprès de votre fournisseur de services via une requête RFC6764 (pour autant que votre fournisseur prenne en charge ce type de requêtes)."
@@ -156,7 +156,7 @@
         "message": "https://accounts.google.com"
     },
     "add.serverprofile.google.details1": {
-        "message": "Google utilise une méthode d'authentification moderne, et Tbsync n'a pas besoin de connaître votre nom d'utilisateur ou votre mot de passe. Après avoir cliqué sur 'Suivant', une fenêtre de navigateur s'ouvrira, dans laquelle vous pourrez vous connecter à votre compte Google et autoriser 'Provider for CalDAV & CardDAV' à accéder à vos contacts et calendriers."
+        "message": "Google uses a modern authentication method and TbSync does not need to know your username or your password. After clicking 'Next >', a browser window will be opened, where you can log into your Google account and allow the 'Provider for CalDAV & CardDAV' to access your contacts and calendars."
     },
     "add.serverprofile.icloud": {
         "message": "iCloud"
@@ -312,7 +312,7 @@
         "message": "À cause de droits en écriture partiellement insuffisants, certaines actions ont été refusées par le serveur et annulées localement."
     },
     "status.malformed-xml": {
-        "message": "Analyse de l'XML impossible. Veuillez consulter le journal de débogage pour plus de détails."
+        "message": "Analyse de l'XML impossible. Veuillez consulter le journal de débogage pour plus de détails. "
     },
     "status.missing-permission": {
         "message": "Droit manquant: ##replace.1##"
@@ -321,7 +321,7 @@
         "message": "La connexion au serveur a échoué."
     },
     "status.rfc6764-lookup-failed": {
-        "message": "L'appel à '##replace.1##” n'a pas permis de déterminer les informations nécessaires relatives aux URL des services CalDAV et CardDAV. Veuillez entrer le nom d'hôte de votre serveur afin de continuer la configuration automatique."
+        "message": "L'appel à \"##replace.1##” n'a pas permis de déterminer les informations nécessaires relatives aux URL des services CalDAV et CardDAV. Veuillez entrer le nom d'hôte de votre serveur afin de continuer la configuration automatique."
     },
     "status.service-discovery-failed": {
         "message": "La découverte automatique des URL d'accès aux services CalDAV et CardDAV de “##replace.1###” a échoué. Veuillez réessayer, en spécifiant une adresse de serveur différente, ou passez à la configuration personnalisée, afin de spécifier manuellement les URL en question."
