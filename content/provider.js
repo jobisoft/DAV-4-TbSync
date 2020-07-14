@@ -297,7 +297,7 @@ var Base = class {
             let abook = allAddressBooks.getNext().QueryInterface(Components.interfaces.nsIAbDirectory);
             if (abook instanceof Components.interfaces.nsIAbDirectory) { // or nsIAbItem or nsIAbCollection
                 if (TbSync.addressbook.getStringValue(abook, "tbSyncAccountID","") == accountData.accountID) {
-                    let cards = await TbSync.addressbook.search(abook.URI, searchQuery)
+                    let cards = await TbSync.addressbook.searchDirectory(abook.URI, searchQuery)
                     for (let card of cards) {                        
                         if (card.isMailList) {
 
