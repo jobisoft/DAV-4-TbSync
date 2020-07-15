@@ -252,10 +252,10 @@
         "message": "Име на регистрация"
     },
     "pref.CalDavServer": {
-        "message": "Адрес на CalDAV сървъра:"
+        "message": "CalDAV сървър:"
     },
     "pref.CardDavServer": {
-        "message": "Адрес на CardDAV сървъра:"
+        "message": "CardDAV сървър:"
     },
     "pref.UserName": {
         "message": "Потребителско име"
