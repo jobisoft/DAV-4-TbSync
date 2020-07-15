@@ -84,7 +84,7 @@
         "message": "Następujące ustawienia zostały pomyślnie zweryfikowane:"
     },
     "add.finish.details": {
-        "message": "Kliknij 'Zakończ', aby utworzyć nowe konto TbSync z tymi ustawieniami."
+        "message": "Kliknij \"Zakończ\", aby utworzyć nowe konto TbSync z tymi ustawieniami."
     },
     "add.finish.title": {
         "message": "Potwierdź utworzenie konta"
@@ -123,7 +123,7 @@
         "message": "Wielu dostawców usług i serwerów wspiera proces automatycznej konfiguracji, który wymaga tylko adresu e-mail lub nazwy użytkownika i adresu serwera."
     },
     "add.serverprofile.discovery.details1": {
-        "message": "Aby automatycznie wykryć punkty końcowe usługi CalDAV i CardDAV, wprowadź swoje dane uwierzytelniające i nazwę hosta swojego serwera (np. 'cloud.myserver.de')."
+        "message": "Dla automatycznego wykrywania punktów końcowych usługi CalDAV i CardDAV, wprowadź swoje poświadczenia i nazwę hosta swojego serwera (np. 'cloud.myserver.de')."
     },
     "add.serverprofile.discovery.details2": {
         "message": "Jeśli nazwa użytkownika to adres e-mail, określenie serwera staje się opcjonalne, ponieważ informacje o punktach końcowych usługi można uzyskać bezpośrednio od usługodawcy za pośrednictwem żądania RFC6764 (jeśli jest obsługiwane)."
@@ -156,7 +156,7 @@
         "message": "https://accounts.google.com"
     },
     "add.serverprofile.google.details1": {
-        "message": "Google stosuje nowoczesną metodę uwierzytelniania, a TbSync nie musi znać Twojej nazwy użytkownika ani hasła. Po kliknięciu 'Dalej >' otworzy się okno przeglądarki, w którym możesz zalogować się na swoje konto Google i zezwolić 'Provider for CalDAV & CardDAV' na dostęp do Twoich kontaktów i kalendarzy."
+        "message": "Google stosuje nowoczesną metodę uwierzytelniania i TbSync nie musi znać Twojej nazwy użytkownika ani hasła. Po kliknięciu 'Dalej >' otworzy się okno przeglądarki, w którym możesz zalogować się na swoje konto Google i zezwolić 'Provider for CalDAV & CardDAV' na dostęp do twoich kontaktów i kalendarzy."
     },
     "add.serverprofile.icloud": {
         "message": "iCloud"

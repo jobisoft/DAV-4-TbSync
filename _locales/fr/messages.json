@@ -312,7 +312,7 @@
         "message": "À cause de droits en écriture partiellement insuffisants, certaines actions ont été refusées par le serveur et annulées localement."
     },
     "status.malformed-xml": {
-        "message": "Analyse de l'XML impossible. Veuillez consulter le journal de débogage pour plus de détails."
+        "message": "Analyse de l'XML impossible. Veuillez consulter le journal de débogage pour plus de détails. "
     },
     "status.missing-permission": {
         "message": "Droit manquant: ##replace.1##"
