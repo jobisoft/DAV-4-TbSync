@@ -353,8 +353,7 @@ var sync = {
                             }
                         }
 
-                        // Update color from server (skip if nolightning, no
-                        // need to run into error when hasTarget() throws).
+                        // Update color from server.
                         if (color && job == "cal") {
                             color = color.textContent.substring(0,7);
                             folderData.setFolderProperty("targetColor", color);
@@ -406,7 +405,7 @@ var sync = {
         // add connection data to syncData
         syncData.connectionData = new dav.network.ConnectionData(syncData);
 
-        // add target to syncData (getTarget() will throw "nolightning" if lightning missing)
+        // add target to syncData
         let hadTarget;
         try {
             // accessing the target for the first time will check if it is avail and if not will create it (if possible)
