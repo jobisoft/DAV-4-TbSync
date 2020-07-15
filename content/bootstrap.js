@@ -35,24 +35,28 @@ function startup(addon, extension) {
     gExtension = extension;
     Services.obs.addObserver(onInitDoneObserver, "tbsync.observer.initialized", false);
 
-    Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/tbSyncDavCalendar.js", component);    
-    let registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-    registrar.registerFactory(
-        component.tbSyncDavCalendar.prototype.classID,
-        component.tbSyncDavCalendar.prototype.classDescription,
-        component.tbSyncDavCalendar.prototype.contractID,
-        component.NSGetFactory(component.tbSyncDavCalendar.prototype.classID)
-    );
+    try {
+        Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/tbSyncDavCalendar.js", component);    
+        let registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
+        registrar.registerFactory(
+            component.tbSyncDavCalendar.prototype.classID,
+            component.tbSyncDavCalendar.prototype.classDescription,
+            component.tbSyncDavCalendar.prototype.contractID,
+            component.NSGetFactory(component.tbSyncDavCalendar.prototype.classID)
+        );
+    } catch (e) {}
     
     onInitDoneObserver.observe();
 }
 
 function shutdown(addon, extension) {
-	let registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-	registrar.unregisterFactory(
-		component.tbSyncDavCalendar.prototype.classID,
-		component.NSGetFactory(component.tbSyncDavCalendar.prototype.classID)
-	);
+    try {
+        let registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
+        registrar.unregisterFactory(
+            component.tbSyncDavCalendar.prototype.classID,
+            component.NSGetFactory(component.tbSyncDavCalendar.prototype.classID)
+        );
+    } catch (e) {}
     
     Services.obs.removeObserver(onInitDoneObserver, "tbsync.observer.initialized");
     //unload this provider add-on from TbSync
