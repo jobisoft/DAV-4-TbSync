@@ -305,7 +305,8 @@ var Base = class {
                                 value: card.getProperty("DisplayName", "") + " <"+ card.getProperty("DisplayName", "") +">", 
                                 comment: "",
                                 icon: dav.Base.getProviderIcon(16, accountData),
-                                style: "",				    
+                                // https://bugzilla.mozilla.org/show_bug.cgi?id=1653213
+                                style: "dav4tbsync-abook",
                             });
                         
                         } else {                        
@@ -325,7 +326,8 @@ var Base = class {
                                                         .map(entry => TbSync.getString("autocomplete." + entry.toUpperCase() , "dav"))
                                                         .join(", "),
                                     icon: dav.Base.getProviderIcon(16, accountData),
-                                    style: "",				    
+                                    // https://bugzilla.mozilla.org/show_bug.cgi?id=1653213
+                                    style: "dav4tbsync-abook",				    
                                 });
                             }
                             
