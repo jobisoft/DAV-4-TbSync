@@ -10,7 +10,6 @@
 
 var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 
-let gExtension = "";
 let component = {};
 
 let onInitDoneObserver = {
@@ -25,14 +24,15 @@ let onInitDoneObserver = {
         
         //load this provider add-on into TbSync
         if (valid) {
-            await TbSync.providers.loadProvider(gExtension, "dav", "chrome://dav4tbsync/content/provider.js");
+            await TbSync.providers.loadProvider(extension, "dav", "chrome://dav4tbsync/content/provider.js");
         }
     }
 }
 
 
-function startup(addon, extension) {
-    gExtension = extension;
+function startup(data, reason)  {
+    // Possible reasons: APP_STARTUP, ADDON_ENABLE, ADDON_INSTALL, ADDON_UPGRADE, or ADDON_DOWNGRADE.
+
     Services.obs.addObserver(onInitDoneObserver, "tbsync.observer.initialized", false);
 
     try {
@@ -46,10 +46,24 @@ function startup(addon, extension) {
         );
     } catch (e) {}
     
-    onInitDoneObserver.observe();
+    // The startup of TbSync is delayed until all add-ons have called their startup(),
+    // so all providers have registered the "tbsync.observer.initialized" observer.
+    // Once TbSync has finished its startup, all providers will be notified (also if
+    // TbSync itself is restarted) to load themself.
+    // If this is not startup, we need load manually.
+    if (reason != APP_STARTUP) {
+        onInitDoneObserver.observe();
+    }
 }
 
-function shutdown(addon, extension) {
+function shutdown(data, reason)  {
+    // Possible reasons: APP_STARTUP, ADDON_ENABLE, ADDON_INSTALL, ADDON_UPGRADE, or ADDON_DOWNGRADE.
+
+    // When the application is shutting down we normally don't have to clean up.
+    if (reason == APP_SHUTDOWN) {
+        return;
+    }
+
     try {
         let registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
         registrar.unregisterFactory(
