@@ -2,7 +2,7 @@
  * This file is provided by the addon-developer-support repository at
  * https://github.com/thundernest/addon-developer-support
  *
- * Version: 1.0
+ * Version: 1.1
  * Author: John Bieling (john@thunderbird.net)
  * 
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -88,7 +88,7 @@ var BootstrapLoader = class extends ExtensionCommon.ExtensionAPI {
     // Execute registered shutdown()
     try {
       if (this.bootstrappedObj.shutdown) {
-        this.bootstrappedObj.shutdown.call(this.bootstrappedObj, 
+        this.bootstrappedObj.shutdown(
           this.extension.addonData,
           isAppShutdown 
             ? this.BOOTSTRAP_REASONS.APP_SHUTDOWN
@@ -97,34 +97,7 @@ var BootstrapLoader = class extends ExtensionCommon.ExtensionAPI {
     } catch (e) {
       Components.utils.reportError(e)
     }
-
-    // temporary installed addons always return isAppShutdown = false
-    if (isAppShutdown)
-      return;
     
-    
-    // Extract all registered chrome content urls
-    let chromeUrls = [];
-    if (this.chromeData) {
-        for (let chromeEntry of this.chromeData) {
-        if (chromeEntry[0].toLowerCase().trim() == "content") {
-          chromeUrls.push("chrome://" + chromeEntry[1] + "/");
-        }
-      }
-    }
-
-    // Unload JSMs of this add-on    
-    const rootURI = this.extension.rootURI.spec;
-    for (let module of Cu.loadedModules) {
-      if (module.startsWith(rootURI) || (module.startsWith("chrome://") && chromeUrls.find(s => module.startsWith(s)))) {
-        console.log("Unloading: " + module);
-        Cu.unload(module);
-      }
-    }    
-    
-    // Flush all caches
-    Services.obs.notifyObservers(null, "startupcache-invalidate");
-
     if (this.chromeHandle) {
       this.chromeHandle.destruct();
       this.chromeHandle = null;
