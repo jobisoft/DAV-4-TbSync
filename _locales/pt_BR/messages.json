@@ -198,7 +198,7 @@
         "message": "https://www.yahoo.com"
     },
     "add.serverprofile.yahoo.details1": {
-        "message": "The requested password is an app-specific password for TbSync which you can create in your Yahoo! web portal. It is not your standard Yahoo! password."
+        "message": "A senha solicitada é uma senha específica do aplicativo para TbSync, que você pode criar no seu portal web do Yahoo!. Não é a sua senha padrão do Yahoo!."
     },
     "add.spinner.query": {
         "message": "Enviando pedido RFC6764 para '##replace.1##'"
