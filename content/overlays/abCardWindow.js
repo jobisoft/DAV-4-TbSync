@@ -34,8 +34,10 @@ var tbSyncAbDavCardWindow = {
         tbSyncAbDavCardWindow.elementsToDisable = [];
 
         //register default elements we need to hide/disable
-        tbSyncAbDavCardWindow.elementsToHide.push(window.document.getElementById("PrimaryEmailContainer"));
-        tbSyncAbDavCardWindow.elementsToHide.push(window.document.getElementById("SecondaryEmailContainer"));
+        tbSyncAbDavCardWindow.elementsToHide.push(window.document.getElementById("PrimaryEmailLabel"));
+        tbSyncAbDavCardWindow.elementsToHide.push(window.document.getElementById("PrimaryEmail"));
+        tbSyncAbDavCardWindow.elementsToHide.push(window.document.getElementById("SecondEmailLabel"));
+        tbSyncAbDavCardWindow.elementsToHide.push(window.document.getElementById("SecondEmail"));
         tbSyncAbDavCardWindow.elementsToHide.push(window.document.getElementById("PhoneNumbers"));
         
         //hide stuff from gContactSync *grrrr* - I cannot hide all because he adds them via javascript :-(
@@ -44,7 +46,8 @@ var tbSyncAbDavCardWindow = {
         //hide registered default elements
         for (let i=0; i < tbSyncAbDavCardWindow.elementsToHide.length; i++) {
             if (tbSyncAbDavCardWindow.elementsToHide[i]) {
-                tbSyncAbDavCardWindow.elementsToHide[i].collapsed = true;
+                console.log(tbSyncAbDavCardWindow.elementsToHide[i].style.display)
+                tbSyncAbDavCardWindow.elementsToHide[i].style.display = "none";
             }
         }
 
@@ -79,7 +82,7 @@ var tbSyncAbDavCardWindow = {
         //unhide elements hidden by this provider
         for (let i=0; i < tbSyncAbDavCardWindow.elementsToHide.length; i++) {
             if (tbSyncAbDavCardWindow.elementsToHide[i]) {
-                tbSyncAbDavCardWindow.elementsToHide[i].collapsed = false;
+                tbSyncAbDavCardWindow.elementsToHide[i].style.display = "";
             }
         }
 
@@ -103,25 +106,29 @@ var tbSyncAbDavCardWindow = {
         let emails = TbSync.providers.dav.tools.getEmailsFromCard(aCard); //array of objects {meta, value}
         //add emails to list
         let emailList = aDocument.getElementById("X-DAV-EmailAddressList");
-        for (let i=0; i < emails.length; i++) {
+        if (emailList) {
+          for (let i=0; i < emails.length; i++) {
             let item = TbSync.providers.dav.ui.getNewEmailListItem(aDocument, emails[i]);
             emailList.appendChild(item);
 
             TbSync.providers.dav.ui.updateType(aDocument,  TbSync.providers.dav.ui.getEmailListItemElement(item, "button"));
             TbSync.providers.dav.ui.updatePref(aDocument, TbSync.providers.dav.ui.getEmailListItemElement(item, "pref"));		
+          }
         }
 
         //get all phone numbers with metadata from card
         let phones = TbSync.providers.dav.tools.getPhoneNumbersFromCard(aCard); //array of objects {meta, value}
         //add phones to list
         let phoneList = aDocument.getElementById("X-DAV-PhoneNumberList");
-        for (let i=0; i < phones.length; i++) {
+        if (phoneList) {
+          for (let i=0; i < phones.length; i++) {
             let item = TbSync.providers.dav.ui.getNewPhoneListItem(aDocument, phones[i]);
             phoneList.appendChild(item);
 
             TbSync.providers.dav.ui.updateType(aDocument,  TbSync.providers.dav.ui.getPhoneListItemElement(item, "button1"));
             TbSync.providers.dav.ui.updateType(aDocument,  TbSync.providers.dav.ui.getPhoneListItemElement(item, "button2"));
-            TbSync.providers.dav.ui.updatePref(aDocument, TbSync.providers.dav.ui.getPhoneListItemElement(item, "pref"));		
+            TbSync.providers.dav.ui.updatePref(aDocument, TbSync.providers.dav.ui.getPhoneListItemElement(item, "pref"));
+          }
         }
 
     },

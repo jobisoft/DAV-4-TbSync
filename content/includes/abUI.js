@@ -179,6 +179,7 @@ var ui = {
         outerhbox.setAttribute("dragtarget", "true");
         outerhbox.setAttribute("flex", "1");
         outerhbox.setAttribute("align", "center");
+        outerhbox.setAttribute("style", "padding:0; margin:0");
         outerhbox.updateFunction = dav.ui.updateEmails;
         outerhbox.meta =  aItemData.meta;
 
@@ -198,18 +199,15 @@ var ui = {
             button.allowedValues = ["HOME", "WORK"];
             button.otherIcon = "other";
             button.setAttribute("type", "menu");
-            button.setAttribute("class", "plain");
-            button.setAttribute("style", "width: 35px; min-width: 35px; margin: 0;");
-            button.appendChild(aDocument.getElementById("DavEmailSpacer").children[0].cloneNode(true));
+            button.setAttribute("style", "width: 35px; min-width: 35px; margin: 0; padding:0");
+            button.appendChild(aDocument.getElementById("DavMenuTemplate").children[0].cloneNode(true));
             outerhbox.appendChild(button);
 
             //email box
             let emailbox = aDocument.createXULElement("hbox");
             emailbox.setAttribute("flex", "1");
-            emailbox.setAttribute("style", "padding-bottom:1px");
             let email = aDocument.createElement("input");
-            email.setAttribute("flex", "1");
-            email.setAttribute("class", "plain");
+            email.setAttribute("style", "width: 240px");
             email.setAttribute("value", aItemData.value);
             email.addEventListener("change", function(e) {dav.ui.updateEmails(aDocument)});
             email.addEventListener("keydown", function(e) {if (e.key == "Enter") {e.stopPropagation(); e.preventDefault(); if (e.target.value != "") { dav.ui.addEmailEntry(e.target.ownerDocument); }}});
@@ -227,6 +225,7 @@ var ui = {
         //richlistitem
         let richlistitem = aDocument.createXULElement("richlistitem");
         richlistitem.setAttribute("id", "entry_" + TbSync.generateUUID());
+        richlistitem.setAttribute("style", "padding:0;margin:0;");
         richlistitem.appendChild(outerhbox);
         
         return richlistitem;
@@ -357,6 +356,7 @@ var ui = {
         outerhbox.setAttribute("dragtarget", "true");
         outerhbox.setAttribute("flex", "1");
         outerhbox.setAttribute("align", "center");
+        outerhbox.setAttribute("style", "padding:0; margin:0");
         outerhbox.updateFunction = dav.ui.updatePhoneNumbers;
         outerhbox.meta = aItemData.meta;
 
@@ -376,9 +376,8 @@ var ui = {
             button1.allowedValues = ["HOME", "WORK"];
             button1.otherIcon = "none";
             button1.setAttribute("type", "menu");
-            button1.setAttribute("class", "plain");
-            button1.setAttribute("style", "width: 35px; min-width: 35px; margin: 0;");
-            button1.appendChild(aDocument.getElementById("DavEmailSpacer").children[1].cloneNode(true));
+            button1.setAttribute("style", "width: 35px; min-width: 35px; margin: 0; padding:0");
+            button1.appendChild(aDocument.getElementById("DavMenuTemplate").children[1].cloneNode(true));
             outerhbox.appendChild(button1);
 
             //button2
@@ -388,16 +387,14 @@ var ui = {
             button2.setAttribute("type", "menu");
             button2.setAttribute("class", "plain");
             button2.setAttribute("style", "width: 35px; min-width: 35px; margin: 0;");
-            button2.appendChild(aDocument.getElementById("DavEmailSpacer").children[2].cloneNode(true));
+            button2.appendChild(aDocument.getElementById("DavMenuTemplate").children[2].cloneNode(true));
             outerhbox.appendChild(button2);
 
             //phone box
             let phonebox = aDocument.createXULElement("hbox");
             phonebox.setAttribute("flex", "1");
-            phonebox.setAttribute("style", "padding-bottom:1px");
             let phone = aDocument.createElement("input");
-            phone.setAttribute("flex", "1");
-            phone.setAttribute("class", "plain");
+            phone.setAttribute("style", "width: 205px");
             phone.setAttribute("value", aItemData.value);
             phone.addEventListener("change", function(e) {dav.ui.updatePhoneNumbers(aDocument)});
             phone.addEventListener("keydown", function(e) {if (e.key == "Enter") {e.stopPropagation(); e.preventDefault(); if (e.target.value != "") { dav.ui.addPhoneEntry(e.target.ownerDocument); }}});
@@ -415,6 +412,7 @@ var ui = {
         //richlistitem
         let richlistitem = aDocument.createXULElement("richlistitem");
         richlistitem.setAttribute("id", "entry_" + TbSync.generateUUID());
+        richlistitem.setAttribute("style", "padding:0;margin:0;");
         richlistitem.appendChild(outerhbox);
         
         return richlistitem;

@@ -8,7 +8,7 @@
 
     <script type="application/javascript" src="chrome://dav4tbsync/content/overlays/abCardWindow.js" />
 
-    <hbox id="DavEmailSpacer" insertbefore="NickNameContainer" style="margin-bottom:2ex">
+    <hbox id="DavMenuTemplate" insertbefore="contactGrid">
         <menupopup position="start_before">
           <menuitem class="menuitem-iconic" label="__DAV4TBSYNCMSG_abCard.emailtypes.home__" oncommand="TbSync.providers.dav.ui.updateType(window.document, this.parentNode.parentNode, 'HOME')" image="chrome://dav4tbsync/content/skin/type.home16.png" />
           <menuitem class="menuitem-iconic" label="__DAV4TBSYNCMSG_abCard.emailtypes.work__"  oncommand="TbSync.providers.dav.ui.updateType(window.document, this.parentNode.parentNode, 'WORK')" image="chrome://dav4tbsync/content/skin/type.work16.png" />
@@ -30,49 +30,40 @@
         </menupopup>
     </hbox>
 
-    <hbox id="DavTopSpacer" align="center" insertbefore="NameField1Container" >
-        <spacer flex="1" />
-        <hbox style="visibility:hidden" class="CardEditWidth" >
-            <button label="+" flex="0" style="width:3em; min-width:3em" />          
-        </hbox>
-        <label value="__DAV4TBSYNCMSG_abCard.ContactDetails__" />
+
+
+
+
+    <button id="jbdav1" style="visibility:hidden" label="+" insertbefore="nameFieldLabel"/>          
+    <label id="jbdav2"  class="align-end" value="__DAV4TBSYNCMSG_abCard.ContactDetails__" insertbefore="nameFieldLabel"/>
+
+    <label id="jbdav3" class="align-end" control="X-DAV-PrefixName" value="__DAV4TBSYNCMSG_abCard.PrefixName__" insertbefore="nameFieldLabel"/>
+    <hbox id="DavPrefixNameContainer" align="center" class="input-container" insertbefore="nameFieldLabel">
+            <html:input id="X-DAV-PrefixName" type="text" class="davProperty input-inline" />
     </hbox>
 
-    <hbox id="DavPrefixNameContainer" align="center" insertbefore="NameField1Container" >
-        <spacer flex="1" />
-        <label control="X-DAV-PrefixName" value="__DAV4TBSYNCMSG_abCard.PrefixName__" />
-        <hbox class="CardEditWidth input-container" >
-            <html:input id="X-DAV-PrefixName" flex="1" class="davProperty input-inline" />
-        </hbox>
+    <label id="jbdav4" class="align-end" control="X-DAV-MiddleName" value="__DAV4TBSYNCMSG_abCard.MiddleName__" insertbefore="nameField2Label"/>
+    <hbox id="DavMiddleNameContainer" align="center" class="input-container" insertbefore="nameField2Label">
+            <html:input id="X-DAV-MiddleName" type="text" class="davProperty input-inline" />
     </hbox>
 
-    <hbox id="DavMiddleNameContainer" align="center" insertafter="NameField1Container" >
-        <spacer flex="1" />
-        <label control="X-DAV-MiddleName" value="__DAV4TBSYNCMSG_abCard.MiddleName__" />
-        <hbox class="CardEditWidth input-container" >
-            <html:input id="X-DAV-MiddleName" flex="1" class="davProperty input-inline" />
-        </hbox>
+    <label id="jbdav5" class="align-end" control="X-DAV-SuffixName" value="__DAV4TBSYNCMSG_abCard.SuffixName__" insertafter="nameField2Label"/>
+    <hbox id="DavSufixNameContainer" align="center" class="input-container" insertafter="nameField2Label">
+            <html:input id="X-DAV-SuffixName" type="text" class="davProperty input-inline" />
     </hbox>
 
-    <hbox id="DavSufixNameContainer" align="center" insertafter="NameField2Container" >
-        <spacer flex="1" />
-        <label control="X-DAV-SuffixName" value="__DAV4TBSYNCMSG_abCard.SuffixName__" />
-        <hbox class="CardEditWidth input-container" >
-            <html:input id="X-DAV-SuffixName" flex="1" class="davProperty input-inline" />
-        </hbox>
-    </hbox>
 
-    <vbox id="DavFieldsContainer" insertafter="PhoneNumbers">
 
+	<vbox id="DavFieldsContainer" insertafter="PhoneNumbers">
       <hbox flex="1">
         <spacer style="width:3em;" />
-        <vbox class="CardEditWidth">
+        <vbox class="CardEditWidth" style="width:350px">
           <hbox align="center">
             <label value="__DAV4TBSYNCMSG_abCard.Phone__" />
             <spacer flex="1" />            
             <button id="DavPhoneAdd" label="+" oncommand="TbSync.providers.dav.ui.addPhoneEntry(window.document)" flex="0" style="width:3em; min-width:3em" />          
           </hbox>
-          <richlistbox flex="0" style="height:13ex;" id="X-DAV-PhoneNumberList" seltype="single" >            
+          <richlistbox flex="0" style="height:20ex;" id="X-DAV-PhoneNumberList" seltype="single" >            
           </richlistbox>
           <!--label id="X-DAV-HomePhoneMetaInfo" collapsed="true" class="davProperty" />
           <label id="X-DAV-WorkPhoneMetaInfo" collapsed="true" class="davProperty" /-->
@@ -81,16 +72,16 @@
       
       <hbox flex="1" style="margin-top:1em">
         <spacer style="width:3em;" />
-        <vbox class="CardEditWidth">
+        <vbox class="CardEditWidth" style="width:350px">
           <hbox align="center">
             <label value="__DAV4TBSYNCMSG_abCard.EmailAddresses__" />
             <spacer flex="1" />            
             <button id="DavEmailAdd" label="+" oncommand="TbSync.providers.dav.ui.addEmailEntry(window.document)" flex="0" style="width:3em; min-width:3em" />          
           </hbox>
-          <richlistbox flex="0" style="height:13ex;" id="X-DAV-EmailAddressList" seltype="single" >            
+          <richlistbox flex="0" style="height:20ex;" id="X-DAV-EmailAddressList" seltype="single" >            
           </richlistbox>
 
-          <description>__DAV4TBSYNCMSG_abCard.emailtypes.description__</description>
+          <description style="width:350px">__DAV4TBSYNCMSG_abCard.emailtypes.description__</description>
           <label id="X-DAV-JSON-Emails" collapsed="true" class="davProperty" />
           <label id="X-DAV-JSON-Phones" collapsed="true" class="davProperty" />
         </vbox>
