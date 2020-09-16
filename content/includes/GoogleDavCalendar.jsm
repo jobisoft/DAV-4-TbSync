@@ -2,10 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var { AddonManager } = ChromeUtils.import("resource://gre/modules/AddonManager.jsm");
-var { XPCOMUtils } = ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm");
+var EXPORTED_SYMBOLS = ["GoogleDavCalendar"];
+
 var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 var { cal } = ChromeUtils.import("resource:///modules/calendar/calUtils.jsm");
+var { AddonManager } = ChromeUtils.import("resource://gre/modules/AddonManager.jsm");
 var { CalDavCalendar } = ChromeUtils.import("resource:///modules/CalDavCalendar.jsm");
 
 var {
@@ -24,16 +25,14 @@ var { CalDavEtagsHandler, CalDavWebDavSyncHandler, CalDavMultigetSyncHandler } =
   "resource:///modules/caldav/CalDavRequestHandlers.jsm"
 );
 
-var { CalDavSession } = ChromeUtils.import("resource:///modules/caldav/CalDavSession.jsm");
+var { GoogleDavSession } = ChromeUtils.import("chrome://dav4tbsync/content/includes/GoogleDavSession.jsm");
 
 var XML_HEADER = '<?xml version="1.0" encoding="UTF-8"?>\n';
 var MIME_TEXT_XML = "text/xml; charset=utf-8";
 
 var cIOL = Ci.calIOperationListener;
 
-Cu.importGlobalProperties(["TextDecoder"]);
-
-function tbSyncDavCalendar() { 
+function GoogleDavCalendar() { 
   this.initProviderBase();
   this.unmappedProperties = [];
   this.mUriParams = null;
@@ -68,8 +67,8 @@ function tbSyncDavCalendar() {
 var CALDAV_MODIFY_ITEM = "modify";
 var CALDAV_DELETE_ITEM = "delete";
 
-var tbSyncDavCalendarClassID = Components.ID('{7eb8f992-3956-4607-95ac-b860ebd51f5a}');
-var tbSyncDavCalendarInterfaces = [
+var GoogleDavCalendarClassID = Components.ID('{7eb8f992-3956-4607-95ac-b860ebd51f5a}');
+var GoogleDavCalendarInterfaces = [
   Ci.calICalendarProvider,
   Ci.nsIInterfaceRequestor,
   Ci.calIFreeBusyProvider,
@@ -80,21 +79,16 @@ var tbSyncDavCalendarInterfaces = [
   Ci.calICalDavCalendar,
 ];
 
-tbSyncDavCalendar.prototype = {
+GoogleDavCalendar.prototype = {
   __proto__: cal.provider.BaseClass.prototype,
-  classID: tbSyncDavCalendarClassID,
-  classDescription: 'tbSyncCalDav',
-  contractID: '@mozilla.org/calendar/calendar;1?type=tbSyncCalDav',
-  QueryInterface: cal.generateQI([
-    "calICalendarProvider",
-    "nsIInterfaceRequestor",
-    "calIFreeBusyProvider",
-    "calIItipTransport",
-    "calISchedulingSupport",
-    "calICalendar",
-    "calIChangeLog",
-    "calICalDavCalendar",
-  ]),
+  classID: GoogleDavCalendarClassID,
+  QueryInterface: cal.generateQI(GoogleDavCalendarInterfaces),
+  classInfo: cal.generateCI({
+    classID: GoogleDavCalendarClassID,
+    contractID: "@mozilla.org/calendar/calendar;1?type=tbSyncCalDav",
+    classDescription: "Google CalDAV back-end",
+    interfaces: GoogleDavCalendarInterfaces,
+  }),
   
   // An array of components that are supported by the server. The default is
   // to support VEVENT and VTODO, if queries for these components return a 4xx
@@ -136,7 +130,7 @@ tbSyncDavCalendar.prototype = {
     val = setter.call(this, val);
 
     if (this.id) {
-      this.session = new CalDavSession(this.id, this.name);
+      this.session = new GoogleDavSession(this.id, this.name);
     }
     return val;
   },
@@ -267,7 +261,7 @@ tbSyncDavCalendar.prototype = {
     let self = this;
     let refreshNeeded = false;
     let getMetaListener = {
-      QueryInterface: ChromeUtils.generateQI(["calIOperationListener"]),
+      QueryInterface: ChromeUtils.generateQI([Ci.calIOperationListener]),
       onGetResult(aCalendar, aStatus, aItemType, aDetail, aItems) {
         for (let item of aItems) {
           if (!(item.id in self.mItemInfoCache)) {
@@ -348,6 +342,11 @@ tbSyncDavCalendar.prototype = {
   //
   // calICalendar interface
   //
+
+  // readonly attribute AUTF8String type;
+  get type() {
+    return "tbSyncCalDav";
+  },
 
   mDisabled: true,
 
@@ -1184,7 +1183,7 @@ tbSyncDavCalendar.prototype = {
     if (!this.mACLEntry) {
       let self = this;
       let opListener = {
-        QueryInterface: ChromeUtils.generateQI(["calIOperationListener"]),
+        QueryInterface: ChromeUtils.generateQI([Ci.calIOperationListener]),
         onGetResult(calendar, status, itemType, detail, items) {
           cal.ASSERT(false, "unexpected!");
         },
@@ -1277,6 +1276,28 @@ tbSyncDavCalendar.prototype = {
     this.replayChangesOn(null);
   },
 
+  firstInRealm() {
+    let calendars = cal.getCalendarManager().getCalendars();
+    for (let i = 0; i < calendars.length; i++) {
+      if (calendars[i].type != "tbSyncCalDav" || calendars[i].getProperty("disabled")) {
+        continue;
+      }
+      // XXX We should probably expose the inner calendar via an
+      // interface, but for now use wrappedJSObject.
+      let calendar = calendars[i].wrappedJSObject;
+      if (calendar.mUncachedCalendar) {
+        calendar = calendar.mUncachedCalendar;
+      }
+      if (calendar.uri.prePath == this.uri.prePath && calendar.authRealm == this.mAuthRealm) {
+        if (calendar.id == this.id) {
+          return true;
+        }
+        break;
+      }
+    }
+    return false;
+  },
+
   /**
    * Get updated items
    *
@@ -1346,6 +1367,13 @@ tbSyncDavCalendar.prototype = {
   // Helper functions
   //
 
+  /** Overriding lightning oauth **/
+  
+  oauthConnect (authSuccessCb, authFailureCb, aRefresh = false) {
+    //unused
+    console.log("oauthConnect unused REPORT");
+  },
+
   /**
    * Called when a response has had its URL redirected. Shows a dialog
    * to allow the user to accept or reject the redirect. If they accept,
@@ -1393,9 +1421,54 @@ tbSyncDavCalendar.prototype = {
    * checkPrincipalsNameSpace
    * completeCheckServerInfo
    */
-  checkDavResourceType(aChangeLogListener) {
-    this.ensureTargetCalendar();
+  disableCalendars() {
+      this.setProperty("disabled", "true");
+      this.setProperty("auto-enabled", "true");
+      this.completeCheckServerInfo(aChangeLogListener, Cr.NS_ERROR_FAILURE);      
+  },
+  sleep: function(delay) {
+    let timer =  Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
+    return new Promise(function(resolve, reject) {
+      let event = {
+        notify: function(timer) {
+            resolve();
+        }
+      }
+      timer.initWithCallback(event, delay, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+    });
+  },
+  
+  async checkDavResourceType(aChangeLogListener) {
+    // If TbSync is not installed, disable all calendars.
+    let tbSyncAddon = await AddonManager.getAddonByID("tbsync@jobisoft.de");
+    if (!tbSyncAddon || !tbSyncAddon.isActive) {
+      console.log("Failed to load TbSync, GoogleDav calendar will be disabled.");
+      this.disableCalendars();
+      return;
+    }
 
+    // Wait until TbSync has been loaded
+    for (let waitCycles=0; waitCycles < 120 && !this.tbSyncLoaded; waitCycles++) {
+      await this.sleep(1000);
+      try {
+          var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
+          this.tbSyncLoaded = TbSync.enabled;
+      } catch (e) {
+          // If this fails, TbSync is not loaded yet.
+      }
+    }
+    if (!this.tbSyncLoaded) {
+      console.log("Failed to load TbSync, GoogleDav calendar will be disabled.");
+      this.disableCalendars();
+      return;
+    }
+      
+    // Wait until master password has been entered (if needed)
+    while (!Services.logins.isLoggedIn) {
+      await this.sleep(1000);
+    }    
+    
+    this.ensureTargetCalendar();
     let request = new CalDavPropfindRequest(this.session, this, this.makeUri(), [
       "D:resourcetype",
       "D:owner",
@@ -1468,7 +1541,7 @@ tbSyncDavCalendar.prototype = {
 
         // check for webdav-sync capability
         // http://tools.ietf.org/html/draft-daboo-webdav-sync
-        if (response.firstProps["D:supported-report-set"].has("D:sync-collection")) {
+        if (response.firstProps["D:supported-report-set"]?.has("D:sync-collection")) {
           cal.LOG("CalDAV: Collection has webdav sync support");
           this.mHasWebdavSyncSupport = true;
         }
@@ -2074,7 +2147,7 @@ tbSyncDavCalendar.prototype = {
     let self = this;
 
     let getItemListener = {};
-    getItemListener.QueryInterface = ChromeUtils.generateQI(["calIOperationListener"]);
+    getItemListener.QueryInterface = ChromeUtils.generateQI([Ci.calIOperationListener]);
     getItemListener.onOperationComplete = function(
       aCalendar,
       aStatus,
@@ -2107,7 +2180,7 @@ tbSyncDavCalendar.prototype = {
     };
 
     let modListener = {};
-    modListener.QueryInterface = ChromeUtils.generateQI(["calIOperationListener"]);
+    modListener.QueryInterface = ChromeUtils.generateQI([Ci.calIOperationListener]);
     modListener.onOperationComplete = function(
       aCalendar,
       aStatus,
@@ -2317,172 +2390,47 @@ tbSyncDavCalendar.prototype = {
       cal.LOG("CalDAV: send: " + serializedItem);
     }
     return serializedItem;
-  },
+  },  
+};
 
-  
-  // tbSyncDavCalendar  
-  sleep: function(delay) {
-    let timer =  Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
-    return new Promise(function(resolve, reject) {
-      let event = {
-        notify: function(timer) {
-            resolve();
-        }
-      }
-      timer.initWithCallback(event, delay, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
-    });
-  },
-
-  get type() {
-    return "tbSyncCalDav";
-  },
-
-  firstInRealm: function() {
-    let calendars = cal.getCalendarManager().getCalendars({});
-    for (let i = 0; i < calendars.length; i++) {
-      if (calendars[i].type != "tbSyncCalDav" || calendars[i].getProperty("disabled")) {
-        continue;
-      }
-      // XXX We should probably expose the inner calendar via an
-      // interface, but for now use wrappedJSObject.
-      let calendar = calendars[i].wrappedJSObject;
-      if (calendar.mUncachedCalendar) {
-        calendar = calendar.mUncachedCalendar;
-      }
-      if (calendar.uri.prePath == this.uri.prePath && calendar.authRealm == this.mAuthRealm) {
-        if (calendar.id == this.id) {
-          return true;
-        }
-        break;
-      }
-    }
-    return false;
-  },
-  
-  
-  /** Overriding lightning oauth **/
-  
-  oauthConnect: function(authSuccessCb, authFailureCb, aRefresh = false) {
-    let self = this;
-    // If multiple resources need to authenticate they will all end here, even though they
-    // might share the same token. Due to the async nature, each process will refresh
-    // "its own" token again, which is not needed. We force clear the token here and each
-    // final connect process will actually check the acccessToken and abort the refresh, 
-    // if it is already there, generated by some other process. 
-    // The value of aRefresh is being ignored.
-    if (self.oauth.accessToken) self.oauth.accessToken = "";
-    
-    // Use the async prompter to avoid multiple master password prompts
-    let promptlistener = {
-      onPromptStartAsync: function(callback) {
-        this.onPromptAuthAvailable(callback);
-      },
-      onPromptAuthAvailable: function(callback) {
-        // refresh = false will do nothing and resolve immediately, if an accessToken
-        // exists already, which must have been generated by another process, as
-        // we cleared it beforehand.
-        self.oauth.connect(
-          () => {
-            authSuccessCb();
-            if (callback) {
-              callback.onAuthResult(true);
-            }
-          },
-          () => {
-            authFailureCb();
-            if (callback) {
-              callback.onAuthResult(false);
-            }
-          },
-          true, // with UI
-          false // refresh
-        );
-      },
-      onPromptCanceled: authFailureCb,
-      onPromptStart: function() {},
-    };
-    let asyncprompter = Cc["@mozilla.org/messenger/msgAsyncPrompter;1"].getService(
-      Ci.nsIMsgAsyncPrompter
-    );
-    asyncprompter.queueAsyncAuthPrompt(self.uri.spec, false, promptlistener);
-  },
-
-  setupAuthentication: async function(aChangeLogListener) {
-    let self = this;
-    function authSuccess() {
-      self.checkDavResourceType(aChangeLogListener);
-    }
-    function authFailed() {
-      self.setProperty("disabled", "true");
-      self.setProperty("auto-enabled", "true");
-      self.completeCheckServerInfo(aChangeLogListener, Cr.NS_ERROR_FAILURE);
-    }
-
-    // If TbSync is not installed, disable all calendars.
-    let tbSyncAddon = await AddonManager.getAddonByID("tbsync@jobisoft.de");
-    if (!tbSyncAddon || !tbSyncAddon.isActive) {
-      console.log("Failed to load TbSync, GoogleDav calendar will be disabled.");
-      authFailed();
-      return;
-    }
-
-    // Wait until TbSync has been loaded
-    for (let waitCycles=0; waitCycles < 120 && !this.tbSyncLoaded; waitCycles++) {
-      await this.sleep(1000);
-      try {
-          var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
-          this.tbSyncLoaded = TbSync.enabled;
-      } catch (e) {
-          // If this fails, TbSync is not loaded yet.
-      }
-    }
-    if (!this.tbSyncLoaded) {
-      console.log("Failed to load TbSync, GoogleDav calendar will be disabled.");
-      authFailed();
-      return;
-    }
-      
-    // Wait until master password has been entered (if needed)
-    while (!Services.logins.isLoggedIn) {
-      await this.sleep(1000);
-    }
-    
-    
-    if (!this.oauth) {
-      let oauth = TbSync.providers.dav.network.getOAuthObj(this.mUri);
-      if (oauth) {
-        // This Server req OAUTH
-        this.oauth = oauth;
-      } else {
-        // This Server does not req OAUTH Server
-        authSuccess();
-        return;
-      }
-    }
-    
-    if (this.oauth.accessToken) {
-      authSuccess();
-    } else {
-      // bug 901329: If the calendar window isn't loaded yet the
-      // master password prompt will show just the buttons and
-      // possibly hang. If we postpone until the window is loaded,
-      // all is well.
-      setTimeout(function postpone() {
-        // eslint-disable-line func-names
-        let win = cal.window.getCalendarWindow();
-        if (!win || win.document.readyState != "complete") {
-          setTimeout(postpone, 0);
-        } else {
-          self.oauthConnect(authSuccess, authFailed);
-        }
-      }, 0);
-    }
-  },
+function calDavObserver(aCalendar) {
+  this.mCalendar = aCalendar;
 }
 
+calDavObserver.prototype = {
+  mCalendar: null,
+  mInBatch: false,
 
-/** Module Registration */
-this.NSGetFactory = cid => {
-  this.NSGetFactory = XPCOMUtils.generateNSGetFactory([tbSyncDavCalendar]);
-  return this.NSGetFactory(cid);
+  // calIObserver:
+  onStartBatch() {
+    this.mCalendar.observers.notify("onStartBatch");
+    this.mInBatch = true;
+  },
+  onEndBatch() {
+    this.mCalendar.observers.notify("onEndBatch");
+    this.mInBatch = false;
+  },
+  onLoad(calendar) {
+    this.mCalendar.observers.notify("onLoad", [calendar]);
+  },
+  onAddItem(aItem) {
+    this.mCalendar.observers.notify("onAddItem", [aItem]);
+  },
+  onModifyItem(aNewItem, aOldItem) {
+    this.mCalendar.observers.notify("onModifyItem", [aNewItem, aOldItem]);
+  },
+  onDeleteItem(aDeletedItem) {
+    this.mCalendar.observers.notify("onDeleteItem", [aDeletedItem]);
+  },
+  onPropertyChanged(aCalendar, aName, aValue, aOldValue) {
+    this.mCalendar.observers.notify("onPropertyChanged", [aCalendar, aName, aValue, aOldValue]);
+  },
+  onPropertyDeleting(aCalendar, aName) {
+    this.mCalendar.observers.notify("onPropertyDeleting", [aCalendar, aName]);
+  },
+
+  onError(aCalendar, aErrNo, aMessage) {
+    this.mCalendar.readOnly = true;
+    this.mCalendar.notifyError(aErrNo, aMessage);
+  },
 };

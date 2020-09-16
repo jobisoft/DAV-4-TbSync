@@ -9,6 +9,7 @@
 // no need to create namespace, we are in a sandbox
 
 var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
+var { cal } = ChromeUtils.import("resource:///modules/calendar/calUtils.jsm");
 
 let component = {};
 
@@ -34,17 +35,14 @@ function startup(data, reason)  {
     // Possible reasons: APP_STARTUP, ADDON_ENABLE, ADDON_INSTALL, ADDON_UPGRADE, or ADDON_DOWNGRADE.
 
     Services.obs.addObserver(onInitDoneObserver, "tbsync.observer.initialized", false);
-
-    try {
-        Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/tbSyncDavCalendar.js", component);    
-        let registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-        registrar.registerFactory(
-            component.tbSyncDavCalendar.prototype.classID,
-            component.tbSyncDavCalendar.prototype.classDescription,
-            component.tbSyncDavCalendar.prototype.contractID,
-            component.NSGetFactory(component.tbSyncDavCalendar.prototype.classID)
-        );
-    } catch (e) {}
+  
+    let { GoogleDavCalendar } = ChromeUtils.import(
+      "chrome://dav4tbsync/content/includes/GoogleDavCalendar.jsm"
+    );
+    if (cal.getCalendarManager().wrappedJSObject.hasCalendarProvider("tbSyncCalDav")) {
+      cal.getCalendarManager().wrappedJSObject.unregisterCalendarProvider("tbSyncCalDav", true);
+    }
+    cal.getCalendarManager().wrappedJSObject.registerCalendarProvider("tbSyncCalDav", GoogleDavCalendar);    
     
     // The startup of TbSync is delayed until all add-ons have called their startup(),
     // so all providers have registered the "tbsync.observer.initialized" observer.
@@ -64,13 +62,6 @@ function shutdown(data, reason)  {
         return;
     }
 
-    try {
-        let registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-        registrar.unregisterFactory(
-            component.tbSyncDavCalendar.prototype.classID,
-            component.NSGetFactory(component.tbSyncDavCalendar.prototype.classID)
-        );
-    } catch (e) {}
     
     Services.obs.removeObserver(onInitDoneObserver, "tbsync.observer.initialized");
     //unload this provider add-on from TbSync
@@ -80,4 +71,8 @@ function shutdown(data, reason)  {
     } catch (e) {
         //if this fails, TbSync has been unloaded already and has unloaded this addon as well
     }
+    Cu.unload("chrome://dav4tbsync/content/includes/GoogleDavCalendar.jsm");
+    Cu.unload("chrome://dav4tbsync/content/includes/GoogleDavSession.jsm");
+    Services.obs.notifyObservers(null, "startupcache-invalidate");
+    Services.obs.notifyObservers(null, "chrome-flush-caches");     
 }
