@@ -25,7 +25,16 @@ let onInitDoneObserver = {
         
         //load this provider add-on into TbSync
         if (valid) {
-            await TbSync.providers.loadProvider(extension, "dav", "chrome://dav4tbsync/content/provider.js");
+          Cu.unload("chrome://dav4tbsync/content/includes/GoogleDavCalendar.jsm");
+          Cu.unload("chrome://dav4tbsync/content/includes/GoogleDavSession.jsm");
+          let { GoogleDavCalendar } = ChromeUtils.import(
+            "chrome://dav4tbsync/content/includes/GoogleDavCalendar.jsm"
+          );
+          if (cal.getCalendarManager().wrappedJSObject.hasCalendarProvider("tbSyncCalDav")) {
+            cal.getCalendarManager().wrappedJSObject.unregisterCalendarProvider("tbSyncCalDav", true);
+          }
+          cal.getCalendarManager().wrappedJSObject.registerCalendarProvider("tbSyncCalDav", GoogleDavCalendar);    
+          await TbSync.providers.loadProvider(extension, "dav", "chrome://dav4tbsync/content/provider.js");
         }
     }
 }
@@ -35,15 +44,7 @@ function startup(data, reason)  {
     // Possible reasons: APP_STARTUP, ADDON_ENABLE, ADDON_INSTALL, ADDON_UPGRADE, or ADDON_DOWNGRADE.
 
     Services.obs.addObserver(onInitDoneObserver, "tbsync.observer.initialized", false);
-  
-    let { GoogleDavCalendar } = ChromeUtils.import(
-      "chrome://dav4tbsync/content/includes/GoogleDavCalendar.jsm"
-    );
-    if (cal.getCalendarManager().wrappedJSObject.hasCalendarProvider("tbSyncCalDav")) {
-      cal.getCalendarManager().wrappedJSObject.unregisterCalendarProvider("tbSyncCalDav", true);
-    }
-    cal.getCalendarManager().wrappedJSObject.registerCalendarProvider("tbSyncCalDav", GoogleDavCalendar);    
-    
+     
     // The startup of TbSync is delayed until all add-ons have called their startup(),
     // so all providers have registered the "tbsync.observer.initialized" observer.
     // Once TbSync has finished its startup, all providers will be notified (also if
@@ -71,8 +72,6 @@ function shutdown(data, reason)  {
     } catch (e) {
         //if this fails, TbSync has been unloaded already and has unloaded this addon as well
     }
-    Cu.unload("chrome://dav4tbsync/content/includes/GoogleDavCalendar.jsm");
-    Cu.unload("chrome://dav4tbsync/content/includes/GoogleDavSession.jsm");
     Services.obs.notifyObservers(null, "startupcache-invalidate");
     Services.obs.notifyObservers(null, "chrome-flush-caches");     
 }
