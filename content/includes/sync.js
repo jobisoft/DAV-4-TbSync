@@ -742,32 +742,17 @@ var sync = {
                     let list = await syncData.target.getItemFromProperty("X-DAV-HREF", listID);
                     if (!list.isMailList)
                         continue;
-                    
-                    let currentMembers = list.getMembersPropertyList("X-DAV-UID");
-                    
+                                        
                     //CardInfo contains the name and the X-DAV-UID list of the members
                     let vCardInfo = dav.tools.getGroupInfoFromCardData(syncData.foundMailingListsDuringDownSync[listID].vCardData, syncData.target);
                     let oCardInfo = dav.tools.getGroupInfoFromCardData(syncData.foundMailingListsDuringDownSync[listID].oCardData, syncData.target);
 
                     // Smart merge: oCardInfo contains the state during last sync, vCardInfo is the current state.
-                    // By comparing we can learn, which member was deleted by the server (in old but not in new).
+                    // By comparing we can learn, which member was deleted by the server (in old but not in new),
+                    // and which one was added (in new but not in old)
                     let removedMembers = oCardInfo.members.filter(e => !vCardInfo.members.includes(e));
-                     
-                    // The new list from the server is taken.
-                    let newMembers = vCardInfo.members;
-                    
-                    // Any member in current but not in new is added.
-                    for (let member of currentMembers) {
-                        if (!newMembers.includes(member) && !removedMembers.includes(member)) 
-                            newMembers.push(member);
-                    }
+                    let newMembers = vCardInfo.members.filter(e => !oCardInfo.members.includes(e));
 
-                    // Remove local deletes.
-                    for (let member of oCardInfo.members) {
-                        if (!currentMembers.includes(member)) 
-                            newMembers = newMembers.filter(e => e != member);
-                    }
-                    
                     // Check that all new members have an email address (fix for bug 1522453)
                     let m=0;
                     for (let member of newMembers) {
@@ -784,7 +769,12 @@ var sync = {
                         }
                         m++;
                     }
-                    list.setMembersByPropertyList("X-DAV-UID", newMembers);
+                    
+                    // if any of the to-be-removed members are not members of the local list, they are skipt
+                    // if any of the to-be-added members are already members of the local list, they are skipt
+                    list.removeListMembers("X-DAV-UID", removedMembers);
+                    list.addListMembers("X-DAV-UID", newMembers);
+                    syncData.target.modifyItem(list);
                 }
             }
         }            
