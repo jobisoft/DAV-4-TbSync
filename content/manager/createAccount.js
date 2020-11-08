@@ -106,6 +106,8 @@ var tbSyncDavNewAccount = {
         this.serviceproviderlist.appendChild(this.addProviderEntry("sabredav32.png", "discovery"));
         this.serviceproviderlist.appendChild(this.addProviderEntry("sabredav32.png", "custom"));
         for (let p in dav.sync.serviceproviders) {
+            if (p == "google" && !dav.sync.prefSettings.getBoolPref("googlesupport"))
+                continue;
             this.serviceproviderlist.appendChild(this.addProviderEntry(dav.sync.serviceproviders[p].icon +"32.png", p));
         }
         
