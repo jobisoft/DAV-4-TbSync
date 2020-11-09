@@ -26,7 +26,7 @@ var Base = class {
         branch.setIntPref("maxitems", 50);
         branch.setIntPref("timeout", 90000);
         branch.setCharPref("clientID.type", "TbSync");
-        branch.setCharPref("clientID.type", "TbSync");
+        branch.setCharPref("clientID.useragent", "Thunderbird CalDAV/CardDAV");
         branch.setBoolPref("googlesupport", false);    
         branch.setBoolPref("enforceUniqueCalendarUrls", false);    
         branch.setCharPref("OAuth2_ClientID", "689460414096-e4nddn8tss5c59glidp4bc0qpeu3oper.apps.googleusercontent.com");
