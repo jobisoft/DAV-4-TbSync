@@ -6,103 +6,103 @@
         "message": "Direcciones de correo electrónico"
     },
     "abCard.MiddleName": {
-        "message": "Middle:"
+        "message": "Nombre adicional:"
     },
     "abCard.Phone": {
-        "message": "Phone numbers"
+        "message": "Números de teléfono"
     },
     "abCard.PrefixName": {
-        "message": "Prefix:"
+        "message": "Prefijo:"
     },
     "abCard.SuffixName": {
-        "message": "Suffix:"
+        "message": "Sufijo:"
     },
     "abCard.emailtypes.car": {
-        "message": "Car"
+        "message": "Coche"
     },
     "abCard.emailtypes.cell": {
-        "message": "Mobile"
+        "message": "Móvil"
     },
     "abCard.emailtypes.description": {
-        "message": "The first e-mail address in the list will be used as the primary e-mail address."
+        "message": "La primera dirección de la lista se utilizará como dirección principal de correo electrónico."
     },
     "abCard.emailtypes.fax": {
         "message": "Fax"
     },
     "abCard.emailtypes.home": {
-        "message": "Home"
+        "message": "Casa"
     },
     "abCard.emailtypes.other": {
-        "message": "Other"
+        "message": "Otro"
     },
     "abCard.emailtypes.pager": {
-        "message": "Pager"
+        "message": "Buscapersonas"
     },
     "abCard.emailtypes.video": {
-        "message": "Video"
+        "message": "Vídeo"
     },
     "abCard.emailtypes.voice": {
-        "message": "Phone"
+        "message": "Teléfono"
     },
     "abCard.emailtypes.work": {
-        "message": "Work"
+        "message": "Trabajo"
     },
     "acl.add": {
-        "message": "add"
+        "message": "añadir"
     },
     "acl.delete": {
-        "message": "delete"
+        "message": "eliminar"
     },
     "acl.modify": {
-        "message": "modify"
+        "message": "modificar"
     },
     "acl.none": {
-        "message": "none"
+        "message": "ninguno"
     },
     "acl.readonly": {
-        "message": "Read-only server access (revert local changes)"
+        "message": "Acceso de solo lectura al servidor (descartar cambios locales)"
     },
     "acl.readwrite": {
-        "message": "Server write permissions: ##replace.1##"
+        "message": "Permisos de escritura del servidor: ##replace.1##"
     },
     "add.caldavserver": {
-        "message": "CalDAV server address:"
+        "message": "Dirección del servidor CalDAV:"
     },
     "add.carddavserver": {
-        "message": "CardDAV server address:"
+        "message": "Dirección del servidor CardDAV:"
     },
     "add.data.description": {
-        "message": "Please provide a friendly name for the new TbSync account and the credentials for your server:"
+        "message": "Escriba un nombre reconocible para la nueva cuenta de TbSync y las credenciales de su servidor:"
     },
     "add.data.notes": {
-        "message": "Notes:"
+        "message": "Notas:"
     },
     "add.data.title": {
-        "message": "Enter account information"
+        "message": "Datos de la cuenta"
     },
     "add.finish.description": {
-        "message": "The following settings have been verified successfully:"
+        "message": "Los siguientes ajustes se han verificado correctamente:"
     },
     "add.finish.details": {
-        "message": "Click “Finish” to create a new TbSync account with these settings."
+        "message": "Haga clic en «Finalizar» para crear una cuenta de TbSync con estos ajustes."
     },
     "add.finish.title": {
-        "message": "Confirm account creation"
+        "message": "Confirmar la creación de la cuenta"
     },
     "add.name": {
-        "message": "Account name:"
+        "message": "Nombre de cuenta:"
     },
     "add.ok": {
-        "message": "Add account"
+        "message": "Añadir cuenta"
     },
     "add.password": {
-        "message": "Password:"
+        "message": "Contraseña:"
     },
     "add.server": {
-        "message": "Server URL:"
+        "message": "URL del servidor:"
     },
     "add.serverprofile.custom": {
-        "message": "Manual Configuration"
+        "message": "Configuración manual"
     },
     "add.serverprofile.custom.description": {
         "message": "The CalDAV and CardDAV service endpoints can be configured manually."
@@ -252,10 +252,10 @@
         "message": "Account name"
     },
     "pref.CalDavServer": {
-        "message": "CalDAV server address:"
+        "message": "Dirección del servidor CalDAV:"
     },
     "pref.CardDavServer": {
-        "message": "CardDAV server address:"
+        "message": "Dirección del servidor CardDAV:"
     },
     "pref.UserName": {
         "message": "User name"
