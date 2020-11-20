@@ -1,9 +1,9 @@
 {
     "abCard.ContactDetails": {
-        "message": "Contact properties (CardDAV)"
+        "message": "Propiedades del contacto (CardDAV)"
     },
     "abCard.EmailAddresses": {
-        "message": "E-mail addresses"
+        "message": "Direcciones de correo electrónico"
     },
     "abCard.MiddleName": {
         "message": "Middle:"
