@@ -108,7 +108,7 @@
         "message": "Puede configurar manualmente los puntos de servicio CalDAV y CardDav."
     },
     "add.serverprofile.custom.details1": {
-        "message": "The required CalDAV & CardDAV service endpoints or the so called principal addresses should be provided by your service provider."
+        "message": "Los puntos de servicio CalDAV y CardDAV, o direcciones del servidor, debe proporcionárselos su proveedor de servicios."
     },
     "add.serverprofile.custom.details2": {
         "message": "If you leave either address empty, the corresponding service will be disabled for this account."
