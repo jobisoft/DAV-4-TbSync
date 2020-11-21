@@ -231,7 +231,7 @@
         "message": "Contactos"
     },
     "extensionDescription": {
-        "message": "Añadir soporte para sincronización de cuentas CalDAV y CardDAV a TbSync."
+        "message": "Añade soporte para sincronización de cuentas CalDAV y CardDAV a TbSync."
     },
     "extensionName": {
         "message": "Proveedor de CalDAV y CardDAV"
