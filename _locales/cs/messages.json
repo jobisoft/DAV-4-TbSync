@@ -1,36 +1,36 @@
 {
     "abCard.ContactDetails": {
-        "message": "Contact properties (CardDAV)"
+        "message": "Vlastnosti kontaktu (CardDAV)"
     },
     "abCard.EmailAddresses": {
-        "message": "E-mail addresses"
+        "message": "E-mailové adresy"
     },
     "abCard.MiddleName": {
-        "message": "Middle:"
+        "message": "Prostřední jméno:"
     },
     "abCard.Phone": {
-        "message": "Phone numbers"
+        "message": "Telefonní čísla"
     },
     "abCard.PrefixName": {
-        "message": "Prefix:"
+        "message": "Titul před jménem:"
     },
     "abCard.SuffixName": {
-        "message": "Suffix:"
+        "message": "Titul za jménem:"
     },
     "abCard.emailtypes.car": {
-        "message": "Car"
+        "message": "Auto"
     },
     "abCard.emailtypes.cell": {
-        "message": "Mobile"
+        "message": "Mobil"
     },
     "abCard.emailtypes.description": {
-        "message": "The first e-mail address in the list will be used as the primary e-mail address."
+        "message": "První e-mailová adresa v seznamu bude použita jako hlavní e-mailová adresa."
     },
     "abCard.emailtypes.fax": {
         "message": "Fax"
     },
     "abCard.emailtypes.home": {
-        "message": "Home"
+        "message": "Domů"
     },
     "abCard.emailtypes.other": {
         "message": "Other"
@@ -42,25 +42,25 @@
         "message": "Video"
     },
     "abCard.emailtypes.voice": {
-        "message": "Phone"
+        "message": "Telefon"
     },
     "abCard.emailtypes.work": {
-        "message": "Work"
+        "message": "Práce"
     },
     "acl.add": {
-        "message": "add"
+        "message": "přidat"
     },
     "acl.delete": {
-        "message": "delete"
+        "message": "smazat"
     },
     "acl.modify": {
-        "message": "modify"
+        "message": "upravit"
     },
     "acl.none": {
         "message": "none"
     },
     "acl.readonly": {
-        "message": "Read-only server access (revert local changes)"
+        "message": "Přistup na server pouze pro čtení (zrušit místní změny)"
     },
     "acl.readwrite": {
         "message": "Server write permissions: ##replace.1##"
