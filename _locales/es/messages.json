@@ -279,13 +279,13 @@
         "message": "NOTA: Debido al error 1522453 de Thunderbird, TbSync tiene que añadir direcciones de correo electrónico ficticias a todos los contactos que forman parte de un grupo sin tener asociada una dirección de correo electrónico. Estas direcciones ficticias no se sincronizan con el servidor."
     },
     "pref.useCalendarCache": {
-        "message": "Offline Support"
+        "message": "Se puede usar sin conexión"
     },
     "pref.useCardBook": {
-        "message": "Create CardBook address books instead of Thunderbird's default address books"
+        "message": "Crear libretas de direcciones de CardBook en lugar de las predeterminadas de Thunderbird"
     },
     "status.401": {
-        "message": "Could not authenticate, check username and password."
+        "message": "No ha sido posible autenticar, compruebe el nombre de usuario y contraseña."
     },
     "status.403": {
         "message": "Server rejected connection (forbidden)."
