@@ -111,40 +111,40 @@
         "message": "Los puntos de servicio CalDAV y CardDAV, o direcciones del servidor, debe proporcionárselos su proveedor de servicios."
     },
     "add.serverprofile.custom.details2": {
-        "message": "If you leave either address empty, the corresponding service will be disabled for this account."
+        "message": "Si deja vacía alguna de estas direcciones, no se habilitará el servicio correspondiente en esta cuenta."
     },
     "add.serverprofile.description": {
-        "message": "Please select one of the available server profiles:"
+        "message": "Seleccione uno de los perfiles de servidor disponibles:"
     },
     "add.serverprofile.discovery": {
-        "message": "Automatic Configuration"
+        "message": "Configuración automática"
     },
     "add.serverprofile.discovery.description": {
-        "message": "Many service providers and servers support an automatic configuration process, which requires only an e-mail address or a username and a server address."
+        "message": "Muchos servidores y proveedores de servicios admiten un proceso de configuración automático que solo requiere una dirección de correo electrónico o nombre de usuario y la dirección del servidor."
     },
     "add.serverprofile.discovery.details1": {
-        "message": "For the automatic discovery of the CalDAV & CardDAV service endpoints, please enter your credentials and the host name of your server (e.g. 'cloud.myserver.de')."
+        "message": "Para detectar automáticamente los puntos de servicio CalDAV y CardDAV, escriba sus credenciales y el nombre de host de su servidor (por ejemplo, «nube.miservidor.es»)."
     },
     "add.serverprofile.discovery.details2": {
-        "message": "If your username is an e-mail address, specifying the server becomes optional, as the information about the service endpoints may be obtained directly from your service provider via an RFC6764 request (if supported)."
+        "message": "Si su nombre de usuario es una dirección de correo electrónico, quizás no sea necesario especificar el servidor, ya que los datos de los puntos de servicio se podrían obtener directamente del proveedor de servicios mediante una solicitud RFC6764 (si se admite)."
     },
     "add.serverprofile.discovery.server-optional": {
-        "message": "optional"
+        "message": "opcional"
     },
     "add.serverprofile.fruux": {
         "message": "fruux"
     },
     "add.serverprofile.fruux.description": {
-        "message": "fruux is a service that syncs contacts, calendars and tasks. It's powered by the company behind sabre/dav and is based in Germany."
+        "message": "fruux es un servicio que sincroniza contactos, calendarios y tareas. Lo ofrece la compañía que desarrolla sabre/dav y tiene su sede en Alemania."
     },
     "add.serverprofile.gmx.com": {
-        "message": "GMX.com (USA)"
+        "message": "GMX.com (EE. UU.)"
     },
     "add.serverprofile.gmx.com.description": {
         "message": "https://www.gmx.com"
     },
     "add.serverprofile.gmx.net": {
-        "message": "GMX.net (Europe)"
+        "message": "GMX.net (Europa)"
     },
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
@@ -156,7 +156,7 @@
         "message": "https://accounts.google.com"
     },
     "add.serverprofile.google.details1": {
-        "message": "Google uses a modern authentication method and TbSync does not need to know your username or your password. After clicking 'Next >', a browser window will be opened, where you can log into your Google account and allow the 'Provider for CalDAV & CardDAV' to access your contacts and calendars."
+        "message": "Google usa un método de autenticación avanzado, y TbSync no necesita saber su nombre de usuario o su contraseña. Cuando haga clic en «Siguiente >», se abrirá una ventana del navegador en la que podrá iniciar sesión y conceder a «Proveedor de CalDAV y CardDAV» acceso a sus contactos y calendarios."
     },
     "add.serverprofile.icloud": {
         "message": "iCloud"
@@ -165,16 +165,16 @@
         "message": "https://www.icloud.com"
     },
     "add.serverprofile.icloud.details1": {
-        "message": "The requested user name is your Apple ID. Please note, that you may not use your Apple ID password here. You MUST enable two-factor authentication (2FA) for your iCloud account and create a separate app-specific password for TbSync."
+        "message": "El nombre de usuario que necesita es su ID de Apple. Tenga en cuenta que no puede usar aquí la contraseña de su ID de Apple. DEBE activar la autenticación de dos factores (2FA) en su cuenta de iCloud y crear una contraseña de aplicación específica para TbSync."
     },
     "add.serverprofile.icloud.details2": {
-        "message": "This is a security layer enforced by Apple, so that 3rd party clients do not gain access to your Apple account."
+        "message": "Se trata de una capa de seguridad impuesta por Apple para evitar que las aplicaciones de terceros obtengan acceso a su cuenta de Apple."
     },
     "add.serverprofile.mbo": {
         "message": "mailbox.org"
     },
     "add.serverprofile.mbo.description": {
-        "message": "mailbox.org is a secure German e-mail provider for private and business customers, which also offers calendars, contacts and cloud storage."
+        "message": "mailbox.org es un proveedor alemán de correo electrónico seguro para clientes privados y empresas que también ofrece calendarios, contactos y almacenamiento en la nube."
     },
     "add.serverprofile.posteo": {
         "message": "Posteo"
@@ -183,7 +183,7 @@
         "message": "https://www.posteo.de"
     },
     "add.serverprofile.title": {
-        "message": "Select a server profile"
+        "message": "Selección del perfil del servidor"
     },
     "add.serverprofile.web.de": {
         "message": "WEB.de"
@@ -198,58 +198,58 @@
         "message": "https://www.yahoo.com"
     },
     "add.serverprofile.yahoo.details1": {
-        "message": "The requested password is an app-specific password for TbSync which you can create in your Yahoo! web portal. It is not your standard Yahoo! password."
+        "message": "La contraseña que necesita es una contraseña específica para TbSync que puede crear en el portal web de Yahoo!. Es distinta de su contraseña normal de Yahoo!."
     },
     "add.spinner.query": {
-        "message": "Sending RFC6764 request to “##replace.1##”"
+        "message": "Enviando solicitud RFC6764 a \"##replace.1##\""
     },
     "add.spinner.validating": {
-        "message": "Verifying connection to server"
+        "message": "Verificando conexión con el servidor"
     },
     "add.title": {
-        "message": "Adding a CalDAV & CardDAV account to TbSync"
+        "message": "Añadir una cuenta CalDAV y CardDAV a TbSync"
     },
     "add.user": {
-        "message": "User name:"
+        "message": "Nombre de usuario:"
     },
     "autocomplete.HOME": {
-        "message": "private"
+        "message": "privado"
     },
     "autocomplete.PREF": {
-        "message": "preferred"
+        "message": "preferido"
     },
     "autocomplete.WORK": {
-        "message": "business"
+        "message": "profesional"
     },
     "config.custom": {
-        "message": "CalDAV & CardDAV server configuration"
+        "message": "Configuración del servidor CalDAV y CardDAV"
     },
     "defaultname.calendar": {
-        "message": "Calendar"
+        "message": "Calendario"
     },
     "defaultname.contacts": {
-        "message": "Contacts"
+        "message": "Contactos"
     },
     "extensionDescription": {
-        "message": "Add sync support for CalDAV & CardDAV accounts to TbSync."
+        "message": "Añadir soporte para sincronización de cuentas CalDAV y CardDAV a TbSync."
     },
     "extensionName": {
-        "message": "Provider for CalDAV & CardDAV"
+        "message": "Proveedor de CalDAV y CardDAV"
     },
     "helplink.malformed-xml": {
         "message": "https://github.com/jobisoft/DAV-4-TbSync/issues/104"
     },
     "manager.tabs.accountsettings": {
-        "message": "Account settings"
+        "message": "Ajustes de la cuenta"
     },
     "manager.tabs.syncsettings": {
-        "message": "Options"
+        "message": "Opciones"
     },
     "menu.name": {
-        "message": "CalDAV & CardDAV"
+        "message": "CalDAV y CardDAV"
     },
     "pref.AccountName": {
-        "message": "Account name"
+        "message": "Nombre de la cuenta"
     },
     "pref.CalDavServer": {
         "message": "Dirección del servidor CalDAV:"
@@ -258,25 +258,25 @@
         "message": "Dirección del servidor CardDAV:"
     },
     "pref.UserName": {
-        "message": "User name"
+        "message": "Nombre de usuario"
     },
     "pref.calendaroptions": {
-        "message": "Calendar options"
+        "message": "Opciones de calendario"
     },
     "pref.contactoptions": {
-        "message": "Contact options"
+        "message": "Opciones de contactos"
     },
     "pref.downloadonly": {
-        "message": "Revert local changes (one-way sync)"
+        "message": "Descartar cambios locales (sincronización en una dirección)"
     },
     "pref.generaloptions": {
-        "message": "General options"
+        "message": "Opciones generales"
     },
     "pref.syncGroups": {
-        "message": "Sync contact groups as Thunderbird lists"
+        "message": "Sincronizar grupos de contactos como listas de Thunderbird"
     },
     "pref.syncGroupsDescription": {
-        "message": "NOTE: Due to TB bug 1522453, TbSync must add dummy e-mail addresses to all contacts, which are part of groups but do not have an e-mail address associated. These dummy e-mail addresses are not synced to server."
+        "message": "NOTA: Debido al error 1522453 de Thunderbird, TbSync tiene que añadir direcciones de correo electrónico ficticias a todos los contactos que forman parte de un grupo sin tener asociada una dirección de correo electrónico. Estas direcciones ficticias no se sincronizan con el servidor."
     },
     "pref.useCalendarCache": {
         "message": "Offline Support"
