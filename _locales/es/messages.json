@@ -105,7 +105,7 @@
         "message": "Configuración manual"
     },
     "add.serverprofile.custom.description": {
-        "message": "The CalDAV and CardDAV service endpoints can be configured manually."
+        "message": "Puede configurar manualmente los puntos de servicio CalDAV y CardDav."
     },
     "add.serverprofile.custom.details1": {
         "message": "The required CalDAV & CardDAV service endpoints or the so called principal addresses should be provided by your service provider."
