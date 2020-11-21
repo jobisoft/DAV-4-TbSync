@@ -288,69 +288,69 @@
         "message": "No ha sido posible autenticar, compruebe el nombre de usuario y contraseña."
     },
     "status.403": {
-        "message": "Server rejected connection (forbidden)."
+        "message": "El servidor ha rechazado la conexión (prohibida)."
     },
     "status.404": {
-        "message": "HTTP Error 404 (requested resource not found)."
+        "message": "Error HTTP 404 (no se encuentra el recurso solicitado)."
     },
     "status.500": {
-        "message": "Unknown Server Error (HTTP Error 500)."
+        "message": "Error de servidor desconocido (error HTTP 500)."
     },
     "status.503": {
-        "message": "Service unavailable."
+        "message": "Servicio no disponible."
     },
     "status.caldavservernotfound": {
-        "message": "Could not find a CalDAV server."
+        "message": "No se ha encontrado un servidor CalDAV."
     },
     "status.carddavservernotfound": {
-        "message": "Could not find a CardDAV server."
+        "message": "No se ha encontrado un servidor CardDAV."
     },
     "status.gContactSync": {
-        "message": "There is an incompatibility with gContactSync with activated contact group synchronization. Please deactivate one of them as long as the error is not resolved."
+        "message": "Existe incompatibilidad con el complemento gContactSync cuando se activa la sincronización de grupos de contactos. Desactive uno de los dos hasta que se resuelva el problema."
     },
     "status.info.restored": {
-        "message": "Due to partially missing write permissions, some actions were rejected by the server and reversed locally."
+        "message": "Debido a la ausencia de algunos permisos de escritura, el servidor rechazó algunas acciones, que se han descartado localmente."
     },
     "status.malformed-xml": {
-        "message": "Could not parse XML. Check event log for details."
+        "message": "No ha sido posible analizar el XML. Compruebe el registro de eventos para más detalles."
     },
     "status.missing-permission": {
-        "message": "Missing permission: ##replace.1##"
+        "message": "Permiso ausente: ##replace.1##"
     },
     "status.networkerror": {
-        "message": "Could not connect to server."
+        "message": "No ha sido posible conectar al servidor."
     },
     "status.rfc6764-lookup-failed": {
-        "message": "The query of “##replace.1##” did not provide the required information regarding the CalDAV and CardDAV service endpoints. Please enter the hostname of your server to proceed with the automatic configuration."
+        "message": "La consulta de «##replace.1##» no proporcionó la información necesaria con respecto a los puntos de servicio CalDAV y CardDAV. Escriba el nombre de host de su servidor para continuar con la configuración automática."
     },
     "status.service-discovery-failed": {
-        "message": "Automatic discovery of CalDAV & CardDAV service endpoints of “##replace.1##” has failed. Try again, specifying a different server address, or switch to the custom configuration to manually specify the service endpoints."
+        "message": "Ha fallado la detección automática de los puntos de servicio de «##replace.1##». Inténtelo de nuevo especificando una dirección distinta para el servidor o cambie a la configuración personalizada para especificar manualmente los puntos de servicio."
     },
     "status.softerror": {
-        "message": "Non fatal error (##replace.1##)"
+        "message": "Error no fatal (##replace.1##)"
     },
     "status.success.managed-by-lightning": {
         "message": "Lightning"
     },
     "syncstate.eval.folders": {
-        "message": "Updating folder list"
+        "message": "Actualizando la lista de carpetas"
     },
     "syncstate.eval.response.localchanges": {
-        "message": "Processing acknowledgment of local changes"
+        "message": "Procesando el reconocimiento de cambios locales"
     },
     "syncstate.eval.response.remotechanges": {
-        "message": "Processing remote changes"
+        "message": "Procesando los cambios remotos"
     },
     "syncstate.prepare.request.localchanges": {
-        "message": "Sending local changes"
+        "message": "Enviando los cambios locales"
     },
     "syncstate.send.getfolders": {
-        "message": "Requesting folder list"
+        "message": "Solicitando la lista de carpetas"
     },
     "syncstate.send.request.localchanges": {
-        "message": "Waiting for acknowledgment of local changes"
+        "message": "Esperando el reconocimiento de cambios locales"
     },
     "syncstate.send.request.remotechanges": {
-        "message": "Waiting for remote changes"
+        "message": "Esperando los cambios remotos"
     }
 }
