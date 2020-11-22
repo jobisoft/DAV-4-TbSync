@@ -213,16 +213,16 @@
         "message": "Uživatelské jméno:"
     },
     "autocomplete.HOME": {
-        "message": "private"
+        "message": "soukromý"
     },
     "autocomplete.PREF": {
-        "message": "preferred"
+        "message": "preferovaný"
     },
     "autocomplete.WORK": {
-        "message": "business"
+        "message": "pracovní"
     },
     "config.custom": {
-        "message": "CalDAV & CardDAV server configuration"
+        "message": "Nastavení CalDAV a CardDAV serveru"
     },
     "defaultname.calendar": {
         "message": "Kalendář"
@@ -282,16 +282,16 @@
         "message": "Podpora offline režimu"
     },
     "pref.useCardBook": {
-        "message": "Create CardBook address books instead of Thunderbird's default address books"
+        "message": "Vytvářet adresáře CardBooku místo výchozích adresářů Thunderbirdu"
     },
     "status.401": {
-        "message": "Could not authenticate, check username and password."
+        "message": "Nelze se přihlásit, zkontrolujte uživatelské jméno a heslo."
     },
     "status.403": {
-        "message": "Server rejected connection (forbidden)."
+        "message": "Server odmítl připojení (zakázáno)."
     },
     "status.404": {
-        "message": "HTTP Error 404 (requested resource not found)."
+        "message": "HTTP chyba 404 (požadovaný zdroj nebyl nalezen)."
     },
     "status.500": {
         "message": "Unknown Server Error (HTTP Error 500)."
