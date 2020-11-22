@@ -63,67 +63,67 @@
         "message": "Přistup na server pouze pro čtení (zrušit místní změny)"
     },
     "acl.readwrite": {
-        "message": "Server write permissions: ##replace.1##"
+        "message": "Oprávnění k zápisu na server: ##replace.1##"
     },
     "add.caldavserver": {
-        "message": "CalDAV server address:"
+        "message": "Adresa serveru CalDAV:"
     },
     "add.carddavserver": {
-        "message": "CardDAV server address:"
+        "message": "Adresa serveru CardDAV:"
     },
     "add.data.description": {
-        "message": "Please provide a friendly name for the new TbSync account and the credentials for your server:"
+        "message": "Zadejte prosím přívětivé jméno pro nový účet TbSync a přihlašovací údaje pro váš server:"
     },
     "add.data.notes": {
-        "message": "Notes:"
+        "message": "Poznámky:"
     },
     "add.data.title": {
-        "message": "Enter account information"
+        "message": "Zadejte informace o účtu"
     },
     "add.finish.description": {
-        "message": "The following settings have been verified successfully:"
+        "message": "Následující nastavení byla úspěšně ověřena:"
     },
     "add.finish.details": {
-        "message": "Click “Finish” to create a new TbSync account with these settings."
+        "message": "Klikněte na \"Dokončit\" pro vytvoření nového účtu TbSync s těmito nastaveními."
     },
     "add.finish.title": {
-        "message": "Confirm account creation"
+        "message": "Potvrdit vytvoření účtu"
     },
     "add.name": {
-        "message": "Account name:"
+        "message": "Název účtu:"
     },
     "add.ok": {
-        "message": "Add account"
+        "message": "Přidat účet"
     },
     "add.password": {
-        "message": "Password:"
+        "message": "Heslo:"
     },
     "add.server": {
-        "message": "Server URL:"
+        "message": "URL serveru:"
     },
     "add.serverprofile.custom": {
-        "message": "Manual Configuration"
+        "message": "Ruční nastavení"
     },
     "add.serverprofile.custom.description": {
-        "message": "The CalDAV and CardDAV service endpoints can be configured manually."
+        "message": "Koncové body služeb CalDAV a CardDAV mohou být nastaveny ručně."
     },
     "add.serverprofile.custom.details1": {
-        "message": "The required CalDAV & CardDAV service endpoints or the so called principal addresses should be provided by your service provider."
+        "message": "Požadované koncové body služby CalDAV a CardDAV neboli takzvané hlavní adresy by měl poskytnout váš poskytovatel služeb."
     },
     "add.serverprofile.custom.details2": {
-        "message": "If you leave either address empty, the corresponding service will be disabled for this account."
+        "message": "Pokud necháte adresu prázdnou, příslušná služba bude pro tento účet zakázána."
     },
     "add.serverprofile.description": {
-        "message": "Please select one of the available server profiles:"
+        "message": "Vyberte prosím jeden z dostupných serverových profilů:"
     },
     "add.serverprofile.discovery": {
-        "message": "Automatic Configuration"
+        "message": "Automatické nastavení"
     },
     "add.serverprofile.discovery.description": {
-        "message": "Many service providers and servers support an automatic configuration process, which requires only an e-mail address or a username and a server address."
+        "message": "Mnoho poskytovatelů služeb a serverů podporuje automatickou konfiguraci, která vyžaduje pouze e-mailovou adresu nebo uživatelské jméno a adresu serveru."
     },
     "add.serverprofile.discovery.details1": {
-        "message": "For the automatic discovery of the CalDAV & CardDAV service endpoints, please enter your credentials and the host name of your server (e.g. 'cloud.myserver.de')."
+        "message": "Pro automatické zjištění koncových bodů služby CalDAV a CardDAV zadejte prosím své přihlašovací údaje a název vašeho serveru (např. 'cloud.myserver.de')."
     },
     "add.serverprofile.discovery.details2": {
         "message": "If your username is an e-mail address, specifying the server becomes optional, as the information about the service endpoints may be obtained directly from your service provider via an RFC6764 request (if supported)."
@@ -252,10 +252,10 @@
         "message": "Account name"
     },
     "pref.CalDavServer": {
-        "message": "CalDAV server address:"
+        "message": "Adresa serveru CalDAV:"
     },
     "pref.CardDavServer": {
-        "message": "CardDAV server address:"
+        "message": "Adresa serveru CardDAV:"
     },
     "pref.UserName": {
         "message": "User name"
