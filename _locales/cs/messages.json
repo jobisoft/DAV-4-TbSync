@@ -126,7 +126,7 @@
         "message": "Pro automatické zjištění koncových bodů služby CalDAV a CardDAV zadejte prosím své přihlašovací údaje a název vašeho serveru (např. 'cloud.myserver.de')."
     },
     "add.serverprofile.discovery.details2": {
-        "message": "If your username is an e-mail address, specifying the server becomes optional, as the information about the service endpoints may be obtained directly from your service provider via an RFC6764 request (if supported)."
+        "message": "Pokud je vaším uživatelským jménem e-mailová adresa, není potřeba uvádět server, jelikož informace o koncových bodech služby lze získat přímo od vašeho poskytovatele služeb prostřednictvím požadavku RFC6764 (je-li podporováno)."
     },
     "add.serverprofile.discovery.server-optional": {
         "message": "optional"
@@ -135,7 +135,7 @@
         "message": "fruux"
     },
     "add.serverprofile.fruux.description": {
-        "message": "fruux is a service that syncs contacts, calendars and tasks. It's powered by the company behind sabre/dav and is based in Germany."
+        "message": "fruux je služba, která synchronizuje kontakty, kalendáře a úkoly. Je provozována společností stojící za sabre/dav, která sídlí v Německu."
     },
     "add.serverprofile.gmx.com": {
         "message": "GMX.com (USA)"
@@ -144,7 +144,7 @@
         "message": "https://www.gmx.com"
     },
     "add.serverprofile.gmx.net": {
-        "message": "GMX.net (Europe)"
+        "message": "GMX.net (Evropa)"
     },
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
@@ -156,7 +156,7 @@
         "message": "https://accounts.google.com"
     },
     "add.serverprofile.google.details1": {
-        "message": "Google uses a modern authentication method and TbSync does not need to know your username or your password. After clicking 'Next >', a browser window will be opened, where you can log into your Google account and allow the 'Provider for CalDAV & CardDAV' to access your contacts and calendars."
+        "message": "Google používá moderní metodu ověřování a TbSync nepotřebuje znát vaše uživatelské jméno nebo heslo. Po kliknutí na tlačítko 'Další >' se otevře okno prohlížeče, kde se můžete přihlásit do svého účtu Google a povolit \"poskytovateli pro CalDAV & CardDAV\" přístup k vašim kontaktům a kalendářům."
     },
     "add.serverprofile.icloud": {
         "message": "iCloud"
@@ -165,16 +165,16 @@
         "message": "https://www.icloud.com"
     },
     "add.serverprofile.icloud.details1": {
-        "message": "The requested user name is your Apple ID. Please note, that you may not use your Apple ID password here. You MUST enable two-factor authentication (2FA) for your iCloud account and create a separate app-specific password for TbSync."
+        "message": "Požadované uživatelské jméno je vaše Apple ID. Všimněte si, že zde nemůžete použít své heslo pro Apple ID. MUSÍTE pro svůj iCloud účet povolit dvoufaktorové ověřování (2FA) a vytvořit samostatné heslo pro TbSync."
     },
     "add.serverprofile.icloud.details2": {
-        "message": "This is a security layer enforced by Apple, so that 3rd party clients do not gain access to your Apple account."
+        "message": "Toto je bezpečnostní vrstva vynucená společností Apple, aby klienti třetích stran nezískali přístup k vašemu účtu Apple."
     },
     "add.serverprofile.mbo": {
         "message": "mailbox.org"
     },
     "add.serverprofile.mbo.description": {
-        "message": "mailbox.org is a secure German e-mail provider for private and business customers, which also offers calendars, contacts and cloud storage."
+        "message": "mailbox.org je bezpečný německý poskytovatel e-mailů pro soukromé a firemní zákazníky, který nabízí také kalendáře, kontakty a cloudové úložiště."
     },
     "add.serverprofile.posteo": {
         "message": "Posteo"
@@ -183,7 +183,7 @@
         "message": "https://www.posteo.de"
     },
     "add.serverprofile.title": {
-        "message": "Select a server profile"
+        "message": "Vyberte profil serveru"
     },
     "add.serverprofile.web.de": {
         "message": "WEB.de"
@@ -198,19 +198,19 @@
         "message": "https://www.yahoo.com"
     },
     "add.serverprofile.yahoo.details1": {
-        "message": "The requested password is an app-specific password for TbSync which you can create in your Yahoo! web portal. It is not your standard Yahoo! password."
+        "message": "Požadované heslo je specifické pro aplikaci TbSync, které můžete vytvořit na webovém portálu Yahoo! Není to vaše standardní Yahoo! heslo."
     },
     "add.spinner.query": {
-        "message": "Sending RFC6764 request to “##replace.1##”"
+        "message": "Odesílání požadavku RFC6764 na „##replace.1##“"
     },
     "add.spinner.validating": {
-        "message": "Verifying connection to server"
+        "message": "Ověřování připojení k serveru"
     },
     "add.title": {
         "message": "Adding a CalDAV & CardDAV account to TbSync"
     },
     "add.user": {
-        "message": "User name:"
+        "message": "Uživatelské jméno:"
     },
     "autocomplete.HOME": {
         "message": "private"
@@ -225,31 +225,31 @@
         "message": "CalDAV & CardDAV server configuration"
     },
     "defaultname.calendar": {
-        "message": "Calendar"
+        "message": "Kalendář"
     },
     "defaultname.contacts": {
-        "message": "Contacts"
+        "message": "Kontakty"
     },
     "extensionDescription": {
-        "message": "Add sync support for CalDAV & CardDAV accounts to TbSync."
+        "message": "Přidat do TbSync podporu synchronizace pro CalDAV a CardDAV účty."
     },
     "extensionName": {
-        "message": "Provider for CalDAV & CardDAV"
+        "message": "Poskytovatel CalDAV a CardDAV"
     },
     "helplink.malformed-xml": {
         "message": "https://github.com/jobisoft/DAV-4-TbSync/issues/104"
     },
     "manager.tabs.accountsettings": {
-        "message": "Account settings"
+        "message": "Nastavení účtu"
     },
     "manager.tabs.syncsettings": {
-        "message": "Options"
+        "message": "Nastavení"
     },
     "menu.name": {
         "message": "CalDAV & CardDAV"
     },
     "pref.AccountName": {
-        "message": "Account name"
+        "message": "Název účtu"
     },
     "pref.CalDavServer": {
         "message": "Adresa serveru CalDAV:"
@@ -258,28 +258,28 @@
         "message": "Adresa serveru CardDAV:"
     },
     "pref.UserName": {
-        "message": "User name"
+        "message": "Uživatelské jméno"
     },
     "pref.calendaroptions": {
-        "message": "Calendar options"
+        "message": "Nastavení kalendáře"
     },
     "pref.contactoptions": {
-        "message": "Contact options"
+        "message": "Nastavení kontaktů"
     },
     "pref.downloadonly": {
-        "message": "Revert local changes (one-way sync)"
+        "message": "Vrátit místní změny (jednosměrná synchronizace)"
     },
     "pref.generaloptions": {
-        "message": "General options"
+        "message": "Obecné nastavení"
     },
     "pref.syncGroups": {
-        "message": "Sync contact groups as Thunderbird lists"
+        "message": "Synchronizovat skupiny kontaktů jako seznamy Thunderbird"
     },
     "pref.syncGroupsDescription": {
         "message": "NOTE: Due to TB bug 1522453, TbSync must add dummy e-mail addresses to all contacts, which are part of groups but do not have an e-mail address associated. These dummy e-mail addresses are not synced to server."
     },
     "pref.useCalendarCache": {
-        "message": "Offline Support"
+        "message": "Podpora offline režimu"
     },
     "pref.useCardBook": {
         "message": "Create CardBook address books instead of Thunderbird's default address books"
@@ -351,6 +351,6 @@
         "message": "Waiting for acknowledgment of local changes"
     },
     "syncstate.send.request.remotechanges": {
-        "message": "Waiting for remote changes"
+        "message": "Čekám na změny ze serveru"
     }
 }
