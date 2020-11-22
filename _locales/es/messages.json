@@ -60,7 +60,7 @@
         "message": "ninguno"
     },
     "acl.readonly": {
-        "message": "Acceso de solo lectura al servidor (descartar cambios locales)"
+        "message": "Acceso de solo lectura al servidor (revertir cambios locales)"
     },
     "acl.readwrite": {
         "message": "Permisos de escritura del servidor: ##replace.1##"
@@ -201,7 +201,7 @@
         "message": "La contraseña que necesita es una contraseña específica para TbSync que puede crear en el portal web de Yahoo!. Es distinta de su contraseña normal de Yahoo!."
     },
     "add.spinner.query": {
-        "message": "Enviando solicitud RFC6764 a \"##replace.1##\""
+        "message": "Enviando solicitud RFC6764 a «##replace.1##»"
     },
     "add.spinner.validating": {
         "message": "Verificando conexión con el servidor"
@@ -267,7 +267,7 @@
         "message": "Opciones de contactos"
     },
     "pref.downloadonly": {
-        "message": "Descartar cambios locales (sincronización en una dirección)"
+        "message": "Revertir cambios locales (sincronización en una dirección)"
     },
     "pref.generaloptions": {
         "message": "Opciones generales"
@@ -285,7 +285,7 @@
         "message": "Crear libretas de direcciones de CardBook en lugar de las predeterminadas de Thunderbird"
     },
     "status.401": {
-        "message": "No ha sido posible autenticar, compruebe el nombre de usuario y contraseña."
+        "message": "No ha sido posible autentificar, compruebe el nombre de usuario y contraseña."
     },
     "status.403": {
         "message": "El servidor ha rechazado la conexión (prohibida)."
