@@ -105,10 +105,10 @@
         "message": "Configuración manual"
     },
     "add.serverprofile.custom.description": {
-        "message": "Puede configurar manualmente los puntos de servicio CalDAV y CardDav."
+        "message": "Puede configurar manualmente los extremos de los servicios CalDAV y CardDav."
     },
     "add.serverprofile.custom.details1": {
-        "message": "Los puntos de servicio CalDAV y CardDAV, o direcciones del servidor, debe proporcionárselos su proveedor de servicios."
+        "message": "Los extremos de los servicios CalDAV y CardDAV, o direcciones del servidor, debe proporcionárselos su proveedor de servicios."
     },
     "add.serverprofile.custom.details2": {
         "message": "Si deja vacía alguna de estas direcciones, no se habilitará el servicio correspondiente en esta cuenta."
@@ -123,10 +123,10 @@
         "message": "Muchos servidores y proveedores de servicios admiten un proceso de configuración automático que solo requiere una dirección de correo electrónico o nombre de usuario y la dirección del servidor."
     },
     "add.serverprofile.discovery.details1": {
-        "message": "Para detectar automáticamente los puntos de servicio CalDAV y CardDAV, escriba sus credenciales y el nombre de host de su servidor (por ejemplo, «nube.miservidor.es»)."
+        "message": "Para detectar automáticamente los extremos de los servicios CalDAV y CardDAV, escriba sus credenciales y el nombre de host de su servidor (por ejemplo, «nube.miservidor.es»)."
     },
     "add.serverprofile.discovery.details2": {
-        "message": "Si su nombre de usuario es una dirección de correo electrónico, quizás no sea necesario especificar el servidor, ya que los datos de los puntos de servicio se podrían obtener directamente del proveedor de servicios mediante una solicitud RFC6764 (si se admite)."
+        "message": "Si su nombre de usuario es una dirección de correo electrónico, quizás no sea necesario especificar el servidor, ya que los extremos de los servicios se podrían obtener directamente del proveedor de servicios mediante una solicitud RFC6764 (si se admite)."
     },
     "add.serverprofile.discovery.server-optional": {
         "message": "opcional"
@@ -321,10 +321,10 @@
         "message": "No ha sido posible conectar al servidor."
     },
     "status.rfc6764-lookup-failed": {
-        "message": "La consulta de «##replace.1##» no proporcionó la información necesaria con respecto a los puntos de servicio CalDAV y CardDAV. Escriba el nombre de host de su servidor para continuar con la configuración automática."
+        "message": "La consulta de «##replace.1##» no proporcionó la información necesaria con respecto a los extremos de los servicios CalDAV y CardDAV. Escriba el nombre de host de su servidor para continuar con la configuración automática."
     },
     "status.service-discovery-failed": {
-        "message": "Ha fallado la detección automática de los puntos de servicio de «##replace.1##». Inténtelo de nuevo especificando una dirección distinta para el servidor o cambie a la configuración personalizada para especificar manualmente los puntos de servicio."
+        "message": "Ha fallado la detección automática de los extremos de los servicios de «##replace.1##». Inténtelo de nuevo especificando una dirección distinta para el servidor o cambie a la configuración personalizada para especificar manualmente los extremos de los servicios."
     },
     "status.softerror": {
         "message": "Error no fatal (##replace.1##)"
