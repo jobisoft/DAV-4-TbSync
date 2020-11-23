@@ -33,7 +33,7 @@
         "message": "Domů"
     },
     "abCard.emailtypes.other": {
-        "message": "Other"
+        "message": "Jiný"
     },
     "abCard.emailtypes.pager": {
         "message": "Pager"
@@ -57,7 +57,7 @@
         "message": "upravit"
     },
     "acl.none": {
-        "message": "none"
+        "message": "žádný"
     },
     "acl.readonly": {
         "message": "Přistup na server pouze pro čtení (zrušit místní změny)"
@@ -129,7 +129,7 @@
         "message": "Pokud je vaším uživatelským jménem e-mailová adresa, není potřeba uvádět server, jelikož informace o koncových bodech služby lze získat přímo od vašeho poskytovatele služeb prostřednictvím požadavku RFC6764 (je-li podporováno)."
     },
     "add.serverprofile.discovery.server-optional": {
-        "message": "optional"
+        "message": "nepovinné"
     },
     "add.serverprofile.fruux": {
         "message": "fruux"
@@ -207,7 +207,7 @@
         "message": "Ověřování připojení k serveru"
     },
     "add.title": {
-        "message": "Adding a CalDAV & CardDAV account to TbSync"
+        "message": "Přidání CalDAV a CardDAV účtu do TbSync"
     },
     "add.user": {
         "message": "Uživatelské jméno:"
@@ -276,7 +276,7 @@
         "message": "Synchronizovat skupiny kontaktů jako seznamy Thunderbird"
     },
     "pref.syncGroupsDescription": {
-        "message": "NOTE: Due to TB bug 1522453, TbSync must add dummy e-mail addresses to all contacts, which are part of groups but do not have an e-mail address associated. These dummy e-mail addresses are not synced to server."
+        "message": "POZNÁMKA: Kvůli chybě TB 1522453 musí TbSync přidat do všech kontaktů falešné e-mailové adresy, které jsou součástí skupin, ale nemají přiřazenou e-mailovou adresu. Tyto falešné e-mailové adresy nejsou synchronizovány se serverem."
     },
     "pref.useCalendarCache": {
         "message": "Podpora offline režimu"
@@ -294,61 +294,61 @@
         "message": "HTTP chyba 404 (požadovaný zdroj nebyl nalezen)."
     },
     "status.500": {
-        "message": "Unknown Server Error (HTTP Error 500)."
+        "message": "Neznámá chyba serveru (HTTP chyba 500)."
     },
     "status.503": {
-        "message": "Service unavailable."
+        "message": "Služba je nedostupná."
     },
     "status.caldavservernotfound": {
-        "message": "Could not find a CalDAV server."
+        "message": "Nelze najít CalDAV server."
     },
     "status.carddavservernotfound": {
-        "message": "Could not find a CardDAV server."
+        "message": "Nelze najít CardDAV server."
     },
     "status.gContactSync": {
-        "message": "There is an incompatibility with gContactSync with activated contact group synchronization. Please deactivate one of them as long as the error is not resolved."
+        "message": "Existuje nekompatibilita s gContactSync s aktivovanou synchronizací skupin kontaktů. Deaktivujte jeden z doplňků, dokud nebude chyba vyřešena."
     },
     "status.info.restored": {
-        "message": "Due to partially missing write permissions, some actions were rejected by the server and reversed locally."
+        "message": "Z důvodu částečně chybějícím oprávněním k zápisu byly některé akce serverem odmítnuty a zrušeny lokálně."
     },
     "status.malformed-xml": {
-        "message": "Could not parse XML. Check event log for details."
+        "message": "Nelze zpracovat XML. Podrobnosti naleznete v protokolu událostí."
     },
     "status.missing-permission": {
-        "message": "Missing permission: ##replace.1##"
+        "message": "Chybějící oprávnění: ##replace.1##"
     },
     "status.networkerror": {
-        "message": "Could not connect to server."
+        "message": "Nelze se připojit k serveru."
     },
     "status.rfc6764-lookup-failed": {
-        "message": "The query of “##replace.1##” did not provide the required information regarding the CalDAV and CardDAV service endpoints. Please enter the hostname of your server to proceed with the automatic configuration."
+        "message": "Dotaz “##replace.1##“ neposkytl požadované informace ke koncovým bodům služeb CalDAV a CardDAV. Zadejte prosím název serveru, aby mohla pokračovat automatická konfigurace."
     },
     "status.service-discovery-failed": {
-        "message": "Automatic discovery of CalDAV & CardDAV service endpoints of “##replace.1##” has failed. Try again, specifying a different server address, or switch to the custom configuration to manually specify the service endpoints."
+        "message": "Automatické zjištění koncových bodů služby CalDAV a CardDAV “##replace.1##“ selhalo. Zkuste to znovu, určete jinou adresu serveru, nebo přepněte na vlastní nastavení a ručně zadejte koncové body služby."
     },
     "status.softerror": {
-        "message": "Non fatal error (##replace.1##)"
+        "message": "Nekritická chyba (##replace.1##)"
     },
     "status.success.managed-by-lightning": {
         "message": "Lightning"
     },
     "syncstate.eval.folders": {
-        "message": "Updating folder list"
+        "message": "Aktualizace seznamu složek"
     },
     "syncstate.eval.response.localchanges": {
-        "message": "Processing acknowledgment of local changes"
+        "message": "Zpracovávání potvrzení místních změn"
     },
     "syncstate.eval.response.remotechanges": {
-        "message": "Processing remote changes"
+        "message": "Zpracovávání vzdálených změn"
     },
     "syncstate.prepare.request.localchanges": {
-        "message": "Sending local changes"
+        "message": "Odesílání místních změn"
     },
     "syncstate.send.getfolders": {
-        "message": "Requesting folder list"
+        "message": "Požadavek na seznam složek"
     },
     "syncstate.send.request.localchanges": {
-        "message": "Waiting for acknowledgment of local changes"
+        "message": "Čekání na potvrzení lokálních změn"
     },
     "syncstate.send.request.remotechanges": {
         "message": "Čekám na změny ze serveru"
