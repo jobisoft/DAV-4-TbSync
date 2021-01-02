@@ -308,6 +308,7 @@ var Base = class {
                                 icon: dav.Base.getProviderIcon(16, accountData),
                                 // https://bugzilla.mozilla.org/show_bug.cgi?id=1653213
                                 style: "dav4tbsync-abook",
+                                popularityIndex: parseInt(card.getProperty("PopularityIndex", "0")),
                             });
                         
                         } else {                        
@@ -329,6 +330,7 @@ var Base = class {
                                     icon: dav.Base.getProviderIcon(16, accountData),
                                     // https://bugzilla.mozilla.org/show_bug.cgi?id=1653213
                                     style: "dav4tbsync-abook",				    
+                                    popularityIndex: parseInt(card.getProperty("PopularityIndex", "0")),
                                 });
                             }
                             
@@ -338,6 +340,16 @@ var Base = class {
             }
         }
         
+        // Sort the results.
+        entries.sort(function(a, b) {
+          // Order by 1) descending popularity,
+          // then 2) by value (DisplayName) sorted alphabetically.
+          return (
+            b.popularityIndex - a.popularityIndex ||
+            a.value.localeCompare(b.value)
+          );
+        });
+
         return entries;
     }
 
