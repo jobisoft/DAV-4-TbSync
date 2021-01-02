@@ -672,15 +672,34 @@ var tools = {
 
     //turn the given vCardValue into a string to be stored as a Thunderbird property
     getThunderbirdPropertyValueFromVCard: function (syncData, property, vCardData, vCardField) {
-        let vCardValue = (vCardData &&
-                                    vCardField &&
-                                    vCardField.entry != -1 &&
-                                    vCardData[vCardField.item] &&
-                                    vCardData[vCardField.item][vCardField.entry]  &&
-                                    vCardData[vCardField.item][vCardField.entry].value) ? vCardData[vCardField.item][vCardField.entry].value : null;
-
-        if (vCardValue === null) {
+        if (!vCardField) {
             return null;
+        }
+        if (vCardField.entry < 0) {
+            return null;
+        }
+        if (!vCardData) {
+            return null;
+        }
+        if (!vCardData[vCardField.item]) {
+            return null;
+        }
+        if (!vCardData[vCardField.item][vCardField.entry]) {
+            return null;
+        }
+
+        let vCardValue = vCardData[vCardField.item][vCardField.entry].value
+            ? vCardData[vCardField.item][vCardField.entry].value
+            : null;
+        switch (property) {
+            case "X-DAV-JSON-Phones":
+            case "X-DAV-JSON-Emails":
+                break;
+            default:
+                if (vCardValue === null) {
+                    return null;
+                }
+                break;
         }
 
         //handle all special fields, which are not plain strings
@@ -744,10 +763,12 @@ var tools = {
                     let entries = [];
                     let metaTypeData = dav.tools.getMetaTypeData(vCardData, vCardField.item, vCardField.metatypefield);
                     for (let i=0; i < metaTypeData.length; i++) {
-                        let entry = {};
-                        entry.meta = metaTypeData[i];
-                        entry.value = vCardData[vCardField.item][i].value;
-                        entries.push(entry);
+                        if (vCardData[vCardField.item][i].value) {
+                            let entry = {};
+                            entry.meta = metaTypeData[i];
+                            entry.value = vCardData[vCardField.item][i].value;
+                            entries.push(entry);
+                        }
                     }
                     return JSON.stringify(entries);
                 }
