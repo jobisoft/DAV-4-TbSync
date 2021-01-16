@@ -3,7 +3,7 @@
         "message": "Kapcsolati tulajdonságok (CardDAV)"
     },
     "abCard.EmailAddresses": {
-        "message": "Email címek:"
+        "message": "E-mail-címek"
     },
     "abCard.MiddleName": {
         "message": "Egyéb név:"
@@ -12,67 +12,67 @@
         "message": "Telefonszámok"
     },
     "abCard.PrefixName": {
-        "message": "előtagja:"
+        "message": "Előtag:"
     },
     "abCard.SuffixName": {
-        "message": "képző:"
+        "message": "Utótag:"
     },
     "abCard.emailtypes.car": {
-        "message": "autó"
+        "message": "Autó"
     },
     "abCard.emailtypes.cell": {
-        "message": "mozgó"
+        "message": "Mobil"
     },
     "abCard.emailtypes.description": {
-        "message": "A lista első e-mail címe az elsődleges e-mail cím."
+        "message": "A lista első e-mail-címe lesz az elsődleges e-mail-cím."
     },
     "abCard.emailtypes.fax": {
-        "message": "fax"
+        "message": "Fax"
     },
     "abCard.emailtypes.home": {
-        "message": "itthon"
+        "message": "Otthoni"
     },
     "abCard.emailtypes.other": {
-        "message": "más"
+        "message": "Egyéb"
     },
     "abCard.emailtypes.pager": {
-        "message": "pager"
+        "message": "Személyhívó"
     },
     "abCard.emailtypes.video": {
-        "message": "videó"
+        "message": "Videó"
     },
     "abCard.emailtypes.voice": {
-        "message": "telefon"
+        "message": "Telefon"
     },
     "abCard.emailtypes.work": {
-        "message": "üzleti"
+        "message": "Munkahelyi"
     },
     "acl.add": {
-        "message": "hozzáad"
+        "message": "hozzáadás"
     },
     "acl.delete": {
-        "message": "töröl"
+        "message": "törlés"
     },
     "acl.modify": {
-        "message": "módosít"
+        "message": "módosítás"
     },
     "acl.none": {
         "message": "egyik sem"
     },
     "acl.readonly": {
-        "message": "csak olvasható"
+        "message": "Csak olvasható hozzáférés (helyi változások visszavonása)"
     },
     "acl.readwrite": {
-        "message": "írásjog: ##replace.1##"
+        "message": "Írási jogosultságok: ##replace.1##"
     },
     "add.caldavserver": {
-        "message": "CardDAV kiszolgáló cím:"
+        "message": "CardDAV kiszolgálócím:"
     },
     "add.carddavserver": {
-        "message": "CardDAV kiszolgáló cím:"
+        "message": "CardDAV kiszolgálócím:"
     },
     "add.data.description": {
-        "message": "Kérjük, adjon meg egy becenévet az új Thunderbird-összehangolás fióknak és a hitelesítő adatoknak a kiszolgáló számára:"
+        "message": "Adjon meg egy becenevet az új TbSync-fióknak és adja meg a hitelesítő adatait a kiszolgálóhoz:"
     },
     "add.data.notes": {
         "message": "Megjegyzések:"
@@ -81,13 +81,13 @@
         "message": "Fiókadatok megadása"
     },
     "add.finish.description": {
-        "message": "?? The following settings have been verified successfully: ??"
+        "message": "A következő beállítások sikeresen ellenőrzésre kerültek:"
     },
     "add.finish.details": {
-        "message": "?? Click „Finish“ to create a new TbSync account with these settings. ??"
+        "message": "Kattintson a „Befejezés“ gombra a TbSync-fiók ezekkel a beállításokkal történő létrehozásához."
     },
     "add.finish.title": {
-        "message": "?? Confirm account creation ??"
+        "message": "Fióklétrehozás megerősítése"
     },
     "add.name": {
         "message": "Fiók neve:"
@@ -105,19 +105,19 @@
         "message": "Kézi beállítás"
     },
     "add.serverprofile.custom.description": {
-        "message": "A CalDAV és a CardDAV szolgáltatás végpontjai kézzel beállításhatók."
+        "message": "A CalDAV és a CardDAV szolgáltatási végpontjok kézzel állíthatók be."
     },
     "add.serverprofile.custom.details1": {
-        "message": "A szükséges CalDAV és CardDAV szolgáltatás végpontokat (principal addresses - főcímeket) a szolgáltatónak kell megadnia."
+        "message": "A szükséges CalDAV és CardDAV szolgáltatási végpontokat, vagy az ún. főcímeket a szolgáltatónak kell megadnia."
     },
     "add.serverprofile.custom.details2": {
-        "message": "Ha a két címet üresen hagyja, akkor a megfelelő szolgáltatás le lesz tiltva erre a fiókra."
+        "message": "Ha a két címet üresen hagyja, akkor a megfelelő szolgáltatás le lesz tiltva ennél a fióknál."
     },
     "add.serverprofile.description": {
-        "message": "Kérjük, válasszon egyet a rendelkezésre álló kiszolgálóprofilok közül:"
+        "message": "Válasszon egyet a rendelkezésre álló kiszolgálóprofilok közül:"
     },
     "add.serverprofile.discovery": {
-        "message": "Önműködő konfigurálás"
+        "message": "Automatikus beállítás"
     },
     "add.serverprofile.discovery.description": {
         "message": "Many service providers and servers support an automatic configuration process, which requires only an e-mail address or a username and a server address."
@@ -135,10 +135,10 @@
         "message": "fruux"
     },
     "add.serverprofile.fruux.description": {
-        "message": "A „fruux” egy szolgáltatás, amely összehangolja a névjegyzékeket, naptárakat és feladatokat. A németország cég támogatottja a sabre/dav."
+        "message": "A fruux egy szolgáltatás, amely szinkronizálja a névjegyeket, naptárakat és feladatokat. A sabre/dav mögött álló németországi központú cég támogatja."
     },
     "add.serverprofile.gmx.com": {
-        "message": "GMX.com (Amerikai egyesült államok)"
+        "message": "GMX.com (USA)"
     },
     "add.serverprofile.gmx.com.description": {
         "message": "https://www.gmx.com"
@@ -165,10 +165,10 @@
         "message": "https://www.icloud.com"
     },
     "add.serverprofile.icloud.details1": {
-        "message": "A kért felhasználónév az Ön Apple-azonosítója. Vegye figyelembe, hogy itt nem használhatja az Apple-azonosító jelszavát. A 2FA (two-factor authentication – két faktoros hitelesítés) engedélyeznie kell iCloud-fiókja számára, és különálló alkalmazásspecifikus jelszót kell létrehoznia a Thunderbird-összehangolás számára."
+        "message": "A kért felhasználónév az Ön Apple-azonosítója. Vegye figyelembe, hogy itt nem használhatja az Apple-azonosító jelszavát. Engedélyeznie KELL a kétlépcsős hitelesítést (2FA) az iCloud-fiókjában, és különálló alkalmazásjelszót kell létrehoznia a TBSync számára."
     },
     "add.serverprofile.icloud.details2": {
-        "message": "Ez egy olyan biztonsági réteg, amelyet az Apple hajt végre, így harmadik fél ügyfelei nem férnek hozzá az Ön Apple-fiókjához."
+        "message": "Ez egy az Apple által megkövetel biztonsági réteg, így a harmadik féltől származó kliensek nem férnek hozzá az Ön Apple-fiókjához."
     },
     "add.serverprofile.mbo": {
         "message": "mailbox.org"
@@ -204,13 +204,13 @@
         "message": "RFC6764 kérés küldése a(z) „##replace.1##” címre"
     },
     "add.spinner.validating": {
-        "message": "Ellenőrizze a kapcsolatot a szerverrel"
+        "message": "Kiszolgálókapcsolat ellenőrzése"
     },
     "add.title": {
-        "message": "CalDAV és CardDAV fiók hozzáadása a Thunderbird-összehangoláshoz"
+        "message": "CalDAV- és CardDAV-fiók hozzáadása a TbSynchez"
     },
     "add.user": {
-        "message": "Felhasználói név:"
+        "message": "Felhasználónév:"
     },
     "autocomplete.HOME": {
         "message": "magán"
@@ -252,10 +252,10 @@
         "message": "Fiók neve:"
     },
     "pref.CalDavServer": {
-        "message": "CardDAV kiszolgáló cím:"
+        "message": "CardDAV kiszolgálócím:"
     },
     "pref.CardDavServer": {
-        "message": "CardDAV kiszolgáló cím:"
+        "message": "CardDAV kiszolgálócím:"
     },
     "pref.UserName": {
         "message": "Felhasználói név"
