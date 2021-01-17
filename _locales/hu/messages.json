@@ -3,7 +3,7 @@
         "message": "Kapcsolati tulajdonságok (CardDAV)"
     },
     "abCard.EmailAddresses": {
-        "message": "Email címek:"
+        "message": "E-mail-címek"
     },
     "abCard.MiddleName": {
         "message": "Egyéb név:"
@@ -12,67 +12,67 @@
         "message": "Telefonszámok"
     },
     "abCard.PrefixName": {
-        "message": "előtagja:"
+        "message": "Előtag:"
     },
     "abCard.SuffixName": {
-        "message": "képző:"
+        "message": "Utótag:"
     },
     "abCard.emailtypes.car": {
-        "message": "autó"
+        "message": "Autó"
     },
     "abCard.emailtypes.cell": {
-        "message": "mozgó"
+        "message": "Mobil"
     },
     "abCard.emailtypes.description": {
-        "message": "A lista első e-mail címe az elsődleges e-mail cím."
+        "message": "A lista első e-mail-címe lesz az elsődleges e-mail-cím."
     },
     "abCard.emailtypes.fax": {
-        "message": "fax"
+        "message": "Fax"
     },
     "abCard.emailtypes.home": {
-        "message": "itthon"
+        "message": "Otthoni"
     },
     "abCard.emailtypes.other": {
-        "message": "más"
+        "message": "Egyéb"
     },
     "abCard.emailtypes.pager": {
-        "message": "pager"
+        "message": "Személyhívó"
     },
     "abCard.emailtypes.video": {
-        "message": "videó"
+        "message": "Videó"
     },
     "abCard.emailtypes.voice": {
-        "message": "telefon"
+        "message": "Telefon"
     },
     "abCard.emailtypes.work": {
-        "message": "üzleti"
+        "message": "Munkahelyi"
     },
     "acl.add": {
-        "message": "hozzáad"
+        "message": "hozzáadás"
     },
     "acl.delete": {
-        "message": "töröl"
+        "message": "törlés"
     },
     "acl.modify": {
-        "message": "módosít"
+        "message": "módosítás"
     },
     "acl.none": {
         "message": "egyik sem"
     },
     "acl.readonly": {
-        "message": "csak olvasható"
+        "message": "Csak olvasható hozzáférés (helyi változások visszavonása)"
     },
     "acl.readwrite": {
-        "message": "írásjog: ##replace.1##"
+        "message": "Írási jogosultságok: ##replace.1##"
     },
     "add.caldavserver": {
-        "message": "CardDAV kiszolgáló cím:"
+        "message": "CardDAV kiszolgálócím:"
     },
     "add.carddavserver": {
-        "message": "CardDAV kiszolgáló cím:"
+        "message": "CardDAV kiszolgálócím:"
     },
     "add.data.description": {
-        "message": "Kérjük, adjon meg egy becenévet az új Thunderbird-összehangolás fióknak és a hitelesítő adatoknak a kiszolgáló számára:"
+        "message": "Adjon meg egy becenevet az új TbSync-fióknak és adja meg a hitelesítő adatait a kiszolgálóhoz:"
     },
     "add.data.notes": {
         "message": "Megjegyzések:"
@@ -81,13 +81,13 @@
         "message": "Fiókadatok megadása"
     },
     "add.finish.description": {
-        "message": "?? The following settings have been verified successfully: ??"
+        "message": "A következő beállítások sikeresen ellenőrzésre kerültek:"
     },
     "add.finish.details": {
-        "message": "?? Click „Finish“ to create a new TbSync account with these settings. ??"
+        "message": "Kattintson a „Befejezés“ gombra a TbSync-fiók ezekkel a beállításokkal történő létrehozásához."
     },
     "add.finish.title": {
-        "message": "?? Confirm account creation ??"
+        "message": "Fióklétrehozás megerősítése"
     },
     "add.name": {
         "message": "Fiók neve:"
@@ -105,28 +105,28 @@
         "message": "Kézi beállítás"
     },
     "add.serverprofile.custom.description": {
-        "message": "A CalDAV és a CardDAV szolgáltatás végpontjai kézzel beállításhatók."
+        "message": "A CalDAV és a CardDAV szolgáltatási végpontjok kézzel állíthatók be."
     },
     "add.serverprofile.custom.details1": {
-        "message": "A szükséges CalDAV és CardDAV szolgáltatás végpontokat (principal addresses - főcímeket) a szolgáltatónak kell megadnia."
+        "message": "A szükséges CalDAV és CardDAV szolgáltatási végpontokat, vagy az ún. főcímeket a szolgáltatónak kell megadnia."
     },
     "add.serverprofile.custom.details2": {
-        "message": "Ha a két címet üresen hagyja, akkor a megfelelő szolgáltatás le lesz tiltva erre a fiókra."
+        "message": "Ha a két címet üresen hagyja, akkor a megfelelő szolgáltatás le lesz tiltva ennél a fióknál."
     },
     "add.serverprofile.description": {
-        "message": "Kérjük, válasszon egyet a rendelkezésre álló kiszolgálóprofilok közül:"
+        "message": "Válasszon egyet a rendelkezésre álló kiszolgálóprofilok közül:"
     },
     "add.serverprofile.discovery": {
-        "message": "Önműködő konfigurálás"
+        "message": "Automatikus beállítás"
     },
     "add.serverprofile.discovery.description": {
-        "message": "Many service providers and servers support an automatic configuration process, which requires only an e-mail address or a username and a server address."
+        "message": "Számos szolgáltató és kiszolgáló támogatja az automatikus beállítási folyamatot, amelyhez csak e-mail-cím vagy felhasználónév és kiszolgálócím szükséges."
     },
     "add.serverprofile.discovery.details1": {
-        "message": "For the automatic discovery of the CalDAV & CardDAV service endpoints, please enter your credentials and the host name of your server (e.g. 'cloud.myserver.de')."
+        "message": "A CalDAV és CardDAV szolgáltatási végpontok automatikus felfedezéséhez adja meg a hitelesítő adatait és a kiszolgálója gépnevét (például „cloud.myserver.de”)."
     },
     "add.serverprofile.discovery.details2": {
-        "message": "If your username is an e-mail address, specifying the server becomes optional, as the information about the service endpoints may be obtained directly from your service provider via an RFC6764 request (if supported)."
+        "message": "Ha a felhasználóneve egy e-mail-cím, akkor a kiszolgáló megadása nem kötelező, mivel a szolgáltatási végpontok információi automatikusan lekérhetőek a szolgáltatótól egy RFC6764 kéréssel (ha az támogatott)."
     },
     "add.serverprofile.discovery.server-optional": {
         "message": "választható"
@@ -135,10 +135,10 @@
         "message": "fruux"
     },
     "add.serverprofile.fruux.description": {
-        "message": "A „fruux” egy szolgáltatás, amely összehangolja a névjegyzékeket, naptárakat és feladatokat. A németország cég támogatottja a sabre/dav."
+        "message": "A fruux egy szolgáltatás, amely szinkronizálja a névjegyeket, naptárakat és feladatokat. A sabre/dav mögött álló németországi központú cég támogatja."
     },
     "add.serverprofile.gmx.com": {
-        "message": "GMX.com (Amerikai egyesült államok)"
+        "message": "GMX.com (USA)"
     },
     "add.serverprofile.gmx.com.description": {
         "message": "https://www.gmx.com"
@@ -156,7 +156,7 @@
         "message": "https://accounts.google.com"
     },
     "add.serverprofile.google.details1": {
-        "message": "Google uses a modern authentication method and TbSync does not need to know your username or your password. After clicking 'Next >', a browser window will be opened, where you can log into your Google account and allow the 'Provider for CalDAV & CardDAV' to access your contacts and calendars."
+        "message": "A Google egy modern hitelesítési módot használ, így a TbSyncnek nem kell tudja a felhasználónevét vagy jelszavát. A „Következő >” gombra kattintás után egy böngészőablak fog megjelenni, ahol bejelentkezhet a Google-fiókjába és engedélyezheti, hogy a „CalDAV és CardDAV-szolgáltató” elérje a névjegyeit és naptárait."
     },
     "add.serverprofile.icloud": {
         "message": "iCloud"
@@ -165,16 +165,16 @@
         "message": "https://www.icloud.com"
     },
     "add.serverprofile.icloud.details1": {
-        "message": "A kért felhasználónév az Ön Apple-azonosítója. Vegye figyelembe, hogy itt nem használhatja az Apple-azonosító jelszavát. A 2FA (two-factor authentication – két faktoros hitelesítés) engedélyeznie kell iCloud-fiókja számára, és különálló alkalmazásspecifikus jelszót kell létrehoznia a Thunderbird-összehangolás számára."
+        "message": "A kért felhasználónév az Ön Apple-azonosítója. Vegye figyelembe, hogy itt nem használhatja az Apple-azonosító jelszavát. Engedélyeznie KELL a kétlépcsős hitelesítést (2FA) az iCloud-fiókjában, és különálló alkalmazásjelszót kell létrehoznia a TBSync számára."
     },
     "add.serverprofile.icloud.details2": {
-        "message": "Ez egy olyan biztonsági réteg, amelyet az Apple hajt végre, így harmadik fél ügyfelei nem férnek hozzá az Ön Apple-fiókjához."
+        "message": "Ez egy az Apple által megkövetel biztonsági réteg, így a harmadik féltől származó kliensek nem férnek hozzá az Ön Apple-fiókjához."
     },
     "add.serverprofile.mbo": {
         "message": "mailbox.org"
     },
     "add.serverprofile.mbo.description": {
-        "message": "mailbox.org is a secure German e-mail provider for private and business customers, which also offers calendars, contacts and cloud storage."
+        "message": "A mailbox.org egy biztonságos német e-mail-szolgáltató magán- és üzleti felhasználók számára, amely naptárakat, névjegyeket és felhőtárhelyet is kínál."
     },
     "add.serverprofile.posteo": {
         "message": "Posteo"
@@ -198,19 +198,19 @@
         "message": "https://www.yahoo.com"
     },
     "add.serverprofile.yahoo.details1": {
-        "message": "The requested password is an app-specific password for TbSync which you can create in your Yahoo! web portal. It is not your standard Yahoo! password."
+        "message": "A kért jelszó egy alkalmazásjelszó a TBSynchez, amelyet a Yahoo! webportálon hozhat létre. Ez nem a szokásos Yahoo! jelszava."
     },
     "add.spinner.query": {
         "message": "RFC6764 kérés küldése a(z) „##replace.1##” címre"
     },
     "add.spinner.validating": {
-        "message": "Ellenőrizze a kapcsolatot a szerverrel"
+        "message": "Kiszolgálókapcsolat ellenőrzése"
     },
     "add.title": {
-        "message": "CalDAV és CardDAV fiók hozzáadása a Thunderbird-összehangoláshoz"
+        "message": "CalDAV- és CardDAV-fiók hozzáadása a TbSynchez"
     },
     "add.user": {
-        "message": "Felhasználói név:"
+        "message": "Felhasználónév:"
     },
     "autocomplete.HOME": {
         "message": "magán"
@@ -219,28 +219,28 @@
         "message": "előnyben részesített"
     },
     "autocomplete.WORK": {
-        "message": "üzlet"
+        "message": "üzleti"
     },
     "config.custom": {
-        "message": "A CalDAV és CardDAV kiszolgáló beállításai"
+        "message": "A CalDAV- és CardDAV-kiszolgáló beállításai"
     },
     "defaultname.calendar": {
-        "message": "naptár"
+        "message": "Naptár"
     },
     "defaultname.contacts": {
-        "message": "kapcsolatok"
+        "message": "Névjegyek"
     },
     "extensionDescription": {
-        "message": "A CalDAV- és CardDAV-fiókok összehangolás támogatásának hozzáadása a Thunderbird-összehangoláshoz (TbSync) (névjegyzék, feladatok és naptárak)."
+        "message": "CalDAV- és CardDAV-fiókok szinkronizációjának támogatása a TbSyncben."
     },
     "extensionName": {
-        "message": "A CalDAV és CardDAV szolgáltató"
+        "message": "CalDAV- és CardDAV-szolgáltató"
     },
     "helplink.malformed-xml": {
         "message": "https://github.com/jobisoft/DAV-4-TbSync/issues/104"
     },
     "manager.tabs.accountsettings": {
-        "message": "Fiók beállításai"
+        "message": "Fiókbeállítások"
     },
     "manager.tabs.syncsettings": {
         "message": "Beállítások"
@@ -249,16 +249,16 @@
         "message": "CalDAV és CardDAV"
     },
     "pref.AccountName": {
-        "message": "Fiók neve:"
+        "message": "Fiók neve"
     },
     "pref.CalDavServer": {
-        "message": "CardDAV kiszolgáló cím:"
+        "message": "CardDAV kiszolgálócím:"
     },
     "pref.CardDavServer": {
-        "message": "CardDAV kiszolgáló cím:"
+        "message": "CardDAV kiszolgálócím:"
     },
     "pref.UserName": {
-        "message": "Felhasználói név"
+        "message": "Felhasználónév"
     },
     "pref.calendaroptions": {
         "message": "Naptár beállításai"
@@ -267,76 +267,76 @@
         "message": "Névjegyzék beállításai"
     },
     "pref.downloadonly": {
-        "message": "A helyi változások visszaállítása (egyirányú összehangolás)"
+        "message": "Helyi változások visszaállítása (egyirányú szinkronizálás)"
     },
     "pref.generaloptions": {
-        "message": "Általános beállításai"
+        "message": "Általános beállítások"
     },
     "pref.syncGroups": {
-        "message": "Szinkronizálja a névjegycsoportokat Thunderbird listákként"
+        "message": "Névjegycsoportok szinkronizálása Thunderbird listákként"
     },
     "pref.syncGroupsDescription": {
-        "message": "MEGJEGYZÉS: A 1522453-as TB-bug miatt a TbSync-nek dummy e-mail címeket kell hozzáadnia minden kapcsolathoz, amelyek csoportok részét képezik, de nem rendelkeznek e-mail címmel. Ezek a dummy e-mail címek nem szinkronizálódnak a szerverrel."
+        "message": "MEGJEGYZÉS: A 1522453-as TB hiba miatt a TbSyncnek hamis e-mail-címeket kell hozzáadnia minden olyan névjegyhez, amely csoport részét képezi, de nem rendelkezik e-mail-címmel. Ezek a hamis e-mail címek nem kerülnek szinkronizálásra a kiszolgálóval."
     },
     "pref.useCalendarCache": {
         "message": "Kapcsolat nélküli munka"
     },
     "pref.useCardBook": {
-        "message": "A Thunderbird alapértelmezett címjegyzéke helyett hozzon létre CardBook címjegyzékeket"
+        "message": "CardBook címjegyzék létrehozása a Thunderbird alapértelmezett címjegyzéke helyett"
     },
     "status.401": {
-        "message": "Nem sikerült hitelesíteni, ellenőrizni a felhasználónevet és a jelszót."
+        "message": "A hitelesítés nem sikerült, ellenőrizze a felhasználónevet és a jelszót."
     },
     "status.403": {
-        "message": "403-as HTTP hibakód (hozzáférés megtagadva/tiltott)."
+        "message": "A kiszolgáló elutasította a kapcsolatot (hozzáférés megtagadva)."
     },
     "status.404": {
-        "message": "404-es HTTP hibakód (nem található)."
+        "message": "404-es HTTP hiba (a kért erőforrás nem található)."
     },
     "status.500": {
-        "message": "500-as hibakód (belső kiszolgálóhiba)."
+        "message": "Ismeretlen kiszolgálóhiba (500-as HTTP hiba)."
     },
     "status.503": {
-        "message": "503-as hibakód (a szolgáltatás nem érhető el)."
+        "message": "A szolgáltatás nem érhető el."
     },
     "status.caldavservernotfound": {
         "message": "Nem található CalDAV szerver."
     },
     "status.carddavservernotfound": {
-        "message": "Nem található CardDAV szerver."
+        "message": "Nem található CardDAV-kiszolgáló."
     },
     "status.gContactSync": {
-        "message": "A gContactSync összeegyeztethetetlen az aktivált kapcsolattartó csoport összehangolásával. Kérjük, kapcsolja ki az egyiket, amíg a hiba nem oldódik meg."
+        "message": "A gContactSync nem kompatibilis a névjegycsoportok szinkronizálásával. Kapcsolja ki az egyiket, amíg a hiba meg nem oldódik."
     },
     "status.info.restored": {
-        "message": "A hiányzó írási jogosultságok miatt egyes műveleteket a szerver elutasított, és helyileg visszafordított."
+        "message": "A részlegesen hiányzó írási jogosultságok miatt egyes műveleteket a kiszolgáló elutasított, és helyileg visszavont."
     },
     "status.malformed-xml": {
-        "message": "Nem sikerült elemezni az XML-t. Ellenőrizze az eseménynaplót a részletekért."
+        "message": "Az XML feldolgozása nem sikerült. A részletekért ellenőrizze az eseménynaplót."
     },
     "status.missing-permission": {
-        "message": "Hiányzó engedély: ##replace.1##"
+        "message": "Hiányzó jogosultság: ##replace.1##"
     },
     "status.networkerror": {
-        "message": "Nem tudott csatlakozni a kiszolgálóhoz."
+        "message": "Nem sikerült kapcsolódni a kiszolgálóhoz."
     },
     "status.rfc6764-lookup-failed": {
-        "message": "The query of “##replace.1##” did not provide the required information regarding the CalDAV and CardDAV service endpoints. Please enter the hostname of your server to proceed with the automatic configuration."
+        "message": "A(z) „##replace.1##” lekérdezése nem adta meg a CalDAV és CardDAV szolgáltatási végpontokkal kapcsolatos információkat. Adja meg a kiszolgálója gépnevét, hogy folytassa az automatikus beállítással."
     },
     "status.service-discovery-failed": {
-        "message": "Automatic discovery of CalDAV & CardDAV service endpoints of “##replace.1##” has failed. Try again, specifying a different server address, or switch to the custom configuration to manually specify the service endpoints."
+        "message": "A(z) „##replace.1##” CalDAV és CardDAV szolgáltatási végpontjainak automatikus felfedezése sikertelen. Próbálja újra úgy, hogy egy másik kiszolgálócímet ad meg, vagy váltson az egyéni beállításra, és adja meg kézzel a szolgáltatási végpontokat."
     },
     "status.softerror": {
-        "message": "Kihagyta a hibát (##replace.1##)"
+        "message": "Nem végzetes hiba (##replace.1##)"
     },
     "status.success.managed-by-lightning": {
         "message": "Lightning"
     },
     "syncstate.eval.folders": {
-        "message": "Mappalisták frissítése"
+        "message": "Mappalista frissítése"
     },
     "syncstate.eval.response.localchanges": {
-        "message": "Helyi változtatások igazolása feldolgozása"
+        "message": "A helyi változások elismerésének feldolgozása"
     },
     "syncstate.eval.response.remotechanges": {
         "message": "A távoli változtatások feldolgozása"
@@ -345,12 +345,12 @@
         "message": "Helyi változtatások küldése"
     },
     "syncstate.send.getfolders": {
-        "message": "Mappalisták lekérése"
+        "message": "Mappalista lekérése"
     },
     "syncstate.send.request.localchanges": {
-        "message": "Várakozás a helyi változtatások igazolásra"
+        "message": "Várakozás a helyi változások elismerésére"
     },
     "syncstate.send.request.remotechanges": {
-        "message": "Várakozás a távoli változtatások"
+        "message": "Várakozás a távoli változtatásokra"
     }
 }
