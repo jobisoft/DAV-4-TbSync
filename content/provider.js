@@ -506,8 +506,8 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
 
     directoryObserver(aTopic) {
         switch (aTopic) {
-            case "addrbook-removed":
-            case "addrbook-updated":
+            case "addrbook-directory-deleted":
+            case "addrbook-directory-updated":
                 //Services.console.logStringMessage("["+ aTopic + "] " + this.folderData.getFolderProperty("foldername"));
                 break;
         }
@@ -516,7 +516,7 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
     cardObserver(aTopic, abCardItem) {
         switch (aTopic) {
             case "addrbook-contact-updated":
-            case "addrbook-contact-removed":
+            case "addrbook-contact-deleted":
                 //Services.console.logStringMessage("["+ aTopic + "] " + abCardItem.getProperty("DisplayName"));
                 break;
 
@@ -539,7 +539,7 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
                 //Services.console.logStringMessage("["+ aTopic + "] MemberName: " + abListMember.getProperty("DisplayName"));
                 break;
             
-            case "addrbook-list-removed":
+            case "addrbook-list-deleted":
             case "addrbook-list-updated":
                 //Services.console.logStringMessage("["+ aTopic + "] ListName: " + abListItem.getProperty("ListName"));
                 break;
