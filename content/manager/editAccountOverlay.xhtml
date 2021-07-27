@@ -13,42 +13,52 @@
     <tabpanel id="manager.tabpanels.accountsettings" appendto="manager.tabpanels" flex="1" orient="vertical"><!-- ACCOUNT SETTINGS -->
            <vbox flex="1">
                 <label class="header lockIfConnected" style="margin-left:0; margin-bottom:1ex;" value="" id="tbsync.accountsettings.label.config" />                
-                <grid flex="1">
-                   <columns>
-                        <column flex="0" style="margin-right:1ex;" />
-                        <column flex="1" />
-                   </columns>
+                <html:table>
 
-                    <rows>
-                        <row>
-                            <vbox pack="center">
-                                <label style="text-align:left" control="tbsync.accountsettings.pref.accountname" value="__DAV4TBSYNCMSG_pref.AccountName__" />
-                            </vbox>
-                            <html:input id="tbsync.accountsettings.pref.accountname" />
-                        </row>
+                        <html:tr>
+                            <html:td>
+                                <vbox pack="center">
+                                    <label style="text-align:left" control="tbsync.accountsettings.pref.accountname" value="__DAV4TBSYNCMSG_pref.AccountName__" />
+                                </vbox>
+                            </html:td>
+                            <html:td width="100%">
+                                <html:input id="tbsync.accountsettings.pref.accountname" />
+                            </html:td>
+                        </html:tr>
                         
-                        <row>
-                            <vbox pack="center">
-                                <label class="lockIfConnected" style="text-align:left" control="tbsync.accountsettings.pref.user" value="__DAV4TBSYNCMSG_pref.UserName__" />
-                            </vbox>
-                            <html:input class="lockIfConnected" id="tbsync.accountsettings.pref.user" />
-                        </row>
+                        <html:tr>
+                            <html:td>
+                                <vbox pack="center">
+                                    <label class="lockIfConnected" style="text-align:left" control="tbsync.accountsettings.pref.user" value="__DAV4TBSYNCMSG_pref.UserName__" />
+                                </vbox>
+                            </html:td>
+                            <html:td>
+                                <html:input class="lockIfConnected" id="tbsync.accountsettings.pref.user" />
+                            </html:td>
+                        </html:tr>
                         
-                        <row>
-                            <vbox pack="center">
-                                <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.calDavHost" value="__DAV4TBSYNCMSG_pref.CalDavServer__" />
-                            </vbox>
-                            <html:input class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.calDavHost"  onblur="tbSyncEditAccountOverlay.stripHost(document, 'calDavHost');"/>
-                        </row>
-                        <row>
-                            <vbox pack="center">
-                                <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.cardDavHost" value="__DAV4TBSYNCMSG_pref.CardDavServer__" />
-                            </vbox>
-                            <html:input class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.cardDavHost" onblur="tbSyncEditAccountOverlay.stripHost(document, 'cardDavHost');" />
-                        </row>
+                        <html:tr>
+                            <html:td>
+                                <vbox pack="center">
+                                    <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.calDavHost" value="__DAV4TBSYNCMSG_pref.CalDavServer__" />
+                                </vbox>
+                            </html:td>
+                            <html:td>
+                                <html:input class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.calDavHost"  onblur="tbSyncEditAccountOverlay.stripHost(document, 'calDavHost');"/>
+                            </html:td>
+                        </html:tr>
+                        <html:tr>
+                            <html:td>
+                                <vbox pack="center">
+                                    <label class="lockIfConnected lockIfServiceProvider" style="text-align:left" control="tbsync.accountsettings.pref.cardDavHost" value="__DAV4TBSYNCMSG_pref.CardDavServer__" />
+                                </vbox>
+                            </html:td>
+                            <html:td>
+                                <html:input class="lockIfConnected lockIfServiceProvider" id="tbsync.accountsettings.pref.cardDavHost" onblur="tbSyncEditAccountOverlay.stripHost(document, 'cardDavHost');" />
+                            </html:td>
+                        </html:tr>
 
-                   </rows>
-                </grid>
+                </html:table>
 
                 <vbox flex="1" />
                 <vbox class="showIfConnected">
