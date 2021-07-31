@@ -140,7 +140,7 @@ var ui = {
         //first column
         let vbox = aWindow.document.createXULElement("vbox");
         vbox.setAttribute("class","CardViewText");
-        vbox.setAttribute("style","margin-right:1ex; margin-bottom:2px;");
+        vbox.setAttribute("style","margin-right:1ex; margin-bottom:0px;");
             let image = aWindow.document.createXULElement("image");
             image.setAttribute("width","10");
             image.setAttribute("height","10");
@@ -166,10 +166,16 @@ var ui = {
             }
         
         //row
-        let row = aWindow.document.createXULElement("row");
-        row.setAttribute("align","end");        
-        row.appendChild(vbox);
-        row.appendChild(description);
+        let row = aWindow.document.createElement("tr");
+        let cell1 = aWindow.document.createElement("td");
+        let cell2 = aWindow.document.createElement("td");
+        cell2.setAttribute("width","100%");        
+
+        cell1.appendChild(vbox);
+        cell2.appendChild(description);
+
+        row.appendChild(cell1);
+        row.appendChild(cell2);
         return row;
     },
     
@@ -309,7 +315,7 @@ var ui = {
         let vbox = aWindow.document.createXULElement("hbox");
         vbox.setAttribute("pack","end");
         vbox.setAttribute("class","CardViewText");
-        vbox.setAttribute("style","margin-bottom:3px;");
+        vbox.setAttribute("style","margin-bottom:0px;");
             if (phoneType1) {
                 let image = aWindow.document.createXULElement("image");
                 image.setAttribute("style","margin-right:1ex;");
@@ -343,10 +349,16 @@ var ui = {
         }
         
         //row
-        let row = aWindow.document.createXULElement("row");
-        row.setAttribute("align","end");        
-        row.appendChild(vbox);
-        row.appendChild(description);
+        let row = aWindow.document.createElement("tr");
+        let cell1 = aWindow.document.createElement("td");
+        let cell2 = aWindow.document.createElement("td");
+        cell2.setAttribute("width","100%");        
+        
+        cell1.appendChild(vbox);
+        cell2.appendChild(description);
+
+        row.appendChild(cell1);
+        row.appendChild(cell2);
         return row;
     },
     
