@@ -294,8 +294,7 @@ var Base = class {
         // searchQuery has all the (or(...)) searches, link them up with (and(...)).
         searchQuery = "(and" + searchQuery + ")";
         
-        while (allAddressBooks.hasMoreElements()) {
-            let abook = allAddressBooks.getNext().QueryInterface(Components.interfaces.nsIAbDirectory);
+        for (let abook of allAddressBooks) {
             if (abook instanceof Components.interfaces.nsIAbDirectory) { // or nsIAbItem or nsIAbCollection
                 if (TbSync.addressbook.getStringValue(abook, "tbSyncAccountID","") == accountData.accountID) {
                     let cards = await TbSync.addressbook.searchDirectory(abook.URI, searchQuery)
