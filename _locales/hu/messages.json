@@ -66,7 +66,7 @@
         "message": "Írási jogosultságok: ##replace.1##"
     },
     "add.caldavserver": {
-        "message": "CardDAV kiszolgálócím:"
+        "message": "CalDAV kiszolgálócím:"
     },
     "add.carddavserver": {
         "message": "CardDAV kiszolgálócím:"
@@ -252,7 +252,7 @@
         "message": "Fiók neve"
     },
     "pref.CalDavServer": {
-        "message": "CardDAV kiszolgálócím:"
+        "message": "CalDAV kiszolgálócím:"
     },
     "pref.CardDavServer": {
         "message": "CardDAV kiszolgálócím:"
