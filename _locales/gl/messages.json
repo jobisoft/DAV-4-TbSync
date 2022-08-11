@@ -1,63 +1,63 @@
 {
     "abCard.ContactDetails": {
-        "message": "Contact properties (CardDAV)"
+        "message": "Propiedades do contacto (CardDAV)"
     },
     "abCard.EmailAddresses": {
-        "message": "E-mail addresses"
+        "message": "Enderezos de correo electrónico"
     },
     "abCard.MiddleName": {
-        "message": "Middle:"
+        "message": "Nome adicional:"
     },
     "abCard.Phone": {
-        "message": "Phone numbers"
+        "message": "Número de teléfono"
     },
     "abCard.PrefixName": {
-        "message": "Prefix:"
+        "message": "Prefixo:"
     },
     "abCard.SuffixName": {
-        "message": "Suffix:"
+        "message": "Sufixo:"
     },
     "abCard.emailtypes.car": {
-        "message": "Car"
+        "message": "Coche"
     },
     "abCard.emailtypes.cell": {
-        "message": "Mobile"
+        "message": "Móbil"
     },
     "abCard.emailtypes.description": {
-        "message": "The first e-mail address in the list will be used as the primary e-mail address."
+        "message": "O primeiro enderezo de correo electrónico da lista usarase como enderezo principal."
     },
     "abCard.emailtypes.fax": {
         "message": "Fax"
     },
     "abCard.emailtypes.home": {
-        "message": "Home"
+        "message": "Casa"
     },
     "abCard.emailtypes.other": {
-        "message": "Other"
+        "message": "Outro"
     },
     "abCard.emailtypes.pager": {
-        "message": "Pager"
+        "message": "Buscapersoas"
     },
     "abCard.emailtypes.video": {
-        "message": "Video"
+        "message": "Vídeo"
     },
     "abCard.emailtypes.voice": {
-        "message": "Phone"
+        "message": "Teléfono"
     },
     "abCard.emailtypes.work": {
-        "message": "Work"
+        "message": "Traballo"
     },
     "acl.add": {
-        "message": "add"
+        "message": "engadir"
     },
     "acl.delete": {
-        "message": "delete"
+        "message": "eliminar"
     },
     "acl.modify": {
-        "message": "modify"
+        "message": "modificar"
     },
     "acl.none": {
-        "message": "none"
+        "message": "ningún"
     },
     "acl.readonly": {
         "message": "Read-only server access (revert local changes)"
