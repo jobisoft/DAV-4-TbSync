@@ -324,7 +324,7 @@
         "message": "A consulta “##replace.1##” non devolveu a información necesaria sobre os extremos do servizos CalDAV e CardDAV. Por favor, insire o nome do equipo do teu servidor para continuar coa configuración automática."
     },
     "status.service-discovery-failed": {
-        "message": "Fallou o descubrimento automático dos extremos dos servizos CalDAV e CardDAV de “##replace.1##”. Proba de novo especificando un enderezo diferente do servidor ou cambia a configuración personalizada para especificar os extremos do servizo."
+        "message": "Fallou o descubrimento automático dos extremos dos servizos CalDAV e CardDAV de “##replace.1##”. Proba de novo especificando un enderezo do servidor diferente ou cambia a configuración personalizada para especificar os extremos do servizo."
     },
     "status.softerror": {
         "message": "Erro non fatal (##replace.1##)"
@@ -333,7 +333,7 @@
         "message": "Lightning"
     },
     "syncstate.eval.folders": {
-        "message": "Actualizando a lista de cartafoles"
+        "message": "Actualizando a lista de cartafois"
     },
     "syncstate.eval.response.localchanges": {
         "message": "Procesando o recoñecemento de cambios locais"
