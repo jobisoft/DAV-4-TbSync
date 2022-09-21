@@ -30,103 +30,103 @@
         "message": "Fax"
     },
     "abCard.emailtypes.home": {
-        "message": "Home"
+        "message": "Acasă"
     },
     "abCard.emailtypes.other": {
-        "message": "Other"
+        "message": "Altele"
     },
     "abCard.emailtypes.pager": {
         "message": "Pager"
     },
     "abCard.emailtypes.video": {
-        "message": "Video"
+        "message": "Videoclip"
     },
     "abCard.emailtypes.voice": {
-        "message": "Phone"
+        "message": "Telefon"
     },
     "abCard.emailtypes.work": {
-        "message": "Work"
+        "message": "Lucru"
     },
     "acl.add": {
-        "message": "add"
+        "message": "adaugă"
     },
     "acl.delete": {
-        "message": "delete"
+        "message": "șterge"
     },
     "acl.modify": {
-        "message": "modify"
+        "message": "modifică"
     },
     "acl.none": {
-        "message": "none"
+        "message": "niciuna"
     },
     "acl.readonly": {
-        "message": "Read-only server access (revert local changes)"
+        "message": "Acces doar pentru citire pe server (revenire la modificările locale)"
     },
     "acl.readwrite": {
-        "message": "Server write permissions: ##replace.1##"
+        "message": "Permisiuni de scriere pe server: ##replace.1##"
     },
     "add.caldavserver": {
-        "message": "CalDAV server address:"
+        "message": "Adresa serverului CalDAV:"
     },
     "add.carddavserver": {
-        "message": "CardDAV server address:"
+        "message": "Adresa serverului CardDAV:"
     },
     "add.data.description": {
-        "message": "Please provide a friendly name for the new TbSync account and the credentials for your server:"
+        "message": "Vă rugăm să furnizați un nume prietenos pentru noul cont TbSync și acreditările pentru serverul dumneavoastră:"
     },
     "add.data.notes": {
-        "message": "Notes:"
+        "message": "Note:"
     },
     "add.data.title": {
-        "message": "Enter account information"
+        "message": "Introduceți informații despre cont"
     },
     "add.finish.description": {
-        "message": "The following settings have been verified successfully:"
+        "message": "Următoarele setări au fost verificate cu succes:"
     },
     "add.finish.details": {
-        "message": "Click “Finish” to create a new TbSync account with these settings."
+        "message": "Faceți clic pe \" Terminare \" pentru a crea un nou cont TbSync cu aceste setări."
     },
     "add.finish.title": {
-        "message": "Confirm account creation"
+        "message": "Confirmați crearea contului"
     },
     "add.name": {
-        "message": "Account name:"
+        "message": "Numele contului:"
     },
     "add.ok": {
-        "message": "Add account"
+        "message": "Adăugaţi un cont"
     },
     "add.password": {
-        "message": "Password:"
+        "message": "Parolă:"
     },
     "add.server": {
-        "message": "Server URL:"
+        "message": "URL-ul serverului:"
     },
     "add.serverprofile.custom": {
-        "message": "Manual Configuration"
+        "message": "Configurație manuală"
     },
     "add.serverprofile.custom.description": {
-        "message": "The CalDAV and CardDAV service endpoints can be configured manually."
+        "message": "Punctele finale ale serviciilor CalDAV și CardDAV pot fi configurate manual."
     },
     "add.serverprofile.custom.details1": {
-        "message": "The required CalDAV & CardDAV service endpoints or the so called principal addresses should be provided by your service provider."
+        "message": "Punctele finale necesare ale serviciilor CalDAV și CardDAV sau așa-numitele adrese principale ar trebui să fie furnizate de furnizorul dumneavoastră de servicii."
     },
     "add.serverprofile.custom.details2": {
-        "message": "If you leave either address empty, the corresponding service will be disabled for this account."
+        "message": "Dacă lăsați oricare dintre adrese goală, serviciul corespunzător va fi dezactivat pentru acest cont."
     },
     "add.serverprofile.description": {
-        "message": "Please select one of the available server profiles:"
+        "message": "Vă rugăm să selectați unul dintre profilurile de server disponibile:"
     },
     "add.serverprofile.discovery": {
-        "message": "Automatic Configuration"
+        "message": "Configurație automată"
     },
     "add.serverprofile.discovery.description": {
-        "message": "Many service providers and servers support an automatic configuration process, which requires only an e-mail address or a username and a server address."
+        "message": "Mulți furnizori de servicii și servere acceptă un proces de configurare automată, care necesită doar o adresă de e-mail sau un nume de utilizator și o adresă de server."
     },
     "add.serverprofile.discovery.details1": {
-        "message": "For the automatic discovery of the CalDAV & CardDAV service endpoints, please enter your credentials and the host name of your server (e.g. 'cloud.myserver.de')."
+        "message": "Pentru descoperirea automată a punctelor finale ale serviciului CalDAV & CardDAV, vă rugăm să introduceți acreditările dumneavoastră și numele de gazdă al serverului dumneavoastră (de exemplu, \"cloud.myserver.ro\")."
     },
     "add.serverprofile.discovery.details2": {
-        "message": "If your username is an e-mail address, specifying the server becomes optional, as the information about the service endpoints may be obtained directly from your service provider via an RFC6764 request (if supported)."
+        "message": "În cazul în care numele de utilizator este o adresă de e-mail, specificarea serverului devine opțională, deoarece informațiile despre punctele finale ale serviciului pot fi obținute direct de la furnizorul de servicii prin intermediul unei cereri RFC6764 (dacă este acceptată)."
     },
     "add.serverprofile.discovery.server-optional": {
         "message": "optional"
@@ -135,16 +135,16 @@
         "message": "fruux"
     },
     "add.serverprofile.fruux.description": {
-        "message": "fruux is a service that syncs contacts, calendars and tasks. It's powered by the company behind sabre/dav and is based in Germany."
+        "message": "fruux este un serviciu care sincronizează contactele, calendarele și sarcinile. Este pus la dispoziție de compania din spatele sabre/dav și are sediul în Germania."
     },
     "add.serverprofile.gmx.com": {
-        "message": "GMX.com (USA)"
+        "message": "GMX.com (SUA)"
     },
     "add.serverprofile.gmx.com.description": {
         "message": "https://www.gmx.com"
     },
     "add.serverprofile.gmx.net": {
-        "message": "GMX.net (Europe)"
+        "message": "GMX.net (Europa)"
     },
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
@@ -156,7 +156,7 @@
         "message": "https://accounts.google.com"
     },
     "add.serverprofile.google.details1": {
-        "message": "Google uses a modern authentication method and TbSync does not need to know your username or your password. After clicking 'Next >', a browser window will be opened, where you can log into your Google account and allow the 'Provider for CalDAV & CardDAV' to access your contacts and calendars."
+        "message": "Google utilizează o metodă de autentificare modernă, iar TbSync nu are nevoie să vă cunoască numele de utilizator sau parola. După ce faceți clic pe \"Următorul >\", se va deschide o fereastră de browser în care vă puteți autentifica în contul Google și puteți permite \"Furnizor pentru CalDAV și CardDAV\" să vă acceseze contactele și calendarele."
     },
     "add.serverprofile.icloud": {
         "message": "iCloud"
@@ -165,16 +165,16 @@
         "message": "https://www.icloud.com"
     },
     "add.serverprofile.icloud.details1": {
-        "message": "The requested user name is your Apple ID. Please note, that you may not use your Apple ID password here. You MUST enable two-factor authentication (2FA) for your iCloud account and create a separate app-specific password for TbSync."
+        "message": "Numele de utilizator solicitat este ID-ul dumneavoastră Apple. Vă rugăm să rețineți că nu puteți utiliza aici parola ID-ului Apple. TREBUIE să activați autentificarea cu doi factori (2FA) pentru contul dumneavoastră iCloud și să creați o parolă separată specifică aplicației pentru TbSync."
     },
     "add.serverprofile.icloud.details2": {
-        "message": "This is a security layer enforced by Apple, so that 3rd party clients do not gain access to your Apple account."
+        "message": "Acesta este un nivel de securitate impus de Apple, astfel încât clienții terți să nu obțină acces la contul dumneavoastră Apple."
     },
     "add.serverprofile.mbo": {
         "message": "mailbox.org"
     },
     "add.serverprofile.mbo.description": {
-        "message": "mailbox.org is a secure German e-mail provider for private and business customers, which also offers calendars, contacts and cloud storage."
+        "message": "mailbox.org este un furnizor german de e-mail securizat pentru clienți privați și companii, care oferă, de asemenea, calendare, contacte și stocare în cloud."
     },
     "add.serverprofile.posteo": {
         "message": "Posteo"
@@ -183,7 +183,7 @@
         "message": "https://www.posteo.de"
     },
     "add.serverprofile.title": {
-        "message": "Select a server profile"
+        "message": "Selectați un profil de server"
     },
     "add.serverprofile.web.de": {
         "message": "WEB.de"
@@ -198,159 +198,159 @@
         "message": "https://www.yahoo.com"
     },
     "add.serverprofile.yahoo.details1": {
-        "message": "The requested password is an app-specific password for TbSync which you can create in your Yahoo! web portal. It is not your standard Yahoo! password."
+        "message": "Parola solicitată este o parolă specifică aplicației TbSync, pe care o puteți crea în portalul web Yahoo! Nu este o parolă Yahoo! standard."
     },
     "add.spinner.query": {
-        "message": "Sending RFC6764 request to “##replace.1##”"
+        "message": "Se trimite solicitarea RFC6764 către „##substitui.1##”"
     },
     "add.spinner.validating": {
-        "message": "Verifying connection to server"
+        "message": "Verificarea conexiunii la server"
     },
     "add.title": {
-        "message": "Adding a CalDAV & CardDAV account to TbSync"
+        "message": "Adăugarea unui cont CalDAV și CardDAV la TbSync"
     },
     "add.user": {
-        "message": "User name:"
+        "message": "Utilizator:"
     },
     "autocomplete.HOME": {
-        "message": "private"
+        "message": "personal"
     },
     "autocomplete.PREF": {
-        "message": "preferred"
+        "message": "preferat"
     },
     "autocomplete.WORK": {
-        "message": "business"
+        "message": "de afaceri"
     },
     "config.custom": {
-        "message": "CalDAV & CardDAV server configuration"
+        "message": "Configurarea serverului CalDAV & CardDAV"
     },
     "defaultname.calendar": {
         "message": "Calendar"
     },
     "defaultname.contacts": {
-        "message": "Contacts"
+        "message": "Contacte"
     },
     "extensionDescription": {
-        "message": "Add sync support for CalDAV & CardDAV accounts to TbSync."
+        "message": "Adăugarea suportului de sincronizare pentru conturile CalDAV și CardDAV în TbSync."
     },
     "extensionName": {
-        "message": "Provider for CalDAV & CardDAV"
+        "message": "Furnizor pentru CalDAV & CardDAV"
     },
     "helplink.malformed-xml": {
         "message": "https://github.com/jobisoft/DAV-4-TbSync/issues/104"
     },
     "manager.tabs.accountsettings": {
-        "message": "Account settings"
+        "message": "Setările contului"
     },
     "manager.tabs.syncsettings": {
-        "message": "Options"
+        "message": "Opţiuni"
     },
     "menu.name": {
         "message": "CalDAV & CardDAV"
     },
     "pref.AccountName": {
-        "message": "Account name"
+        "message": "Denumire cont"
     },
     "pref.CalDavServer": {
-        "message": "CalDAV server address:"
+        "message": "Adresa serverului CalDAV:"
     },
     "pref.CardDavServer": {
-        "message": "CardDAV server address:"
+        "message": "Adresa serverului CardDAV:"
     },
     "pref.UserName": {
-        "message": "User name"
+        "message": "Nume utilizator"
     },
     "pref.calendaroptions": {
-        "message": "Calendar options"
+        "message": "Opțiuni calendar"
     },
     "pref.contactoptions": {
-        "message": "Contact options"
+        "message": "Opțiuni contact"
     },
     "pref.downloadonly": {
-        "message": "Revert local changes (one-way sync)"
+        "message": "Anularea modificărilor locale (sincronizare unidirecțională)"
     },
     "pref.generaloptions": {
-        "message": "General options"
+        "message": "Opţiuni generale"
     },
     "pref.syncGroups": {
-        "message": "Sync contact groups as Thunderbird lists"
+        "message": "Sincronizarea grupurilor de contacte ca liste Thunderbird"
     },
     "pref.syncGroupsDescription": {
-        "message": "NOTE: Due to TB bug 1522453, TbSync must add dummy e-mail addresses to all contacts, which are part of groups but do not have an e-mail address associated. These dummy e-mail addresses are not synced to server."
+        "message": "NOTĂ: Din cauza bug-ului TB 1522453, TbSync trebuie să adauge adrese de e-mail fictive tuturor contactelor care fac parte din grupuri, dar nu au o adresă de e-mail asociată. Aceste adrese de e-mail fictive nu sunt sincronizate cu serverul."
     },
     "pref.useCalendarCache": {
-        "message": "Offline Support"
+        "message": "Suport offline"
     },
     "pref.useCardBook": {
-        "message": "Create CardBook address books instead of Thunderbird's default address books"
+        "message": "Creați cărți de adrese CardBook în locul cărților de adrese implicite din Thunderbird"
     },
     "status.401": {
-        "message": "Could not authenticate, check username and password."
+        "message": "Nu s-a putut autentifica, verificați numele de utilizator și parola."
     },
     "status.403": {
-        "message": "Server rejected connection (forbidden)."
+        "message": "Serverul a respins conexiunea (interzisă)."
     },
     "status.404": {
-        "message": "HTTP Error 404 (requested resource not found)."
+        "message": "Eroare HTTP 404 (resursa solicitată nu a fost găsită)."
     },
     "status.500": {
-        "message": "Unknown Server Error (HTTP Error 500)."
+        "message": "Eroare de server necunoscută (HTTP Error 500)."
     },
     "status.503": {
-        "message": "Service unavailable."
+        "message": "Serviciu indisponibil."
     },
     "status.caldavservernotfound": {
-        "message": "Could not find a CalDAV server."
+        "message": "Nu s-a putut găsi un server CalDAV."
     },
     "status.carddavservernotfound": {
-        "message": "Could not find a CardDAV server."
+        "message": "Nu s-a putut găsi un server CardDAV."
     },
     "status.gContactSync": {
-        "message": "There is an incompatibility with gContactSync with activated contact group synchronization. Please deactivate one of them as long as the error is not resolved."
+        "message": "Există o incompatibilitate cu gContactSync în cazul sincronizării grupurilor de contacte activate. Vă rugăm să dezactivați unul dintre ele atâta timp cât eroarea nu este rezolvată."
     },
     "status.info.restored": {
-        "message": "Due to partially missing write permissions, some actions were rejected by the server and reversed locally."
+        "message": "Din cauza lipsei parțiale a permisiunilor de scriere, unele acțiuni au fost respinse de server și inversate la nivel local."
     },
     "status.malformed-xml": {
-        "message": "Could not parse XML. Check event log for details."
+        "message": "Nu s-a putut analiza XML. Verificați jurnalul de evenimente pentru detalii."
     },
     "status.missing-permission": {
-        "message": "Missing permission: ##replace.1##"
+        "message": "Permisiune lipsă: ##replace.1##"
     },
     "status.networkerror": {
-        "message": "Could not connect to server."
+        "message": "Nu s-a putut conecta la server."
     },
     "status.rfc6764-lookup-failed": {
-        "message": "The query of “##replace.1##” did not provide the required information regarding the CalDAV and CardDAV service endpoints. Please enter the hostname of your server to proceed with the automatic configuration."
+        "message": "Interogarea \"##replace.1##\" nu a furnizat informațiile necesare cu privire la punctele finale ale serviciilor CalDAV și CardDAV. Vă rugăm să introduceți numele de gazdă al serverului dumneavoastră pentru a continua cu configurarea automată."
     },
     "status.service-discovery-failed": {
-        "message": "Automatic discovery of CalDAV & CardDAV service endpoints of “##replace.1##” has failed. Try again, specifying a different server address, or switch to the custom configuration to manually specify the service endpoints."
+        "message": "Descoperirea automată a punctelor finale ale serviciului CalDAV & CardDAV din \"##replace.1##\" a eșuat. Încercați din nou, specificând o altă adresă de server, sau treceți la configurația personalizată pentru a specifica manual punctele finale ale serviciului."
     },
     "status.softerror": {
-        "message": "Non fatal error (##replace.1##)"
+        "message": "Eroare non fatală (##replace.1##)"
     },
     "status.success.managed-by-lightning": {
-        "message": "Lightning"
+        "message": "Luminozitate"
     },
     "syncstate.eval.folders": {
-        "message": "Updating folder list"
+        "message": "Actualizarea listei de foldere"
     },
     "syncstate.eval.response.localchanges": {
-        "message": "Processing acknowledgment of local changes"
+        "message": "Procesarea confirmării modificărilor locale"
     },
     "syncstate.eval.response.remotechanges": {
-        "message": "Processing remote changes"
+        "message": "Prelucrarea modificărilor la distanță"
     },
     "syncstate.prepare.request.localchanges": {
-        "message": "Sending local changes"
+        "message": "Trimiterea modificărilor locale"
     },
     "syncstate.send.getfolders": {
-        "message": "Requesting folder list"
+        "message": "Solicitarea listei de foldere"
     },
     "syncstate.send.request.localchanges": {
-        "message": "Waiting for acknowledgment of local changes"
+        "message": "Așteptarea confirmării modificărilor locale"
     },
     "syncstate.send.request.remotechanges": {
-        "message": "Waiting for remote changes"
+        "message": "Așteptarea modificărilor la distanță"
     }
 }
