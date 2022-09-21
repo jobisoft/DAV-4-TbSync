@@ -390,6 +390,8 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
     }
 
     async createAddressbook(newname) {
+        let authData = dav.network.getAuthData(this.folderData.accountData);
+        
         // https://searchfox.org/comm-central/source/mailnews/addrbook/src/nsDirPrefs.h
         let dirPrefId = MailServices.ab.newAddressBook(
             newname,
@@ -404,10 +406,23 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
         this.folderData.setFolderProperty("url", url.spec);
 
         directory.setStringValue("carddav.url", url.spec);
+        directory.setStringValue("carddav.username", authData.username);
         if (this.folderData.getFolderProperty("downloadonly")) {
             directory.setBoolValue("readOnly", true);
         }
     
+        // Setup password for CardDAV address book, so users do not get prompted.
+        TbSync.dump("Searching CardDAV authRealm for", url.host);
+        let connectionData = new dav.network.ConnectionData(this.folderData);
+        await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>", url.spec , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return=minimal"}, {containerRealm: "setup", containerReset: true, passwordRetries: 0});
+        
+        let realm = connectionData.realm || "";
+        if (realm !== "") {
+            TbSync.dump("Adding CardDAV password", "User <"+authData.username+">, Realm <"+realm+">");
+            // Manually create a CardDAV style entry in the password manager
+            TbSync.passwordManager.updateLoginInfo(url.prePath, realm, /* old */ authData.username, /* new */ authData.username, authData.password);
+        }
+
         dav.sync.resetFolderSyncInfo(this.folderData);
         
         if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
@@ -417,7 +432,7 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
                 icon = dav.sync.serviceproviders[serviceprovider].icon;
             }
             directory.setStringValue("tbSyncIcon", "dav" + icon);
-                        
+
             return directory;
         }
         return null;
@@ -525,16 +540,16 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
 
         if (this.folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
 
-        // Setup password for Lightning calendar, so users do not get prompted (ICS urls do not need a password)
+        // Setup password for CalDAV calendar, so users do not get prompted (ICS urls do not need a password)
         if (caltype == "caldav") {
             TbSync.dump("Searching CalDAV authRealm for", url.host);
             let connectionData = new dav.network.ConnectionData(this.folderData);
-            let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>", url.spec , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return=minimal"}, {containerRealm: "setup", containerReset: true, passwordRetries: 0});
+            await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>", url.spec , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return=minimal"}, {containerRealm: "setup", containerReset: true, passwordRetries: 0});
             
             let realm = connectionData.realm || "";
             if (realm !== "") {
-                TbSync.dump("Adding Lightning password", "User <"+authData.username+">, Realm <"+realm+">");
-                //manually create a lightning style entry in the password manager
+                TbSync.dump("Adding CalDAV password", "User <"+authData.username+">, Realm <"+realm+">");
+                //manually create a CalDAV style entry in the password manager
                 TbSync.passwordManager.updateLoginInfo(url.prePath, realm, /* old */ authData.username, /* new */ authData.username, authData.password);
             }
         }
