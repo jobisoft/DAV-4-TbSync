@@ -320,8 +320,8 @@
     "status.softerror": {
         "message": "Ignorierter Fehler (##replace.1##)"
     },
-    "status.success.managed-by-lightning": {
-        "message": "Lightning"
+    "status.success.managed-by-thunderbird": {
+        "message": "Ok"
     },
     "syncstate.eval.folders": {
         "message": "Verarbeite Ordnerliste"

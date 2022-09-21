@@ -348,20 +348,9 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
         super(folderData);
     }
   
-    // define a card property, which should be used for the changelog
-    // basically your primary key for the abItem properties
-    // UID will be used, if nothing specified
-    get primaryKeyField() {
-        return "X-DAV-HREF"
-    }
-
-    generatePrimaryKey() {
-        return this.folderData.getFolderProperty("href") + TbSync.generateUUID() + ".vcf";
-    }
-        
     // enable or disable changelog
     get logUserChanges() {
-        return true;
+        return false;
     }
 
     directoryObserver(aTopic) {
@@ -377,19 +366,10 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
         switch (aTopic) {
             case "addrbook-contact-updated":
             case "addrbook-contact-deleted":
-                //Services.console.logStringMessage("["+ aTopic + "] " + abCardItem.getProperty("DisplayName"));
-                break;
-
             case "addrbook-contact-created":
-            {
-                //Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for Card <"+ abCardItem.getProperty("DisplayName")+">");
-                abCardItem.setProperty("X-DAV-UID", TbSync.generateUUID());
-                // the card is tagged with "_by_user" so it will not be changed to "_by_server" by the following modify
-                abCardItem.abDirectory.modifyItem(abCardItem);
+                    //Services.console.logStringMessage("["+ aTopic + "] " + abCardItem.getProperty("DisplayName"));
                 break;
-            }
         }
-        dav.sync.onChange(abCardItem);
     }
 
     listObserver(aTopic, abListItem, abListMember) {
@@ -406,18 +386,29 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
             
             case "addrbook-list-created": 
                 //Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for List <"+abListItem.getProperty("ListName")+">");
-                abListItem.setProperty("X-DAV-UID", TbSync.generateUUID());
-                // custom props of lists get updated directly, no need to call .modify()            
                 break;
         }
-        dav.sync.onChange(abListItem);
     }
 
     async createAddressbook(newname) {
         // https://searchfox.org/comm-central/source/mailnews/addrbook/src/nsDirPrefs.h
-        let dirPrefId = MailServices.ab.newAddressBook(newname, "", 101);
+        let dirPrefId = MailServices.ab.newAddressBook(
+            newname,
+            null,
+            Ci.nsIAbManager.CARDDAV_DIRECTORY_TYPE,
+            null
+          );
         let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
-      
+
+        let baseUrl =  "http" + (this.folderData.getFolderProperty("https") ? "s" : "") + "://" + this.folderData.getFolderProperty("fqdn");
+        let url = dav.tools.parseUri(baseUrl + this.folderData.getFolderProperty("href") + (dav.sync.prefSettings.getBoolPref("enforceUniqueCalendarUrls") ? "?" + this.folderData.accountID : ""));
+        this.folderData.setFolderProperty("url", url.spec);
+
+        directory.setStringValue("carddav.url", url.spec);
+        if (this.folderData.getFolderProperty("downloadonly")) {
+            directory.setBoolValue("readOnly", true);
+        }
+    
         dav.sync.resetFolderSyncInfo(this.folderData);
         
         if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
@@ -427,11 +418,7 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
                 icon = dav.sync.serviceproviders[serviceprovider].icon;
             }
             directory.setStringValue("tbSyncIcon", "dav" + icon);
-            
-            // Disable AutoComplete, so we can have full control over the auto completion of our own directories.
-            // Implemented by me in https://bugzilla.mozilla.org/show_bug.cgi?id=1546425
-            directory.setBoolValue("enable_autocomplete", false);
-            
+                        
             return directory;
         }
         return null;

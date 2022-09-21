@@ -9,6 +9,10 @@
 
 "use strict";
 
+const { CardDAVDirectory } = ChromeUtils.import(
+    "resource:///modules/CardDAVDirectory.jsm"
+);
+
 var sync = {
 
     finish: function (aStatus = "", msg = "", details = "") {
@@ -75,26 +79,6 @@ var sync = {
         "yahoo" : {revision: 1, icon: "yahoo", caldav: "caldav6764://yahoo.com", carddav: "carddav6764://yahoo.com"},
     },
 
-    onChange(abItem) {
-        if (!this._syncOnChangeTimers)
-            this._syncOnChangeTimers = {};
-            
-        this._syncOnChangeTimers[abItem.abDirectory.UID] = {};
-        this._syncOnChangeTimers[abItem.abDirectory.UID].timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
-        this._syncOnChangeTimers[abItem.abDirectory.UID].event = {
-            notify: function(timer) {
-                // if account is syncing, re-schedule
-                // if folder got synced after the start time (due to re-scheduling) abort
-                console.log("DONE: "+ abItem.abDirectory.UID);
-            }
-        }
-        
-        this._syncOnChangeTimers[abItem.abDirectory.UID].timer.initWithCallback(
-            this._syncOnChangeTimers[abItem.abDirectory.UID].event, 
-            2000, 
-            Components.interfaces.nsITimer.TYPE_ONE_SHOT);
-    },
-
     resetFolderSyncInfo : function (folderData) {
         folderData.resetFolderProperty("ctag");
         folderData.resetFolderProperty("token");
@@ -140,13 +124,17 @@ var sync = {
         for (let job in davjobs) {
             if (!davjobs[job].server) continue;
             
-            // SOGo needs some special handling for shared addressbooks. We detect it by having SOGo/dav in the url.
+            // SOGo needs some special handling for shared addressbooks. We detect
+            // it by having SOGo/dav in the url.
             let isSogo = davjobs[job].server.includes("/SOGo/dav");
 
-            //sync states are only printed while the account state is "syncing" to inform user about sync process (it is not stored in DB, just in syncData)
-            //example state "getfolders" to get folder information from server
-            //if you send a request to a server and thus have to wait for answer, use a "send." syncstate, which will give visual feedback to the user,
-            //that we are waiting for an answer with timeout countdown
+            // sync states are only printed while the account state is "syncing"
+            // to inform user about sync process (it is not stored in DB, just in
+            // syncData)
+            // example state "getfolders" to get folder information from server
+            // if you send a request to a server and thus have to wait for answer,
+            // use a "send." syncstate, which will give visual feedback to the user,
+            // that we are waiting for an answer with timeout countdown
 
             let home = [];
             let own = [];
@@ -418,7 +406,21 @@ var sync = {
         switch (syncData.currentFolderData.getFolderProperty("type")) {
             case "carddav":
                 {
-                    await dav.sync.singleFolder(syncData);
+                    // update downloadonly - we do not use AbDirectory (syncData.target) but the underlying thunderbird addressbook obj
+                    if (syncData.currentFolderData.getFolderProperty("downloadonly")) syncData.target.directory.setBoolValue("readOnly", true);
+
+                    try {
+                        let davDirectory = CardDAVDirectory.forFile(syncData.target.directory.fileName);
+                        if (!hadTarget) {
+                            davDirectory.fetchAllFromServer();
+                        } else {
+                            davDirectory.syncWithServer();
+                        }
+                    } catch (ex) {
+                        throw dav.sync.finish("error", "non-carddav-addrbook");
+                    }
+
+                    throw dav.sync.finish("ok", "managed-by-thunderbird");
                 }
                 break;
 
@@ -434,7 +436,7 @@ var sync = {
                     //init sync via lightning
                     if (hadTarget) syncData.target.calendar.refresh();
 
-                    throw dav.sync.finish("ok", "managed-by-lightning");
+                    throw dav.sync.finish("ok", "managed-by-thunderbird");
                 }
                 break;
 
@@ -446,463 +448,4 @@ var sync = {
         }
     },
 
-
-    singleFolder: async function (syncData)  {
-        let downloadonly = syncData.currentFolderData.getFolderProperty("downloadonly");
-        
-        // we have to abort sync of this folder, if it is contact, has groupSync enabled and gContactSync is enabled
-        let syncGroups = syncData.accountData.getAccountProperty("syncGroups");
-        let gContactSync = await AddonManager.getAddonByID("gContactSync@pirules.net") ;
-        let contactSync = (syncData.currentFolderData.getFolderProperty("type") == "carddav");
-        if (syncGroups && contactSync && gContactSync && gContactSync.isActive) {
-            throw dav.sync.finish("warning", "gContactSync");
-        }
-        
-        await dav.sync.remoteChanges(syncData);
-        let numOfLocalChanges = await dav.sync.localChanges(syncData);
-
-        //revert all local changes on permission error by doing a clean sync
-        if (numOfLocalChanges < 0) {
-            dav.sync.resetFolderSyncInfo(syncData.currentFolderData);
-            await dav.sync.remoteChanges(syncData);
-
-            if (!downloadonly) throw dav.sync.finish("info", "info.restored");
-        } else if (numOfLocalChanges > 0){
-            //we will get back our own changes and can store etags and vcards and also get a clean ctag/token
-            await dav.sync.remoteChanges(syncData);
-        }
-    },
-
-
-
-
-
-
-
-
-
-
-    remoteChanges: async function (syncData) {
-        //Do we have a sync token? No? -> Initial Sync (or WebDAV sync not supported) / Yes? -> Get updates only (token only present if WebDAV sync is suported)
-        let token = syncData.currentFolderData.getFolderProperty("token");
-        if (token) {
-            //update via token sync
-            let tokenSyncSucceeded = await dav.sync.remoteChangesByTOKEN(syncData);
-            if (tokenSyncSucceeded) return;
-
-            //token sync failed, reset ctag and token and do a full sync
-            dav.sync.resetFolderSyncInfo(syncData.currentFolderData);
-        }
-
-        //Either token sync did not work or there is no token (initial sync)
-        //loop until ctag is the same before and after polling data (sane start condition)
-        let maxloops = 20;
-        for (let i=0; i <= maxloops; i++) {
-                if (i == maxloops)
-                    throw dav.sync.finish("warning", "could-not-get-stable-ctag");
-
-                let ctagChanged = await dav.sync.remoteChangesByCTAG(syncData);
-                if (!ctagChanged) break;
-        }
-    },
-
-    remoteChangesByTOKEN: async function (syncData) {
-        syncData.progressData.reset();
-
-        let token = syncData.currentFolderData.getFolderProperty("token");
-        syncData.setSyncState("send.request.remotechanges");
-        let cards = await dav.network.sendRequest("<d:sync-collection "+dav.tools.xmlns(["d"])+"><d:sync-token>"+token+"</d:sync-token><d:sync-level>1</d:sync-level><d:prop><d:getetag/></d:prop></d:sync-collection>", syncData.currentFolderData.getFolderProperty("href"), "REPORT", syncData.connectionData, {}, {softfail: [415,403,409]});
-        
-        //EteSync throws 409 because it does not support sync-token
-        //Sabre\DAV\Exception\ReportNotSupported - Unsupported media type - returned by fruux if synctoken is 0 (empty book), 415 & 403
-        //https://github.com/sabre-io/dav/issues/1075
-        //Sabre\DAV\Exception\InvalidSyncToken (403)
-        if (cards && cards.softerror) {
-            //token sync failed, reset ctag and do a full sync
-            return false;
-        }
-
-        let tokenNode = dav.tools.evaluateNode(cards.node, [["d", "sync-token"]]);
-        if (tokenNode === null) {
-            //token sync failed, reset ctag and do a full sync
-            return false;
-        }
-
-        let vCardsDeletedOnServer = [];
-        let vCardsChangedOnServer = {};
-        
-        let localDeletes = syncData.target.getDeletedItemsFromChangeLog();
-        
-        let cardsFound = 0;
-        for (let c=0; c < cards.multi.length; c++) {
-            let id = cards.multi[c].href;
-            if (id !==null) {
-                //valid
-                let card = await syncData.target.getItemFromProperty("X-DAV-HREF", id);
-                if (cards.multi[c].status == "200") {
-                    //MOD or ADD
-                    let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
-                    if (!card) {
-                        //if the user deleted this card (not yet send to server), do not add it again
-                        if (!localDeletes.includes(id))  { 
-                            cardsFound++;
-                            vCardsChangedOnServer[id] = "ADD"; 
-                        }
-                    } else if (etag.textContent != card.getProperty("X-DAV-ETAG")) {
-                        cardsFound++;
-                        vCardsChangedOnServer[id] = "MOD"; 
-                    }
-                } else if (cards.multi[c].responsestatus == "404" && card) {
-                    //DEL
-                    cardsFound++;
-                    vCardsDeletedOnServer.push(card);
-                } else {
-                    //We received something, that is not a DEL, MOD or ADD
-                    TbSync.eventlog.add("warning", syncData.eventLogInfo, "Unknown XML", JSON.stringify(cards.multi[c]));
-                }
-            }
-        }
-
-        // reset sync process
-        syncData.progressData.reset(0, cardsFound);
-
-        //download all cards added to vCardsChangedOnServer and process changes
-        await dav.sync.multiget(syncData, vCardsChangedOnServer);
-
-        //delete all contacts added to vCardsDeletedOnServer
-        await dav.sync.deleteContacts (syncData, vCardsDeletedOnServer);
-
-        //update token
-        syncData.currentFolderData.setFolderProperty("token", tokenNode.textContent);
-
-        return true;
-    },
-
-    remoteChangesByCTAG: async function (syncData) {
-        syncData.progressData.reset();
-
-        //Request ctag and token
-        syncData.setSyncState("send.request.remotechanges");
-        let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d", "cs"])+"><d:prop><cs:getctag /><d:sync-token /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "0"});
-
-        syncData.setSyncState("eval.response.remotechanges");
-        let ctag = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["cs", "getctag"]], syncData.currentFolderData.getFolderProperty("href"));
-        let token = dav.tools.getNodeTextContentFromMultiResponse(response, [["d","prop"], ["d", "sync-token"]], syncData.currentFolderData.getFolderProperty("href"));
-
-        let localDeletes = syncData.target.getDeletedItemsFromChangeLog();
-
-        //if CTAG changed, we need to sync everything and compare
-        if (ctag === null || ctag != syncData.currentFolderData.getFolderProperty("ctag")) {
-            let vCardsFoundOnServer = [];
-            let vCardsChangedOnServer = {};
-
-            //get etags of all cards on server and find the changed cards
-            syncData.setSyncState("send.request.remotechanges");
-            let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return=minimal"});
-            
-            //to test other impl
-            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return=minimal"}, {softfail: []}, false);
-
-            //this is the same request, but includes getcontenttype, do we need it? icloud send contacts without
-            //let cards = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:getetag /><d:getcontenttype /></d:prop></d:propfind>", syncData.currentFolderData.getFolderProperty("href"), "PROPFIND", syncData.connectionData, {"Depth": "1", "Prefer": "return=minimal"});
-
-            //play with filters and limits for synology
-            /*
-            let additional = "<card:limit><card:nresults>10</card:nresults></card:limit>";
-            additional += "<card:filter test='anyof'>";
-                additional += "<card:prop-filter name='FN'>";
-                    additional += "<card:text-match negate-condition='yes' match-type='equals'>bogusxy</card:text-match>";
-                additional += "</card:prop-filter>";
-            additional += "</card:filter>";*/
-        
-            //addressbook-query does not work on older servers (zimbra)
-            //let cards = await dav.network.sendRequest("<card:addressbook-query "+dav.tools.xmlns(["d", "card"])+"><d:prop><d:getetag /></d:prop></card:addressbook-query>", syncData.currentFolderData.getFolderProperty("href"), "REPORT", syncData.connectionData, {"Depth": "1", "Prefer": "return=minimal"});
-
-            syncData.setSyncState("eval.response.remotechanges");
-            let cardsFound = 0;
-            for (let c=0; cards.multi && c < cards.multi.length; c++) {
-                let id =  cards.multi[c].href;
-                if (id == syncData.currentFolderData.getFolderProperty("href")) {
-                    //some servers (Radicale) report the folder itself and a querry to that would return everything again
-                    continue;
-                }
-                let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
-
-                //ctype is currently not used, because iCloud does not send one and sabre/dav documentation is not checking ctype 
-                //let ctype = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getcontenttype"]]);
-
-                if (cards.multi[c].status == "200" && etag !== null && id !== null /* && ctype !== null */) { //we do not actually check the content of ctype - but why do we request it? iCloud seems to send cards without ctype
-                    vCardsFoundOnServer.push(id);
-                    let card = await syncData.target.getItemFromProperty("X-DAV-HREF", id);
-                    if (!card) {
-                        //if the user deleted this card (not yet send to server), do not add it again
-                        if (!localDeletes.includes(id)) {
-                            cardsFound++;
-                            vCardsChangedOnServer[id] = "ADD"; 
-                        }
-                    } else if (etag.textContent != card.getProperty("X-DAV-ETAG")) {
-                        cardsFound++;
-                        vCardsChangedOnServer[id] = "MOD"; 
-                    }
-                }
-            }
-
-            //FIND DELETES: loop over current addressbook and check each local card if it still exists on the server
-            let vCardsDeletedOnServer = [];
-            let localAdditions = syncData.target.getAddedItemsFromChangeLog();
-            let allItems = syncData.target.getAllItems()
-            for (let card of allItems) {
-                let id = card.getProperty("X-DAV-HREF");
-                if (id && !vCardsFoundOnServer.includes(id) && !localAdditions.includes(id)) {
-                    //delete request from server
-                    cardsFound++;
-                    vCardsDeletedOnServer.push(card);
-                }
-            }
-
-            // reset sync process
-            syncData.progressData.reset(0, cardsFound);
-
-            //download all cards added to vCardsChangedOnServer and process changes
-            await dav.sync.multiget(syncData, vCardsChangedOnServer);
-
-            //delete all contacts added to vCardsDeletedOnServer
-            await dav.sync.deleteContacts (syncData, vCardsDeletedOnServer);
-
-            //update ctag and token (if there is one)
-            if (ctag === null) return false; //if server does not support ctag, "it did not change"
-            syncData.currentFolderData.setFolderProperty("ctag", ctag);
-            if (token) syncData.currentFolderData.setFolderProperty("token", token);
-
-            //ctag did change
-            return true;
-        } else {
-
-            //ctag did not change
-            return false;
-        }
-
-    },
-
-
-
-    multiget: async function (syncData, vCardsChangedOnServer) {
-        //keep track of found mailing lists and its members
-        syncData.foundMailingListsDuringDownSync = {};
-        
-        //download all changed cards and process changes
-        let cards2catch = Object.keys(vCardsChangedOnServer);
-        let maxitems = dav.sync.prefSettings.getIntPref("maxitems");
-
-        for (let i=0; i < cards2catch.length; i+=maxitems) {
-            let request = dav.tools.getMultiGetRequest(cards2catch.slice(i, i+maxitems));
-            if (request) {
-                syncData.setSyncState("send.request.remotechanges");
-                let cards = await dav.network.sendRequest(request, syncData.currentFolderData.getFolderProperty("href"), "REPORT", syncData.connectionData, {"Depth": "1"});
-
-                syncData.setSyncState("eval.response.remotechanges");
-                for (let c=0; c < cards.multi.length; c++) {
-                    syncData.progressData.inc();
-                    let id =  cards.multi[c].href;
-                    let etag = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["d","getetag"]]);
-                    let data = dav.tools.evaluateNode(cards.multi[c].node, [["d","prop"], ["card","address-data"]]);
-
-                    if (cards.multi[c].status == "200" && etag !== null && data !== null && id !== null && vCardsChangedOnServer.hasOwnProperty(id)) {
-                        switch (vCardsChangedOnServer[id]) {
-                            case "ADD":
-                                await dav.tools.addContact (syncData, id, data, etag);
-                                break;
-
-                            case "MOD":
-                                await dav.tools.modifyContact (syncData, id, data, etag);
-                                break;
-                        }
-                        //Feedback from users: They want to see the individual count
-                        syncData.setSyncState("eval.response.remotechanges");		
-                        await TbSync.tools.sleep(100);
-                    } else {
-                        TbSync.dump("Skipped Card", [id, cards.multi[c].status == "200", etag !== null, data !== null, id !== null, vCardsChangedOnServer.hasOwnProperty(id)].join(", "));
-                    }
-                }
-            }
-        }
-        // Feedback from users: They want to see the final count.
-        syncData.setSyncState("eval.response.remotechanges");		
-        await TbSync.tools.sleep(200);
-    
-        // On down sync, mailinglists need to be done at the very end so all member data is avail.
-        if (syncData.accountData.getAccountProperty("syncGroups")) {
-            let l=0;
-            for (let listID in syncData.foundMailingListsDuringDownSync) {
-                if (syncData.foundMailingListsDuringDownSync.hasOwnProperty(listID)) {
-                    l++;
-                    
-                    let list = await syncData.target.getItemFromProperty("X-DAV-HREF", listID);
-                    if (!list.isMailList)
-                        continue;
-                                        
-                    //CardInfo contains the name and the X-DAV-UID list of the members
-                    let vCardInfo = dav.tools.getGroupInfoFromCardData(syncData.foundMailingListsDuringDownSync[listID].vCardData, syncData.target);
-                    let oCardInfo = dav.tools.getGroupInfoFromCardData(syncData.foundMailingListsDuringDownSync[listID].oCardData, syncData.target);
-
-                    // Smart merge: oCardInfo contains the state during last sync, vCardInfo is the current state.
-                    // By comparing we can learn, which member was deleted by the server (in old but not in new),
-                    // and which one was added (in new but not in old)
-                    let removedMembers = oCardInfo.members.filter(e => !vCardInfo.members.includes(e));
-                    let newMembers = vCardInfo.members.filter(e => !oCardInfo.members.includes(e));
-
-                    // Check that all new members have an email address (fix for bug 1522453)
-                    let m=0;
-                    for (let member of newMembers) {
-                        let card = await syncData.target.getItemFromProperty("X-DAV-UID", member);
-                        if (card) {
-                            let email = card.getProperty("PrimaryEmail");
-                            if (!email) {
-                                let email = Date.now() + "." + l + "." + m + "@bug1522453";
-                                card.setProperty("PrimaryEmail", email);
-                                syncData.target.modifyItem(card);
-                            }
-                        } else {
-                            TbSync.dump("Member not found: " + member);
-                        }
-                        m++;
-                    }
-                    
-                    // if any of the to-be-removed members are not members of the local list, they are skipt
-                    // if any of the to-be-added members are already members of the local list, they are skipt
-                    list.removeListMembers("X-DAV-UID", removedMembers);
-                    list.addListMembers("X-DAV-UID", newMembers);
-                    syncData.target.modifyItem(list);
-                }
-            }
-        }            
-    },
-
-    deleteContacts: async function (syncData, cards2delete) {
-        let maxitems = dav.sync.prefSettings.getIntPref("maxitems");
-
-        // try to show a progress based on maxitens during delete and not delete all at once
-        for (let i=0; i < cards2delete.length; i+=maxitems) {
-            //get size of next block
-            let remain = (cards2delete.length - i);
-            let chunk = Math.min(remain, maxitems);
-
-            syncData.progressData.inc(chunk);
-            syncData.setSyncState("eval.response.remotechanges");
-            await TbSync.tools.sleep(200); //we want the user to see, that deletes are happening
-
-            for (let j=0; j < chunk; j++) {
-                syncData.target.deleteItem(cards2delete[i+j]);
-            }
-        }
-    },
-
-
-
-
-    localChanges: async function (syncData) {
-        //define how many entries can be send in one request
-        let maxitems = dav.sync.prefSettings.getIntPref("maxitems");
-
-        let downloadonly = syncData.currentFolderData.getFolderProperty("downloadonly");
-
-        let permissionErrors = 0;
-        let permissionError = { //keep track of permission errors - preset with downloadonly status to skip sync in that case
-            "added_by_user": downloadonly, 
-            "modified_by_user": downloadonly, 
-            "deleted_by_user": downloadonly
-        }; 
-        
-        let syncGroups = syncData.accountData.getAccountProperty("syncGroups");
-        
-        //access changelog to get local modifications (done and todo are used for UI to display progress)
-        syncData.progressData.reset(0, syncData.target.getItemsFromChangeLog().length);
-
-        do {
-            syncData.setSyncState("prepare.request.localchanges");
-
-            //get changed items from ChangeLog 
-            let changes = syncData.target.getItemsFromChangeLog(maxitems);
-            if (changes.length == 0)
-                break;
-
-            for (let i=0; i < changes.length; i++) {
-                switch (changes[i].status) {
-                    case "added_by_user":
-                    case "modified_by_user":
-                        {
-                            let isAdding = (changes[i].status == "added_by_user");
-                            if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
-
-                                let card = await syncData.target.getItem(changes[i].itemId);
-                                if (card) {
-                                    if (card.isMailList && !syncGroups) {                                        
-                                        // Conditionally break out of the switch early, but do
-                                        // execute the cleanup code below the switch. A continue would
-                                        // miss that.
-                                        break;
-                                    }
-                                    
-                                    let vcard = card.isMailList
-                                                        ? dav.tools.getVCardFromThunderbirdListCard(syncData, card, isAdding)
-                                                        : dav.tools.getVCardFromThunderbirdContactCard(syncData, card, isAdding);
-                                    let headers = {"Content-Type": "text/vcard; charset=utf-8"};
-                                    //if (!isAdding) headers["If-Match"] = vcard.etag;
-
-                                    syncData.setSyncState("send.request.localchanges");
-                                    if (isAdding || vcard.modified) {
-                                        let response = await dav.network.sendRequest(vcard.data, card.getProperty("X-DAV-HREF"), "PUT", syncData.connectionData, headers, {softfail: [403,405]});
-
-                                        syncData.setSyncState("eval.response.localchanges");
-                                        if (response && response.softerror) {
-                                            permissionError[changes[i].status] = true;
-                                            TbSync.eventlog.add("warning", syncData.eventLogInfo, "missing-permission::" + TbSync.getString(isAdding ? "acl.add" : "acl.modify", "dav"));
-                                        }
-                                    }
-                                } else {
-                                    TbSync.eventlog.add("warning", syncData.eventLogInfo, "cardnotfoundbutinchangelog::" + changes[i].itemId + "/" + changes[i].status);
-                                }
-                            }
-
-                            if (permissionError[changes[i].status]) {
-                                //we where not allowed to add or modify that card, remove it, we will get a fresh copy on the following revert
-                                let card = await syncData.target.getItem(changes[i].itemId);
-                                if (card) syncData.target.deleteItem(card);
-                                permissionErrors++;
-                            }
-                        }
-                        break;
-
-                    case "deleted_by_user":
-                        {
-                            if (!permissionError[changes[i].status]) { //if this operation failed already, do not retry
-                                syncData.setSyncState("send.request.localchanges");
-                                let response = await dav.network.sendRequest("", changes[i].itemId , "DELETE", syncData.connectionData, {}, {softfail: [403, 404, 405]});
-
-                                syncData.setSyncState("eval.response.localchanges");
-                                if (response  && response.softerror) {
-                                    if (response.softerror != 404) { //we cannot do anything about a 404 on delete, the card has been deleted here and is not avail on server
-                                        permissionError[changes[i].status] = true;
-                                        TbSync.eventlog.add("warning", syncData.eventLogInfo, "missing-permission::" + TbSync.getString("acl.delete", "dav"));
-                                    }
-                                }
-                            }
-
-                            if (permissionError[changes[i].status]) {
-                                permissionErrors++;                                
-                            }
-                        }
-                        break;
-                }
-
-                syncData.target.removeItemFromChangeLog(changes[i].itemId);                
-                syncData.progressData.inc(); //UI feedback
-            }
-
-
-        } while (true);
-
-        //return number of modified cards or the number of permission errors (negativ)
-        return (permissionErrors > 0 ? 0 - permissionErrors : syncData.progressData.done);
-    },
 }
