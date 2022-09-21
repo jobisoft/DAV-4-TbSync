@@ -392,26 +392,38 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
     async createAddressbook(newname) {
         let authData = dav.network.getAuthData(this.folderData.accountData);
         
-        // https://searchfox.org/comm-central/source/mailnews/addrbook/src/nsDirPrefs.h
-        let dirPrefId = MailServices.ab.newAddressBook(
-            newname,
-            null,
-            Ci.nsIAbManager.CARDDAV_DIRECTORY_TYPE,
-            null
-          );
-        let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
-
         let baseUrl =  "http" + (this.folderData.getFolderProperty("https") ? "s" : "") + "://" + this.folderData.getFolderProperty("fqdn");
         let url = dav.tools.parseUri(baseUrl + this.folderData.getFolderProperty("href") + (dav.sync.prefSettings.getBoolPref("enforceUniqueCalendarUrls") ? "?" + this.folderData.accountID : ""));
         this.folderData.setFolderProperty("url", url.spec);
 
-        directory.setStringValue("carddav.url", url.spec);
+        const getDirectory = (url) => {
+            // Check if that directory exists already.
+            for (let ab of MailServices.ab.directories) {
+                if (ab.dirType == Ci.nsIAbManager.CARDDAV_DIRECTORY_TYPE && ab.getStringValue("carddav.url","") == url.spec) {
+                    return ab;
+                }
+            }
+            let dirPrefId = MailServices.ab.newAddressBook(
+                newname,
+                null,
+                Ci.nsIAbManager.CARDDAV_DIRECTORY_TYPE,
+                null
+              );
+            let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
+            directory.setStringValue("carddav.url", url.spec);
+            return directory;
+        }
+
+        let directory = getDirectory(url.spec);
+        if (!directory || !(directory instanceof Components.interfaces.nsIAbDirectory)) {
+            return null;
+        }
+        
+        // Setup password for CardDAV address book, so users do not get prompted.
         directory.setStringValue("carddav.username", authData.username);
         if (this.folderData.getFolderProperty("downloadonly")) {
             directory.setBoolValue("readOnly", true);
         }
-    
-        // Setup password for CardDAV address book, so users do not get prompted.
         TbSync.dump("Searching CardDAV authRealm for", url.host);
         let connectionData = new dav.network.ConnectionData(this.folderData);
         await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>", url.spec , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return=minimal"}, {containerRealm: "setup", containerReset: true, passwordRetries: 0});
@@ -419,23 +431,28 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
         let realm = connectionData.realm || "";
         if (realm !== "") {
             TbSync.dump("Adding CardDAV password", "User <"+authData.username+">, Realm <"+realm+">");
-            // Manually create a CardDAV style entry in the password manager
-            TbSync.passwordManager.updateLoginInfo(url.prePath, realm, /* old */ authData.username, /* new */ authData.username, authData.password);
+            // Manually create a CardDAV style entry in the password manager.
+            TbSync.passwordManager.updateLoginInfo(
+                url.prePath, realm, 
+                /* old */ authData.username, 
+                /* new */ authData.username, 
+                authData.password
+            );
         }
 
         dav.sync.resetFolderSyncInfo(this.folderData);
         
-        if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
-            let serviceprovider = this.folderData.accountData.getAccountProperty("serviceprovider");
-            let icon = "custom";
-            if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
-                icon = dav.sync.serviceproviders[serviceprovider].icon;
-            }
-            directory.setStringValue("tbSyncIcon", "dav" + icon);
-
-            return directory;
+        /*
+        // Since icons are no longer supported, lets disable this for 102.
+        let serviceprovider = this.folderData.accountData.getAccountProperty("serviceprovider");
+        let icon = "custom";
+        if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
+            icon = dav.sync.serviceproviders[serviceprovider].icon;
         }
-        return null;
+        directory.setStringValue("tbSyncIcon", "dav" + icon);
+        */
+
+        return directory;
     }
 }
 
@@ -508,7 +525,7 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
         let url = dav.tools.parseUri(baseUrl + this.folderData.getFolderProperty("href") + (dav.sync.prefSettings.getBoolPref("enforceUniqueCalendarUrls") ? "?" + this.folderData.accountID : ""));
         this.folderData.setFolderProperty("url", url.spec);
 
-        //check if that calendar already exists
+        // Check if that calendar already exists.
         let cals = calManager.getCalendars({});
         let newCalendar = null;
         let found = false;
@@ -540,7 +557,7 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
 
         if (this.folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
 
-        // Setup password for CalDAV calendar, so users do not get prompted (ICS urls do not need a password)
+        // Setup password for CalDAV calendar, so users do not get prompted (ICS urls do not need a password).
         if (caltype == "caldav") {
             TbSync.dump("Searching CalDAV authRealm for", url.host);
             let connectionData = new dav.network.ConnectionData(this.folderData);
@@ -549,8 +566,13 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
             let realm = connectionData.realm || "";
             if (realm !== "") {
                 TbSync.dump("Adding CalDAV password", "User <"+authData.username+">, Realm <"+realm+">");
-                //manually create a CalDAV style entry in the password manager
-                TbSync.passwordManager.updateLoginInfo(url.prePath, realm, /* old */ authData.username, /* new */ authData.username, authData.password);
+                // Manually create a CalDAV style entry in the password manager.
+                TbSync.passwordManager.updateLoginInfo(
+                    url.prePath, realm, 
+                    /* old */ authData.username, 
+                    /* new */ authData.username, 
+                    authData.password
+                );
             }
         }
 
