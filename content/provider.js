@@ -414,7 +414,7 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
             return directory;
         }
 
-        let directory = getDirectory(url.spec);
+        let directory = getDirectory(url);
         if (!directory || !(directory instanceof Components.interfaces.nsIAbDirectory)) {
             return null;
         }
