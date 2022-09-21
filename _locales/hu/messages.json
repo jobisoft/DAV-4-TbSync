@@ -263,12 +263,6 @@
     "pref.generaloptions": {
         "message": "Általános beállítások"
     },
-    "pref.syncGroups": {
-        "message": "Névjegycsoportok szinkronizálása Thunderbird listákként"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "MEGJEGYZÉS: A 1522453-as TB hiba miatt a TbSyncnek hamis e-mail-címeket kell hozzáadnia minden olyan névjegyhez, amely csoport részét képezi, de nem rendelkezik e-mail-címmel. Ezek a hamis e-mail címek nem kerülnek szinkronizálásra a kiszolgálóval."
-    },
     "pref.useCalendarCache": {
         "message": "Kapcsolat nélküli munka"
     },

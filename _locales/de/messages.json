@@ -263,12 +263,6 @@
     "pref.generaloptions": {
         "message": "Allgemeine Optionen"
     },
-    "pref.syncGroups": {
-        "message": "Kontaktgruppen als Thunderbird-Listen synchronisieren"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "Hinweis: Auf Grund von TB bug 1522453 muss TbSync allen Kontakten eine Dummy-E-Mail-Adresse hinzufügen, die Teil einer Gruppen sind, die jedoch keine E-Mail-Adresse haben. Diese Dummy-E-Mail-Adresse wird nicht mit dem Server synchronisiert."
-    },
     "pref.useCalendarCache": {
         "message": "Offline-Unterstützung"
     },

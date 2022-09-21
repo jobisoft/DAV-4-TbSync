@@ -263,12 +263,6 @@
     "pref.generaloptions": {
         "message": "Opzioni generali"
     },
-    "pref.syncGroups": {
-        "message": "Sincronizza i gruppi di contatti come elenchi di Thunderbird"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "NOTA: a causa del bug TB 1522453, TbSync deve aggiungere indirizzi email fittizi a tutti i contatti, che fanno parte di gruppi ma non hanno un indirizzo email associato. Questi indirizzi email fittizi non sono sincronizzati con il server."
-    },
     "pref.useCalendarCache": {
         "message": "Supporto non in linea"
     },

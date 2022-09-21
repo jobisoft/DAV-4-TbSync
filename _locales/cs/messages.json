@@ -263,12 +263,6 @@
     "pref.generaloptions": {
         "message": "Obecné nastavení"
     },
-    "pref.syncGroups": {
-        "message": "Synchronizovat skupiny kontaktů jako seznamy Thunderbird"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "POZNÁMKA: Kvůli chybě TB 1522453 musí TbSync přidat do všech kontaktů falešné e-mailové adresy, které jsou součástí skupin, ale nemají přiřazenou e-mailovou adresu. Tyto falešné e-mailové adresy nejsou synchronizovány se serverem."
-    },
     "pref.useCalendarCache": {
         "message": "Podpora offline režimu"
     },

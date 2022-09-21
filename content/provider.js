@@ -160,7 +160,6 @@ var Base = class {
             "user" : "",
             "https" : true, //deprecated, because this is part of the URL now
             "createdWithProviderVersion" : "0",
-            "syncGroups" : false,
             }; 
         return row;
     }
@@ -630,12 +629,12 @@ var StandardFolderList = class {
         return {
             label: TbSync.getString("acl.readwrite::"+acls.join(", "), "dav"),
             disabled: (acl & 0x7) != 0x7,
-        }             
+        }
     }
 }
 
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/sync.js", this, "UTF-8");
-Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/abUI.js", this, "UTF-8");
+//Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/abUI.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/tools.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/network.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/vcard/vcard.js", this, "UTF-8");

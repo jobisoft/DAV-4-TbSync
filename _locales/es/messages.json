@@ -263,12 +263,6 @@
     "pref.generaloptions": {
         "message": "Opciones generales"
     },
-    "pref.syncGroups": {
-        "message": "Sincronizar grupos de contactos como listas de Thunderbird"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "NOTA: Debido al error 1522453 de Thunderbird, TbSync tiene que añadir direcciones de correo electrónico ficticias a todos los contactos que forman parte de un grupo sin tener asociada una dirección de correo electrónico. Estas direcciones ficticias no se sincronizan con el servidor."
-    },
     "pref.useCalendarCache": {
         "message": "Se puede usar sin conexión"
     },

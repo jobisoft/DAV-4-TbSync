@@ -263,12 +263,6 @@
     "pref.generaloptions": {
         "message": "Opcje ogólne"
     },
-    "pref.syncGroups": {
-        "message": "Synchronizuj grupy kontaktów jako listy Thunderbird"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "UWAGA: Z powodu błędu TB 1522453, TbSync musi dodać fikcyjne adresy e-mail do wszystkich kontaktów, które są częścią grup, ale nie mają powiązanego adresu e-mail. Te fałszywe adresy e-mail nie są synchronizowane z serwerem."
-    },
     "pref.useCalendarCache": {
         "message": "Wsparcie Offline"
     },
