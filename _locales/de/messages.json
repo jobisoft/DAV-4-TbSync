@@ -320,6 +320,9 @@
     "status.non-carddav-addrbook": {
         "message": "Dies ist ein älteres TbSync-CardDAV Adressbuch, welches nicht mehr synchronisiert werden kann. Bitte deaktivieren und reaktivieren Sie dieses Adressbuch, um ein neues Thunderbird-CardDAV Adressbuch anzulegen."
     },
+    "helplink.non-carddav-addrbook": {
+        "message": "https://github.com/jobisoft/DAV-4-TbSync/wiki/Since-Thunderbird-102,-TbSync-DAV-is-using-native-CardDAV-sync"
+    },
     "syncstate.eval.folders": {
         "message": "Verarbeite Ordnerliste"
     },
