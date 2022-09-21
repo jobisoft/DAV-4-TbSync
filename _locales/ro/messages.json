@@ -1,30 +1,30 @@
 {
     "abCard.ContactDetails": {
-        "message": "Contact properties (CardDAV)"
+        "message": "Proprietăți de contact (CardDAV)"
     },
     "abCard.EmailAddresses": {
-        "message": "E-mail addresses"
+        "message": "Adresele de poştă electronică"
     },
     "abCard.MiddleName": {
-        "message": "Middle:"
+        "message": "Mijlociu:"
     },
     "abCard.Phone": {
-        "message": "Phone numbers"
+        "message": "Numere de telefon"
     },
     "abCard.PrefixName": {
         "message": "Prefix:"
     },
     "abCard.SuffixName": {
-        "message": "Suffix:"
+        "message": "Sufix:"
     },
     "abCard.emailtypes.car": {
-        "message": "Car"
+        "message": "Maşină"
     },
     "abCard.emailtypes.cell": {
-        "message": "Mobile"
+        "message": "Mobil"
     },
     "abCard.emailtypes.description": {
-        "message": "The first e-mail address in the list will be used as the primary e-mail address."
+        "message": "Prima adresă de e-mail din listă va fi utilizată ca adresă de e-mail principală."
     },
     "abCard.emailtypes.fax": {
         "message": "Fax"
