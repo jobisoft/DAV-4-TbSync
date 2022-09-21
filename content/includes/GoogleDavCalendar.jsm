@@ -315,7 +315,7 @@ GoogleDavCalendar.prototype = {
         this.restoreCalendarProperties(itemData);
         this.setProperty("currentStatus", Cr.NS_OK);
         if (this.mHaveScheduling || this.hasAutoScheduling || this.hasFreeBusy) {
-          cal.getFreeBusyService().addProvider(this);
+          cal.freeBusyService.addProvider(this);
         }
       } else {
         let itemDataArray = itemData.split("\u001A");
@@ -1002,9 +1002,7 @@ GoogleDavCalendar.prototype = {
    * @param path Path of the item to delete, must not be encoded
    */
   async deleteTargetCalendarItem(path) {
-    let pcal = cal.async.promisifyCalendar(this.mOfflineStorage);
-
-    let foundItem = (await pcal.getItem(this.mHrefIndex[path]))[0];
+    let foundItem = (await cal.getItem(this.mHrefIndex[path]))[0];
     let wasInboxItem = this.mItemInfoCache[foundItem.id].isInboxItem;
     if ((wasInboxItem && this.isInbox(path)) || (wasInboxItem === false && !this.isInbox(path))) {
       cal.LOG("CalDAV: deleting item: " + path + ", uid: " + foundItem.id);
@@ -1013,7 +1011,7 @@ GoogleDavCalendar.prototype = {
       if (this.isCached) {
         this.mOfflineStorage.deleteMetaData(foundItem.id);
       }
-      await pcal.deleteItem(foundItem);
+      await cal.deleteItem(foundItem);
     }
   },
 
@@ -1277,7 +1275,7 @@ GoogleDavCalendar.prototype = {
   },
 
   firstInRealm() {
-    let calendars = cal.getCalendarManager().getCalendars();
+    let calendars = cal.manager.getCalendars();
     for (let i = 0; i < calendars.length; i++) {
       if (calendars[i].type != "tbSyncCalDav" || calendars[i].getProperty("disabled")) {
         continue;
@@ -1675,7 +1673,7 @@ GoogleDavCalendar.prototype = {
             // This may have already been set by fetchCachedMetaData, we only want to add
             // the freebusy provider once.
             this.hasFreeBusy = true;
-            cal.getFreeBusyService().addProvider(this);
+            cal.freeBusyService.addProvider(this);
           }
           this.findPrincipalNS(aChangeLogListener);
         } else {

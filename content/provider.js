@@ -633,7 +633,7 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
     }
 
     async createCalendar(newname) {
-        let calManager = TbSync.lightning.cal.getCalendarManager();
+        let calManager = TbSync.lightning.cal.manager;
         let authData = dav.network.getAuthData(this.folderData.accountData);
       
         let caltype = this.folderData.getFolderProperty("type");

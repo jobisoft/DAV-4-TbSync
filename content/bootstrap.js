@@ -30,10 +30,10 @@ let onInitDoneObserver = {
           let { GoogleDavCalendar } = ChromeUtils.import(
             "chrome://dav4tbsync/content/includes/GoogleDavCalendar.jsm"
           );
-          if (cal.getCalendarManager().wrappedJSObject.hasCalendarProvider("tbSyncCalDav")) {
-            cal.getCalendarManager().wrappedJSObject.unregisterCalendarProvider("tbSyncCalDav", true);
+          if (cal.manager.wrappedJSObject.hasCalendarProvider("tbSyncCalDav")) {
+            cal.manager.wrappedJSObject.unregisterCalendarProvider("tbSyncCalDav", true);
           }
-          cal.getCalendarManager().wrappedJSObject.registerCalendarProvider("tbSyncCalDav", GoogleDavCalendar);    
+          cal.manager.wrappedJSObject.registerCalendarProvider("tbSyncCalDav", GoogleDavCalendar);    
           await TbSync.providers.loadProvider(extension, "dav", "chrome://dav4tbsync/content/provider.js");
         }
     }
