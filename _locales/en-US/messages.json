@@ -323,6 +323,9 @@
     "status.success.managed-by-thunderbird": {
         "message": "Ok"
     },
+    "status.non-carddav-addrbook": {
+        "message": "This is an older TbSync-CardDAV address book, which cannot be synced anymore. Disable and re-enable the address book, to create a fresh Thunderbird-CardDAV address book."
+    },
     "syncstate.eval.folders": {
         "message": "Updating folder list"
     },
