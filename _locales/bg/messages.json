@@ -149,15 +149,6 @@
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
     },
-    "add.serverprofile.google": {
-        "message": "Гугъл"
-    },
-    "add.serverprofile.google.description": {
-        "message": "https://accounts.google.com"
-    },
-    "add.serverprofile.google.details1": {
-        "message": "Гугъл използва съвременен подход за удостоверяване без потребителско име и парола. След като изберете „Напред >“, ще се пръкне джам. Влезте чрез него в Гугъл и позволете на “Provider for CalDAV & CardDAV” достъп до данните ви."
-    },
     "add.serverprofile.icloud": {
         "message": "iCloud"
     },

@@ -149,15 +149,6 @@
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
     },
-    "add.serverprofile.google": {
-        "message": "Google"
-    },
-    "add.serverprofile.google.description": {
-        "message": "https://accounts.google.com"
-    },
-    "add.serverprofile.google.details1": {
-        "message": "Google používá moderní metodu ověřování a TbSync nepotřebuje znát vaše uživatelské jméno nebo heslo. Po kliknutí na tlačítko 'Další >' se otevře okno prohlížeče, kde se můžete přihlásit do svého účtu Google a povolit \"poskytovateli pro CalDAV & CardDAV\" přístup k vašim kontaktům a kalendářům."
-    },
     "add.serverprofile.icloud": {
         "message": "iCloud"
     },

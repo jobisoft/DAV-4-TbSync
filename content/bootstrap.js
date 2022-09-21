@@ -14,7 +14,7 @@ var { cal } = ChromeUtils.import("resource:///modules/calendar/calUtils.jsm");
 let component = {};
 
 let onInitDoneObserver = {
-    observe: async function (aSubject, aTopic, aData) {        
+    observe: async function (aSubject, aTopic, aData) {
         let valid = false;
         try {
             var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
@@ -25,15 +25,6 @@ let onInitDoneObserver = {
         
         //load this provider add-on into TbSync
         if (valid) {
-          Cu.unload("chrome://dav4tbsync/content/includes/GoogleDavCalendar.jsm");
-          Cu.unload("chrome://dav4tbsync/content/includes/GoogleDavSession.jsm");
-          let { GoogleDavCalendar } = ChromeUtils.import(
-            "chrome://dav4tbsync/content/includes/GoogleDavCalendar.jsm"
-          );
-          if (cal.manager.wrappedJSObject.hasCalendarProvider("tbSyncCalDav")) {
-            cal.manager.wrappedJSObject.unregisterCalendarProvider("tbSyncCalDav", true);
-          }
-          cal.manager.wrappedJSObject.registerCalendarProvider("tbSyncCalDav", GoogleDavCalendar);    
           await TbSync.providers.loadProvider(extension, "dav", "chrome://dav4tbsync/content/provider.js");
         }
     }

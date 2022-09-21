@@ -149,15 +149,6 @@
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
     },
-    "add.serverprofile.google": {
-        "message": "Google"
-    },
-    "add.serverprofile.google.description": {
-        "message": "https://accounts.google.com"
-    },
-    "add.serverprofile.google.details1": {
-        "message": "A Google egy modern hitelesítési módot használ, így a TbSyncnek nem kell tudja a felhasználónevét vagy jelszavát. A „Következő >” gombra kattintás után egy böngészőablak fog megjelenni, ahol bejelentkezhet a Google-fiókjába és engedélyezheti, hogy a „CalDAV és CardDAV-szolgáltató” elérje a névjegyeit és naptárait."
-    },
     "add.serverprofile.icloud": {
         "message": "iCloud"
     },

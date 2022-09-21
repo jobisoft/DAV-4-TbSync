@@ -149,15 +149,6 @@
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
     },
-    "add.serverprofile.google": {
-        "message": "Google"
-    },
-    "add.serverprofile.google.description": {
-        "message": "https://accounts.google.com"
-    },
-    "add.serverprofile.google.details1": {
-        "message": "O Google usa um método moderno de autenticação e o TbSync não precisa saber seu nome de usuário nem sua senha. Depois de clicar em 'Avançar>', uma janela do navegador será aberta, onde você poderá fazer login na sua conta do Google e permitir que o 'Provider for CalDAV & CardDAV' acesse seus contatos e calendários."
-    },
     "add.serverprofile.icloud": {
         "message": "iCloud"
     },

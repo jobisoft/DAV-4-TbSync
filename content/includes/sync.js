@@ -68,7 +68,6 @@ var sync = {
         "fruux" : {revision: 1, icon: "fruux", caldav: "https://dav.fruux.com", carddav: "https://dav.fruux.com"},
         "mbo" : {revision: 1, icon: "mbo", caldav: "caldav6764://mailbox.org", carddav: "carddav6764://mailbox.org"},
         "icloud" : {revision: 1, icon: "icloud", caldav: "https://caldav.icloud.com", carddav: "https://contacts.icloud.com"},
-        "google" : {revision: 1, icon: "google", caldav: "https://apidata.googleusercontent.com/caldav/v2/", carddav: "https://www.googleapis.com/.well-known/carddav"},
         "gmx.net" : {revision: 1, icon: "gmx", caldav: "caldav6764://gmx.net", carddav: "carddav6764://gmx.net"},
         "gmx.com" : {revision: 1, icon: "gmx", caldav: "caldav6764://gmx.com", carddav: "carddav6764://gmx.com"},
         "posteo" : {revision: 1, icon: "posteo", caldav: "https://posteo.de:8443", carddav: "posteo.de:8843"},
@@ -486,8 +485,7 @@ var sync = {
     remoteChanges: async function (syncData) {
         //Do we have a sync token? No? -> Initial Sync (or WebDAV sync not supported) / Yes? -> Get updates only (token only present if WebDAV sync is suported)
         let token = syncData.currentFolderData.getFolderProperty("token");
-        let isGoogle = (syncData.accountData.getAccountProperty("serviceprovider") == "google");
-        if (token && !isGoogle) {
+        if (token) {
             //update via token sync
             let tokenSyncSucceeded = await dav.sync.remoteChangesByTOKEN(syncData);
             if (tokenSyncSucceeded) return;
