@@ -233,7 +233,7 @@ var sync = {
                 for (let h=0; h < home.length; h++) {
                     syncData.setSyncState("send.getfolders");
                     let request = (job == "cal")
-                                            ? "<d:propfind "+dav.tools.xmlns(["d","apple","cs"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /><apple:calendar-color/><cs:source/></d:prop></d:propfind>"
+                                            ? "<d:propfind "+dav.tools.xmlns(["d","apple","cs","cal"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /><apple:calendar-color/><cs:source/><cal:supported-calendar-component-set/></d:prop></d:propfind>"
                                             : "<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:current-user-privilege-set/><d:resourcetype /><d:displayname /></d:prop></d:propfind>";
 
                     //some servers report to have calendar-proxy-read but return a 404 when that gets actually queried
@@ -293,6 +293,7 @@ var sync = {
                             name = name_node.textContent;
                         }
                         let color = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["apple","calendar-color"]]);
+                        let supportedCalComponent = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cal","supported-calendar-component-set"]]);
 
                         //remove found folder from list of unhandled folders
                         unhandledFolders[resourcetype] = unhandledFolders[resourcetype].filter(item => item.getFolderProperty("href") !== href);
@@ -311,6 +312,12 @@ var sync = {
                             folderData.setFolderProperty("href", href);
                             folderData.setFolderProperty("foldername", name);
                             folderData.setFolderProperty("type", resourcetype);
+                            if (supportedCalComponent) {
+                                supportedCalComponent = Array.from(supportedCalComponent.children, e => e.getAttribute("name"));
+                            } else {
+                                supportedCalComponent = [];
+                            }
+                            folderData.setFolderProperty("supportedCalComponent", supportedCalComponent);
                             folderData.setFolderProperty("shared", !own.includes(home[h]));
                             folderData.setFolderProperty("acl", acl.toString());
                             folderData.setFolderProperty("downloadonly", (acl == 0x1)); //if any write access is granted, setup as writeable

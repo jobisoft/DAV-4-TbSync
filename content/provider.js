@@ -189,6 +189,7 @@ var Base = class {
             "ctag" : "",
             "token" : "",
             "createdWithProviderVersion" : "0",
+            "supportedCalComponent" : []
             };
         return folder;
     }
@@ -233,18 +234,20 @@ var Base = class {
         let toBeSorted = [];
         for (let folder of folders) {
             let t = 100;
+            let comp = folder.getFolderProperty("supportedCalComponent");
             switch (folder.getFolderProperty("type")) {
                 case "carddav": 
                     t+=0; 
                     break;
                 case "caldav": 
-                    t+=1; 
+                    t+=10; 
+                    if (comp.length == 1 && comp.includes("VTODO")) t+=5;
                     break;
                 case "ics": 
-                    t+=2; 
+                    t+=20; 
                     break;
                 default:
-                    t+=9;
+                    t+=90;
                     break;
             }
 
@@ -556,6 +559,13 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
         }
 
         if (this.folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
+        
+        let comp = this.folderData.getFolderProperty("supportedCalComponent");
+        if (comp.length == 1 && comp.includes("VTODO")) {
+            newCalendar.setProperty("capabilities.events.supported", false);
+        } else if (comp.length == 1 && comp.includes("VEVENT")) {
+            newCalendar.setProperty("capabilities.tasks.supported", false);
+        }
 
         // Setup password for CalDAV calendar, so users do not get prompted (ICS urls do not need a password).
         if (caltype == "caldav") {
@@ -615,10 +625,15 @@ var StandardFolderList = class {
                     return "chrome://tbsync/content/skin/contacts16.png";
                 }
             case "caldav":
+                let comp = folderData.getFolderProperty("supportedCalComponent");
                 if (folderData.getFolderProperty("shared")) {
-                    return "chrome://tbsync/content/skin/calendar16_shared.png";
+                    return (comp.length == 1 && comp.includes("VTODO"))
+                        ? "chrome://tbsync/content/skin/todo16_shared.png"
+                        : "chrome://tbsync/content/skin/calendar16_shared.png"
                 } else {
-                    return "chrome://tbsync/content/skin/calendar16.png";
+                    return (comp.length == 1 && comp.includes("VTODO"))
+                        ? "chrome://tbsync/content/skin/todo16.png"
+                        : "chrome://tbsync/content/skin/calendar16.png"
                 }
             case "ics":
                 return "chrome://dav4tbsync/content/skin/ics16.png";
