@@ -149,15 +149,6 @@
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
     },
-    "add.serverprofile.google": {
-        "message": "Google"
-    },
-    "add.serverprofile.google.description": {
-        "message": "https://accounts.google.com"
-    },
-    "add.serverprofile.google.details1": {
-        "message": "Google usa un método de autenticación avanzado, y TbSync no necesita saber su nombre de usuario o su contraseña. Cuando haga clic en «Siguiente >», se abrirá una ventana del navegador en la que podrá iniciar sesión y conceder a «Proveedor de CalDAV y CardDAV» acceso a sus contactos y calendarios."
-    },
     "add.serverprofile.icloud": {
         "message": "iCloud"
     },
@@ -272,12 +263,6 @@
     "pref.generaloptions": {
         "message": "Opciones generales"
     },
-    "pref.syncGroups": {
-        "message": "Sincronizar grupos de contactos como listas de Thunderbird"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "NOTA: Debido al error 1522453 de Thunderbird, TbSync tiene que añadir direcciones de correo electrónico ficticias a todos los contactos que forman parte de un grupo sin tener asociada una dirección de correo electrónico. Estas direcciones ficticias no se sincronizan con el servidor."
-    },
     "pref.useCalendarCache": {
         "message": "Se puede usar sin conexión"
     },
@@ -329,8 +314,14 @@
     "status.softerror": {
         "message": "Error no fatal (##replace.1##)"
     },
-    "status.success.managed-by-lightning": {
-        "message": "Lightning"
+    "status.success.managed-by-thunderbird": {
+        "message": "Ok"
+    },
+    "status.non-carddav-addrbook": {
+        "message": "This is an older TbSync-CardDAV address book, which cannot be synced anymore. Disable and re-enable the address book, to create a fresh Thunderbird-CardDAV address book."
+    },
+    "helplink.non-carddav-addrbook": {
+        "message": "https://github.com/jobisoft/DAV-4-TbSync/wiki/Since-Thunderbird-102,-TbSync-DAV-is-using-native-CardDAV-sync"
     },
     "syncstate.eval.folders": {
         "message": "Actualizando la lista de carpetas"
