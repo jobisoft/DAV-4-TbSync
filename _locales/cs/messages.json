@@ -149,15 +149,6 @@
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
     },
-    "add.serverprofile.google": {
-        "message": "Google"
-    },
-    "add.serverprofile.google.description": {
-        "message": "https://accounts.google.com"
-    },
-    "add.serverprofile.google.details1": {
-        "message": "Google používá moderní metodu ověřování a TbSync nepotřebuje znát vaše uživatelské jméno nebo heslo. Po kliknutí na tlačítko 'Další >' se otevře okno prohlížeče, kde se můžete přihlásit do svého účtu Google a povolit \"poskytovateli pro CalDAV & CardDAV\" přístup k vašim kontaktům a kalendářům."
-    },
     "add.serverprofile.icloud": {
         "message": "iCloud"
     },
@@ -272,12 +263,6 @@
     "pref.generaloptions": {
         "message": "Obecné nastavení"
     },
-    "pref.syncGroups": {
-        "message": "Synchronizovat skupiny kontaktů jako seznamy Thunderbird"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "POZNÁMKA: Kvůli chybě TB 1522453 musí TbSync přidat do všech kontaktů falešné e-mailové adresy, které jsou součástí skupin, ale nemají přiřazenou e-mailovou adresu. Tyto falešné e-mailové adresy nejsou synchronizovány se serverem."
-    },
     "pref.useCalendarCache": {
         "message": "Podpora offline režimu"
     },
@@ -329,8 +314,14 @@
     "status.softerror": {
         "message": "Nekritická chyba (##replace.1##)"
     },
-    "status.success.managed-by-lightning": {
-        "message": "Lightning"
+    "status.success.managed-by-thunderbird": {
+        "message": "Ok"
+    },
+    "status.non-carddav-addrbook": {
+        "message": "This is an older TbSync-CardDAV address book, which cannot be synced anymore. Disable and re-enable the address book, to create a fresh Thunderbird-CardDAV address book."
+    },
+    "helplink.non-carddav-addrbook": {
+        "message": "https://github.com/jobisoft/DAV-4-TbSync/wiki/Since-Thunderbird-102,-TbSync-DAV-is-using-native-CardDAV-sync"
     },
     "syncstate.eval.folders": {
         "message": "Aktualizace seznamu složek"
