@@ -106,8 +106,6 @@ var tbSyncDavNewAccount = {
         this.serviceproviderlist.appendChild(this.addProviderEntry("sabredav32.png", "discovery"));
         this.serviceproviderlist.appendChild(this.addProviderEntry("sabredav32.png", "custom"));
         for (let p in dav.sync.serviceproviders) {
-            if (p == "google" && !dav.sync.prefSettings.getBoolPref("googlesupport"))
-                continue;
             this.serviceproviderlist.appendChild(this.addProviderEntry(dav.sync.serviceproviders[p].icon +"32.png", p));
         }
         
@@ -337,10 +335,6 @@ var tbSyncDavNewAccount = {
             document.getElementById("tbsync.newaccount.wizard").canAdvance = !(
                                                                                 (this.accountname == "") ||
                                                                                 (this.calDavServer + this.cardDavServer == ""));
-        } else if (this.serviceprovider == "google") {
-            // google does not need a password field and also no username
-            document.getElementById("tbsync.newaccount.wizard").canAdvance = !(
-                                                                                (this.accountname == ""));
         } else {
             // build in service providers do need a username and password
             document.getElementById("tbsync.newaccount.wizard").canAdvance = !(
@@ -389,9 +383,9 @@ var tbSyncDavNewAccount = {
         
 
         //which server fields to show?
-        document.getElementById("tbsync.newaccount.finaluser.row").hidden = (this.serviceprovider == "google");
-        document.getElementById("tbsync.newaccount.user.row").hidden = (this.serviceprovider == "google");
-        document.getElementById("tbsync.newaccount.password.row").hidden = (this.serviceprovider == "google");
+        document.getElementById("tbsync.newaccount.finaluser.row").hidden = false;
+        document.getElementById("tbsync.newaccount.user.row").hidden = false;
+        document.getElementById("tbsync.newaccount.password.row").hidden = false;
 
         if (this.serviceprovider == "discovery") {
             document.getElementById("tbsync.newaccount.caldavserver.row").hidden = true;
@@ -442,9 +436,6 @@ var tbSyncDavNewAccount = {
             this.calDavServer = scheme + "caldav6764://" + host;
             this.cardDavServer = scheme + "carddav6764://" + host;
             this.validateDavServers();
-        } else if (this.serviceprovider == "google") {
-            // do not verify, just prompt for permissions
-            this.promptForOAuth();            
         } else {
             // custom or service provider
             this.validateDavServers();
@@ -453,32 +444,6 @@ var tbSyncDavNewAccount = {
         event.preventDefault();
     },
      
-    promptForOAuth: async function() {
-        this.lockUI("validating");
-        let oauthData = dav.network.getOAuthObj(this.calDavServer, { username: this.username, accountname: this.accountname });
-        if (oauthData) {
-            let rv = {};
-            if (await oauthData.asyncConnect(rv)) {
-                this.password = rv.tokens;
-                this.finalCalDavServer = this.calDavServer;
-                this.finalCardDavServer = this.cardDavServer;
-                this.finalUsername = this.username;
-                this.validated = true;
-                this.unlockUI();
-                this.advance();
-                return;
-            } else {
-                document.getElementById("tbsync.error.message").textContent = TbSync.getString("status." + rv.error, "dav");
-                document.getElementById("tbsync.error").hidden = false;
-                this.unlockUI();                
-                return;
-            }
-        }    
-        document.getElementById("tbsync.error.message").textContent = TbSync.getString("status.OAuthNetworkError", "dav");
-        document.getElementById("tbsync.error").hidden = false;
-        this.unlockUI();                
-    },
-    
     validateDavServers: async function() {
         this.lockUI("validating");
       

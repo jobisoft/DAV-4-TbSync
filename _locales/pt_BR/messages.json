@@ -149,15 +149,6 @@
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
     },
-    "add.serverprofile.google": {
-        "message": "Google"
-    },
-    "add.serverprofile.google.description": {
-        "message": "https://accounts.google.com"
-    },
-    "add.serverprofile.google.details1": {
-        "message": "O Google usa um método moderno de autenticação e o TbSync não precisa saber seu nome de usuário nem sua senha. Depois de clicar em 'Avançar>', uma janela do navegador será aberta, onde você poderá fazer login na sua conta do Google e permitir que o 'Provider for CalDAV & CardDAV' acesse seus contatos e calendários."
-    },
     "add.serverprofile.icloud": {
         "message": "iCloud"
     },
@@ -272,12 +263,6 @@
     "pref.generaloptions": {
         "message": "Opções Gerais"
     },
-    "pref.syncGroups": {
-        "message": "Sincronizar grupos de contatos como listas do Thunderbird"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "NOTA: Devido ao bug do Thunderbird 1522453, o TbSync deverá adicionar endereços de e-mail fictícios a todos os contatos, que fazem parte de grupos, mas não têm um endereço de e-mail associado. Esses endereços de email fictícios não são sincronizados com o servidor."
-    },
     "pref.useCalendarCache": {
         "message": "Suporte Offline"
     },
@@ -329,8 +314,8 @@
     "status.softerror": {
         "message": "Erro não fatal (##replace.1##)"
     },
-    "status.success.managed-by-lightning": {
-        "message": "Lightning"
+    "status.success.managed-by-thunderbird": {
+        "message": "Ok"
     },
     "syncstate.eval.folders": {
         "message": "Atualizando lista de pastas"

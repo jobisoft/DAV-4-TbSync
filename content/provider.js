@@ -27,27 +27,9 @@ var Base = class {
         branch.setIntPref("timeout", 90000);
         branch.setCharPref("clientID.type", "TbSync");
         branch.setCharPref("clientID.useragent", "Thunderbird CalDAV/CardDAV");
-        branch.setBoolPref("googlesupport", false);    
         branch.setBoolPref("enforceUniqueCalendarUrls", false);    
-        branch.setCharPref("OAuth2_ClientID", "689460414096-e4nddn8tss5c59glidp4bc0qpeu3oper.apps.googleusercontent.com");
-        branch.setCharPref("OAuth2_ClientSecret", "LeTdF3UEpCvP1V3EBygjP-kl");
 
         dav.openWindows = {};
-
-        let providerData = new TbSync.ProviderData("dav");   
-        dav.overlayManager = new OverlayManager(providerData.extension, {verbose: 0});
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xhtml", "chrome://dav4tbsync/content/overlays/abNewCardWindow.xhtml");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xhtml", "chrome://dav4tbsync/content/overlays/abCardWindow.xhtml");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abEditCardDialog.xhtml", "chrome://dav4tbsync/content/overlays/abCardWindow.xhtml");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xhtml", "chrome://dav4tbsync/content/overlays/addressbookoverlay.xhtml");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xhtml", "chrome://dav4tbsync/content/overlays/addressbookdetailsoverlay.xhtml");
-
-        // The abCSS.xul overlay is just adding a CSS file.
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/messengercompose/messengercompose.xhtml", "chrome://dav4tbsync/content/overlays/abCSS.xhtml");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/abNewCardDialog.xhtml", "chrome://dav4tbsync/content/overlays/abCSS.xhtml");
-        await dav.overlayManager.registerOverlay("chrome://messenger/content/addressbook/addressbook.xhtml", "chrome://dav4tbsync/content/overlays/abCSS.xhtml");
-
-        dav.overlayManager.startObserving();
     }
 
 
@@ -55,8 +37,6 @@ var Base = class {
      * Called during unload of external provider extension to unload provider.
      */
     static async unload() {
-        dav.overlayManager.stopObserving();	
-
         // Close all open windows of this provider.
         for (let id in dav.openWindows) {
           if (dav.openWindows.hasOwnProperty(id)) {
@@ -81,7 +61,7 @@ var Base = class {
     /**
      * Returns version of the TbSync API this provider is using
      */
-    static getApiVersion() { return "2.4"; }
+    static getApiVersion() { return "2.5"; }
 
 
 
@@ -180,7 +160,6 @@ var Base = class {
             "user" : "",
             "https" : true, //deprecated, because this is part of the URL now
             "createdWithProviderVersion" : "0",
-            "syncGroups" : false,
             }; 
         return row;
     }
@@ -210,6 +189,7 @@ var Base = class {
             "ctag" : "",
             "token" : "",
             "createdWithProviderVersion" : "0",
+            "supportedCalComponent" : []
             };
         return folder;
     }
@@ -243,117 +223,6 @@ var Base = class {
 
 
     /**
-     * Implement this method, if this provider should add additional entries
-     * to the autocomplete list while typing something into the address field
-     * of the message composer.
-     */
-    static async abAutoComplete(accountData, currentQuery)  {
-        /**
-         * Encode the string passed as value into an addressbook search term.
-         * The '(' and ')' characters are special for the addressbook
-         * search query language, but are not escaped in encodeURIComponent()
-         * so must be done manually on top of it.
-         */
-        function encodeABTermValue(aString) {
-            return encodeURIComponent(aString)
-                .replace(/\(/g, "%28")
-                .replace(/\)/g, "%29");
-        }        
-        
-        let modelQuery = "";
-        for (let attr of ["NickName", "FirstName", "LastName", "DisplayName", "PrimaryEmail", "SecondEmail", "X-DAV-JSON-Emails","ListName"]) {
-            modelQuery += "("+attr+",c,@V)"
-        }
-        modelQuery = "(or"+modelQuery+")";
-
-        // Instead of using accountData.getAllFolders() to get all folders of this account
-        // and then request and check the targets of each, we simply run over all address
-        // books and check for the directory property "tbSyncAccountID".
-        let entries = [];
-        let allAddressBooks = MailServices.ab.directories;
-        let fullString = currentQuery && currentQuery.trim().toLocaleLowerCase();
-
-        // If the search string is empty, or contains a comma, then just return
-        // no matches
-        // The comma check is so that we don't autocomplete against the user
-        // entering multiple addresses.
-        if (!fullString || fullString.includes(",")) {
-            return entries;
-        }
-
-        // Array of all the terms from the fullString search query
-        // check 
-        //   https://searchfox.org/comm-central/source/mailnews/addrbook/src/AbAutoCompleteSearch.jsm#460
-        // for quoted terms in search
-        let searchWords = fullString.split(" ");
-        let searchQuery = "";
-        searchWords.forEach(
-            searchWord => (searchQuery += modelQuery.replace(/@V/g, encodeABTermValue(searchWord)))
-        );
-
-        // searchQuery has all the (or(...)) searches, link them up with (and(...)).
-        searchQuery = "(and" + searchQuery + ")";
-        
-        for (let abook of allAddressBooks) {
-            if (abook instanceof Components.interfaces.nsIAbDirectory) { // or nsIAbItem or nsIAbCollection
-                if (TbSync.addressbook.getStringValue(abook, "tbSyncAccountID","") == accountData.accountID) {
-                    let cards = await TbSync.addressbook.searchDirectory(abook.URI, searchQuery)
-                    for (let card of cards) {                        
-                        if (card.isMailList) {
-
-                            entries.push({
-                                value: card.getProperty("DisplayName", "") + " <"+ card.getProperty("DisplayName", "") +">", 
-                                comment: "",
-                                icon: dav.Base.getProviderIcon(16, accountData),
-                                // https://bugzilla.mozilla.org/show_bug.cgi?id=1653213
-                                style: "dav4tbsync-abook",
-                                popularityIndex: parseInt(card.getProperty("PopularityIndex", "0")),
-                            });
-                        
-                        } else {                        
-                        
-                            let emailData = [];
-                            try {
-                                emailData = JSON.parse(card.getProperty("X-DAV-JSON-Emails","[]").trim());
-                            } catch (e) {
-                                //Components.utils.reportError(e);                
-                            }
-                            for (let i = 0; i < emailData.length; i++) { 
-                                entries.push({
-                                    value: card.getProperty("DisplayName", [card.getProperty("FirstName",""), card.getProperty("LastName","")].join(" ")) + " <"+emailData[i].value+">", 
-                                    comment: emailData[i].meta
-                                                        .filter(entry => ["PREF","HOME","WORK"].includes(entry))
-                                                        .map(entry => entry.toUpperCase() != "PREF" ? entry.toUpperCase() : entry.toLowerCase()).sort()
-                                                        .map(entry => TbSync.getString("autocomplete." + entry.toUpperCase() , "dav"))
-                                                        .join(", "),
-                                    icon: dav.Base.getProviderIcon(16, accountData),
-                                    // https://bugzilla.mozilla.org/show_bug.cgi?id=1653213
-                                    style: "dav4tbsync-abook",				    
-                                    popularityIndex: parseInt(card.getProperty("PopularityIndex", "0")),
-                                });
-                            }
-                            
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Sort the results.
-        entries.sort(function(a, b) {
-          // Order by 1) descending popularity,
-          // then 2) by value (DisplayName) sorted alphabetically.
-          return (
-            b.popularityIndex - a.popularityIndex ||
-            a.value.localeCompare(b.value)
-          );
-        });
-
-        return entries;
-    }
-
-
-    /**
      * Returns all folders of the account, sorted in the desired order.
      * The most simple implementation is to return accountData.getAllFolders();
      */
@@ -365,18 +234,20 @@ var Base = class {
         let toBeSorted = [];
         for (let folder of folders) {
             let t = 100;
+            let comp = folder.getFolderProperty("supportedCalComponent");
             switch (folder.getFolderProperty("type")) {
                 case "carddav": 
                     t+=0; 
                     break;
                 case "caldav": 
-                    t+=1; 
+                    t+=10; 
+                    if (comp.length > 0 && !comp.includes("VEVENT") && comp.includes("VTODO")) t+=5;
                     break;
                 case "ics": 
-                    t+=2; 
+                    t+=20; 
                     break;
                 default:
-                    t+=9;
+                    t+=90;
                     break;
             }
 
@@ -447,14 +318,6 @@ var Base = class {
         // in that function, which have the StatusData obj attached, which
         // should be returned.
 
-        // Limit auto sync rate, if google
-        let isGoogle = (syncData.accountData.getAccountProperty("serviceprovider") == "google");
-        let isDefaultGoogleApp = (Services.prefs.getDefaultBranch("extensions.dav4tbsync.").getCharPref("OAuth2_ClientID") == dav.sync.prefSettings.getCharPref("OAuth2_ClientID"));
-        if (isGoogle && isDefaultGoogleApp && syncData.accountData.getAccountProperty("autosync") > 0 && syncData.accountData.getAccountProperty("autosync") < 30) {
-            syncData.accountData.setAccountProperty("autosync", 30);
-            TbSync.eventlog.add("warning", syncData.eventLogInfo, "Lowering sync interval to 30 minutes to reduce google request rate on standard TbSync Google APP (limited to 2.000.000 requests per day).");
-        }
-
         // Process a single folder.
         try {
             await dav.sync.folder(syncData);
@@ -487,20 +350,9 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
         super(folderData);
     }
   
-    // define a card property, which should be used for the changelog
-    // basically your primary key for the abItem properties
-    // UID will be used, if nothing specified
-    get primaryKeyField() {
-        return "X-DAV-HREF"
-    }
-
-    generatePrimaryKey() {
-        return this.folderData.getFolderProperty("href") + TbSync.generateUUID() + ".vcf";
-    }
-        
     // enable or disable changelog
     get logUserChanges() {
-        return true;
+        return false;
     }
 
     directoryObserver(aTopic) {
@@ -516,19 +368,10 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
         switch (aTopic) {
             case "addrbook-contact-updated":
             case "addrbook-contact-deleted":
-                //Services.console.logStringMessage("["+ aTopic + "] " + abCardItem.getProperty("DisplayName"));
-                break;
-
             case "addrbook-contact-created":
-            {
-                //Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for Card <"+ abCardItem.getProperty("DisplayName")+">");
-                abCardItem.setProperty("X-DAV-UID", TbSync.generateUUID());
-                // the card is tagged with "_by_user" so it will not be changed to "_by_server" by the following modify
-                abCardItem.abDirectory.modifyItem(abCardItem);
+                    //Services.console.logStringMessage("["+ aTopic + "] " + abCardItem.getProperty("DisplayName"));
                 break;
-            }
         }
-        dav.sync.onChange(abCardItem);
     }
 
     listObserver(aTopic, abListItem, abListMember) {
@@ -545,35 +388,74 @@ var TargetData_addressbook = class extends TbSync.addressbook.AdvancedTargetData
             
             case "addrbook-list-created": 
                 //Services.console.logStringMessage("["+ aTopic + "] Created new X-DAV-UID for List <"+abListItem.getProperty("ListName")+">");
-                abListItem.setProperty("X-DAV-UID", TbSync.generateUUID());
-                // custom props of lists get updated directly, no need to call .modify()            
                 break;
         }
-        dav.sync.onChange(abListItem);
     }
 
     async createAddressbook(newname) {
-        // https://searchfox.org/comm-central/source/mailnews/addrbook/src/nsDirPrefs.h
-        let dirPrefId = MailServices.ab.newAddressBook(newname, "", 101);
-        let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
-      
-        dav.sync.resetFolderSyncInfo(this.folderData);
+        let authData = dav.network.getAuthData(this.folderData.accountData);
         
-        if (directory && directory instanceof Components.interfaces.nsIAbDirectory && directory.dirPrefId == dirPrefId) {
-            let serviceprovider = this.folderData.accountData.getAccountProperty("serviceprovider");
-            let icon = "custom";
-            if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
-                icon = dav.sync.serviceproviders[serviceprovider].icon;
+        let baseUrl =  "http" + (this.folderData.getFolderProperty("https") ? "s" : "") + "://" + this.folderData.getFolderProperty("fqdn");
+        let url = dav.tools.parseUri(baseUrl + this.folderData.getFolderProperty("href") + (dav.sync.prefSettings.getBoolPref("enforceUniqueCalendarUrls") ? "?" + this.folderData.accountID : ""));
+        this.folderData.setFolderProperty("url", url.spec);
+
+        const getDirectory = (url) => {
+            // Check if that directory exists already.
+            for (let ab of MailServices.ab.directories) {
+                if (ab.dirType == Ci.nsIAbManager.CARDDAV_DIRECTORY_TYPE && ab.getStringValue("carddav.url","") == url.spec) {
+                    return ab;
+                }
             }
-            directory.setStringValue("tbSyncIcon", "dav" + icon);
-            
-            // Disable AutoComplete, so we can have full control over the auto completion of our own directories.
-            // Implemented by me in https://bugzilla.mozilla.org/show_bug.cgi?id=1546425
-            directory.setBoolValue("enable_autocomplete", false);
-            
+            let dirPrefId = MailServices.ab.newAddressBook(
+                newname,
+                null,
+                Ci.nsIAbManager.CARDDAV_DIRECTORY_TYPE,
+                null
+              );
+            let directory = MailServices.ab.getDirectoryFromId(dirPrefId);
+            directory.setStringValue("carddav.url", url.spec);
             return directory;
         }
-        return null;
+
+        let directory = getDirectory(url);
+        if (!directory || !(directory instanceof Components.interfaces.nsIAbDirectory)) {
+            return null;
+        }
+        
+        // Setup password for CardDAV address book, so users do not get prompted.
+        directory.setStringValue("carddav.username", authData.username);
+        if (this.folderData.getFolderProperty("downloadonly")) {
+            directory.setBoolValue("readOnly", true);
+        }
+        TbSync.dump("Searching CardDAV authRealm for", url.host);
+        let connectionData = new dav.network.ConnectionData(this.folderData);
+        await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>", url.spec , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return=minimal"}, {containerRealm: "setup", containerReset: true, passwordRetries: 0});
+        
+        let realm = connectionData.realm || "";
+        if (realm !== "") {
+            TbSync.dump("Adding CardDAV password", "User <"+authData.username+">, Realm <"+realm+">");
+            // Manually create a CardDAV style entry in the password manager.
+            TbSync.passwordManager.updateLoginInfo(
+                url.prePath, realm, 
+                /* old */ authData.username, 
+                /* new */ authData.username, 
+                authData.password
+            );
+        }
+
+        dav.sync.resetFolderSyncInfo(this.folderData);
+        
+        /*
+        // Since icons are no longer supported, lets disable this for 102.
+        let serviceprovider = this.folderData.accountData.getAccountProperty("serviceprovider");
+        let icon = "custom";
+        if (dav.sync.serviceproviders.hasOwnProperty(serviceprovider)) {
+            icon = dav.sync.serviceproviders[serviceprovider].icon;
+        }
+        directory.setStringValue("tbSyncIcon", "dav" + icon);
+        */
+
+        return directory;
     }
 }
 
@@ -633,23 +515,20 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
     }
 
     async createCalendar(newname) {
-        let calManager = TbSync.lightning.cal.getCalendarManager();
+        let calManager = TbSync.lightning.cal.manager;
         let authData = dav.network.getAuthData(this.folderData.accountData);
       
         let caltype = this.folderData.getFolderProperty("type");
-        let isGoogle = (this.folderData.accountData.getAccountProperty("serviceprovider") == "google");
 
         let baseUrl = "";
-        if (isGoogle) {
-            baseUrl =  "http" + (this.folderData.getFolderProperty("https") ? "s" : "") + "://" + this.folderData.accountID + "@" + this.folderData.getFolderProperty("fqdn");
-        } else if (caltype == "caldav") {
+        if (caltype == "caldav") {
             baseUrl =  "http" + (this.folderData.getFolderProperty("https") ? "s" : "") + "://" + this.folderData.getFolderProperty("fqdn");
         }
 
         let url = dav.tools.parseUri(baseUrl + this.folderData.getFolderProperty("href") + (dav.sync.prefSettings.getBoolPref("enforceUniqueCalendarUrls") ? "?" + this.folderData.accountID : ""));
         this.folderData.setFolderProperty("url", url.spec);
 
-        //check if that calendar already exists
+        // Check if that calendar already exists.
         let cals = calManager.getCalendars({});
         let newCalendar = null;
         let found = false;
@@ -665,9 +544,9 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
         if (found) {
             newCalendar.setProperty("username", authData.username);
             newCalendar.setProperty("color", this.folderData.getFolderProperty("targetColor"));
-            newCalendar.name = newname;                
+            newCalendar.name = newname;
         } else {
-            newCalendar = calManager.createCalendar((isGoogle ? "tbSyncCalDav" : caltype), url); //tbSyncCalDav, caldav or ics
+            newCalendar = calManager.createCalendar(caltype, url); // caldav or ics
             newCalendar.id = TbSync.lightning.cal.getUUID();
             newCalendar.name = newname;
 
@@ -680,18 +559,31 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
         }
 
         if (this.folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
+        
+        let comp = this.folderData.getFolderProperty("supportedCalComponent");
+        if (comp.length > 0 && !comp.includes("VTODO")) {
+            newCalendar.setProperty("capabilities.tasks.supported", false);
+        }
+        if (comp.length > 0 && !comp.includes("VEVENT")) {
+            newCalendar.setProperty("capabilities.events.supported", false);
+        }
 
-        // Setup password for Lightning calendar, so users do not get prompted (ICS and google urls do not need a password)
-        if (caltype == "caldav" && !isGoogle) {
+        // Setup password for CalDAV calendar, so users do not get prompted (ICS urls do not need a password).
+        if (caltype == "caldav") {
             TbSync.dump("Searching CalDAV authRealm for", url.host);
             let connectionData = new dav.network.ConnectionData(this.folderData);
-            let response = await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>", url.spec , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return=minimal"}, {containerRealm: "setup", containerReset: true, passwordRetries: 0});
+            await dav.network.sendRequest("<d:propfind "+dav.tools.xmlns(["d"])+"><d:prop><d:resourcetype /><d:displayname /></d:prop></d:propfind>", url.spec , "PROPFIND", connectionData, {"Depth": "0", "Prefer": "return=minimal"}, {containerRealm: "setup", containerReset: true, passwordRetries: 0});
             
             let realm = connectionData.realm || "";
             if (realm !== "") {
-                TbSync.dump("Adding Lightning password", "User <"+authData.username+">, Realm <"+realm+">");
-                //manually create a lightning style entry in the password manager
-                TbSync.passwordManager.updateLoginInfo(url.prePath, realm, /* old */ authData.username, /* new */ authData.username, authData.password);
+                TbSync.dump("Adding CalDAV password", "User <"+authData.username+">, Realm <"+realm+">");
+                // Manually create a CalDAV style entry in the password manager.
+                TbSync.passwordManager.updateLoginInfo(
+                    url.prePath, realm, 
+                    /* old */ authData.username, 
+                    /* new */ authData.username, 
+                    authData.password
+                );
             }
         }
 
@@ -734,10 +626,15 @@ var StandardFolderList = class {
                     return "chrome://tbsync/content/skin/contacts16.png";
                 }
             case "caldav":
+                let comp = folderData.getFolderProperty("supportedCalComponent");
                 if (folderData.getFolderProperty("shared")) {
-                    return "chrome://tbsync/content/skin/calendar16_shared.png";
+                    return (comp.length > 0 && comp.includes("VTODO") && !comp.includes("VEVENT"))
+                        ? "chrome://tbsync/content/skin/todo16_shared.png"
+                        : "chrome://tbsync/content/skin/calendar16_shared.png"
                 } else {
-                    return "chrome://tbsync/content/skin/calendar16.png";
+                    return (comp.length > 0 && comp.includes("VTODO") && !comp.includes("VEVENT"))
+                        ? "chrome://tbsync/content/skin/todo16.png"
+                        : "chrome://tbsync/content/skin/calendar16.png"
                 }
             case "ics":
                 return "chrome://dav4tbsync/content/skin/ics16.png";
@@ -785,12 +682,10 @@ var StandardFolderList = class {
         return {
             label: TbSync.getString("acl.readwrite::"+acls.join(", "), "dav"),
             disabled: (acl & 0x7) != 0x7,
-        }             
+        }
     }
 }
 
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/sync.js", this, "UTF-8");
-Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/abUI.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/tools.js", this, "UTF-8");
 Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/network.js", this, "UTF-8");
-Services.scriptloader.loadSubScript("chrome://dav4tbsync/content/includes/vcard/vcard.js", this, "UTF-8");

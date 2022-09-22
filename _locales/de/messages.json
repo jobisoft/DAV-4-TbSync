@@ -149,15 +149,6 @@
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
     },
-    "add.serverprofile.google": {
-        "message": "Google"
-    },
-    "add.serverprofile.google.description": {
-        "message": "https://accounts.google.com"
-    },
-    "add.serverprofile.google.details1": {
-        "message": "Google verwendet eine moderne Authentifizierungsmethode und TbSync muss weder Ihren Benutzernamen noch Ihr Passwort kennen. Nachdem Sie auf 'Weiter >' geklickt haben, wird sich ein Browserfenster öffnen, indem Sie sich an Ihrem Google-Konto anmelden können und dem 'Provider for CalDAV & CardDAV' Zugriff auf Ihre Kontakte und Kalender erlauben können."
-    },
     "add.serverprofile.icloud": {
         "message": "iCloud"
     },
@@ -272,12 +263,6 @@
     "pref.generaloptions": {
         "message": "Allgemeine Optionen"
     },
-    "pref.syncGroups": {
-        "message": "Kontaktgruppen als Thunderbird-Listen synchronisieren"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "Hinweis: Auf Grund von TB bug 1522453 muss TbSync allen Kontakten eine Dummy-E-Mail-Adresse hinzufügen, die Teil einer Gruppen sind, die jedoch keine E-Mail-Adresse haben. Diese Dummy-E-Mail-Adresse wird nicht mit dem Server synchronisiert."
-    },
     "pref.useCalendarCache": {
         "message": "Offline-Unterstützung"
     },
@@ -329,8 +314,14 @@
     "status.softerror": {
         "message": "Ignorierter Fehler (##replace.1##)"
     },
-    "status.success.managed-by-lightning": {
-        "message": "Lightning"
+    "status.success.managed-by-thunderbird": {
+        "message": "Ok"
+    },
+    "status.non-carddav-addrbook": {
+        "message": "Dies ist ein älteres TbSync-CardDAV Adressbuch, welches nicht mehr synchronisiert werden kann. Bitte deaktivieren und reaktivieren Sie dieses Adressbuch, um ein neues Thunderbird-CardDAV Adressbuch anzulegen."
+    },
+    "helplink.non-carddav-addrbook": {
+        "message": "https://github.com/jobisoft/DAV-4-TbSync/wiki/Since-Thunderbird-102,-TbSync-DAV-is-using-native-CardDAV-sync"
     },
     "syncstate.eval.folders": {
         "message": "Verarbeite Ordnerliste"

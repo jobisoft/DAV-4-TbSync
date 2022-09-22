@@ -149,15 +149,6 @@
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
     },
-    "add.serverprofile.google": {
-        "message": "Google"
-    },
-    "add.serverprofile.google.description": {
-        "message": "https://accounts.google.com"
-    },
-    "add.serverprofile.google.details1": {
-        "message": "Google stosuje nowoczesną metodę uwierzytelniania i TbSync nie musi znać Twojej nazwy użytkownika ani hasła. Po kliknięciu 'Dalej >' otworzy się okno przeglądarki, w którym możesz zalogować się na swoje konto Google i zezwolić 'Provider for CalDAV & CardDAV' na dostęp do twoich kontaktów i kalendarzy."
-    },
     "add.serverprofile.icloud": {
         "message": "iCloud"
     },
@@ -272,12 +263,6 @@
     "pref.generaloptions": {
         "message": "Opcje ogólne"
     },
-    "pref.syncGroups": {
-        "message": "Synchronizuj grupy kontaktów jako listy Thunderbird"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "UWAGA: Z powodu błędu TB 1522453, TbSync musi dodać fikcyjne adresy e-mail do wszystkich kontaktów, które są częścią grup, ale nie mają powiązanego adresu e-mail. Te fałszywe adresy e-mail nie są synchronizowane z serwerem."
-    },
     "pref.useCalendarCache": {
         "message": "Wsparcie Offline"
     },
@@ -329,8 +314,8 @@
     "status.softerror": {
         "message": "Błąd niekrytyczny (##replace.1##)"
     },
-    "status.success.managed-by-lightning": {
-        "message": "Lightning"
+    "status.success.managed-by-thunderbird": {
+        "message": "Ok"
     },
     "syncstate.eval.folders": {
         "message": "Aktualizowanie listy folderów"

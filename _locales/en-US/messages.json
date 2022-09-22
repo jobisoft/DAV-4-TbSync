@@ -149,15 +149,6 @@
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
     },
-    "add.serverprofile.google": {
-        "message": "Google"
-    },
-    "add.serverprofile.google.description": {
-        "message": "https://accounts.google.com"
-    },
-    "add.serverprofile.google.details1": {
-        "message": "Google uses a modern authentication method and TbSync does not need to know your username or your password. After clicking 'Next >', a browser window will be opened, where you can log into your Google account and allow the 'Provider for CalDAV & CardDAV' to access your contacts and calendars."
-    },
     "add.serverprofile.icloud": {
         "message": "iCloud"
     },
@@ -272,12 +263,6 @@
     "pref.generaloptions": {
         "message": "General options"
     },
-    "pref.syncGroups": {
-        "message": "Sync contact groups as Thunderbird lists"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "NOTE: Due to TB bug 1522453, TbSync must add dummy e-mail addresses to all contacts, which are part of groups but do not have an e-mail address associated. These dummy e-mail addresses are not synced to server."
-    },
     "pref.useCalendarCache": {
         "message": "Offline Support"
     },
@@ -329,8 +314,14 @@
     "status.softerror": {
         "message": "Non fatal error (##replace.1##)"
     },
-    "status.success.managed-by-lightning": {
-        "message": "Lightning"
+    "status.success.managed-by-thunderbird": {
+        "message": "Ok"
+    },
+    "status.non-carddav-addrbook": {
+        "message": "This is an older TbSync-CardDAV address book, which cannot be synced anymore. Disable and re-enable the address book, to create a fresh Thunderbird-CardDAV address book."
+    },
+    "helplink.non-carddav-addrbook": {
+        "message": "https://github.com/jobisoft/DAV-4-TbSync/wiki/Since-Thunderbird-102,-TbSync-DAV-is-using-native-CardDAV-sync"
     },
     "syncstate.eval.folders": {
         "message": "Updating folder list"

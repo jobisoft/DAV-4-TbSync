@@ -149,15 +149,6 @@
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
     },
-    "add.serverprofile.google": {
-        "message": "Google"
-    },
-    "add.serverprofile.google.description": {
-        "message": "https://accounts.google.com"
-    },
-    "add.serverprofile.google.details1": {
-        "message": "A Google egy modern hitelesítési módot használ, így a TbSyncnek nem kell tudja a felhasználónevét vagy jelszavát. A „Következő >” gombra kattintás után egy böngészőablak fog megjelenni, ahol bejelentkezhet a Google-fiókjába és engedélyezheti, hogy a „CalDAV és CardDAV-szolgáltató” elérje a névjegyeit és naptárait."
-    },
     "add.serverprofile.icloud": {
         "message": "iCloud"
     },
@@ -272,12 +263,6 @@
     "pref.generaloptions": {
         "message": "Általános beállítások"
     },
-    "pref.syncGroups": {
-        "message": "Névjegycsoportok szinkronizálása Thunderbird listákként"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "MEGJEGYZÉS: A 1522453-as TB hiba miatt a TbSyncnek hamis e-mail-címeket kell hozzáadnia minden olyan névjegyhez, amely csoport részét képezi, de nem rendelkezik e-mail-címmel. Ezek a hamis e-mail címek nem kerülnek szinkronizálásra a kiszolgálóval."
-    },
     "pref.useCalendarCache": {
         "message": "Kapcsolat nélküli munka"
     },
@@ -329,8 +314,8 @@
     "status.softerror": {
         "message": "Nem végzetes hiba (##replace.1##)"
     },
-    "status.success.managed-by-lightning": {
-        "message": "Lightning"
+    "status.success.managed-by-thunderbird": {
+        "message": "Ok"
     },
     "syncstate.eval.folders": {
         "message": "Mappalista frissítése"
