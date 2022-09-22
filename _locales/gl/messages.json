@@ -149,15 +149,6 @@
     "add.serverprofile.gmx.net.description": {
         "message": "https://www.gmx.net"
     },
-    "add.serverprofile.google": {
-        "message": "Google"
-    },
-    "add.serverprofile.google.description": {
-        "message": "https://accounts.google.com"
-    },
-    "add.serverprofile.google.details1": {
-        "message": "Google usa o método de autenticación moderna e TbSync non precisa coñecer o teu nome de usuario e contrasinal. Despois de premer en 'Seguinte>' abrirase unha ventá do navegador na que podes acceder á túa conta de Google e dar permisos para que o \"Provedor de CalDAV e CardDAV\" acceda aos teus contactos e calendarios."
-    },
     "add.serverprofile.icloud": {
         "message": "iCloud"
     },
@@ -272,12 +263,6 @@
     "pref.generaloptions": {
         "message": "Opcións xerais"
     },
-    "pref.syncGroups": {
-        "message": "Sincronizar os grupos de contactos como listas de Thunderbird"
-    },
-    "pref.syncGroupsDescription": {
-        "message": "NOTA: Debido ao erro 1522453 de TB, TbSync ten que engadir enderezos de correo ficticios a todos os contactos que forman parte dos grupos pero que non teñen un enderezo de correo asociado. Estes enderezos ficticios non se sincronizan co servidor."
-    },
     "pref.useCalendarCache": {
         "message": "Soporte sen conexión"
     },
@@ -329,8 +314,14 @@
     "status.softerror": {
         "message": "Erro non fatal (##replace.1##)"
     },
-    "status.success.managed-by-lightning": {
-        "message": "Lightning"
+    "status.success.managed-by-thunderbird": {
+        "message": "Ok"
+    },
+    "status.non-carddav-addrbook": {
+        "message": "This is an older TbSync-CardDAV address book, which cannot be synced anymore. Disable and re-enable the address book, to create a fresh Thunderbird-CardDAV address book."
+    },
+    "helplink.non-carddav-addrbook": {
+        "message": "https://github.com/jobisoft/DAV-4-TbSync/wiki/Since-Thunderbird-102,-TbSync-DAV-is-using-native-CardDAV-sync"
     },
     "syncstate.eval.folders": {
         "message": "Actualizando a lista de cartafois"
