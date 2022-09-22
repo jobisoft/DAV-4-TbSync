@@ -241,7 +241,7 @@ var Base = class {
                     break;
                 case "caldav": 
                     t+=10; 
-                    if (comp.length == 1 && comp.includes("VTODO")) t+=5;
+                    if (comp.length > 0 && !comp.includes("VEVENT") && comp.includes("VTODO")) t+=5;
                     break;
                 case "ics": 
                     t+=20; 
@@ -561,10 +561,11 @@ var TargetData_calendar = class extends TbSync.lightning.AdvancedTargetData {
         if (this.folderData.getFolderProperty("downloadonly")) newCalendar.setProperty("readOnly", true);
         
         let comp = this.folderData.getFolderProperty("supportedCalComponent");
-        if (comp.length == 1 && comp.includes("VTODO")) {
-            newCalendar.setProperty("capabilities.events.supported", false);
-        } else if (comp.length == 1 && comp.includes("VEVENT")) {
+        if (comp.length > 0 && !comp.includes("VTODO")) {
             newCalendar.setProperty("capabilities.tasks.supported", false);
+        }
+        if (comp.length > 0 && !comp.includes("VEVENT")) {
+            newCalendar.setProperty("capabilities.events.supported", false);
         }
 
         // Setup password for CalDAV calendar, so users do not get prompted (ICS urls do not need a password).
@@ -627,11 +628,11 @@ var StandardFolderList = class {
             case "caldav":
                 let comp = folderData.getFolderProperty("supportedCalComponent");
                 if (folderData.getFolderProperty("shared")) {
-                    return (comp.length == 1 && comp.includes("VTODO"))
+                    return (comp.length > 0 && comp.includes("VTODO") && !comp.includes("VEVENT"))
                         ? "chrome://tbsync/content/skin/todo16_shared.png"
                         : "chrome://tbsync/content/skin/calendar16_shared.png"
                 } else {
-                    return (comp.length == 1 && comp.includes("VTODO"))
+                    return (comp.length > 0 && comp.includes("VTODO") && !comp.includes("VEVENT"))
                         ? "chrome://tbsync/content/skin/todo16.png"
                         : "chrome://tbsync/content/skin/calendar16.png"
                 }

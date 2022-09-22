@@ -294,6 +294,15 @@ var sync = {
                         }
                         let color = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["apple","calendar-color"]]);
                         let supportedCalComponent = dav.tools.evaluateNode(response.multi[r].node, [["d","prop"], ["cal","supported-calendar-component-set"]]);
+                        if (supportedCalComponent) {
+                            supportedCalComponent = Array.from(supportedCalComponent.children, e => e.getAttribute("name"));
+                        } else {
+                            supportedCalComponent = [];
+                        }
+                        if (job == "cal" && supportedCalComponent.length > 0 && !supportedCalComponent.includes("VTODO") && !supportedCalComponent.includes("VEVENT")) {
+                            // This does not seem to be a valid resource.
+                            continue;
+                        }
 
                         //remove found folder from list of unhandled folders
                         unhandledFolders[resourcetype] = unhandledFolders[resourcetype].filter(item => item.getFolderProperty("href") !== href);
@@ -312,11 +321,6 @@ var sync = {
                             folderData.setFolderProperty("href", href);
                             folderData.setFolderProperty("foldername", name);
                             folderData.setFolderProperty("type", resourcetype);
-                            if (supportedCalComponent) {
-                                supportedCalComponent = Array.from(supportedCalComponent.children, e => e.getAttribute("name"));
-                            } else {
-                                supportedCalComponent = [];
-                            }
                             folderData.setFolderProperty("supportedCalComponent", supportedCalComponent);
                             folderData.setFolderProperty("shared", !own.includes(home[h]));
                             folderData.setFolderProperty("acl", acl.toString());
