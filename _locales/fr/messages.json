@@ -315,10 +315,10 @@
         "message": "Erreur non critique (##replace.1##)"
     },
     "status.success.managed-by-thunderbird": {
-        "message": "Ok"
+        "message": "OK"
     },
     "status.non-carddav-addrbook": {
-        "message": "This is an older TbSync-CardDAV address book, which cannot be synced anymore. Disable and re-enable the address book, to create a fresh Thunderbird-CardDAV address book."
+        "message": "Ceci est un carnet d'adresses CardDAV issu d'une ancienne version de Tbsync et qui ne peut plus être synchronisé. Désactivez et réactivez le carnet d'adresses pour créer un nouveau carnet d'adresses CardDAV, utilisant la fonctionnalité intégrée dans Thunberbird."
     },
     "helplink.non-carddav-addrbook": {
         "message": "https://github.com/jobisoft/DAV-4-TbSync/wiki/Since-Thunderbird-102,-TbSync-DAV-is-using-native-CardDAV-sync"
