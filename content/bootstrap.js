@@ -35,15 +35,9 @@ function startup(data, reason)  {
     // Possible reasons: APP_STARTUP, ADDON_ENABLE, ADDON_INSTALL, ADDON_UPGRADE, or ADDON_DOWNGRADE.
 
     Services.obs.addObserver(onInitDoneObserver, "tbsync.observer.initialized", false);
-     
-    // The startup of TbSync is delayed until all add-ons have called their startup(),
-    // so all providers have registered the "tbsync.observer.initialized" observer.
-    // Once TbSync has finished its startup, all providers will be notified (also if
-    // TbSync itself is restarted) to load themself.
-    // If this is not startup, we need load manually.
-    if (reason != APP_STARTUP) {
-        onInitDoneObserver.observe();
-    }
+
+    // Did we miss the observer?
+    onInitDoneObserver.observe();
 }
 
 function shutdown(data, reason)  {
