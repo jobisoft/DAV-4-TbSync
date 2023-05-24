@@ -317,6 +317,12 @@
     "status.success.managed-by-thunderbird": {
         "message": "Ok"
     },
+    "status.non-carddav-addrbook": {
+        "message": "Toto je starší adresář TbSync-CardDAV, který již nelze synchronizovat. Zakažte a znovu povolte adresář, pro vytvoření nového adresáře Thunderbird-CardDAV."
+    },
+    "helplink.non-carddav-addrbook": {
+        "message": "https://github.com/jobisoft/DAV-4-TbSync/wiki/Since-Thunderbird-102,-TbSync-DAV-is-using-native-CardDAV-sync"
+    },
     "syncstate.eval.folders": {
         "message": "Aktualizace seznamu složek"
     },

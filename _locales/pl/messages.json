@@ -317,6 +317,12 @@
     "status.success.managed-by-thunderbird": {
         "message": "Ok"
     },
+    "status.non-carddav-addrbook": {
+        "message": "To jest starsza książka adresowa TbSync-CardDAV, która nie może być już synchronizowana. Wyłącz i ponownie włącz książkę adresową, aby stworzyć nową książkę adresową Thunderbird-CardDAV."
+    },
+    "helplink.non-carddav-addrbook": {
+        "message": "https://github.com/jobisoft/DAV-4-TbSync/wiki/Since-Thunderbird-102,-TbSync-DAV-is-using-native-CardDAV-sync"
+    },
     "syncstate.eval.folders": {
         "message": "Aktualizowanie listy folderów"
     },
