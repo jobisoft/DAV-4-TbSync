@@ -2,12 +2,13 @@
   "applications": {
     "gecko": {
       "id": "dav4tbsync@jobisoft.de",
-      "strict_min_version": "91.0a1"
+      "strict_min_version": "102.3.0",
+      "strict_max_version": "115.*"
     }
   },
   "manifest_version": 2,
   "name": "__MSG_extensionName__",
-  "version": "2.0.2",
+  "version": "4.5",
   "author": "John Bieling",
   "homepage_url": "https://github.com/jobisoft/DAV-4-TbSync/",
   "default_locale": "en-US",
@@ -18,6 +19,9 @@
   "background": {
     "scripts": ["background.js"]
   },
+  "permissions": [
+    "notifications"
+  ],
   "experiment_apis": {
     "BootstrapLoader": {
       "schema": "content/api/BootstrapLoader/schema.json",

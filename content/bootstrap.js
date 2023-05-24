@@ -14,7 +14,7 @@ var { cal } = ChromeUtils.import("resource:///modules/calendar/calUtils.jsm");
 let component = {};
 
 let onInitDoneObserver = {
-    observe: async function (aSubject, aTopic, aData) {        
+    observe: async function (aSubject, aTopic, aData) {
         let valid = false;
         try {
             var { TbSync } = ChromeUtils.import("chrome://tbsync/content/tbsync.jsm");
@@ -25,15 +25,6 @@ let onInitDoneObserver = {
         
         //load this provider add-on into TbSync
         if (valid) {
-          Cu.unload("chrome://dav4tbsync/content/includes/GoogleDavCalendar.jsm");
-          Cu.unload("chrome://dav4tbsync/content/includes/GoogleDavSession.jsm");
-          let { GoogleDavCalendar } = ChromeUtils.import(
-            "chrome://dav4tbsync/content/includes/GoogleDavCalendar.jsm"
-          );
-          if (cal.getCalendarManager().wrappedJSObject.hasCalendarProvider("tbSyncCalDav")) {
-            cal.getCalendarManager().wrappedJSObject.unregisterCalendarProvider("tbSyncCalDav", true);
-          }
-          cal.getCalendarManager().wrappedJSObject.registerCalendarProvider("tbSyncCalDav", GoogleDavCalendar);    
           await TbSync.providers.loadProvider(extension, "dav", "chrome://dav4tbsync/content/provider.js");
         }
     }
@@ -44,15 +35,9 @@ function startup(data, reason)  {
     // Possible reasons: APP_STARTUP, ADDON_ENABLE, ADDON_INSTALL, ADDON_UPGRADE, or ADDON_DOWNGRADE.
 
     Services.obs.addObserver(onInitDoneObserver, "tbsync.observer.initialized", false);
-     
-    // The startup of TbSync is delayed until all add-ons have called their startup(),
-    // so all providers have registered the "tbsync.observer.initialized" observer.
-    // Once TbSync has finished its startup, all providers will be notified (also if
-    // TbSync itself is restarted) to load themself.
-    // If this is not startup, we need load manually.
-    if (reason != APP_STARTUP) {
-        onInitDoneObserver.observe();
-    }
+
+    // Did we miss the observer?
+    onInitDoneObserver.observe();
 }
 
 function shutdown(data, reason)  {
