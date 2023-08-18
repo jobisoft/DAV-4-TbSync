@@ -12,20 +12,21 @@
     <script type="application/javascript" src="chrome://dav4tbsync/content/manager/createAccount.js" />
     <script type="application/javascript" src="chrome://dav4tbsync/content/locales.js" />
 
-    <wizard title="__DAV4TBSYNCMSG_add.title__" id="tbsync.newaccount.wizard">
+    <wizard title="__DAV4TBSYNCMSG_add.title__" id="tbsync.newaccount.wizard" >
 
         <wizardpage id="firstPage" onFirstPage="true" label="__DAV4TBSYNCMSG_add.serverprofile.title__">
             <vbox flex="1">
-                <description style="width: 450px; margin-top:1em;">__DAV4TBSYNCMSG_add.serverprofile.description__
+                <description style="width: auto; margin-top:1em;">__DAV4TBSYNCMSG_add.serverprofile.description__
                 </description>
-                <richlistbox id="tbsync.newaccount.serviceproviderlist" flex="1" seltype="single" style="margin-top:1ex"
-                    onselect="tbSyncDavNewAccount.clearValues();" ondblclick="tbSyncDavNewAccount.advance()" />
+                <richlistbox id="tbsync.newaccount.serviceproviderlist" seltype="single"
+                    style="width: auto; height: 400px; margin-top:1ex" onselect="tbSyncDavNewAccount.clearValues();"
+                    ondblclick="tbSyncDavNewAccount.advance()" />
             </vbox>
         </wizardpage>
 
         <wizardpage id="secondPage" label="__DAV4TBSYNCMSG_add.data.title__">
             <vbox flex="1">
-                <description style="width: 450px; margin-top:1em;">__DAV4TBSYNCMSG_add.data.description__</description>
+                <description style="width: auto; margin-top:1em;">__DAV4TBSYNCMSG_add.data.description__</description>
                 <html:table style="margin-top:1ex">
                     <html:tr id="tbsync.newaccount.name.row" width="100%">
                         <html:td width="33%">
@@ -84,9 +85,9 @@
                 </html:table>
                 <label class="header" id="tbsync.newaccount.details.header" value="__DAV4TBSYNCMSG_add.data.notes__"
                     style="margin-top:2em" />
-                <description id="tbsync.newaccount.details1" style="width: 450px; margin-top:1ex;"></description>
-                <description id="tbsync.newaccount.details2" style="width: 450px; margin-top:1ex;"></description>
-                <description id="tbsync.newaccount.details3" style="width: 450px; margin-top:1ex;"></description>
+                <description id="tbsync.newaccount.details1" style="width: auto; margin-top:1ex;"></description>
+                <description id="tbsync.newaccount.details2" style="width: auto; margin-top:1ex;"></description>
+                <description id="tbsync.newaccount.details3" style="width: auto; margin-top:1ex;"></description>
                 <vbox flex="1">
                 </vbox>
                 <hbox id="tbsync.spinner">
@@ -94,7 +95,7 @@
                     <image src="chrome://tbsync/content/skin/spinner.gif" style="margin-left:1em" width="16"
                         height="16" />
                 </hbox>
-                <vbox id="tbsync.error" style="width: 450px;">
+                <vbox id="tbsync.error" style="width: auto;">
                     <description id="tbsync.error.message" flex="1" style="font-weight: bold;"></description>
                     <vbox>
                         <button id="tbsync.error.link" label="__DAV4TBSYNCMSG_manager.ShowEventLog__"
@@ -106,7 +107,7 @@
 
         <wizardpage id="thirdPage" label="__DAV4TBSYNCMSG_add.finish.title__">
             <vbox flex="1">
-                <description style="width: 450px; margin-top:1em;">__DAV4TBSYNCMSG_add.finish.description__
+                <description style="width: auto; margin-top:1em;">__DAV4TBSYNCMSG_add.finish.description__
                 </description>
                 <html:table style="margin-top:1ex">
                     <html:tr flex="1">
@@ -147,7 +148,7 @@
                         </html:td>
                     </html:tr>
                 </html:table>
-                <description id="tbsync.finalaccount.details1" style="width: 450px; margin-top:2em;">
+                <description id="tbsync.finalaccount.details1" style="width: auto; margin-top:2em;">
                     __DAV4TBSYNCMSG_add.finish.details__</description>
             </vbox>
         </wizardpage>
