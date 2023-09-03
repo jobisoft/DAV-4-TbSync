@@ -8,7 +8,9 @@
 
 // no need to create namespace, we are in a sandbox
 
-var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
+const Services = globalThis.Services || ChromeUtils.import(
+  "resource://gre/modules/Services.jsm"
+).Services;
 var { cal } = ChromeUtils.import("resource:///modules/calendar/calUtils.jsm");
 
 let component = {};
