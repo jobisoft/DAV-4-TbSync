@@ -1,0 +1,84 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+@font-face {
+  font-family: Zilla Slab;
+  src: url(fonts/ZillaSlab-Bold.ttf); 
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: Inter;
+  src: url(fonts/Inter-Regular.ttf);
+  font-weight: normal;
+}
+
+body, html {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: Inter;
+  color: white;
+}
+
+body {
+  background-image: url(sunset.svg);
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+  background-position: 0 0;
+  width: 50%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+}
+
+h1 {
+  font-size: 4em;
+  text-align: center;
+  font-family: Zilla Slab;
+}
+
+a {
+  color: white;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+#button-box a {
+  border: 1px solid white;
+  border-radius: 7px;
+  color: white;
+  background: transparent;
+  padding: 5px;
+  text-decoration: none;
+}
+
+#button-box a:hover {
+  background: white;
+  color: #65449D;
+}
+
+#button-box {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 5px;
+}
+
+#replacements {
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+#replacements > li {
+  list-style-type: none;
+  margin: 10px;
+}
+.addon-item img {
+  margin-inline-end: 10px;
+  vertical-align: middle;
+}
