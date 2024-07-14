@@ -1,5 +1,0 @@
-commit_message: https://crowdin.com/project/dav-4-tbsync
-files:
-  - source: /_locales/en-US/*
-    translation: /_locales/%osx_locale%/%original_file_name%
-    escape_special_characters: 0
